@@ -10,6 +10,7 @@ import Button from '@material-ui/core/Button';
 // import ButtonGroup from '@material-ui/core/ButtonGroup';
 // import InputBase from '@material-ui/core/InputBase';
 // import SearchIcon from '@material-ui/icons/Search';
+import Link from '@material-ui/core/Link';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 
@@ -126,17 +127,6 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-const formatDate = (dateInput) => {
-  return new Date(dateInput).toLocaleDateString(
-    'en-gb',
-    {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    }
-  );
-}
-
 const formatDateTime = (dateInput) => {
   return new Date(dateInput).toLocaleDateString(
     'en-gb',
@@ -224,7 +214,7 @@ const App = () => {
   }
 
   const [twitterAuthenticated, setTwitterAuthenticated] = useState(false);
-  const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState(false);
+  const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState("");
   const [status, setStatus] = useState(defaultStatus);
   const [currentUser, setCurrentUser] = useState(defaultUser);
   const [previousUser, setPreviousUser] = useState({nodeId: false});
@@ -235,15 +225,24 @@ const App = () => {
     socket.emit("TWITTER_SEARCH_NODE", searchTerm)
   }
 
-  const handleLogin = () => {
+  const handleLoginLogout = () => {
+    if (twitterAuthenticated){
       console.warn(
-      "LOGIN: AUTH: " +
-        statsObj.isAuthenticated +
-        " | URL: " +
-        DEFAULT_AUTH_URL
-    );
-    window.open(DEFAULT_AUTH_URL, "LOGIN", "_new");
-    socket.emit("login", viewerObj);
+        "LOGGING OUT");
+      socket.emit("logout", viewerObj);
+      setTwitterAuthenticated(false)
+      setTwitterAuthenticatedUser("")
+    }
+    else{
+      console.warn(
+        "LOGIN: AUTH: " +
+          twitterAuthenticated +
+          " | URL: " +
+          DEFAULT_AUTH_URL
+      );
+      window.open(DEFAULT_AUTH_URL, "LOGIN", "_new");
+      socket.emit("login", viewerObj);
+    }
   }
 
   const handleUserChange = useCallback((event) => {
@@ -388,7 +387,7 @@ const App = () => {
     if (node.screenName === undefined) return false
     return true
   }
-  
+
   useEffect(() => {
     socket.on("SET_TWITTER_USER", (results) => {
       console.debug("RX SET_TWITTER_USER");
@@ -431,7 +430,7 @@ const App = () => {
 
     });   
      
-  }, [])
+  }, [currentHashtag.text, currentUser, previousUser.nodeId])
 
   useEffect(() => {
     socket.on("connect", ()=>{
@@ -464,7 +463,6 @@ const App = () => {
       console.log("RX TWITTER USER_AUTHENTICATED | USER: @" + userObj.screenName);
     });
   }, []);
-
 
   useHotkeys('right', handleUserChange) // next uncat any
   useHotkeys('left', handleUserChange) // prev uncat any
@@ -503,16 +501,22 @@ const App = () => {
               {status.nodesPerMin} nodes/min (max: {status.maxNodesPerMin} | time: {formatDateTime(status.maxNodesPerMinTime)})
             </Typography>
 
-            <Typography className={classes.twitterAuth}>
-              {twitterAuthenticatedUser ? "@" + twitterAuthenticatedUser : "logged out"}
-            </Typography>
+
+            <Link
+              className={classes.twitterAuth}
+              href={"http://twitter.com/" + twitterAuthenticatedUser}
+              target="_blank"
+              rel="noopener"
+            >
+              {twitterAuthenticatedUser ? "@" + twitterAuthenticatedUser : ""}
+            </Link>
 
             <Button 
               className={classes.buttonLogin}
               variant="contained" 
               color="primary" 
               size="small" 
-              onClick={handleLogin} 
+              onClick={handleLoginLogout} 
               name="login"
               label="login"
             >

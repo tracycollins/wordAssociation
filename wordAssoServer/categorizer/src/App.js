@@ -430,7 +430,7 @@ const App = () => {
 
     });   
      
-  }, [currentHashtag.text, currentUser, previousUser.nodeId])
+  }, [])
 
   useEffect(() => {
     socket.on("connect", ()=>{

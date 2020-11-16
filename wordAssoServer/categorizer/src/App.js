@@ -66,6 +66,11 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
     color: 'blue',
   },
+  serverStatus: {
+    // flexGrow: 1,
+    color: 'gray',
+    padding: theme.spacing(1),
+  },
   twitterAuth: {
     // backgroundColor: 'black',
     color: "gray",
@@ -121,6 +126,30 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
+const formatDate = (dateInput) => {
+  return new Date(dateInput).toLocaleDateString(
+    'en-gb',
+    {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }
+  );
+}
+
+const formatDateTime = (dateInput) => {
+  return new Date(dateInput).toLocaleDateString(
+    'en-gb',
+    {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric'
+    }
+  );
+}
+
 const App = () => {
 
   const classes = useStyles();
@@ -128,7 +157,10 @@ const App = () => {
   const defaultStatus = {
     nodesPerMin: 0, 
     maxNodesPerMin: 0,
-    bestNetworkId: "",
+    maxNodesPerMinTime: 0,
+    bestNetwork: {
+      networkId: ""
+    },
     user: {
       uncategorized: {
         left: 0,
@@ -267,6 +299,7 @@ const App = () => {
           }
           break;
         case "KeyI":
+        case "KeyX":
           if (event.shiftKey){
             eventName = "ignored"
             eventChecked = !currentUser.ignored
@@ -451,6 +484,7 @@ const App = () => {
   useHotkeys('shift+I', (event) => handleUserChange(event), {}, [currentUser])
   useHotkeys('shift+B', (event) => handleUserChange(event), {}, [currentUser])
   useHotkeys('shift+V', (event) => handleUserChange(event), {}, [currentUser])
+  useHotkeys('shift+X', (event) => handleUserChange(event), {}, [currentUser])
 
   return (
     <div className={classes.root}>
@@ -460,6 +494,13 @@ const App = () => {
 
             <Typography variant="h6" className={classes.title}>
               Categorizer
+            </Typography>
+
+            <Typography  className={classes.serverStatus}>
+              NN: {status.bestNetwork.networkId}
+            </Typography>
+            <Typography  className={classes.serverStatus}>
+              {status.nodesPerMin} nodes/min (max: {status.maxNodesPerMin} | time: {formatDateTime(status.maxNodesPerMinTime)})
             </Typography>
 
             <Typography className={classes.twitterAuth}>

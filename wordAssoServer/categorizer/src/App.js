@@ -116,6 +116,7 @@ const App = () => {
         case "ArrowLeft":
           eventName = "all"
           break;
+        case "KeyD":
         case "KeyL":
           if (event.shiftKey){
             eventName = "category"
@@ -306,6 +307,9 @@ const App = () => {
 
   useHotkeys('L', handleUserChange)
   useHotkeys('shift+L', (event) => handleUserChange(event), {}, [currentUser])
+
+  useHotkeys('D', handleUserChange)
+  useHotkeys('shift+D', (event) => handleUserChange(event), {}, [currentUser])
 
   useHotkeys('R', handleUserChange)
   useHotkeys('shift+R', (event) => handleUserChange(event), {}, [currentUser])

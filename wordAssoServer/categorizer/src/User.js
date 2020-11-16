@@ -178,7 +178,7 @@ const User = (props) => {
 
   const tweetRate = twitterAge.days > 0 ? Math.ceil(props.user.statusesCount/twitterAge.days) : 0;
 
-  const [userSearch, setUserSearch] = useState("");
+  const [userSearch, setUserSearch] = useState(props.user.screenName);
 
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)

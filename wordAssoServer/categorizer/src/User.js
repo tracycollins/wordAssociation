@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Timeline } from 'react-twitter-widgets'
 
 import Duration from 'duration';
-// import CircularProgress from '@material-ui/core/CircularProgress';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
@@ -16,7 +15,6 @@ import CardMedia from '@material-ui/core/CardMedia';
 // import CheckBoxIcon from '@material-ui/icons/CheckBox';
 // import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
 import Checkbox from '@material-ui/core/Checkbox';
-import Container from '@material-ui/core/Container';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -214,38 +212,37 @@ const User = (props) => {
   }
 
   return (
-    <div className={classes.root}>
-      <Container component="main" maxWidth={false}>
-        <AppBar  className={classes.appBar} position="static">
-          <Toolbar>
-            <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
-              <Button onClick={props.handleUserChange} name="all" >TOTAL: {props.stats.user.uncategorized.all}</Button>
-              <Button onClick={props.handleUserChange} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
-              <Button onClick={props.handleUserChange} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
-              <Button onClick={props.handleUserChange} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
-          </ButtonGroup>
-            <Button 
-              variant="contained" color="primary" size="small" onClick={props.handleUserChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}
-            </Button>
-            <div className={classes.search}>
-              <div className={classes.searchIcon}>
-                <SearchIcon color="primary"/>
-              </div>
-              <InputBase
-                placeholder="search…"
-                classes={{
-                  root: classes.inputRoot,
-                  input: classes.inputInput,
-                }}
-                inputProps={{ 'aria-label': 'search' }}
-                value={userSearch}
-                onKeyPress={handleKeyPress}
-                onChange={handleChangeSearch}
-              />
+    <div>
+      <AppBar  className={classes.appBar} position="static">
+        <Toolbar>
+          <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
+            <Button onClick={props.handleUserChange} name="all" >TOTAL: {props.stats.user.uncategorized.all}</Button>
+            <Button onClick={props.handleUserChange} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
+            <Button onClick={props.handleUserChange} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
+            <Button onClick={props.handleUserChange} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
+        </ButtonGroup>
+          <Button 
+            variant="contained" color="primary" size="small" onClick={props.handleUserChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}
+          </Button>
+          <div className={classes.search}>
+            <div className={classes.searchIcon}>
+              <SearchIcon color="primary"/>
             </div>
-          </Toolbar>
-        </AppBar>
-        <Grid className={classes.grid}>
+            <InputBase
+              placeholder="search…"
+              classes={{
+                root: classes.inputRoot,
+                input: classes.inputInput,
+              }}
+              inputProps={{ 'aria-label': 'search' }}
+              value={userSearch}
+              onKeyPress={handleKeyPress}
+              onChange={handleChangeSearch}
+            />
+          </div>
+        </Toolbar>
+      </AppBar>
+      <Grid className={classes.grid}>
           <Grid item className={classes.gridItem} xs={3}>
             <Card className={classes.card} variant="outlined">
               <CardContent
@@ -407,7 +404,6 @@ const User = (props) => {
             </FormGroup>
           </Grid>
         </Grid>
-      </Container>
     </div>
   );
 }

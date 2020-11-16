@@ -1,20 +1,120 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import socketClient from "socket.io-client";
+import { makeStyles } from '@material-ui/core/styles';
+
+import Container from '@material-ui/core/Container';
+import AppBar from '@material-ui/core/AppBar';
+// import CircularProgress from '@material-ui/core/CircularProgress';
+import Button from '@material-ui/core/Button';
+// import ButtonGroup from '@material-ui/core/ButtonGroup';
+// import InputBase from '@material-ui/core/InputBase';
+// import SearchIcon from '@material-ui/icons/Search';
+import Toolbar from '@material-ui/core/Toolbar';
+
 import './App.css';
 import User from './User.js';
 
 // const ENDPOINT = "http://mbp3:9997/view";
 const ENDPOINT = "https://word.threeceelabs.com/view";
+const DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
+
+const randomIntFromInterval = (min, max) => {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+};
+
+const randomId = randomIntFromInterval(1000000000, 9999999999);
+const VIEWER_ID = "viewer_" + randomId;
+
+const DEFAULT_VIEWER_OBJ = {
+  nodeId: VIEWER_ID,
+  userId: VIEWER_ID,
+  viewerId: VIEWER_ID,
+  screenName: VIEWER_ID,
+  type: "viewer",
+  namespace: "view",
+  timeStamp: Date.now(),
+  tags: {},
+};
+
+DEFAULT_VIEWER_OBJ.tags.type = "viewer";
+
+DEFAULT_VIEWER_OBJ.tags.mode = "stream";
+DEFAULT_VIEWER_OBJ.tags.entity = VIEWER_ID;
+
+const viewerObj = DEFAULT_VIEWER_OBJ;
+
+console.log({viewerObj});
 
 const statsObj = {};
+statsObj.isAuthenticated = false;
 statsObj.viewerReadyTransmitted = false;
 
 const socket = socketClient(ENDPOINT);
 const twitterFeedPreviousUserArray = [];
 
+const useStyles = makeStyles((theme) => ({
+  root: {
+    flexGrow: 2,
+  },
+  appBar: {
+    backgroundColor: 'white',
+    margin: 2,
+  },
+  buttonLogin: {
+
+  },
+  statusBar: {
+    backgroundColor: 'white',
+    margin: 2,
+  },
+  menuButton: {
+    marginRight: theme.spacing(2),
+  },
+  title: {
+    flexGrow: 1,
+  },
+  search: {
+    position: 'relative',
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: "white",
+    '&:hover': {
+      backgroundColor: "lightgray",
+    },
+    marginRight: theme.spacing(2),
+    marginLeft: 0,
+    width: '100%',
+    [theme.breakpoints.up('sm')]: {
+      marginLeft: theme.spacing(3),
+      width: 'auto',
+    },
+  },
+  searchIcon: {
+    padding: theme.spacing(0, 2),
+    height: '100%',
+    position: 'absolute',
+    pointerEvents: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inputRoot: {
+    color: 'primary',
+  },
+  inputInput: {
+    padding: theme.spacing(1, 1, 1, 0),
+    paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
+    transition: theme.transitions.create('width'),
+    width: '100%',
+    [theme.breakpoints.up('md')]: {
+      width: '20ch',
+    },
+  },
+
+}));
 
 const App = () => {
+  const classes = useStyles();
 
   const defaultStatus = {
     nodesPerMin: 0, 
@@ -90,6 +190,17 @@ const App = () => {
   const handleSearchUser = (searchString) => {
     const searchTerm = "@" + searchString
     socket.emit("TWITTER_SEARCH_NODE", searchTerm)
+  }
+
+  const handleLogin = () => {
+      console.warn(
+      "LOGIN: AUTH: " +
+        statsObj.isAuthenticated +
+        " | URL: " +
+        DEFAULT_AUTH_URL
+    );
+    window.open(DEFAULT_AUTH_URL, "LOGIN", "_new");
+    socket.emit("login", viewerObj);
   }
 
   const handleUserChange = useCallback((event) => {
@@ -302,6 +413,15 @@ const App = () => {
     });
   }, []);
 
+  useEffect(() => {
+    socket.on("USER_AUTHENTICATED", function (userObj) {
+      statsObj.isAuthenticated = true;
+      // statsObj.socket.connected = true;
+      console.log("RX USER_AUTHENTICATED | USER: @" + userObj.screenName);
+    });
+  }, []);
+
+
   useHotkeys('right', handleUserChange) // next uncat any
   useHotkeys('left', handleUserChange) // prev uncat any
 
@@ -322,7 +442,25 @@ const App = () => {
   useHotkeys('shift+V', (event) => handleUserChange(event), {}, [currentUser])
 
   return (
-    <User user={currentUser} stats={status} handleUserChange={handleUserChange} handleSearchUser={handleSearchUser}/>
+    <div className={classes.root}>
+      <Container component="main" maxWidth={false}>
+        <AppBar  className={classes.appBar} position="static">
+          <Toolbar>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              size="small" 
+              onClick={handleLogin} 
+              name="login" 
+              className={classes.buttonLogin}
+            >
+              TWITTER LOGIN
+            </Button>
+          </Toolbar>
+        </AppBar>
+        <User user={currentUser} stats={status} handleUserChange={handleUserChange} handleSearchUser={handleSearchUser}/>
+      </Container>
+    </div>
   );
 }
 

@@ -50,10 +50,10 @@ const useStyles = makeStyles((theme) => ({
   },  
   card: {
     raised: false,
-    maxWidth: 300,
+    maxWidth: 400,
   },
   profileImage: {
-    height: 300,
+    maxHeight: 400,
   },
   bannerImage: {
     height: 80,
@@ -135,21 +135,35 @@ const useStyles = makeStyles((theme) => ({
     margin: 5
   },
 
-  left: {
+  autoCategory:{
+    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(1),
     color: 'white',
+  },
+
+  left: {
     backgroundColor: 'blue',
+    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(1),
+    color: 'white',
   },
   neutral: {
-    color: 'white',
     backgroundColor: 'gray',
+    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(1),
+    color: 'white',
   },
   right: {
-    color: 'white',
     backgroundColor: 'red',
+    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(1),
+    color: 'white',
   },
   none: {
-    color: 'black',
     backgroundColor: 'white',
+    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(1),
+    color: 'white',
   },
 
 }));
@@ -217,7 +231,7 @@ const User = (props) => {
   }
 
   return (
-    <div>
+    <>
       <AppBar  className={classes.appBar} position="static">
         <Toolbar>
 
@@ -382,9 +396,13 @@ const User = (props) => {
           </Grid>
           <Grid item className={classes.gridItem} xs={1}>
             <FormGroup>
-              <Button className={getCategoryClass(props.user.categoryAuto)}>
+
+              <Typography 
+                className={getCategoryClass(props.user.categoryAuto)}
+                align="center"
+              >
                 AUTO: {props.user.categoryAuto.toUpperCase() || "NONE"}
-              </Button>
+              </Typography>
 
               <FormControl component="fieldset">
                 <RadioGroup aria-label="category" name="category" value={props.user.category || "none"} onChange={props.handleUserChange}>
@@ -420,7 +438,7 @@ const User = (props) => {
             </FormGroup>
           </Grid>
         </Grid>
-    </div>
+    </>
   );
 }
 

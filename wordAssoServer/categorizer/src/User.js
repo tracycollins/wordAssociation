@@ -76,6 +76,7 @@ const useStyles = makeStyles((theme) => ({
   },
   title: {
     flexGrow: 1,
+    color: 'blue',
   },
   search: {
     position: 'relative',
@@ -114,6 +115,10 @@ const useStyles = makeStyles((theme) => ({
     },
   },
 
+  buttonGroupLabel: {
+    color: 'blue',
+    marginRight: theme.spacing(1),
+  },
   buttonAll: {
     color: 'black',
   },
@@ -215,15 +220,11 @@ const User = (props) => {
     <div>
       <AppBar  className={classes.appBar} position="static">
         <Toolbar>
-          <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
-            <Button onClick={props.handleUserChange} name="all" >TOTAL: {props.stats.user.uncategorized.all}</Button>
-            <Button onClick={props.handleUserChange} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
-            <Button onClick={props.handleUserChange} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
-            <Button onClick={props.handleUserChange} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
-        </ButtonGroup>
-          <Button 
-            variant="contained" color="primary" size="small" onClick={props.handleUserChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}
-          </Button>
+
+          <Typography variant="h6" className={classes.title}>
+            User
+          </Typography>
+
           <div className={classes.search}>
             <div className={classes.searchIcon}>
               <SearchIcon color="primary"/>
@@ -240,6 +241,21 @@ const User = (props) => {
               onChange={handleChangeSearch}
             />
           </div>
+
+          <Typography className={classes.buttonGroupLabel}>
+            UNCAT
+          </Typography>   
+
+          <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
+
+            <Button onClick={props.handleUserChange} name="all" >ALL: {props.stats.user.uncategorized.all}</Button>
+            <Button onClick={props.handleUserChange} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
+            <Button onClick={props.handleUserChange} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
+            <Button onClick={props.handleUserChange} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
+          </ButtonGroup>
+          <Button 
+            variant="contained" color="primary" size="small" onClick={props.handleUserChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}
+          </Button>
         </Toolbar>
       </AppBar>
       <Grid className={classes.grid}>

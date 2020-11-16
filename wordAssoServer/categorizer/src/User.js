@@ -255,15 +255,8 @@ const User = (props) => {
                   @{props.user.screenName}
                 </Typography>
               </CardContent>
-              {/* <CardHeader
-                onClick={openUserTwitterPage}
-                title={`${props.user.name}`}
-                subheader={`@${props.user.screenName}`}
-              >
-              </CardHeader> */}
               <CardMedia
                 className={classes.profileImage}
-                // image={props.user.profileImageUrl}
                 src={props.user.profileImageUrl || defaultProfileImage}
                 component="img"
                 onError={e => {
@@ -272,7 +265,6 @@ const User = (props) => {
               <br></br>
               <CardMedia 
                 className={classes.bannerImage} 
-                // image={props.user.bannerImageUrl || defaultBannerImage}
                 src={props.user.bannerImageUrl || defaultBannerImage} 
                 component="img"
                 onError={e => {

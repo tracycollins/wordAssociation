@@ -1,6 +1,6 @@
 {
   "name": "wordassoserver",
-  "version": "1.0.30",
+  "version": "1.0.40",
   "description": "word",
   "main": "wordAssoServer.js",
   "dependencies": {

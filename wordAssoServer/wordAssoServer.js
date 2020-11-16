@@ -8607,55 +8607,55 @@ function initAppRouting(callback) {
     });
   });
   
-  app.get("/categorizer/user/:query", async function requestCategorizerUserById(req, res) {
+  app.get("/search/user/:query", async function searchUserById(req, res) {
 
     const query = req.params.query.startsWith("@") ? {screenName: req.params.query.slice(1)} : {nodeId: req.params.query}
 
-    console.log(chalkLog(MODULE_ID + " | R< CATEGORIZER | GET USER | QUERY: " + query));
+    console.log(chalkLog(MODULE_ID + " | R< SEARCH | USER | QUERY: " + query));
 
     try{
 
       const user = await global.wordAssoDb.User.findOne(query)
 
       if (user) {
-        console.log(chalkLog(MODULE_ID + " | R< CATEGORIZER | GET USER | +++ FOUND: " + user.screenName));
+        console.log(chalkLog(MODULE_ID + " | R< SEARCH | USER | +++ FOUND: " + user.screenName));
         res.send(user);
       }
       else{
-        console.log(chalkLog(MODULE_ID + " | R< CATEGORIZER | GET USER | !!! NOT FOUND | QUERY: " + query));
+        console.log(chalkLog(MODULE_ID + " | R< SEARCH | USER | !!! NOT FOUND | QUERY: " + query));
         res.sendStatus(404);
       }
     }
     catch(e){
-      console.log(chalkError(MODULE_ID + " | R< CATEGORIZER | *** GET USER ERROR | QUERY: " + query));
-      console.log(chalkError(MODULE_ID + " | R< CATEGORIZER | *** GET USER ERROR: " + e));
+      console.log(chalkError(MODULE_ID + " | R< SEARCH | *** USER ERROR | QUERY: " + query));
+      console.log(chalkError(MODULE_ID + " | R< SEARCH | *** USER ERROR: " + e));
       res.sendStatus(500);
     }
 
   });
 
-  app.get("/categorizer/hashtag/:query", async function requestCategorizerHashtagById(req, res) {
+  app.get("/search/hashtag/:query", async function searchHashtagById(req, res) {
 
-    const query = req.params.query.startsWith("#") ? {nodeId: req.params.query.slice(1)} : {nodeId: req.params.query}
+    const query = {nodeId: req.params.query.toLowerCase()}
 
-    console.log(chalkLog(MODULE_ID + " | R< CATEGORIZER | GET HASHTAG | QUERY: " + query));
+    console.log(chalkLog(MODULE_ID + " | R< SEARCH | HASHTAG | QUERY: " + query));
 
     try{
 
       const hashtag = await global.wordAssoDb.Hashtag.findOne(query)
 
       if (hashtag) {
-        console.log(chalkLog(MODULE_ID + " | R< CATEGORIZER | GET HASHTAG | +++ FOUND: " + hashtag.nodeId));
+        console.log(chalkLog(MODULE_ID + " | R< SEARCH | HASHTAG | +++ FOUND: " + hashtag.nodeId));
         res.send(hashtag);
       }
       else{
-        console.log(chalkLog(MODULE_ID + " | R< CATEGORIZER | GET HASHTAG | !!! NOT FOUND | QUERY: " + query));
+        console.log(chalkLog(MODULE_ID + " | R< SEARCH | HASHTAG | !!! NOT FOUND | QUERY: " + query));
         res.sendStatus(404);
       }
     }
     catch(e){
-      console.log(chalkError(MODULE_ID + " | R< CATEGORIZER | *** GET HASHTAG ERROR | QUERY: " + query));
-      console.log(chalkError(MODULE_ID + " | R< CATEGORIZER | *** GET HASHTAG ERROR: " + e));
+      console.log(chalkError(MODULE_ID + " | R< SEARCH | *** HASHTAG ERROR | QUERY: " + query));
+      console.log(chalkError(MODULE_ID + " | R< SEARCH | *** HASHTAG ERROR: " + e));
       res.sendStatus(500);
     }
 

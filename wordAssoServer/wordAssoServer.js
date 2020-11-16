@@ -5227,7 +5227,7 @@ async function twitterSearchNode(params) {
         stats: statsObj,
       });
     } else {
-      viewNameSpace.emit("TWITTER_USER_NOT_FOUND", { stats: statsObj });
+      viewNameSpace.emit("TWITTER_USER_NOT_FOUND", { searchNode: searchNode, stats: statsObj });
     }
 
     return;

@@ -73,7 +73,7 @@ const useStyles = makeStyles((theme) => ({
   },
   twitterAuth: {
     // backgroundColor: 'black',
-    color: "gray",
+    color: "green",
     padding: theme.spacing(1),
     marginRight: theme.spacing(2),
   },  

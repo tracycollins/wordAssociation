@@ -11,6 +11,7 @@ import Button from '@material-ui/core/Button';
 // import InputBase from '@material-ui/core/InputBase';
 // import SearchIcon from '@material-ui/icons/Search';
 import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
 
 import './App.css';
 import User from './User.js';
@@ -55,14 +56,24 @@ const twitterFeedPreviousUserArray = [];
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    flexGrow: 2,
+    flexGrow: 1,
   },
   appBar: {
     backgroundColor: 'white',
     margin: 2,
   },
+  title: {
+    flexGrow: 1,
+    color: 'blue',
+  },
+  twitterAuth: {
+    // backgroundColor: 'black',
+    color: "gray",
+    padding: theme.spacing(1),
+    marginRight: theme.spacing(2),
+  },  
   buttonLogin: {
-
+    marginRight: theme.spacing(2),
   },
   statusBar: {
     backgroundColor: 'white',
@@ -70,9 +81,6 @@ const useStyles = makeStyles((theme) => ({
   },
   menuButton: {
     marginRight: theme.spacing(2),
-  },
-  title: {
-    flexGrow: 1,
   },
   search: {
     position: 'relative',
@@ -114,6 +122,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const App = () => {
+
   const classes = useStyles();
 
   const defaultStatus = {
@@ -182,6 +191,8 @@ const App = () => {
     rateMax: 0,
   }
 
+  const [twitterAuthenticated, setTwitterAuthenticated] = useState(false);
+  const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState(false);
   const [status, setStatus] = useState(defaultStatus);
   const [currentUser, setCurrentUser] = useState(defaultUser);
   const [previousUser, setPreviousUser] = useState({nodeId: false});
@@ -415,9 +426,9 @@ const App = () => {
 
   useEffect(() => {
     socket.on("USER_AUTHENTICATED", function (userObj) {
-      statsObj.isAuthenticated = true;
-      // statsObj.socket.connected = true;
-      console.log("RX USER_AUTHENTICATED | USER: @" + userObj.screenName);
+      setTwitterAuthenticated(true)
+      setTwitterAuthenticatedUser(userObj.screenName)
+      console.log("RX TWITTER USER_AUTHENTICATED | USER: @" + userObj.screenName);
     });
   }, []);
 
@@ -446,16 +457,27 @@ const App = () => {
       <Container component="main" maxWidth={false}>
         <AppBar  className={classes.appBar} position="static">
           <Toolbar>
+
+            <Typography variant="h6" className={classes.title}>
+              Categorizer
+            </Typography>
+
+            <Typography className={classes.twitterAuth}>
+              {twitterAuthenticatedUser ? "@" + twitterAuthenticatedUser : "logged out"}
+            </Typography>
+
             <Button 
+              className={classes.buttonLogin}
               variant="contained" 
               color="primary" 
               size="small" 
               onClick={handleLogin} 
-              name="login" 
-              className={classes.buttonLogin}
+              name="login"
+              label="login"
             >
-              TWITTER LOGIN
+              {twitterAuthenticated ? "LOGOUT" : "LOGIN TWITTER"}
             </Button>
+
           </Toolbar>
         </AppBar>
         <User user={currentUser} stats={status} handleUserChange={handleUserChange} handleSearchUser={handleSearchUser}/>

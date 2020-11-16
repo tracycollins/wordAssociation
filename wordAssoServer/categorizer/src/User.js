@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Timeline } from 'react-twitter-widgets'
 
 import Duration from 'duration';
@@ -180,6 +180,11 @@ const User = (props) => {
 
   const [userSearch, setUserSearch] = useState(props.user.screenName);
 
+  
+  useEffect(() => {
+    setUserSearch(props.user.screenName)
+  }, [props])
+  
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)
     setUserSearch(event.target.value);

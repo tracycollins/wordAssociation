@@ -260,7 +260,7 @@ const HashtagView = (props) => {
           <Grid item className={classes.gridItem} xs={3}>
             <Card className={classes.card} variant="outlined">
               <CardContent onClick={openHashtagTwitterPage}>
-                <Typography>#{props.hashtag.nodeId}</Typography>
+                <Typography variant="h6">#{props.hashtag.nodeId}</Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -339,14 +339,6 @@ const HashtagView = (props) => {
           </Grid>
           <Grid item className={classes.gridItem} xs={1}>
             <FormGroup>
-
-              <Typography 
-                className={getCategoryClass(props.hashtag.categoryAuto)}
-                align="center"
-              >
-                AUTO: {props.hashtag.categoryAuto.toUpperCase() || "NONE"}
-              </Typography>
-
               <FormControl component="fieldset">
                 <RadioGroup aria-label="category" name="category" value={props.hashtag.category || "none"} onChange={props.handleNodeChange}>
                   <FormControlLabel labelPlacement="start" value="left" control={<Radio />} label="left"/>

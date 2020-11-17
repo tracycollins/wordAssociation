@@ -4838,6 +4838,7 @@ const isAutoCategorized = function (node) {
 };
 
 async function pubSubSearchNode(params) {
+
   try {
     let nodeName;
 
@@ -4915,21 +4916,18 @@ async function pubSubSearchNode(params) {
     const node = searchNodeResultHashMap[params.requestId] || false;
 
     if (!node) {
-      console.log(
-        chalkAlert(
-          MODULE_ID +
-            " | !!! " +
-            params.node.nodeType +
-            " NOT FOUND\n" +
-            jsonPrint(params)
-        )
-      );
+      console.log(chalkAlert(MODULE_ID +
+        " | !!! " + params.node.nodeType + " NOT FOUND\n" + jsonPrint(params)
+      ));
+
+      return null
     }
 
     if (
       node.nodeType === "user" &&
       (isCategorized(node) || isAutoCategorized(node))
     ) {
+
       categorizedUserHashMap.set(node.nodeId, {
         nodeId: node.nodeId,
         screenName: node.screenName,
@@ -4946,8 +4944,11 @@ async function pubSubSearchNode(params) {
         node,
         { upsert: true, new: true }
       );
+
       return nodeUpdated;
+
     } else if (node.nodeType === "hashtag" && isCategorized(node)) {
+
       categorizedHashtagHashMap.set(node.nodeId, {
         nodeId: node.nodeId,
         text: node.nodeId,
@@ -4963,9 +4964,9 @@ async function pubSubSearchNode(params) {
         { upsert: true, new: true }
       );
       return nodeUpdated;
-    } else {
-      return node;
+
     }
+
   } catch (err) {
     const errCode =
       err.code && err.code != undefined ? err.code : err.statusCode;
@@ -5039,6 +5040,7 @@ async function pubSubSearchNode(params) {
 }
 
 async function twitterSearchUser(params) {
+
   if (typeof params.node === "string") {
     console.log(
       chalkInfo(MODULE_ID + " | -?- USER SEARCH | USER: " + params.node)
@@ -5097,6 +5099,7 @@ async function twitterSearchUser(params) {
       categoryAuto: message.categoryAuto,
       stats: statsObj.user,
     };
+
   } catch (err) {
     console.log(
       chalkError(
@@ -5152,6 +5155,7 @@ async function twitterSearchHashtag(params) {
       categoryAuto: message.categoryAuto,
       stats: statsObj.hashtag,
     };
+
   } catch (err) {
     console.log(
       chalkError(
@@ -5217,6 +5221,7 @@ async function twitterSearchNode(params) {
   // sObj.bestNetwork = statsObj.bestNetwork;
 
   if (searchNode.startsWith("@")) {
+
     const results = await twitterSearchUser({
       node: { nodeType: "user", screenName: searchNode.slice(1) },
     });
@@ -6295,6 +6300,7 @@ async function initSocketHandler(socketObj) {
         );
       } else {
         try {
+
           const results = await twitterSearchUser({
             node: {
               nodeType: "user",
@@ -6307,6 +6313,8 @@ async function initSocketHandler(socketObj) {
               node: results.node,
               stats: statsObj,
             });
+          } else {
+            socket.emit("TWITTER_USER_NOT_FOUND", { node: defaultTwitterUserScreenName, stats: statsObj });
           }
 
           socket.emit("VIEWER_READY_ACK", {
@@ -6314,6 +6322,7 @@ async function initSocketHandler(socketObj) {
             timeStamp: moment().valueOf(),
             viewerSessionKey: moment().valueOf(),
           });
+
         } catch (err) {
           console.log(
             chalkError(

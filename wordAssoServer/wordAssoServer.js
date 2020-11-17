@@ -5209,7 +5209,7 @@ async function twitterSearchNode(params) {
 
     if (results.node) {
       viewNameSpace.emit("SET_TWITTER_HASHTAG", {
-        node: node,
+        node: results.node,
         stats: statsObj,
       });
       

@@ -8616,7 +8616,7 @@ function initAppRouting(callback) {
     });
   });
   
-  app.get("/search/user/:query", async function searchUserById(req, res) {
+  app.get("/user/:query", async function searchUserById(req, res) {
 
     const query = req.params.query.startsWith("@") ? {screenName: req.params.query.slice(1)} : {nodeId: req.params.query}
 
@@ -8643,7 +8643,7 @@ function initAppRouting(callback) {
 
   });
 
-  app.get("/search/hashtag/:query", async function searchHashtagById(req, res) {
+  app.get("/hashtag/:query", async function searchHashtagById(req, res) {
 
     const query = {nodeId: req.params.query.toLowerCase()}
 

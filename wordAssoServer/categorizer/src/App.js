@@ -18,6 +18,7 @@ import Typography from '@material-ui/core/Typography';
 import './App.css';
 import UserView from './UserView.js';
 import HashtagView from './HashtagView.js';
+import { ButtonGroup } from '@material-ui/core';
 
 // const ENDPOINT = "http://mbp3:9997/view";
 const ENDPOINT = "https://word.threeceelabs.com/view";
@@ -61,11 +62,12 @@ const useStyles = makeStyles((theme) => ({
     margin: 2,
   },
   buttonNodeType: {
-
+    flexGrow: 1,
   },
   title: {
-    flexGrow: 1,
+    // flexGrow: 1,
     color: 'blue',
+    marginRight: theme.spacing(2),
   },
   serverStatus: {
     // flexGrow: 1,
@@ -677,29 +679,30 @@ const App = () => {
               Categorizer
             </Typography>
 
-            <Button 
+            <ButtonGroup                
               className={classes.buttonNodeType}
-              variant="contained" 
-              color="primary" 
-              size="small" 
-              name="user"
-              label="user"
-              onClick={() => setDisplayNodeType("user")}
             >
-              User
-            </Button>
-
-            <Button 
-              className={classes.buttonNodeType}
-              variant="contained" 
-              color="primary" 
-              size="small" 
-              name="hashtag"
-              label="hashtag"
-              onClick={() => setDisplayNodeType("hashtag")}
-            >
-              Hashtag
-            </Button>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                size="small" 
+                name="user"
+                label="user"
+                onClick={() => setDisplayNodeType("user")}
+              >
+                User
+              </Button>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                size="small" 
+                name="hashtag"
+                label="hashtag"
+                onClick={() => setDisplayNodeType("hashtag")}
+              >
+                Hashtag
+              </Button>
+            </ButtonGroup>
 
             {progress !== "idle" ? <CircularProgress /> : <></>}
 

@@ -16,6 +16,7 @@ import Typography from '@material-ui/core/Typography';
 
 import './App.css';
 import User from './User.js';
+import { CircularProgress } from '@material-ui/core';
 
 // const ENDPOINT = "http://mbp3:9997/view";
 const ENDPOINT = "https://word.threeceelabs.com/view";
@@ -48,12 +49,13 @@ const viewerObj = DEFAULT_VIEWER_OBJ;
 
 console.log({viewerObj});
 
-const statsObj = {};
-statsObj.isAuthenticated = false;
-statsObj.viewerReadyTransmitted = false;
+// const statsObj = {};
+// statsObj.isAuthenticated = false;
+// statsObj.viewerReadyTransmitted = false;
 
-const socket = socketClient(ENDPOINT);
-const twitterFeedPreviousUserArray = [];
+let socket;
+// const socket = socketClient(ENDPOINT);
+// const twitterFeedPreviousUserArray = [];
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -200,26 +202,35 @@ const App = () => {
     categoryAuto: "none",
   }
 
-  const defaultHashtag = {
-    nodeId: null,
-    text: null,
-    categoryAuto: "none",
-    category: "none",
+  // const defaultHashtag = {
+  //   nodeId: null,
+  //   text: null,
+  //   categoryAuto: "none",
+  //   category: "none",
     
-    lastSeen: null,
-    age: 0,
-    mentions: 0,
-    rate: 0,
-    rateMax: 0,
-  }
+  //   lastSeen: null,
+  //   age: 0,
+  //   mentions: 0,
+  //   rate: 0,
+  //   rateMax: 0,
+  // }
 
   const [twitterAuthenticated, setTwitterAuthenticated] = useState(false);
   const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState("");
   const [status, setStatus] = useState(defaultStatus);
+  const [progress, setProgress] = useState("idle");
   const [currentUser, setCurrentUser] = useState(defaultUser);
-  const [previousUser, setPreviousUser] = useState({nodeId: false});
-  const [currentHashtag, setHashtag] = useState(defaultHashtag);
+  const [userHistory, setUserHistory] = useState([]);
+  // const [currentHashtag, setHashtag] = useState(defaultHashtag);
   
+  // const startProgress = (op) => {
+  //   setProgress(op);
+  // }
+
+  // const stopProgress = (op) => {
+  //   setProgress("idle");
+  // }
+
   const handleSearchUser = (searchString) => {
     const searchTerm = "@" + searchString
     socket.emit("TWITTER_SEARCH_NODE", searchTerm)
@@ -245,9 +256,9 @@ const App = () => {
     }
   }
 
-  const handleUserChange = useCallback((event) => {
+  const handleUserChange = useCallback((event, user) => {
 
-    // console.log("handleUserChange | currentUser: @" + currentUser.screenName)
+    console.log("handleUserChange | user: @" + user.screenName)
 
     if (event.persist !== undefined) { 
       event.persist() 
@@ -263,10 +274,12 @@ const App = () => {
 
     if (event.currentTarget.name === undefined && event.code){
       switch (event.code){
-        case "ArrowRight":
-          eventName = "all"
-          break;
         case "ArrowLeft":
+          eventName = "previous"
+          // eventValue = userHistory[0]
+          // setUserHistory(userHistory.slice(1))
+          break;
+        case "ArrowRight":
           eventName = "all"
           break;
         case "KeyD":
@@ -301,30 +314,35 @@ const App = () => {
         case "KeyX":
           if (event.shiftKey){
             eventName = "ignored"
-            eventChecked = !currentUser.ignored
+            eventChecked = !user.ignored
           }
           break;
         case "KeyV":
           if (event.shiftKey){
             eventName = "catVerified"
-            eventChecked = !currentUser.categoryVerified
+            eventChecked = !user.categoryVerified
           }
           break;
         case "KeyB":
           if (event.shiftKey){
             eventName = "isBot"
-            eventChecked = !currentUser.isBot
+            eventChecked = !user.isBot
           }
           break;
         default:
       }
     }
 
-    console.log("handleUserChange | @" + currentUser.screenName + " | name: " + eventName + " | value: " + eventValue)
+    console.log("handleUserChange | @" + user.screenName + " | name: " + eventName + " | value: " + eventValue)
 
     let searchFilter = "@?";
 
+    // setProgress("twitter");
+
     switch (eventName){
+      case "previous":
+        socket.emit("TWITTER_SEARCH_NODE", "@" + eventValue);
+        break;
       case "all":
       case "left":
       case "neutral":
@@ -339,39 +357,39 @@ const App = () => {
         socket.emit("TWITTER_CATEGORIZE_NODE", {
           category: eventValue,
           following: true,
-          node: currentUser,
+          node: user,
         });
         break
       case "isBot":
         if (eventChecked){
-          socket.emit("TWITTER_BOT", currentUser);
+          socket.emit("TWITTER_BOT", user);
         }
         else{
-          socket.emit("TWITTER_UNBOT", currentUser);
+          socket.emit("TWITTER_UNBOT", user);
         }
         break
       case "following":
         if (eventChecked){
-          socket.emit("TWITTER_FOLLOW", currentUser);
+          socket.emit("TWITTER_FOLLOW", user);
         }
         else{
-          socket.emit("TWITTER_UNFOLLOW", currentUser);
+          socket.emit("TWITTER_UNFOLLOW", user);
         }
         break
       case "catVerified":
         if (eventChecked){
-          socket.emit("TWITTER_CATEGORY_VERIFIED", currentUser);
+          socket.emit("TWITTER_CATEGORY_VERIFIED", user);
         }
         else{
-          socket.emit("TWITTER_CATEGORY_UNVERIFIED", currentUser);
+          socket.emit("TWITTER_CATEGORY_UNVERIFIED", user);
         }
         break
       case "ignored":
         if (eventChecked){
-          socket.emit("TWITTER_IGNORE", currentUser);
+          socket.emit("TWITTER_IGNORE", user);
         }
         else{
-          socket.emit("TWITTER_UNIGNORE", currentUser);
+          socket.emit("TWITTER_UNIGNORE", user);
         }
         break
       default:
@@ -379,7 +397,7 @@ const App = () => {
         console.log({event})
     }
     
-  }, [currentUser])
+  }, [])
 
   const nodeValid = (node) => {
     if (node === undefined) return false
@@ -389,100 +407,190 @@ const App = () => {
   }
 
   useEffect(() => {
-    socket.on("SET_TWITTER_USER", (results) => {
-      console.debug("RX SET_TWITTER_USER");
-      console.debug(results);
-      if (nodeValid(results.node)) { setCurrentUser(results.node) }
-      setStatus(results.stats)
-    });
-  }, [])
 
-  useEffect(() => {
-    socket.on("action", (action) => {
-      console.debug("RX ACTION | " + socket.id + " | TYPE: " + action.type);
-      console.debug("RX ACTION | ", action.data);
+    socket = socketClient(ENDPOINT);
 
-      switch (action.type){
-        case "user":
-            setCurrentUser(action.data)
-
-            if (previousUser.nodeId 
-              && (currentUser.nodeId !== previousUser.nodeId) 
-              && !twitterFeedPreviousUserArray.includes(previousUser.nodeId)
-            ){
-              twitterFeedPreviousUserArray.push(previousUser.nodeId);
-            }
-            if (previousUser.nodeId !== currentUser.nodeId){
-              setPreviousUser(currentUser);
-            }
-
-            console.log("USER: @" + action.data.screenName + " | " + action.data.profileImageUrl)
-          break
-        case "hashtag":
-            setHashtag({})
-            console.log("HT: #" + currentHashtag.text)
-          break
-        case "stats":
-            setStatus(action.data)
-          break
-          default:
-      }
-
-    });   
-     
-  }, [])
-
-  useEffect(() => {
     socket.on("connect", ()=>{
       console.log("CONNECTED: " + socket.id)
+      setProgress(progress => "authentication");
       socket.emit("authentication", {
         namespace: "view",
         userId: "test",
         password: "0123456789",
       });
     })
-    return () => socket.disconnect();
-  }, []);
 
-  useEffect(() => {
+    socket.on("SET_TWITTER_USER", (results) => {
+
+      setProgress(progress => "idle");
+      
+      console.debug("RX SET_TWITTER_USER");
+      // console.debug(results);
+      if (nodeValid(results.node)) { 
+
+        setCurrentUser(currentUser => results.node) 
+
+        console.debug("new: @" + results.node.screenName);
+        // console.debug("current: @" + currentUser.screenName);
+
+        // console.log({userHistory})
+
+        // if (!userHistory.includes(results.node.screenName)){
+          setUserHistory(prevUserHistory => [...prevUserHistory, results.node.screenName])
+        // }
+
+      }
+      setStatus(status => results.stats)
+    });
+
+    socket.on("action", (action) => {
+      
+      console.debug("RX ACTION | socket: " + socket.id + " | TYPE: " + action.type);
+      console.debug("RX ACTION | ", action.data);
+
+      switch (action.type){
+
+        case "user":
+            setCurrentUser(currentUser => action.data)
+            console.log("USER: @" + action.data.screenName + " | " + action.data.profileImageUrl)
+          break
+
+        case "hashtag":
+            // setHashtag(action.data)
+            console.log("HT: #" + action.data.text)
+          break
+
+        case "stats":
+            setStatus(status => action.data)
+          break
+
+        default:
+      }
+
+    });   
+
     socket.on("authenticated", function () {
+      setProgress(progress => "idle");
       console.debug("AUTHENTICATED | " + socket.id);
 
-      statsObj.socketId = socket.id;
-      statsObj.serverConnected = true;
-      statsObj.userReadyTransmitted = false;
-      statsObj.userReadyAck = false;
+      // statsObj.socketId = socket.id;
+      // statsObj.serverConnected = true;
+      // statsObj.userReadyTransmitted = false;
+      // statsObj.userReadyAck = false;
       socket.emit("TWITTER_SEARCH_NODE", "@threecee")
     });
-  }, []);
 
-  useEffect(() => {
     socket.on("USER_AUTHENTICATED", function (userObj) {
-      setTwitterAuthenticated(true)
-      setTwitterAuthenticatedUser(userObj.screenName)
+      setProgress(progress => "idle");
+      setTwitterAuthenticated(twitterAuthenticated => true)
+      setTwitterAuthenticatedUser(twitterAuthenticatedUser => userObj.screenName)
       console.log("RX TWITTER USER_AUTHENTICATED | USER: @" + userObj.screenName);
     });
-  }, []);
 
-  useHotkeys('right', handleUserChange) // next uncat any
+    socket.on("TWITTER_USER_NOT_FOUND", (results) => {
+      setProgress(progress => "idle");
+      console.debug("RX TWITTER_USER_NOT_FOUND");
+      console.debug(results);
+      setStatus(status => results.stats)
+    });
+    
+    return () => socket.disconnect();
+
+  }, [])
+
+  // useEffect(() => {
+  //   socket.on("TWITTER_USER_NOT_FOUND", (results) => {
+  //     setProgress("idle");
+  //     console.debug("RX TWITTER_USER_NOT_FOUND");
+  //     console.debug(results);
+  //     setStatus(results.stats)
+  //   });
+  // }, [])
+
+  // useEffect(() => {
+
+  //   socket.on("action", (action) => {
+  //     console.debug("RX ACTION | " + socket.id + " | TYPE: " + action.type);
+  //     console.debug("RX ACTION | ", action.data);
+
+  //     switch (action.type){
+
+  //       case "user":
+  //           setCurrentUser(action.data)
+  //           console.log("USER: @" + action.data.screenName + " | " + action.data.profileImageUrl)
+  //         break
+
+  //       case "hashtag":
+  //           setHashtag(action.data)
+  //           console.log("HT: #" + action.data.text)
+  //         break
+
+  //       case "stats":
+  //           setStatus(action.data)
+  //         break
+
+  //       default:
+  //     }
+
+  //   });   
+     
+  // }, [])
+
+  // useEffect(() => {
+  //   socket.on("connect", ()=>{
+  //     console.log("CONNECTED: " + socket.id)
+  //     setProgress("authentication");
+  //     socket.emit("authentication", {
+  //       namespace: "view",
+  //       userId: "test",
+  //       password: "0123456789",
+  //     });
+  //   })
+  //   return () => socket.disconnect();
+  // }, []);
+
+  // useEffect(() => {
+  //   socket.on("authenticated", function () {
+  //     setProgress("idle");
+  //     console.debug("AUTHENTICATED | " + socket.id);
+
+  //     statsObj.socketId = socket.id;
+  //     statsObj.serverConnected = true;
+  //     statsObj.userReadyTransmitted = false;
+  //     statsObj.userReadyAck = false;
+  //     socket.emit("TWITTER_SEARCH_NODE", "@threecee")
+  //   });
+  // }, []);
+
+  // useEffect(() => {
+  //   socket.on("USER_AUTHENTICATED", function (userObj) {
+  //     setProgress("idle");
+  //     setTwitterAuthenticated(true)
+  //     setTwitterAuthenticatedUser(userObj.screenName)
+  //     console.log("RX TWITTER USER_AUTHENTICATED | USER: @" + userObj.screenName);
+  //   });
+  // }, []);
+
+  // useHotkeys('right', handleUserChange) // next uncat any
   useHotkeys('left', handleUserChange) // prev uncat any
+  useHotkeys('right', (event) => handleUserChange(event, currentUser), {}, [currentUser])
 
   useHotkeys('L', handleUserChange)
-  useHotkeys('shift+L', (event) => handleUserChange(event), {}, [currentUser])
+  useHotkeys('shift+L', (event) => handleUserChange(event, currentUser), {}, [currentUser])
 
   useHotkeys('D', handleUserChange)
-  useHotkeys('shift+D', (event) => handleUserChange(event), {}, [currentUser])
+  useHotkeys('shift+D', (event) => handleUserChange(event, currentUser), {}, [currentUser])
 
   useHotkeys('R', handleUserChange)
-  useHotkeys('shift+R', (event) => handleUserChange(event), {}, [currentUser])
+  useHotkeys('shift+R', (event) => handleUserChange(event, currentUser), {}, [currentUser])
 
   useHotkeys('N', handleUserChange)
-  useHotkeys('shift+N', (event) => handleUserChange(event), {}, [currentUser])
+  useHotkeys('shift+N', (event) => handleUserChange(event, currentUser), {}, [currentUser])
 
-  useHotkeys('shift+I', (event) => handleUserChange(event), {}, [currentUser])
-  useHotkeys('shift+B', (event) => handleUserChange(event), {}, [currentUser])
-  useHotkeys('shift+V', (event) => handleUserChange(event), {}, [currentUser])
-  useHotkeys('shift+X', (event) => handleUserChange(event), {}, [currentUser])
+  useHotkeys('shift+I', (event) => handleUserChange(event, currentUser), {}, [currentUser])
+  useHotkeys('shift+B', (event) => handleUserChange(event, currentUser), {}, [currentUser])
+  useHotkeys('shift+V', (event) => handleUserChange(event, currentUser), {}, [currentUser])
+  useHotkeys('shift+X', (event) => handleUserChange(event, currentUser), {}, [currentUser])
 
   return (
     <div className={classes.root}>
@@ -491,8 +599,10 @@ const App = () => {
           <Toolbar>
 
             <Typography variant="h6" className={classes.title}>
-              Categorizer
+              Categorizer | USER HISTORY: {userHistory.length} | PREV USER: {userHistory.length > 1 ? userHistory[userHistory.length-2] : ""}
             </Typography>
+
+            {progress !== "idle" ? <CircularProgress /> : <></>}
 
             <Typography  className={classes.serverStatus}>
               NN: {status.bestNetwork.networkId}

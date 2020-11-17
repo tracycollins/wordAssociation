@@ -256,12 +256,9 @@ const User = (props) => {
             />
           </div>
 
-          <Typography className={classes.buttonGroupLabel}>
-            UNCAT
-          </Typography>   
+          <Typography className={classes.buttonGroupLabel}>UNCAT</Typography>   
 
           <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
-
             <Button onClick={props.handleNodeChange} name="all" >ALL: {props.stats.user.uncategorized.all}</Button>
             <Button onClick={props.handleNodeChange} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
             <Button onClick={props.handleNodeChange} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
@@ -282,32 +279,27 @@ const User = (props) => {
       <Grid className={classes.grid}>
           <Grid item className={classes.gridItem} xs={3}>
             <Card className={classes.card} variant="outlined">
-              <CardContent
-                onClick={openUserTwitterPage}
-              >
-                <Typography
-                  variant="h6"
-                >
-                  {props.user.name}
-                </Typography>
-                <Typography>
-                  @{props.user.screenName}
-                </Typography>
+              <CardContent onClick={openUserTwitterPage}>
+                <span>
+                  <Typography className={getCategoryClass(props.user.categoryAuto)} align="center">
+                    AUTO: {props.user.categoryAuto.toUpperCase() || "NONE"}
+                  </Typography>
+                  <Typography variant="h6">{props.user.name}</Typography>
+                  <Typography>@{props.user.screenName}</Typography>
+                </span>
               </CardContent>
               <CardMedia
                 className={classes.profileImage}
                 src={props.user.profileImageUrl || defaultProfileImage}
                 component="img"
-                onError={e => {
-                }}              
+                onError={e => {}}              
               />
               <br></br>
               <CardMedia 
                 className={classes.bannerImage} 
                 src={props.user.bannerImageUrl || defaultBannerImage} 
                 component="img"
-                onError={e => {
-                }}              
+                onError={e => {}}              
               />
               <CardContent>
                 <Typography>
@@ -322,9 +314,7 @@ const User = (props) => {
                 sourceType: 'profile',
                 screenName: props.user.screenName
               }}
-              options={{
-                height: '640'
-              }}
+              options={{height: '640'}}
             />
           </Grid>
           <Grid item className={classes.gridItem} xs={3}>
@@ -404,12 +394,12 @@ const User = (props) => {
           <Grid item className={classes.gridItem} xs={1}>
             <FormGroup>
 
-              <Typography 
+              {/* <Typography 
                 className={getCategoryClass(props.user.categoryAuto)}
                 align="center"
               >
                 AUTO: {props.user.categoryAuto.toUpperCase() || "NONE"}
-              </Typography>
+              </Typography> */}
 
               <FormControl component="fieldset">
                 <RadioGroup aria-label="category" name="category" value={props.user.category || "none"} onChange={props.handleNodeChange}>

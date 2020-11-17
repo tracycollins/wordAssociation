@@ -94,6 +94,9 @@ const jsonPrint = tcUtils.jsonPrint;
 const formatBoolean = tcUtils.formatBoolean;
 const formatCategory = tcUtils.formatCategory;
 const getTimeStamp = tcUtils.getTimeStamp;
+const msToTime = tcUtils.msToTime;
+
+let twitterClient;
 
 let userServerController;
 let userServerControllerReady = false;
@@ -2385,7 +2388,7 @@ function ipCacheExpired(ip, ipCacheObj) {
         ipCache.getStats().keys +
         " KEYS]" +
         " | TTL: " +
-        tcUtils.msToTime(ipCacheTtl * 1000) +
+        msToTime(ipCacheTtl * 1000) +
         " | NOW: " +
         getTimeStamp() +
         " | $ EXPIRED: " +
@@ -2480,7 +2483,7 @@ function viewerCacheExpired(viewerCacheId, viewerObj) {
         " | TS: " +
         getTimeStamp(viewerObj.timeStamp) +
         " | AGO: " +
-        tcUtils.msToTime(moment().valueOf() - viewerObj.timeStamp)
+        msToTime(moment().valueOf() - viewerObj.timeStamp)
     )
   );
 
@@ -2536,7 +2539,7 @@ function serverCacheExpired(serverCacheId, serverObj) {
         " | TS: " +
         getTimeStamp(serverObj.timeStamp) +
         " | AGO: " +
-        tcUtils.msToTime(moment().valueOf() - serverObj.timeStamp)
+        msToTime(moment().valueOf() - serverObj.timeStamp)
     )
   );
 
@@ -2585,7 +2588,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
         authenticatedSocketCache.getStats().keys +
         " KEYS]" +
         " | TTL: " +
-        tcUtils.msToTime(authenticatedSocketCacheTtl * 1000) +
+        msToTime(authenticatedSocketCacheTtl * 1000) +
         " | NSP: " +
         authSocketObj.namespace.toUpperCase() +
         " | " +
@@ -2599,7 +2602,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
         " | TS: " +
         getTimeStamp(authSocketObj.timeStamp) +
         " | AGO: " +
-        tcUtils.msToTime(moment().valueOf() - authSocketObj.timeStamp)
+        msToTime(moment().valueOf() - authSocketObj.timeStamp)
     )
   );
 
@@ -2626,7 +2629,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
                 " | TS: " +
                 getTimeStamp(authSocketObjCache.timeStamp) +
                 " | AGO: " +
-                tcUtils.msToTime(
+                msToTime(
                   moment().valueOf() - authSocketObjCache.timeStamp
                 )
             )
@@ -3169,7 +3172,7 @@ function showStats(options) {
 
   statsObj.dbuChildReady = dbuChildReady;
 
-  statsObj.elapsed = tcUtils.msToTime(moment().valueOf() - statsObj.startTime);
+  statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   statsObj.timeStamp = getTimeStamp();
   statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
   statsObj.nodesPerMin = parseInt(globalNodeMeter.toJSON()[metricsRate]);
@@ -3697,7 +3700,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
       
       statsObj.serverTime = moment().valueOf();
       statsObj.runTime = moment().valueOf() - statsObj.startTime;
-      statsObj.elapsed = tcUtils.msToTime(
+      statsObj.elapsed = msToTime(
         moment().valueOf() - statsObj.startTime
       );
       statsObj.timeStamp = getTimeStamp();
@@ -4417,7 +4420,7 @@ async function pubSubNodeSetProps(params) {
           MODULE_ID +
             " | !!! NODE SET PROPS TIMEOUT" +
             " | " +
-            tcUtils.msToTime(configuration.pubSub.pubSubResultTimeout) +
+            msToTime(configuration.pubSub.pubSubResultTimeout) +
             " [" +
             statsObj.pubSub.messagesSent +
             "]" +
@@ -5208,11 +5211,24 @@ async function twitterSearchNode(params) {
     });
 
     if (results.node) {
-      viewNameSpace.emit("SET_TWITTER_HASHTAG", {
-        node: results.node,
-        stats: statsObj,
-      });
-      
+
+      if (twitterClient) {
+        twitterClient.get("search/tweets", { q: results.node.nodeId, count: 10 }, (err, tweets) => {
+          viewNameSpace.emit("SET_TWITTER_HASHTAG", {
+            node: results.node,
+            tweets: tweets,
+            stats: statsObj,
+          });
+        })
+      }
+      else{
+        viewNameSpace.emit("SET_TWITTER_HASHTAG", {
+          node: results.node,
+          tweets: [],
+          stats: statsObj,
+        });
+      }
+       
     } else {
       viewNameSpace.emit("TWITTER_HASHTAG_NOT_FOUND", { searchNode: searchNode, stats: statsObj });
     }
@@ -7684,7 +7700,7 @@ async function updateUserSets(p) {
           " | " +
           getTimeStamp() +
           " | FOLLOWING USER SET | RUN TIME: " +
-          tcUtils.msToTime(moment().valueOf() - cursorStartTime)
+          msToTime(moment().valueOf() - cursorStartTime)
       )
     );
     console.log(
@@ -7814,7 +7830,7 @@ async function updateHashtagSets() {
           " | " +
           getTimeStamp() +
           " | FOLLOWING HASHTAG SET | RUN TIME: " +
-          tcUtils.msToTime(moment().valueOf() - cursorStartTime)
+          msToTime(moment().valueOf() - cursorStartTime)
       )
     );
     console.log(
@@ -7989,7 +8005,7 @@ function initTransmitNodeQueueInterval(interval) {
       chalk.bold.black(
         MODULE_ID +
           " | INIT TRANSMIT NODE QUEUE INTERVAL: " +
-          tcUtils.msToTime(interval)
+          msToTime(interval)
       )
     );
 
@@ -8265,9 +8281,9 @@ function logHeartbeat() {
         " | ST: " +
         getTimeStamp(parseInt(statsObj.startTime)) +
         " | UP: " +
-        tcUtils.msToTime(statsObj.upTime) +
+        msToTime(statsObj.upTime) +
         " | RN: " +
-        tcUtils.msToTime(statsObj.runTime)
+        msToTime(statsObj.runTime)
     )
   );
 }
@@ -8707,7 +8723,7 @@ function initAppRouting(callback) {
 
     console.log(chalkLog(MODULE_ID + " | R< STATS"));
 
-    statsObj.elapsed = tcUtils.msToTime(moment().valueOf() - statsObj.startTime);
+    statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
     statsObj.timeStamp = getTimeStamp();
     statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
     statsObj.nodesPerMin = parseInt(globalNodeMeter.toJSON()[metricsRate]);
@@ -9184,7 +9200,7 @@ async function initTweetParserMessageRxQueueInterval(interval) {
     chalk.bold.black(
       MODULE_ID +
         " | INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " +
-        tcUtils.msToTime(interval)
+        msToTime(interval)
     )
   );
 
@@ -9312,7 +9328,7 @@ function initSorterMessageRxQueueInterval(interval) {
       chalk.bold.black(
         MODULE_ID +
           " | INIT SORTER RX MESSAGE QUEUE INTERVAL | " +
-          tcUtils.msToTime(interval)
+          msToTime(interval)
       )
     );
 
@@ -9415,7 +9431,7 @@ function initKeySortInterval(interval) {
   return new Promise(function (resolve) {
     console.log(
       chalkInfo(
-        MODULE_ID + " | INIT KEY SORT INTERVAL: " + tcUtils.msToTime(interval)
+        MODULE_ID + " | INIT KEY SORT INTERVAL: " + msToTime(interval)
       )
     );
 
@@ -9546,7 +9562,7 @@ function initDbuPingInterval(interval) {
               " | PING ID: " +
               getTimeStamp(dbuPingId) +
               " | ELAPSED: " +
-              tcUtils.msToTime(moment().valueOf() - dbuPingId)
+              msToTime(moment().valueOf() - dbuPingId)
           )
         );
       }
@@ -9653,7 +9669,7 @@ function initTssPingInterval(interval) {
               " | PING ID: " +
               getTimeStamp(tssPingId) +
               " | ELAPSED: " +
-              tcUtils.msToTime(moment().valueOf() - tssPingId)
+              msToTime(moment().valueOf() - tssPingId)
           )
         );
       }
@@ -9899,7 +9915,7 @@ function initTssChild(params) {
                   " | PONG ID: " +
                   getTimeStamp(m.pongId) +
                   " | RESPONSE TIME: " +
-                  tcUtils.msToTime(moment().valueOf() - m.pongId)
+                  msToTime(moment().valueOf() - m.pongId)
               )
             );
           }
@@ -10054,7 +10070,7 @@ function initDbuChild(params) {
                   " | PONG ID: " +
                   getTimeStamp(m.pongId) +
                   " | RESPONSE TIME: " +
-                  tcUtils.msToTime(moment().valueOf() - m.pongId)
+                  msToTime(moment().valueOf() - m.pongId)
               )
             );
           }
@@ -10225,7 +10241,7 @@ function initTweetParserPingInterval(interval) {
               " | PING ID: " +
               getTimeStamp(tweetParserPingId) +
               " | ELAPSED: " +
-              tcUtils.msToTime(moment().valueOf() - tweetParserPingId)
+              msToTime(moment().valueOf() - tweetParserPingId)
           )
         );
       }
@@ -10322,7 +10338,7 @@ function initTweetParser(params) {
                   " | PONG ID: " +
                   getTimeStamp(m.pongId) +
                   " | RESPONSE TIME: " +
-                  tcUtils.msToTime(moment().valueOf() - m.pongId)
+                  msToTime(moment().valueOf() - m.pongId)
               )
             );
           }
@@ -10404,7 +10420,7 @@ function initRateQinterval(interval) {
       chalk.bold.black(
         MODULE_ID +
           " | INIT RATE QUEUE INTERVAL | " +
-          tcUtils.msToTime(interval)
+          msToTime(interval)
       )
     );
 
@@ -11607,7 +11623,7 @@ function initStatsUpdate() {
         chalkTwitter(
           MODULE_ID +
             " | INIT STATS UPDATE INTERVAL | " +
-            tcUtils.msToTime(configuration.statsUpdateIntervalTime)
+            msToTime(configuration.statsUpdateIntervalTime)
         )
       );
 
@@ -12253,29 +12269,31 @@ async function initThreeceeTwitterUser(threeceeUser) {
   const configFile = threeceeUser + ".json";
 
   try {
+
     threeceeTwitter.twitterConfig = await tcUtils.initTwitterConfig({
       folder: twitterConfigFolder,
       threeceeUser: threeceeUser,
     });
-    await tcUtils.initTwitter({ twitterConfig: threeceeTwitter.twitterConfig });
+
+    twitterClient = await tcUtils.initTwitter({ twitterConfig: threeceeTwitter.twitterConfig });
     await tcUtils.getTwitterAccountSettings();
 
-    console.log(
-      chalkTwitter(
-        MODULE_ID +
-          " | +++ TWITTER INITIALIZED" +
-          " | 3C @" +
-          threeceeUser +
-          "\nCONFIG\n" +
-          jsonPrint(threeceeTwitter.twitterConfig)
-      )
-    );
+    console.log(chalkTwitter(MODULE_ID +
+      " | +++ TWITTER INITIALIZED" +
+      " | 3C @" +
+      threeceeUser +
+      "\nCONFIG\n" +
+      jsonPrint(threeceeTwitter.twitterConfig)
+    ));
 
     threeceeTwitter.ready = true;
     threeceeTwitter.status = false;
     threeceeTwitter.error = false;
+
     statsObj.threeceeUsersConfiguredFlag = true;
+
     return threeceeUser;
+
   } catch (err) {
     if (err.code == "ENOTFOUND") {
       console.log(
@@ -12358,7 +12376,7 @@ function allTrue(p) {
       chalkLog(
         MODULE_ID +
           " | ... WAIT ALL TRUE TIMEOUT | " +
-          tcUtils.msToTime(params.maxIntervalWait)
+          msToTime(params.maxIntervalWait)
       )
     );
 
@@ -12374,7 +12392,7 @@ function allTrue(p) {
         clearInterval(waitInterval);
         console.log(
           chalkAlert(
-            MODULE_ID + " | ALL TRUE TIMEOUT | " + tcUtils.msToTime(waitTime)
+            MODULE_ID + " | ALL TRUE TIMEOUT | " + msToTime(waitTime)
           )
         );
         return resolve(false);
@@ -12536,7 +12554,7 @@ setTimeout(async function () {
     chalkBlue(
       MODULE_ID +
         " | ... WAIT START TIMEOUT: " +
-        tcUtils.msToTime(DEFAULT_START_TIMEOUT)
+        msToTime(DEFAULT_START_TIMEOUT)
     )
   );
 

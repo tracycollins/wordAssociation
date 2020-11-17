@@ -16,7 +16,8 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 
 import './App.css';
-import User from './User.js';
+import UserView from './UserView.js';
+import HashtagView from './HashtagView.js';
 
 // const ENDPOINT = "http://mbp3:9997/view";
 const ENDPOINT = "https://word.threeceelabs.com/view";
@@ -58,6 +59,9 @@ const useStyles = makeStyles((theme) => ({
   appBar: {
     backgroundColor: 'white',
     margin: 2,
+  },
+  buttonNodeType: {
+
   },
   title: {
     flexGrow: 1,
@@ -154,6 +158,8 @@ const App = () => {
         left: 0,
         neutral: 0,
         right: 0,
+        positive: 0,
+        negative: 0,
         all: 0,
         mismatched: 0
       },
@@ -161,11 +167,40 @@ const App = () => {
         left: 0,
         neutral: 0,
         right: 0,
+        positive: 0,
+        negative: 0,
       },
       auto: {
         left: 0,
         neutral: 0,
         right: 0,
+        positive: 0,
+        negative: 0,
+      }
+    },
+    hashtag: {
+      uncategorized: {
+        left: 0,
+        neutral: 0,
+        right: 0,
+        positive: 0,
+        negative: 0,
+        all: 0,
+        mismatched: 0
+      },
+      manual: {
+        left: 0,
+        neutral: 0,
+        right: 0,
+        positive: 0,
+        negative: 0,
+      },
+      auto: {
+        left: 0,
+        neutral: 0,
+        right: 0,
+        positive: 0,
+        negative: 0,
       }
     }
   }
@@ -198,38 +233,37 @@ const App = () => {
     categoryAuto: "none",
   }
 
-  // const defaultHashtag = {
-  //   nodeId: null,
-  //   text: null,
-  //   categoryAuto: "none",
-  //   category: "none",
-    
-  //   lastSeen: null,
-  //   age: 0,
-  //   mentions: 0,
-  //   rate: 0,
-  //   rateMax: 0,
-  // }
+  const defaultHashtag = {
+    nodeId: "blacklivesmatter",
+    text: "BlackLivesMatter",
+    categoryAuto: "none",
+    category: "left",
+    createdAt: 0,
+    lastSeen: 0,
+    age: 0,
+    mentions: 0,
+    rate: 0,
+    rateMax: 0,
+  }
 
   const [twitterAuthenticated, setTwitterAuthenticated] = useState(false);
   const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState("");
   const [status, setStatus] = useState(defaultStatus);
   const [progress, setProgress] = useState("idle");
+
+  const [displayNodeType, setDisplayNodeType] = useState("user");
+
   const [currentUser, setCurrentUser] = useState(defaultUser);
-  const [userHistory, setUserHistory] = useState([]);
-  const [userHistoryIndex, setUserHistoryIndex] = useState(0);
-  // const [currentHashtag, setHashtag] = useState(defaultHashtag);
-  
-  // const startProgress = (op) => {
-  //   setProgress(op);
-  // }
+  // const [userHistory, setUserHistory] = useState([]);
+  // const [userHistoryIndex, setUserHistoryIndex] = useState(0);
 
-  // const stopProgress = (op) => {
-  //   setProgress("idle");
-  // }
+  const [currentHashtag, setCurrentHashtag] = useState(defaultHashtag);
 
-  const handleSearchUser = (searchString) => {
-    const searchTerm = "@" + searchString
+  const currentNode = displayNodeType === "user" ? currentUser : currentHashtag;
+
+  const handleSearchNode = (searchString) => {
+    const searchTerm = displayNodeType === "user" ? "@" + searchString : "#" + searchString
+    console.log("SEARCH TERM: " + searchTerm)
     socket.emit("TWITTER_SEARCH_NODE", searchTerm)
   }
 
@@ -253,9 +287,14 @@ const App = () => {
     }
   }
 
-  const handleUserChange = useCallback((event, user) => {
+  const handleNodeChange = useCallback((event, node) => {
 
-    console.log("handleUserChange | user: @" + user.screenName)
+    if (displayNodeType === "user"){
+      console.log("handleNodeChange | user: @" + node.screenName)
+    }
+    else{
+      console.log("handleNodeChange | hashtag: #" + node.nodeId)
+    }
 
     if (event.persist !== undefined) { 
       event.persist() 
@@ -270,20 +309,21 @@ const App = () => {
     let eventChecked = event.currentTarget.checked;
 
     if (event.currentTarget.name === undefined && event.code){
+
       switch (event.code){
+
         case "ArrowRight":
-          eventName = "history"
-          history.goForward()
-          eventValue = history.location.pathname.split("@").pop()
-          break;
         case "ArrowLeft":
           eventName = "history"
-          history.goBack()
-          eventValue = history.location.pathname.split("@").pop()
+          if (event.code === "ArrrowRight"){ history.goForward(); }
+          if (event.code === "ArrowLeft"){ history.goBack(); }
+          eventValue = history.location.pathname.split("/").pop()
           break;
+
         case "KeyA":
           eventName = "all"
           break;
+
         case "KeyD":
         case "KeyL":
           if (event.shiftKey){
@@ -294,6 +334,7 @@ const App = () => {
             eventName = "left"
           }
           break;
+
         case "KeyN":
           if (event.shiftKey){
             eventName = "category"
@@ -303,6 +344,7 @@ const App = () => {
             eventName = "neutral"
           }
           break;
+
         case "KeyR":
           if (event.shiftKey){
             eventName = "category"
@@ -312,97 +354,154 @@ const App = () => {
             eventName = "right"
           }
           break;
+
+        case "KeyHyphen":
+          if (event.shiftKey){
+            eventName = "category"
+            eventValue = "negative"
+          }
+          else{
+            eventName = "negative"
+          }
+          break;
+
+        case "KeyEquals":
+          if (event.shiftKey){
+            eventName = "category"
+            eventValue = "positive"
+          }
+          else{
+            eventName = "positive"
+          }
+          break;
+
         case "KeyI":
         case "KeyX":
           if (event.shiftKey){
             eventName = "ignored"
-            eventChecked = !user.ignored
+            eventChecked = !node.ignored
           }
           break;
+
         case "KeyV":
           if (event.shiftKey){
             eventName = "catVerified"
-            eventChecked = !user.categoryVerified
+            eventChecked = !node.categoryVerified
           }
           break;
+
         case "KeyB":
           if (event.shiftKey){
             eventName = "isBot"
-            eventChecked = !user.isBot
+            eventChecked = !node.isBot
           }
           break;
+
         default:
       }
     }
 
-    console.log("handleUserChange | @" + user.screenName + " | name: " + eventName + " | value: " + eventValue)
+    let searchFilter;
 
-    let searchFilter = "@?";
+    if (node.nodeType === "user"){
+      searchFilter = "@?";
+      console.log("handleNodeChange | @" + node.screenName + " | name: " + eventName + " | value: " + eventValue)
+    }
+    else{
+      searchFilter = "#?";
+      console.log("handleNodeChange | #" + node.nodeId + " | name: " + eventName + " | value: " + eventValue)
+    }
 
     setProgress(progress => eventName);
 
     switch (eventName){
+
       case "nop":
         break;
+
       case "history":
-        console.log("handleUserChange | history | @" + user.screenName + " | name: " + eventName + " | value: " + eventValue)
-        socket.emit("TWITTER_SEARCH_NODE", "@" + eventValue);
+        if (node.nodeType === "user"){
+          console.log("handleNodeChange | history | @" + node.screenName + " | name: " + eventName + " | value: " + eventValue)
+          socket.emit("TWITTER_SEARCH_NODE", "@" + eventValue);
+        }
+        else{
+          console.log("handleNodeChange | history | #" + node.nodeId + " | name: " + eventName + " | value: " + eventValue)
+          socket.emit("TWITTER_SEARCH_NODE", "#" + eventValue);
+        }
         break;
+
       case "all":
       case "left":
       case "neutral":
       case "right":
+      case "positive":
+      case "negative":
         searchFilter += eventName
         socket.emit("TWITTER_SEARCH_NODE", searchFilter);
         break
+
       case "mismatch":
-        socket.emit("TWITTER_SEARCH_NODE", "@?mm");
+        if (node.nodeType === "user"){
+          socket.emit("TWITTER_SEARCH_NODE", "@?mm");
+        }
         break
+
       case "category":
         socket.emit("TWITTER_CATEGORIZE_NODE", {
           category: eventValue,
           following: true,
-          node: user,
+          node: node,
         });
         break
+
       case "isBot":
-        if (eventChecked){
-          socket.emit("TWITTER_BOT", user);
-        }
-        else{
-          socket.emit("TWITTER_UNBOT", user);
+        if (node.nodeType === "user"){
+          if (eventChecked){
+            socket.emit("TWITTER_BOT", node);
+          }
+          else{
+            socket.emit("TWITTER_UNBOT", node);
+          }
         }
         break
+
       case "following":
-        if (eventChecked){
-          socket.emit("TWITTER_FOLLOW", user);
-        }
-        else{
-          socket.emit("TWITTER_UNFOLLOW", user);
+        if (node.nodeType === "user"){
+          if (eventChecked){
+            socket.emit("TWITTER_FOLLOW", node);
+          }
+          else{
+            socket.emit("TWITTER_UNFOLLOW", node);
+          }
         }
         break
+
       case "catVerified":
-        if (eventChecked){
-          socket.emit("TWITTER_CATEGORY_VERIFIED", user);
-        }
-        else{
-          socket.emit("TWITTER_CATEGORY_UNVERIFIED", user);
+        if (node.nodeType === "user"){
+          if (eventChecked){
+            socket.emit("TWITTER_CATEGORY_VERIFIED", node);
+          }
+          else{
+            socket.emit("TWITTER_CATEGORY_UNVERIFIED", node);
+          }
         }
         break
+
       case "ignored":
         if (eventChecked){
-          socket.emit("TWITTER_IGNORE", user);
+          socket.emit("TWITTER_IGNORE", node);
         }
         else{
-          socket.emit("TWITTER_UNIGNORE", user);
+          socket.emit("TWITTER_UNIGNORE", node);
         }
         break
+
       default:
-        console.log("handleUserChange: UNKNOWN NAME: " + eventName + " | VALUE: " + eventValue)
+        console.log("handleNodeChange: UNKNOWN NAME: " + eventName + " | VALUE: " + eventValue)
         console.log({event})
     }
     
-  }, [history])
+  }, [displayNodeType, history])
 
   const nodeValid = (node) => {
     if (node === undefined) return false
@@ -412,10 +511,17 @@ const App = () => {
   }
 
   useEffect(() => {
-    if (!history.location.pathname.endsWith("@" + currentUser.screenName)){
-      history.push("/user/@" + currentUser.screenName)
+    if (displayNodeType === "user"){
+      if (!history.location.pathname.endsWith("/user/" + currentUser.screenName)){
+        history.push("/user/" + currentUser.screenName)
+      }
     }
-  }, [currentUser, history])
+    if (displayNodeType === "hashtag"){
+      if (!history.location.pathname.endsWith("/hashtag/" + currentHashtag.nodeId)){
+        history.push("/hashtag/" + currentHashtag.nodeId)
+      }
+    }
+  }, [currentUser, currentHashtag, displayNodeType, history])
 
   useEffect(() => {
 
@@ -434,14 +540,21 @@ const App = () => {
     socket.on("SET_TWITTER_USER", (results) => {
 
       console.debug("RX SET_TWITTER_USER");
-      // console.debug(results);
+
       if (nodeValid(results.node)) { 
-
         setCurrentUser(currentUser => results.node) 
-        
         console.debug("new: @" + results.node.screenName);
-        setUserHistory(prevUserHistory => [...prevUserHistory, results.node.screenName])
+      }
+      setProgress(progress => "idle");
+      setStatus(status => results.stats)
+    });
 
+    socket.on("SET_TWITTER_HASHTAG", (results) => {
+
+      console.debug("RX SET_TWITTER_HASHTAG");
+      if (nodeValid(results.node)) { 
+        setCurrentHashtag(currentHashtag => results.node) 
+        console.debug("new: #" + results.node.nodeId);
       }
       setProgress(progress => "idle");
       setStatus(status => results.stats)
@@ -460,7 +573,6 @@ const App = () => {
           break
 
         case "hashtag":
-            // setHashtag(action.data)
             console.log("HT: #" + action.data.text)
           break
 
@@ -502,27 +614,53 @@ const App = () => {
 
   }, [])
 
-  useHotkeys('left', (event) => handleUserChange(event, currentUser), {}, [currentUser])
-  useHotkeys('right', (event) => handleUserChange(event, currentUser), {}, [currentUser])
+  // history
+  // - back
+  useHotkeys('left', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
+  // - forward
+  useHotkeys('right', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
 
-  useHotkeys('A', (event) => handleUserChange(event, currentUser), {}, [currentUser])
+  // all
+  useHotkeys('A', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
 
-  useHotkeys('L', (event) => handleUserChange(event, currentUser), {}, [currentUser])
-  useHotkeys('shift+L', (event) => handleUserChange(event, currentUser), {}, [currentUser])
+  // left
+  useHotkeys('L', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
+  useHotkeys('shift+L', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
+  useHotkeys('D', handleNodeChange)
+  useHotkeys('shift+D', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
 
-  useHotkeys('D', handleUserChange)
-  useHotkeys('shift+D', (event) => handleUserChange(event, currentUser), {}, [currentUser])
+  // right
+  useHotkeys('R', handleNodeChange)
+  useHotkeys('shift+R', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
 
-  useHotkeys('R', handleUserChange)
-  useHotkeys('shift+R', (event) => handleUserChange(event, currentUser), {}, [currentUser])
+  // neutral
+  useHotkeys('N', handleNodeChange)
+  useHotkeys('shift+N', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
 
-  useHotkeys('N', handleUserChange)
-  useHotkeys('shift+N', (event) => handleUserChange(event, currentUser), {}, [currentUser])
+  // negative
+  useHotkeys('-', handleNodeChange)
+  useHotkeys('shift+-', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
 
-  useHotkeys('shift+I', (event) => handleUserChange(event, currentUser), {}, [currentUser])
-  useHotkeys('shift+B', (event) => handleUserChange(event, currentUser), {}, [currentUser])
-  useHotkeys('shift+V', (event) => handleUserChange(event, currentUser), {}, [currentUser])
-  useHotkeys('shift+X', (event) => handleUserChange(event, currentUser), {}, [currentUser])
+  // positive
+  useHotkeys('=', handleNodeChange)
+  useHotkeys('shift+=', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
+
+  // ignore toggle
+  useHotkeys('shift+I', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
+  useHotkeys('shift+X', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
+  // bot toggle
+  useHotkeys('shift+B', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
+  // verified toggle
+  useHotkeys('shift+V', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
+
+  const displayNode = (nodeType) => {
+    if (nodeType === "user"){
+      return <UserView user={currentUser} stats={status} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
+    }
+    else{
+      return <HashtagView hashtag={currentHashtag} stats={status} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
+    }
+  }
 
   return (
     <div className={classes.root}>
@@ -534,6 +672,30 @@ const App = () => {
               {/* Categorizer | USER HISTORY: {userHistory.length} | PREV USER: {userHistory.length > 0 ? userHistory[userHistory.length-1] : ""} */}
               Categorizer
             </Typography>
+
+            <Button 
+              className={classes.buttonNodeType}
+              variant="contained" 
+              color="primary" 
+              size="small" 
+              name="user"
+              label="user"
+              onClick={() => setDisplayNodeType("user")}
+            >
+              User
+            </Button>
+
+            <Button 
+              className={classes.buttonNodeType}
+              variant="contained" 
+              color="primary" 
+              size="small" 
+              name="hashtag"
+              label="hashtag"
+              onClick={() => setDisplayNodeType("hashtag")}
+            >
+              Hashtag
+            </Button>
 
             {progress !== "idle" ? <CircularProgress /> : <></>}
 
@@ -568,7 +730,7 @@ const App = () => {
 
           </Toolbar>
         </AppBar>
-        <User user={currentUser} stats={status} handleUserChange={handleUserChange} handleSearchUser={handleSearchUser}/>
+        {displayNode(displayNodeType)}
       </Container>
     </div>
   );

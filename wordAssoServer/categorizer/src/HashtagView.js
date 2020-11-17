@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Timeline } from 'react-twitter-widgets'
+import { Hashtag } from 'react-twitter-widgets'
 
 import Duration from 'duration';
 
@@ -51,12 +51,6 @@ const useStyles = makeStyles((theme) => ({
   card: {
     raised: false,
     maxWidth: 400,
-  },
-  profileImage: {
-    maxHeight: 400,
-  },
-  bannerImage: {
-    height: 80,
   },
   table: {
   },
@@ -179,44 +173,38 @@ const formatDate = (dateInput) => {
   );
 }
 
-const defaultProfileImage = "logo192.png"
-const defaultBannerImage = "logo192.png"
-
-const User = (props) => {
+const HashtagView = (props) => {
 
   const classes = useStyles();
 
-  const createdAt = formatDate(props.user.createdAt)
-  const lastSeen = formatDate(props.user.lastSeen)
+  const createdAt = formatDate(props.hashtag.createdAt)
+  const lastSeen = formatDate(props.hashtag.lastSeen)
  
-  const lastSeenDuration = new Duration(new Date(props.user.lastSeen)).toString(1, 4)
-  const twitterAge = props.user.createdAt ? new Duration(new Date(props.user.createdAt)) : new Duration(new Date())
+  const lastSeenDuration = new Duration(new Date(props.hashtag.lastSeen)).toString(1, 4)
+  const twitterAge = props.hashtag.createdAt ? new Duration(new Date(props.hashtag.createdAt)) : new Duration(new Date())
   const twitterAgeString = twitterAge.toString(1, 4)
 
-  const tweetRate = twitterAge.days > 0 ? Math.ceil(props.user.statusesCount/twitterAge.days) : 0;
+  const [hashtagSearch, setHashtagSearch] = useState(props.hashtag.nodeId);
 
-  const [userSearch, setUserSearch] = useState(props.user.screenName);
-
-  
   useEffect(() => {
-    setUserSearch(props.user.screenName)
+    setHashtagSearch(props.hashtag.nodeId)
   }, [props])
   
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)
-    setUserSearch(event.target.value);
+    setHashtagSearch(event.target.value);
   }
 
   const handleKeyPress = (event) => {
     if (event.charCode === 13) { // enter key pressed
-      console.log("ENTER")
-      props.handleSearchUser(userSearch)
+      console.log("ENTER: hashtagSearch: " + hashtagSearch)
+      props.handleSearchNode(hashtagSearch)
     }
   }
 
-  const openUserTwitterPage = () => {
+  const openHashtagTwitterPage = () => {
     console.log("open twitter")
-    window.open(`http://twitter.com/${props.user.screenName || null}`, "_blank") //to open new page
+    window.open(`https://twitter.com/search?f=tweets&q=%23${props.hashtag.nodeId || null}`, "_blank") //to open new page
   }
 
   const getCategoryClass = (category) => {
@@ -224,6 +212,8 @@ const User = (props) => {
       case "left":
       case "neutral":
       case "right":
+      case "positive":
+      case "negative":
         return classes[category]
       default:
         return classes.none
@@ -236,7 +226,7 @@ const User = (props) => {
         <Toolbar>
 
           <Typography variant="h6" className={classes.title}>
-            User
+            Hashtag
           </Typography>
 
           <div className={classes.search}>
@@ -250,7 +240,7 @@ const User = (props) => {
                 input: classes.inputInput,
               }}
               inputProps={{ 'aria-label': 'search' }}
-              value={userSearch}
+              value={hashtagSearch}
               onKeyPress={handleKeyPress}
               onChange={handleChangeSearch}
             />
@@ -261,59 +251,23 @@ const User = (props) => {
           </Typography>   
 
           <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
-
-            <Button onClick={props.handleUserChange} name="all" >ALL: {props.stats.user.uncategorized.all}</Button>
-            <Button onClick={props.handleUserChange} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
-            <Button onClick={props.handleUserChange} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
-            <Button onClick={props.handleUserChange} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
+            <Button onClick={props.handleNodeChange} name="all" >ALL: {props.stats.hashtag.uncategorized.all}</Button>
           </ButtonGroup>
-          <Button 
-            variant="contained" color="primary" size="small" onClick={props.handleUserChange} name="mismatch" className={classes.buttonMismatch}>MISMATCH {props.stats.user.mismatched}
-          </Button>
+
         </Toolbar>
       </AppBar>
       <Grid className={classes.grid}>
           <Grid item className={classes.gridItem} xs={3}>
             <Card className={classes.card} variant="outlined">
-              <CardContent
-                onClick={openUserTwitterPage}
-              >
-                <Typography
-                  variant="h6"
-                >
-                  {props.user.name}
-                </Typography>
-                <Typography>
-                  @{props.user.screenName}
-                </Typography>
-              </CardContent>
-              <CardMedia
-                className={classes.profileImage}
-                src={props.user.profileImageUrl || defaultProfileImage}
-                component="img"
-                onError={e => {
-                }}              
-              />
-              <br></br>
-              <CardMedia 
-                className={classes.bannerImage} 
-                src={props.user.bannerImageUrl || defaultBannerImage} 
-                component="img"
-                onError={e => {
-                }}              
-              />
-              <CardContent>
-                <Typography>
-                  {props.user.description}
-                </Typography>
+              <CardContent onClick={openHashtagTwitterPage}>
+                <Typography>#{props.hashtag.nodeId}</Typography>
               </CardContent>
             </Card>
           </Grid>
           <Grid item className={classes.gridItem} xs={3}>
-            <Timeline
+            <Hashtag
               dataSource={{
-                sourceType: 'profile',
-                screenName: props.user.screenName
+                hashtag: props.hashtag.nodeId
               }}
               options={{
                 height: '640'
@@ -325,10 +279,7 @@ const User = (props) => {
               <Table className={classes.table} size="small">
                 <TableBody>
                   <TableRow>
-                    <TableCell>id</TableCell><TableCell align="right">{props.user.nodeId}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>location</TableCell><TableCell align="right">{props.user.location}</TableCell>
+                    <TableCell>id</TableCell><TableCell align="right">{props.hashtag.nodeId}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>created</TableCell><TableCell align="right">{createdAt}</TableCell>
@@ -336,29 +287,17 @@ const User = (props) => {
                   <TableRow>
                     <TableCell>twitter age</TableCell><TableCell align="right">{twitterAgeString}</TableCell>
                   </TableRow>
-                  <TableRow className={props.user.followersCount > 5000 ? classes.tableRowGreen : null}>
-                    <TableCell>followers</TableCell><TableCell align="right">{props.user.followersCount}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>friends</TableCell><TableCell align="right">{props.user.friendsCount}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>tweets</TableCell><TableCell align="right">{props.user.statusesCount}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>tweets/day</TableCell><TableCell align="right">{tweetRate}</TableCell>
-                  </TableRow>
-                  <TableRow>
+                 <TableRow>
                     <TableCell>last seen</TableCell><TableCell align="right">{lastSeen}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>last seen</TableCell><TableCell align="right">{lastSeenDuration} ago</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>mentions</TableCell><TableCell align="right">{props.user.mentions}</TableCell>
+                    <TableCell>mentions</TableCell><TableCell align="right">{props.hashtag.mentions}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>mentions/min</TableCell><TableCell align="right">{props.user.rate ? props.user.rate.toFixed(1) : 0}</TableCell>
+                    <TableCell>mentions/min</TableCell><TableCell align="right">{props.hashtag.rate ? props.hashtag.rate.toFixed(1) : 0}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -371,24 +310,28 @@ const User = (props) => {
                   <TableRow>
                     <TableCell>CAT</TableCell>
                     <TableCell align="left">MAN</TableCell>
-                    <TableCell align="left">AUTO</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   <TableRow>
                     <TableCell>left</TableCell>
-                    <TableCell align="right">{props.stats.user.manual.left}</TableCell>
-                    <TableCell align="right">{props.stats.user.auto.left}</TableCell>
+                    <TableCell align="right">{props.stats.hashtag.manual.left}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>neutral</TableCell>
-                    <TableCell align="right">{props.stats.user.manual.neutral}</TableCell>
-                    <TableCell align="right">{props.stats.user.auto.neutral}</TableCell>
+                    <TableCell align="right">{props.stats.hashtag.manual.neutral}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell>right</TableCell>
-                    <TableCell align="right">{props.stats.user.manual.right}</TableCell>
-                    <TableCell align="right">{props.stats.user.auto.right}</TableCell>
+                    <TableCell align="right">{props.stats.hashtag.manual.right}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>positive</TableCell>
+                    <TableCell align="right">{props.stats.hashtag.manual.positive}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>negative</TableCell>
+                    <TableCell align="right">{props.stats.hashtag.manual.negative}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -398,14 +341,14 @@ const User = (props) => {
             <FormGroup>
 
               <Typography 
-                className={getCategoryClass(props.user.categoryAuto)}
+                className={getCategoryClass(props.hashtag.categoryAuto)}
                 align="center"
               >
-                AUTO: {props.user.categoryAuto.toUpperCase() || "NONE"}
+                AUTO: {props.hashtag.categoryAuto.toUpperCase() || "NONE"}
               </Typography>
 
               <FormControl component="fieldset">
-                <RadioGroup aria-label="category" name="category" value={props.user.category || "none"} onChange={props.handleUserChange}>
+                <RadioGroup aria-label="category" name="category" value={props.hashtag.category || "none"} onChange={props.handleNodeChange}>
                   <FormControlLabel labelPlacement="start" value="left" control={<Radio />} label="left"/>
                   <FormControlLabel labelPlacement="start" value="neutral" control={<Radio />} label="neutral" />
                   <FormControlLabel labelPlacement="start" value="right" control={<Radio />} label="right" />
@@ -416,23 +359,8 @@ const User = (props) => {
               </FormControl>
 
               <FormControlLabel
-                control={<Checkbox checked={props.user.categoryVerified || false} onChange={props.handleUserChange} name="catVerified" />}
-                label="verified"
-                labelPlacement="start"
-              />
-              <FormControlLabel
-                control={<Checkbox checked={props.user.following || false} onChange={props.handleUserChange} name="following" />}
-                label="following"
-                labelPlacement="start"
-              />
-              <FormControlLabel
-                control={<Checkbox checked={props.user.ignored || false} onChange={props.handleUserChange} name="ignored" />}
+                control={<Checkbox checked={props.hashtag.ignored || false} onChange={props.handleNodeChange} name="ignored" />}
                 label="ignored"
-                labelPlacement="start"
-              />
-              <FormControlLabel
-                control={<Checkbox checked={props.user.isBot || false} onChange={props.handleUserChange} name="isBot" />}
-                label="bot"
                 labelPlacement="start"
               />
             </FormGroup>
@@ -442,4 +370,4 @@ const User = (props) => {
   );
 }
 
-export default User;
+export default HashtagView;

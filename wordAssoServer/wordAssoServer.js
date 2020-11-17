@@ -6199,14 +6199,14 @@ async function initSocketHandler(socketObj) {
               )
             );
 
-            socket.emit("SET_TWITTER_USER", {
+            viewNameSpace.emit("SET_TWITTER_USER", {
               node: node,
               stats: statsObj,
             });
           }
 
           if (node.nodeType === "hashtag") {
-            socket.emit("SET_TWITTER_HASHTAG", {
+            viewNameSpace.emit("SET_TWITTER_HASHTAG", {
               node: node,
               stats: statsObj,
             });

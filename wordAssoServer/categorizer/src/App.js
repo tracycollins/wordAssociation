@@ -506,7 +506,11 @@ const App = () => {
   const nodeValid = (node) => {
     if (node === undefined) return false
     if (node.nodeId === undefined) return false
-    if (node.screenName === undefined) return false
+
+    if (node.nodeType === "user"){
+      if (node.screenName === undefined) return false
+    } 
+
     return true
   }
 

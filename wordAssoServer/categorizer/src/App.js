@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
+import { useHistory } from "react-router-dom";
 import { useHotkeys } from 'react-hotkeys-hook';
 import socketClient from "socket.io-client";
 import { makeStyles } from '@material-ui/core/styles';
 
 import Container from '@material-ui/core/Container';
 import AppBar from '@material-ui/core/AppBar';
-// import CircularProgress from '@material-ui/core/CircularProgress';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import Button from '@material-ui/core/Button';
 // import ButtonGroup from '@material-ui/core/ButtonGroup';
 // import InputBase from '@material-ui/core/InputBase';
@@ -16,7 +17,6 @@ import Typography from '@material-ui/core/Typography';
 
 import './App.css';
 import User from './User.js';
-import { CircularProgress } from '@material-ui/core';
 
 // const ENDPOINT = "http://mbp3:9997/view";
 const ENDPOINT = "https://word.threeceelabs.com/view";
@@ -49,13 +49,7 @@ const viewerObj = DEFAULT_VIEWER_OBJ;
 
 console.log({viewerObj});
 
-// const statsObj = {};
-// statsObj.isAuthenticated = false;
-// statsObj.viewerReadyTransmitted = false;
-
 let socket;
-// const socket = socketClient(ENDPOINT);
-// const twitterFeedPreviousUserArray = [];
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -144,6 +138,8 @@ const formatDateTime = (dateInput) => {
 
 const App = () => {
 
+  const history = useHistory();
+
   const classes = useStyles();
 
   const defaultStatus = {
@@ -221,6 +217,7 @@ const App = () => {
   const [progress, setProgress] = useState("idle");
   const [currentUser, setCurrentUser] = useState(defaultUser);
   const [userHistory, setUserHistory] = useState([]);
+  const [userHistoryIndex, setUserHistoryIndex] = useState(0);
   // const [currentHashtag, setHashtag] = useState(defaultHashtag);
   
   // const startProgress = (op) => {
@@ -268,18 +265,23 @@ const App = () => {
       event.preventDefault() 
     }
 
-    let eventName = event.currentTarget.name;
+    let eventName = event.currentTarget.name || "nop";
     let eventValue = event.currentTarget.value;
     let eventChecked = event.currentTarget.checked;
 
     if (event.currentTarget.name === undefined && event.code){
       switch (event.code){
-        case "ArrowLeft":
-          eventName = "previous"
-          // eventValue = userHistory[0]
-          // setUserHistory(userHistory.slice(1))
-          break;
         case "ArrowRight":
+          eventName = "history"
+          history.goForward()
+          eventValue = history.location.pathname.split("@").pop()
+          break;
+        case "ArrowLeft":
+          eventName = "history"
+          history.goBack()
+          eventValue = history.location.pathname.split("@").pop()
+          break;
+        case "KeyA":
           eventName = "all"
           break;
         case "KeyD":
@@ -337,10 +339,13 @@ const App = () => {
 
     let searchFilter = "@?";
 
-    // setProgress("twitter");
+    setProgress(progress => eventName);
 
     switch (eventName){
-      case "previous":
+      case "nop":
+        break;
+      case "history":
+        console.log("handleUserChange | history | @" + user.screenName + " | name: " + eventName + " | value: " + eventValue)
         socket.emit("TWITTER_SEARCH_NODE", "@" + eventValue);
         break;
       case "all":
@@ -397,7 +402,7 @@ const App = () => {
         console.log({event})
     }
     
-  }, [])
+  }, [history])
 
   const nodeValid = (node) => {
     if (node === undefined) return false
@@ -405,6 +410,12 @@ const App = () => {
     if (node.screenName === undefined) return false
     return true
   }
+
+  useEffect(() => {
+    if (!history.location.pathname.endsWith("@" + currentUser.screenName)){
+      history.push("/user/@" + currentUser.screenName)
+    }
+  }, [currentUser, history])
 
   useEffect(() => {
 
@@ -422,24 +433,17 @@ const App = () => {
 
     socket.on("SET_TWITTER_USER", (results) => {
 
-      setProgress(progress => "idle");
-      
       console.debug("RX SET_TWITTER_USER");
       // console.debug(results);
       if (nodeValid(results.node)) { 
 
         setCurrentUser(currentUser => results.node) 
-
+        
         console.debug("new: @" + results.node.screenName);
-        // console.debug("current: @" + currentUser.screenName);
-
-        // console.log({userHistory})
-
-        // if (!userHistory.includes(results.node.screenName)){
-          setUserHistory(prevUserHistory => [...prevUserHistory, results.node.screenName])
-        // }
+        setUserHistory(prevUserHistory => [...prevUserHistory, results.node.screenName])
 
       }
+      setProgress(progress => "idle");
       setStatus(status => results.stats)
     });
 
@@ -498,84 +502,12 @@ const App = () => {
 
   }, [])
 
-  // useEffect(() => {
-  //   socket.on("TWITTER_USER_NOT_FOUND", (results) => {
-  //     setProgress("idle");
-  //     console.debug("RX TWITTER_USER_NOT_FOUND");
-  //     console.debug(results);
-  //     setStatus(results.stats)
-  //   });
-  // }, [])
-
-  // useEffect(() => {
-
-  //   socket.on("action", (action) => {
-  //     console.debug("RX ACTION | " + socket.id + " | TYPE: " + action.type);
-  //     console.debug("RX ACTION | ", action.data);
-
-  //     switch (action.type){
-
-  //       case "user":
-  //           setCurrentUser(action.data)
-  //           console.log("USER: @" + action.data.screenName + " | " + action.data.profileImageUrl)
-  //         break
-
-  //       case "hashtag":
-  //           setHashtag(action.data)
-  //           console.log("HT: #" + action.data.text)
-  //         break
-
-  //       case "stats":
-  //           setStatus(action.data)
-  //         break
-
-  //       default:
-  //     }
-
-  //   });   
-     
-  // }, [])
-
-  // useEffect(() => {
-  //   socket.on("connect", ()=>{
-  //     console.log("CONNECTED: " + socket.id)
-  //     setProgress("authentication");
-  //     socket.emit("authentication", {
-  //       namespace: "view",
-  //       userId: "test",
-  //       password: "0123456789",
-  //     });
-  //   })
-  //   return () => socket.disconnect();
-  // }, []);
-
-  // useEffect(() => {
-  //   socket.on("authenticated", function () {
-  //     setProgress("idle");
-  //     console.debug("AUTHENTICATED | " + socket.id);
-
-  //     statsObj.socketId = socket.id;
-  //     statsObj.serverConnected = true;
-  //     statsObj.userReadyTransmitted = false;
-  //     statsObj.userReadyAck = false;
-  //     socket.emit("TWITTER_SEARCH_NODE", "@threecee")
-  //   });
-  // }, []);
-
-  // useEffect(() => {
-  //   socket.on("USER_AUTHENTICATED", function (userObj) {
-  //     setProgress("idle");
-  //     setTwitterAuthenticated(true)
-  //     setTwitterAuthenticatedUser(userObj.screenName)
-  //     console.log("RX TWITTER USER_AUTHENTICATED | USER: @" + userObj.screenName);
-  //   });
-  // }, []);
-
-  // useHotkeys('right', handleUserChange) // next uncat any
-  useHotkeys('left', handleUserChange) // prev uncat any
+  useHotkeys('left', (event) => handleUserChange(event, currentUser), {}, [currentUser])
   useHotkeys('right', (event) => handleUserChange(event, currentUser), {}, [currentUser])
 
-  useHotkeys('L', handleUserChange)
+  useHotkeys('A', (event) => handleUserChange(event, currentUser), {}, [currentUser])
+
+  useHotkeys('L', (event) => handleUserChange(event, currentUser), {}, [currentUser])
   useHotkeys('shift+L', (event) => handleUserChange(event, currentUser), {}, [currentUser])
 
   useHotkeys('D', handleUserChange)
@@ -599,7 +531,8 @@ const App = () => {
           <Toolbar>
 
             <Typography variant="h6" className={classes.title}>
-              Categorizer | USER HISTORY: {userHistory.length} | PREV USER: {userHistory.length > 1 ? userHistory[userHistory.length-2] : ""}
+              {/* Categorizer | USER HISTORY: {userHistory.length} | PREV USER: {userHistory.length > 0 ? userHistory[userHistory.length-1] : ""} */}
+              Categorizer
             </Typography>
 
             {progress !== "idle" ? <CircularProgress /> : <></>}

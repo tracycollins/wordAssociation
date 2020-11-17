@@ -5208,9 +5208,13 @@ async function twitterSearchNode(params) {
     });
 
     if (results.node) {
-      viewNameSpace.emit("SET_TWITTER_HASHTAG", results);
+      viewNameSpace.emit("SET_TWITTER_HASHTAG", {
+        node: node,
+        stats: statsObj,
+      });
+      
     } else {
-      viewNameSpace.emit("TWITTER_HASHTAG_NOT_FOUND", results);
+      viewNameSpace.emit("TWITTER_HASHTAG_NOT_FOUND", { searchNode: searchNode, stats: statsObj });
     }
 
     return;
@@ -6204,7 +6208,7 @@ async function initSocketHandler(socketObj) {
           if (node.nodeType === "hashtag") {
             socket.emit("SET_TWITTER_HASHTAG", {
               node: node,
-              stats: statsObj.user,
+              stats: statsObj,
             });
           }
         }

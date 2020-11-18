@@ -13,6 +13,7 @@ const ONE_DAY = 24 * ONE_HOUR;
 
 const twitterDateFormat = "ddd MMM DD HH:mm:ss Z YYYY"; // Wed Aug 27 13:08:45 +0000 2008
 
+const DEFAULT_TWEET_SEARCH_COUNT = 5;
 const DEFAULT_PUBSUB_ENABLED = true;
 const DEFAULT_PUBSUB_PROJECT_ID = "graphic-tangent-627";
 const DEFAULT_PUBSUB_RESULT_TIMEOUT = ONE_MINUTE;
@@ -1272,6 +1273,7 @@ let hostConfiguration = {}; // host-specific configuration
 
 let configuration = {};
 
+configuration.tweetSearchCount = DEFAULT_TWEET_SEARCH_COUNT;
 configuration.primaryHost = process.env.PRIMARY_HOST || DEFAULT_PRIMARY_HOST;
 configuration.databaseHost = process.env.DATABASE_HOST || DEFAULT_DATABASE_HOST;
 
@@ -5214,7 +5216,7 @@ async function twitterSearchNode(params) {
     if (results.node) {
 
       if (twitterClient) {
-        twitterClient.get("search/tweets", { q: results.node.nodeId, count: 10 }, (err, tweets) => {
+        twitterClient.get("search/tweets", { q: results.node.nodeId, count: configuration.tweetSearchCount }, (err, tweets) => {
           viewNameSpace.emit("SET_TWITTER_HASHTAG", {
             node: results.node,
             tweets: tweets,
@@ -11117,6 +11119,11 @@ async function loadConfigFile(params) {
       } else {
         newConfiguration.binaryMode = false;
       }
+    }
+
+    if (loadedConfigObj.TWEET_SEARCH_COUNT !== undefined) {
+      console.log(MODULE_ID + " | LOADED TWEET_SEARCH_COUNT: " + loadedConfigObj.TWEET_SEARCH_COUNT);
+      newConfiguration.tweetSearchCount = loadedConfigObj.TWEET_SEARCH_COUNT;
     }
 
     if (loadedConfigObj.NODE_SETPROPS_QUEUE_INTERVAL !== undefined) {

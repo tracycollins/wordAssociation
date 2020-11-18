@@ -259,17 +259,17 @@ const User = (props) => {
           <Typography className={classes.buttonGroupLabel}>UNCAT</Typography>   
 
           <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
-            <Button onClick={props.handleNodeChange} name="all" >ALL: {props.stats.user.uncategorized.all}</Button>
-            <Button onClick={props.handleNodeChange} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
-            <Button onClick={props.handleNodeChange} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
-            <Button onClick={props.handleNodeChange} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
+            <Button onClick={(event) => props.handleNodeChange(event, props.user)} name="all" >ALL: {props.stats.user.uncategorized.all}</Button>
+            <Button onClick={(event) => props.handleNodeChange(event, props.user)} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
+            <Button onClick={(event) => props.handleNodeChange(event, props.user)} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
+            <Button onClick={(event) => props.handleNodeChange(event, props.user)} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
           </ButtonGroup>
           <Button 
             className={classes.buttonMismatch}
             variant="contained" 
             color="primary" 
             size="small" 
-            onClick={props.handleNodeChange} 
+            onClick={(event) => props.handleNodeChange(event, props.user)} 
             name="mismatch" 
           >
             MISMATCH {props.stats.user.mismatched}
@@ -402,7 +402,7 @@ const User = (props) => {
               </Typography> */}
 
               <FormControl component="fieldset">
-                <RadioGroup aria-label="category" name="category" value={props.user.category || "none"} onChange={props.handleNodeChange}>
+                <RadioGroup aria-label="category" name="category" value={props.user.category || "none"} onChange={(event) => props.handleNodeChange(event, props.user)}>
                   <FormControlLabel labelPlacement="start" value="left" control={<Radio />} label="left"/>
                   <FormControlLabel labelPlacement="start" value="neutral" control={<Radio />} label="neutral" />
                   <FormControlLabel labelPlacement="start" value="right" control={<Radio />} label="right" />
@@ -413,22 +413,22 @@ const User = (props) => {
               </FormControl>
 
               <FormControlLabel
-                control={<Checkbox checked={props.user.categoryVerified || false} onChange={props.handleNodeChange} name="catVerified" />}
+                control={<Checkbox checked={props.user.categoryVerified || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="catVerified" />}
                 label="verified"
                 labelPlacement="start"
               />
               <FormControlLabel
-                control={<Checkbox checked={props.user.following || false} onChange={props.handleNodeChange} name="following" />}
+                control={<Checkbox checked={props.user.following || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="following" />}
                 label="following"
                 labelPlacement="start"
               />
               <FormControlLabel
-                control={<Checkbox checked={props.user.ignored || false} onChange={props.handleNodeChange} name="ignored" />}
+                control={<Checkbox checked={props.user.ignored || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="ignored" />}
                 label="ignored"
                 labelPlacement="start"
               />
               <FormControlLabel
-                control={<Checkbox checked={props.user.isBot || false} onChange={props.handleNodeChange} name="isBot" />}
+                control={<Checkbox checked={props.user.isBot || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="isBot" />}
                 label="bot"
                 labelPlacement="start"
               />

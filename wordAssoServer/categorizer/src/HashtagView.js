@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Hashtag } from 'react-twitter-widgets'
+import { Hashtag, Tweet } from 'react-twitter-widgets'
 
 import Duration from 'duration';
 
 import AppBar from '@material-ui/core/AppBar';
+import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Card from '@material-ui/core/Card';
@@ -220,6 +221,13 @@ const HashtagView = (props) => {
     }
   }
 
+  const displayTweets = (tweets) => {
+    if (tweets.statuses === undefined) { return <></>}
+    return tweets.statuses.map((tweet) => {
+      return <Tweet key={tweet.id_str} tweetId={tweet.id_str} options={{ width: "400" }} />
+    })
+  }
+
   return (
     <>
       <AppBar  className={classes.appBar} position="static">
@@ -251,13 +259,13 @@ const HashtagView = (props) => {
           </Typography>   
 
           <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
-            <Button onClick={props.handleNodeChange} name="all" >ALL: {props.stats.hashtag.uncategorized.all}</Button>
+            <Button onClick={(event) => props.handleNodeChange(event, props.hashtag)} name="all" >ALL: {props.stats.hashtag.uncategorized.all}</Button>
           </ButtonGroup>
 
         </Toolbar>
       </AppBar>
       <Grid className={classes.grid}>
-          <Grid item className={classes.gridItem} xs={3}>
+            <Grid item className={classes.gridItem} xs={3}>
             <Card className={classes.card} variant="outlined">
               <CardContent onClick={openHashtagTwitterPage}>
                 <Typography variant="h6">#{props.hashtag.nodeId}</Typography>
@@ -265,14 +273,13 @@ const HashtagView = (props) => {
             </Card>
           </Grid>
           <Grid item className={classes.gridItem} xs={3}>
-            <Hashtag
-              dataSource={{
-                hashtag: props.hashtag.nodeId
-              }}
-              options={{
-                height: '640'
-              }}
-            />
+            <Box flexDirection="column" display="flex" height="100%">
+              <Box flexGrow={1} display="flex" overflow="hidden">
+                <Box overflow="auto">
+                  {displayTweets(props.tweets)}
+                </Box>
+              </Box>
+            </Box>
           </Grid>
           <Grid item className={classes.gridItem} xs={3}>
             <TableContainer>
@@ -340,7 +347,7 @@ const HashtagView = (props) => {
           <Grid item className={classes.gridItem} xs={1}>
             <FormGroup>
               <FormControl component="fieldset">
-                <RadioGroup aria-label="category" name="category" value={props.hashtag.category || "none"} onChange={props.handleNodeChange}>
+                <RadioGroup aria-label="category" name="category" value={props.hashtag.category || "none"} onChange={(event) => props.handleNodeChange(event, props.hashtag)}>
                   <FormControlLabel labelPlacement="start" value="left" control={<Radio />} label="left"/>
                   <FormControlLabel labelPlacement="start" value="neutral" control={<Radio />} label="neutral" />
                   <FormControlLabel labelPlacement="start" value="right" control={<Radio />} label="right" />
@@ -351,7 +358,7 @@ const HashtagView = (props) => {
               </FormControl>
 
               <FormControlLabel
-                control={<Checkbox checked={props.hashtag.ignored || false} onChange={props.handleNodeChange} name="ignored" />}
+                control={<Checkbox checked={props.hashtag.ignored || false} onChange={(event) => props.handleNodeChange(event, props.hashtag)} name="ignored" />}
                 label="ignored"
                 labelPlacement="start"
               />

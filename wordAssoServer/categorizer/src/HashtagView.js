@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Hashtag, Tweet } from 'react-twitter-widgets'
+import { Tweet } from 'react-twitter-widgets'
 
 import Duration from 'duration';
 
@@ -12,7 +12,7 @@ import Card from '@material-ui/core/Card';
 // import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 // import CardHeader from '@material-ui/core/CardHeader';
-import CardMedia from '@material-ui/core/CardMedia';
+// import CardMedia from '@material-ui/core/CardMedia';
 // import CheckBoxIcon from '@material-ui/icons/CheckBox';
 // import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -208,18 +208,18 @@ const HashtagView = (props) => {
     window.open(`https://twitter.com/search?f=tweets&q=%23${props.hashtag.nodeId || null}`, "_blank") //to open new page
   }
 
-  const getCategoryClass = (category) => {
-    switch (category){
-      case "left":
-      case "neutral":
-      case "right":
-      case "positive":
-      case "negative":
-        return classes[category]
-      default:
-        return classes.none
-    }
-  }
+  // const getCategoryClass = (category) => {
+  //   switch (category){
+  //     case "left":
+  //     case "neutral":
+  //     case "right":
+  //     case "positive":
+  //     case "negative":
+  //       return classes[category]
+  //     default:
+  //       return classes.none
+  //   }
+  // }
 
   const displayTweets = (tweets) => {
     if (tweets.statuses === undefined) { return <></>}
@@ -273,6 +273,8 @@ const HashtagView = (props) => {
             </Card>
           </Grid>
           <Grid item className={classes.gridItem} xs={3}>
+          <Toolbar />
+
             <Box flexDirection="column" display="flex" height="100%">
               <Box flexGrow={1} display="flex" overflow="hidden">
                 <Box overflow="auto">

@@ -5201,6 +5201,7 @@ async function twitterSearchNode(params) {
   );
 
   await updateUserCounts();
+  await updateHashtagCounts();
 
   if (searchNode.startsWith("#")) {
     const results = await twitterSearchHashtag({
@@ -7377,6 +7378,7 @@ async function countDocuments(params) {
 }
 
 async function updateUserCounts() {
+  
   statsObj.user.total = await countDocuments({ documentType: "users" });
   console.log(
     chalkBlue(MODULE_ID + " | GRAND TOTAL USERS: " + statsObj.user.total)
@@ -7569,6 +7571,79 @@ async function updateUserCounts() {
   return;
 }
 
+async function updateHashtagCounts() {
+  
+  statsObj.hashtag.total = await countDocuments({ documentType: "hashtags" });
+
+  console.log(
+    chalkBlue(MODULE_ID + " | GRAND TOTAL HASHTAGS: " + statsObj.hashtag.total)
+  );
+
+  statsObj.hashtag.ignored = await countDocuments({
+    documentType: "hashtags",
+    query: { ignored: true },
+  });
+  console.log(
+    chalkBlue(MODULE_ID + " | IGNORED HASHTAGS: " + statsObj.hashtag.ignored)
+  );
+
+  // -----
+
+  statsObj.hashtag.categorizedManual = await countDocuments({
+    documentType: "hashtags",
+    query: { categorized: true },
+  });
+  console.log(
+    chalkBlue(
+      MODULE_ID + " | CAT MANUAL HASHTAGS: " + statsObj.hashtag.categorizedManual
+    )
+  );
+
+  statsObj.hashtag.manual.left = await countDocuments({
+    documentType: "hashtags",
+    query: { category: "left" },
+  });
+  console.log(
+    chalkBlue(
+      MODULE_ID + " | CAT MANUAL HASHTAGS LEFT: " + statsObj.hashtag.manual.left
+    )
+  );
+
+  statsObj.hashtag.manual.right = await countDocuments({
+    documentType: "hashtags",
+    query: { category: "right" },
+  });
+  console.log(
+    chalkBlue(
+      MODULE_ID + " | CAT MANUAL HASHTAGS RIGHT: " + statsObj.hashtag.manual.right
+    )
+  );
+
+  statsObj.hashtag.manual.neutral = await countDocuments({
+    documentType: "hashtags",
+    query: { category: "neutral" },
+  });
+  console.log(
+    chalkBlue(
+      MODULE_ID + " | CAT MANUAL HASHTAGS NEUTRAL: " + statsObj.hashtag.manual.neutral
+    )
+  );
+
+  // -----
+
+  statsObj.hashtag.uncategorized.all = await countDocuments({
+    documentType: "hashtags",
+    query: { category: "none" },
+  });
+  console.log(
+    chalkBlue(
+      MODULE_ID + " | UNCAT MANUAL HASHTAGS: " + statsObj.hashtag.uncategorized.all
+    )
+  );
+
+  return;
+}
+
 function cursorDataHandler(user) {
   return new Promise(function (resolve, reject) {
     if (!categorizedArray.includes(user.category)) {
@@ -7650,6 +7725,7 @@ function hashtagCursorDataHandler(hashtag) {
 let updateUserSetsRunning = false;
 
 async function updateUserSets(p) {
+
   const params = p || {};
 
   params.query = params.query || {
@@ -7675,6 +7751,7 @@ async function updateUserSets(p) {
   }
 
   await updateUserCounts();
+  await updateHashtagCounts();
 
   userSearchCursor = global.wordAssoDb.User.find(params.query)
     .select({

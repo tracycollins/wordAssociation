@@ -355,7 +355,7 @@ const User = (props) => {
                     <TableCell>mentions</TableCell><TableCell align="right">{props.user.mentions}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>mentions/min</TableCell><TableCell align="right">{props.user.rate ? props.user.rate.toFixed(1) : 0}</TableCell>
+                    <TableCell>mentions/hour</TableCell><TableCell align="right">{props.user.rate ? 60*props.user.rate.toFixed(1) : 0}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>

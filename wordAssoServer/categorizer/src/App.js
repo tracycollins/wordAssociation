@@ -270,6 +270,7 @@ const App = () => {
   const currentNode = displayNodeType === "user" ? currentUser : currentHashtag;
 
   const handleSearchNode = (searchString) => {
+    setProgress(progress => "searchNode");
     const searchTerm = displayNodeType === "user" ? "@" + searchString : "#" + searchString
     console.log("SEARCH TERM: " + searchTerm)
     socket.emit("TWITTER_SEARCH_NODE", searchTerm)

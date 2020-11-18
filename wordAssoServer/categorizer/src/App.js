@@ -688,7 +688,7 @@ const App = () => {
     <div className={classes.root}>
       <Container component="main" maxWidth={false}>
         <AppBar  className={classes.appBar} position="static">
-          <Toolbar className={classes.toolBar} variant="dense">
+          <Toolbar className={classes.toolBar}>
 
             <Typography variant="h6" className={classes.title}>
               {/* Categorizer | USER HISTORY: {userHistory.length} | PREV USER: {userHistory.length > 0 ? userHistory[userHistory.length-1] : ""} */}

@@ -59,7 +59,10 @@ const useStyles = makeStyles((theme) => ({
   },
   appBar: {
     backgroundColor: 'white',
-    margin: 2,
+    marginBottom: theme.spacing(2),
+  },
+  toolBar: {
+    backgroundColor: 'white',
   },
   buttonNodeType: {
     flexGrow: 1,
@@ -257,7 +260,7 @@ const App = () => {
   const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState("");
   const [status, setStatus] = useState(defaultStatus);
   const [tweets, setTweets] = useState(defaultTweets);
-  const [progress, setProgress] = useState("idle");
+  const [progress, setProgress] = useState("loading");
 
   const [displayNodeType, setDisplayNodeType] = useState("user");
 
@@ -277,6 +280,9 @@ const App = () => {
   }
 
   const handleLoginLogout = () => {
+
+    setProgress(progress => "loginLogout");
+
     if (twitterAuthenticated){
       console.warn(
         "LOGGING OUT");
@@ -624,6 +630,8 @@ const App = () => {
       setStatus(status => results.stats)
     });
     
+    setProgress("idle")
+
     return () => socket.disconnect();
 
   }, [])
@@ -680,7 +688,7 @@ const App = () => {
     <div className={classes.root}>
       <Container component="main" maxWidth={false}>
         <AppBar  className={classes.appBar} position="static">
-          <Toolbar>
+          <Toolbar className={classes.toolBar} variant="dense">
 
             <Typography variant="h6" className={classes.title}>
               {/* Categorizer | USER HISTORY: {userHistory.length} | PREV USER: {userHistory.length > 0 ? userHistory[userHistory.length-1] : ""} */}
@@ -712,7 +720,7 @@ const App = () => {
               </Button>
             </ButtonGroup>
 
-            {progress !== "idle" ? <CircularProgress /> : <></>}
+            {progress !== "idle" ? <CircularProgress>{progress}</CircularProgress> : <></>}
 
             <Typography  className={classes.serverStatus}>
               NN: {status.bestNetwork.networkId}

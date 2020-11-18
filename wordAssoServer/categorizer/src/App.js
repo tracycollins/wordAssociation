@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useHistory } from "react-router-dom";
 import { useHotkeys } from 'react-hotkeys-hook';
 import socketClient from "socket.io-client";

@@ -218,7 +218,7 @@ const HashtagView = (props) => {
   return (
     <>
       <AppBar  className={classes.appBar} position="static">
-        <Toolbar>
+        <Toolbar variant="dense">
 
           <Typography variant="h6" className={classes.title}>
             Hashtag

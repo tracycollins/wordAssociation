@@ -1626,6 +1626,7 @@ const fieldsTransmit = {
   isTweeter: 1,
   isTweetSource: 1,
   lang: 1,
+  lastSeen: 1,
   lastTweetId: 1,
   mentions: 1,
   name: 1,
@@ -4453,7 +4454,6 @@ async function pubSubNodeSetProps(params) {
     const node = nodeSetPropsResultHashMap[params.requestId] || false;
 
     if (node.nodeType === "user") {
-      // const updatePickArray = Object.keys(params.props);
 
       if (isCategorized(node) || isAutoCategorized(node)) {
         categorizedUserHashMap.set(node.nodeId, {
@@ -7687,6 +7687,7 @@ function cursorDataHandler(user) {
 }
 
 function hashtagCursorDataHandler(hashtag) {
+
   return new Promise(function (resolve) {
     const text =
       hashtag.text && hashtag.text !== undefined

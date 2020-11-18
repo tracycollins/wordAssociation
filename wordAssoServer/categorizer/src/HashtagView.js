@@ -208,19 +208,6 @@ const HashtagView = (props) => {
     window.open(`https://twitter.com/search?f=tweets&q=%23${props.hashtag.nodeId || null}`, "_blank") //to open new page
   }
 
-  // const getCategoryClass = (category) => {
-  //   switch (category){
-  //     case "left":
-  //     case "neutral":
-  //     case "right":
-  //     case "positive":
-  //     case "negative":
-  //       return classes[category]
-  //     default:
-  //       return classes.none
-  //   }
-  // }
-
   const displayTweets = (tweets) => {
     if (tweets.statuses === undefined) { return <></>}
     return tweets.statuses.map((tweet) => {
@@ -265,108 +252,100 @@ const HashtagView = (props) => {
         </Toolbar>
       </AppBar>
       <Grid className={classes.grid}>
-            <Grid item className={classes.gridItem} xs={3}>
-            <Card className={classes.card} variant="outlined">
-              <CardContent onClick={openHashtagTwitterPage}>
-                <Typography variant="h6">#{props.hashtag.nodeId}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item className={classes.gridItem} xs={3}>
-          <Toolbar />
-
-            <Box flexDirection="column" display="flex" height="100%">
-              <Box flexGrow={1} display="flex" overflow="hidden">
-                <Box overflow="auto">
-                  {displayTweets(props.tweets)}
-                </Box>
-              </Box>
-            </Box>
-          </Grid>
-          <Grid item className={classes.gridItem} xs={3}>
-            <TableContainer>
-              <Table className={classes.table} size="small">
-                <TableBody>
-                  <TableRow>
-                    <TableCell>id</TableCell><TableCell align="right">{props.hashtag.nodeId}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>created</TableCell><TableCell align="right">{createdAt}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>twitter age</TableCell><TableCell align="right">{twitterAgeString}</TableCell>
-                  </TableRow>
-                 <TableRow>
-                    <TableCell>last seen</TableCell><TableCell align="right">{lastSeen}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>last seen</TableCell><TableCell align="right">{lastSeenDuration} ago</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>mentions</TableCell><TableCell align="right">{props.hashtag.mentions}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>mentions/min</TableCell><TableCell align="right">{props.hashtag.rate ? props.hashtag.rate.toFixed(1) : 0}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Grid>
-          <Grid item className={classes.gridItem} xs={2}>
-            <TableContainer>
-              <Table className={classes.table} size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>CAT</TableCell>
-                    <TableCell align="left">MAN</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>left</TableCell>
-                    <TableCell align="right">{props.stats.hashtag.manual.left}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>neutral</TableCell>
-                    <TableCell align="right">{props.stats.hashtag.manual.neutral}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>right</TableCell>
-                    <TableCell align="right">{props.stats.hashtag.manual.right}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>positive</TableCell>
-                    <TableCell align="right">{props.stats.hashtag.manual.positive}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>negative</TableCell>
-                    <TableCell align="right">{props.stats.hashtag.manual.negative}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Grid>
-          <Grid item className={classes.gridItem} xs={1}>
-            <FormGroup>
-              <FormControl component="fieldset">
-                <RadioGroup aria-label="category" name="category" value={props.hashtag.category || "none"} onChange={(event) => props.handleNodeChange(event, props.hashtag)}>
-                  <FormControlLabel labelPlacement="start" value="left" control={<Radio />} label="left"/>
-                  <FormControlLabel labelPlacement="start" value="neutral" control={<Radio />} label="neutral" />
-                  <FormControlLabel labelPlacement="start" value="right" control={<Radio />} label="right" />
-                  <FormControlLabel labelPlacement="start" value="positive" control={<Radio />} label="positive" />
-                  <FormControlLabel labelPlacement="start" value="negative" control={<Radio />} label="negative" />
-                  <FormControlLabel labelPlacement="start" value="none" control={<Radio />} label="none" />
-                </RadioGroup>
-              </FormControl>
-
-              <FormControlLabel
-                control={<Checkbox checked={props.hashtag.ignored || false} onChange={(event) => props.handleNodeChange(event, props.hashtag)} name="ignored" />}
-                label="ignored"
-                labelPlacement="start"
-              />
-            </FormGroup>
-          </Grid>
+        <Grid item className={classes.gridItem} xs={3}>
+          <Card className={classes.card} variant="outlined">
+            <CardContent onClick={openHashtagTwitterPage}>
+              <Typography variant="h6">#{props.hashtag.nodeId}</Typography>
+            </CardContent>
+          </Card>
         </Grid>
+        <Grid item className={classes.gridItem} xs={3}>
+          {displayTweets(props.tweets)}
+        </Grid>
+        <Grid item className={classes.gridItem} xs={3}>
+          <TableContainer>
+            <Table className={classes.table} size="small">
+              <TableBody>
+                <TableRow>
+                  <TableCell>id</TableCell><TableCell align="right">{props.hashtag.nodeId}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>created</TableCell><TableCell align="right">{createdAt}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>twitter age</TableCell><TableCell align="right">{twitterAgeString}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>last seen</TableCell><TableCell align="right">{lastSeen}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>last seen</TableCell><TableCell align="right">{lastSeenDuration} ago</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>mentions</TableCell><TableCell align="right">{props.hashtag.mentions}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>mentions/min</TableCell><TableCell align="right">{props.hashtag.rate ? props.hashtag.rate.toFixed(1) : 0}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Grid>
+        <Grid item className={classes.gridItem} xs={2}>
+          <TableContainer>
+            <Table className={classes.table} size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>CAT</TableCell>
+                  <TableCell align="left">MAN</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell>left</TableCell>
+                  <TableCell align="right">{props.stats.hashtag.manual.left}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>neutral</TableCell>
+                  <TableCell align="right">{props.stats.hashtag.manual.neutral}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>right</TableCell>
+                  <TableCell align="right">{props.stats.hashtag.manual.right}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>positive</TableCell>
+                  <TableCell align="right">{props.stats.hashtag.manual.positive}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>negative</TableCell>
+                  <TableCell align="right">{props.stats.hashtag.manual.negative}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Grid>
+        <Grid item className={classes.gridItem} xs={1}>
+          <FormGroup>
+            <FormControl component="fieldset">
+              <RadioGroup aria-label="category" name="category" value={props.hashtag.category || "none"} onChange={(event) => props.handleNodeChange(event, props.hashtag)}>
+                <FormControlLabel labelPlacement="start" value="left" control={<Radio />} label="left"/>
+                <FormControlLabel labelPlacement="start" value="neutral" control={<Radio />} label="neutral" />
+                <FormControlLabel labelPlacement="start" value="right" control={<Radio />} label="right" />
+                <FormControlLabel labelPlacement="start" value="positive" control={<Radio />} label="positive" />
+                <FormControlLabel labelPlacement="start" value="negative" control={<Radio />} label="negative" />
+                <FormControlLabel labelPlacement="start" value="none" control={<Radio />} label="none" />
+              </RadioGroup>
+            </FormControl>
+
+            <FormControlLabel
+              control={<Checkbox checked={props.hashtag.ignored || false} onChange={(event) => props.handleNodeChange(event, props.hashtag)} name="ignored" />}
+              label="ignored"
+              labelPlacement="start"
+            />
+          </FormGroup>
+        </Grid>
+      </Grid>
     </>
   );
 }

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Tweet } from 'react-twitter-widgets'
 
 import Duration from 'duration';
 
 import AppBar from '@material-ui/core/AppBar';
-import Box from '@material-ui/core/Box';
+// import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Card from '@material-ui/core/Card';
@@ -185,11 +185,11 @@ const HashtagView = (props) => {
   const twitterAge = props.hashtag.createdAt ? new Duration(new Date(props.hashtag.createdAt)) : new Duration(new Date())
   const twitterAgeString = twitterAge.toString(1, 4)
 
-  const [hashtagSearch, setHashtagSearch] = useState(props.hashtag.nodeId);
+  const [hashtagSearch, setHashtagSearch] = useState("");
 
-  useEffect(() => {
-    setHashtagSearch(props.hashtag.nodeId)
-  }, [props])
+  // useEffect(() => {
+  //   setHashtagSearch(props.hashtag.nodeId)
+  // }, [props])
   
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)
@@ -224,10 +224,20 @@ const HashtagView = (props) => {
             Hashtag
           </Typography>
 
+          <Typography className={classes.buttonGroupLabel}>
+            UNCAT
+          </Typography>   
+
+          <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
+            <Button onClick={(event) => props.handleNodeChange(event, props.hashtag)} name="all" >ALL: {props.stats.hashtag.uncategorized.all}</Button>
+          </ButtonGroup>
+
           <div className={classes.search}>
+
             <div className={classes.searchIcon}>
               <SearchIcon color="primary"/>
             </div>
+
             <InputBase
               placeholder="search…"
               classes={{
@@ -239,15 +249,8 @@ const HashtagView = (props) => {
               onKeyPress={handleKeyPress}
               onChange={handleChangeSearch}
             />
+
           </div>
-
-          <Typography className={classes.buttonGroupLabel}>
-            UNCAT
-          </Typography>   
-
-          <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
-            <Button onClick={(event) => props.handleNodeChange(event, props.hashtag)} name="all" >ALL: {props.stats.hashtag.uncategorized.all}</Button>
-          </ButtonGroup>
 
         </Toolbar>
       </AppBar>

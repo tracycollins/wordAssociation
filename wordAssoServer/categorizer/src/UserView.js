@@ -31,22 +31,26 @@ import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
-// import TableHead from '@material-ui/core/TableHead';
+import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
-import { TableHead } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 2,
   },
+  appBar: {
+    backgroundColor: 'white',
+    marginBottom: theme.spacing(1),
+  },
   grid: {
     display: 'flex',
   },
   gridItem: {
-    margin: 5,
+    // margin: 5,
+    marginRight: theme.spacing(1),
   },  
   card: {
     raised: false,
@@ -54,18 +58,32 @@ const useStyles = makeStyles((theme) => ({
   },
   profileImage: {
     maxHeight: 400,
+    marginBottom: theme.spacing(1),
   },
   bannerImage: {
     height: 80,
+    marginBottom: theme.spacing(1),
+  },
+  radioGroupCategory: {
+    backgroundColor: '#ddeeee',
+    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(1),
+    marginBottom: theme.spacing(1),
   },
   table: {
+    borderRadius: theme.shape.borderRadius,
+    // borderColor: 'red',
+  },
+  tableHead: {
+    backgroundColor: '#ddeeee',
+  },
+  tableCategorized: {
+    borderRadius: theme.shape.borderRadius,
+    borderColor: 'red',
+    backgroundColor: '#ddeeee',
   },
   tableRowGreen: {
     backgroundColor: 'lightgreen',
-  },
-  appBar: {
-    backgroundColor: 'white',
-    margin: 2,
   },
   statusBar: {
     backgroundColor: 'white',
@@ -83,7 +101,7 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: theme.shape.borderRadius,
     backgroundColor: "white",
     '&:hover': {
-      backgroundColor: "lightgray",
+      backgroundColor: "#ddeeee",
     },
     marginRight: theme.spacing(2),
     marginLeft: 0,
@@ -232,8 +250,8 @@ const User = (props) => {
 
   return (
     <>
-      <AppBar  className={classes.appBar} position="static">
-        <Toolbar>
+      <AppBar  className={classes.appBar} position="static" variant="outlined">
+        <Toolbar variant="dense outlined" >
 
           <Typography variant="h6" className={classes.title}>
             User
@@ -256,24 +274,28 @@ const User = (props) => {
             />
           </div>
 
-          <Typography className={classes.buttonGroupLabel}>UNCAT</Typography>   
+          <Typography className={classes.buttonGroupLabel}>GET UNCAT</Typography>   
 
-          <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
+          <ButtonGroup color="primary" size="small" aria-label="small button group">
             <Button onClick={(event) => props.handleNodeChange(event, props.user)} name="all" >ALL: {props.stats.user.uncategorized.all}</Button>
             <Button onClick={(event) => props.handleNodeChange(event, props.user)} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
             <Button onClick={(event) => props.handleNodeChange(event, props.user)} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
             <Button onClick={(event) => props.handleNodeChange(event, props.user)} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
           </ButtonGroup>
-          <Button 
-            className={classes.buttonMismatch}
-            variant="contained" 
-            color="primary" 
-            size="small" 
-            onClick={(event) => props.handleNodeChange(event, props.user)} 
-            name="mismatch" 
-          >
-            MISMATCH {props.stats.user.mismatched}
-          </Button>
+
+          <ButtonGroup color="primary" size="small" aria-label="small button group">
+            <Button 
+              className={classes.buttonMismatch}
+              // variant="contained" 
+              color="primary" 
+              size="small" 
+              onClick={(event) => props.handleNodeChange(event, props.user)} 
+              name="mismatch" 
+            >
+              MISMATCH {props.stats.user.mismatched}
+            </Button>
+          </ButtonGroup>
+
         </Toolbar>
       </AppBar>
       <Grid className={classes.grid}>
@@ -294,7 +316,6 @@ const User = (props) => {
                 component="img"
                 onError={e => {}}              
               />
-              <br></br>
               <CardMedia 
                 className={classes.bannerImage} 
                 src={props.user.bannerImageUrl || defaultBannerImage} 
@@ -317,45 +338,50 @@ const User = (props) => {
               options={{height: '640'}}
             />
           </Grid>
-          <Grid item className={classes.gridItem} xs={3}>
+          <Grid item className={classes.gridItem} xs={2.5}>
             <TableContainer>
               <Table className={classes.table} size="small">
+                <TableHead>
+                  <TableRow className={classes.tableHead}>
+                    <TableCell>@{props.user.screenName}</TableCell><TableCell align="right"></TableCell>
+                  </TableRow>
+                </TableHead>
                 <TableBody>
                   <TableRow>
-                    <TableCell>id</TableCell><TableCell align="right">{props.user.nodeId}</TableCell>
+                    <TableCell>Twitter ID</TableCell><TableCell align="right">{props.user.nodeId}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>location</TableCell><TableCell align="right">{props.user.location}</TableCell>
+                    <TableCell>Location</TableCell><TableCell align="right">{props.user.location}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>created</TableCell><TableCell align="right">{createdAt}</TableCell>
+                    <TableCell>Created</TableCell><TableCell align="right">{createdAt}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>twitter age</TableCell><TableCell align="right">{twitterAgeString}</TableCell>
+                    <TableCell>Twitter age</TableCell><TableCell align="right">{twitterAgeString}</TableCell>
                   </TableRow>
                   <TableRow className={props.user.followersCount > 5000 ? classes.tableRowGreen : null}>
-                    <TableCell>followers</TableCell><TableCell align="right">{props.user.followersCount}</TableCell>
+                    <TableCell>Followers</TableCell><TableCell align="right">{props.user.followersCount}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>friends</TableCell><TableCell align="right">{props.user.friendsCount}</TableCell>
+                    <TableCell>Friends</TableCell><TableCell align="right">{props.user.friendsCount}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>tweets</TableCell><TableCell align="right">{props.user.statusesCount}</TableCell>
+                    <TableCell>Tweets</TableCell><TableCell align="right">{props.user.statusesCount}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>tweets/day</TableCell><TableCell align="right">{tweetRate}</TableCell>
+                    <TableCell>Tweets/day</TableCell><TableCell align="right">{tweetRate}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>last seen</TableCell><TableCell align="right">{lastSeen}</TableCell>
+                    <TableCell>Last Active</TableCell><TableCell align="right">{lastSeen} ({lastSeenDuration} ago)</TableCell>
+                  </TableRow>
+                  {/* <TableRow>
+                    <TableCell>Last Active</TableCell><TableCell align="right">{lastSeenDuration} ago</TableCell>
+                  </TableRow> */}
+                  <TableRow>
+                    <TableCell>Mentions</TableCell><TableCell align="right">{props.user.mentions}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>last seen</TableCell><TableCell align="right">{lastSeenDuration} ago</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>mentions</TableCell><TableCell align="right">{props.user.mentions}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>mentions/hour</TableCell><TableCell align="right">{props.user.rate ? 60*props.user.rate.toFixed(1) : 0}</TableCell>
+                    <TableCell>Mentions/hour</TableCell><TableCell align="right">{props.user.rate ? 60*props.user.rate.toFixed(2) : 0}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -363,12 +389,15 @@ const User = (props) => {
           </Grid>
           <Grid item className={classes.gridItem} xs={2}>
             <TableContainer>
-              <Table className={classes.table} size="small">
+              <Table size="small">
                 <TableHead>
+                  <TableRow className={classes.tableHead}>
+                    <TableCell colSpan={3}>ALL USERS</TableCell>
+                  </TableRow>
                   <TableRow>
                     <TableCell>CAT</TableCell>
-                    <TableCell align="left">MAN</TableCell>
-                    <TableCell align="left">AUTO</TableCell>
+                    <TableCell align="right">MAN</TableCell>
+                    <TableCell align="right">AUTO</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -393,45 +422,45 @@ const User = (props) => {
           </Grid>
           <Grid item className={classes.gridItem} xs={1}>
             <FormGroup>
-
-              {/* <Typography 
-                className={getCategoryClass(props.user.categoryAuto)}
-                align="center"
-              >
-                AUTO: {props.user.categoryAuto.toUpperCase() || "NONE"}
-              </Typography> */}
-
-              <FormControl component="fieldset">
-                <RadioGroup aria-label="category" name="category" value={props.user.category || "none"} onChange={(event) => props.handleNodeChange(event, props.user)}>
-                  <FormControlLabel labelPlacement="start" value="left" control={<Radio />} label="left"/>
-                  <FormControlLabel labelPlacement="start" value="neutral" control={<Radio />} label="neutral" />
-                  <FormControlLabel labelPlacement="start" value="right" control={<Radio />} label="right" />
-                  <FormControlLabel labelPlacement="start" value="positive" control={<Radio />} label="positive" />
-                  <FormControlLabel labelPlacement="start" value="negative" control={<Radio />} label="negative" />
-                  <FormControlLabel labelPlacement="start" value="none" control={<Radio />} label="none" />
+              <FormControl component="fieldset" size="small">
+                <RadioGroup 
+                  className={classes.radioGroupCategory}
+                  aria-label="category" 
+                  name="category" 
+                  value={props.user.category || "none"} 
+                  onChange={(event) => props.handleNodeChange(event, props.user)}
+                >
+                  <FormControlLabel value="left" control={<Radio />} label="LEFT"/>
+                  <FormControlLabel value="neutral" control={<Radio />} label="NEUTRAL" />
+                  <FormControlLabel value="right" control={<Radio />} label="RIGHT" />
+                  <FormControlLabel value="positive" control={<Radio />} label="POSITIVE" />
+                  <FormControlLabel value="negative" control={<Radio />} label="NEGATIVE" />
+                  <FormControlLabel value="none" control={<Radio />} label="NONE" />
                 </RadioGroup>
               </FormControl>
 
-              <FormControlLabel
-                control={<Checkbox checked={props.user.categoryVerified || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="catVerified" />}
-                label="verified"
-                labelPlacement="start"
-              />
-              <FormControlLabel
-                control={<Checkbox checked={props.user.following || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="following" />}
-                label="following"
-                labelPlacement="start"
-              />
-              <FormControlLabel
-                control={<Checkbox checked={props.user.ignored || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="ignored" />}
-                label="ignored"
-                labelPlacement="start"
-              />
-              <FormControlLabel
-                control={<Checkbox checked={props.user.isBot || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="isBot" />}
-                label="bot"
-                labelPlacement="start"
-              />
+              <FormControl 
+                component="fieldset"
+                className={classes.radioGroupCategory}
+                size="small"
+              >
+                <FormControlLabel
+                  control={<Checkbox checked={props.user.categoryVerified || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="catVerified" />}
+                  label="VERIFIED"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={props.user.following || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="following" />}
+                  label="FOLLOWING"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={props.user.ignored || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="ignored" />}
+                  label="IGNORED"
+                />
+                <FormControlLabel
+                  control={<Checkbox checked={props.user.isBot || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="isBot" />}
+                  label="BOT"
+                />
+              </FormControl>
             </FormGroup>
           </Grid>
         </Grid>

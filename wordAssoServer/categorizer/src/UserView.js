@@ -210,7 +210,7 @@ const User = (props) => {
   const handleKeyPress = (event) => {
     if (event.charCode === 13) { // enter key pressed
       console.log("ENTER")
-      props.handleSearchUser(userSearch)
+      props.handleSearchNode(userSearch)
     }
   }
 

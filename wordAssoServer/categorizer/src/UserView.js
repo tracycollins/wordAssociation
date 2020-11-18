@@ -249,8 +249,8 @@ const User = (props) => {
 
   return (
     <>
-      <AppBar  className={classes.appBar} position="static" variant="outlined">
-        <Toolbar variant="dense outlined" >
+      <AppBar  className={classes.appBar} position="static">
+        <Toolbar variant="dense">
 
           <Typography variant="h6" className={classes.title}>
             User
@@ -329,7 +329,7 @@ const User = (props) => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item className={classes.gridItem} xs={3}>
+          <Grid item className={classes.gridItem} xs={2}>
             <Timeline
               dataSource={{
                 sourceType: 'profile',
@@ -338,7 +338,7 @@ const User = (props) => {
               options={{height: '640'}}
             />
           </Grid>
-          <Grid item className={classes.gridItem} xs={2.5}>
+          <Grid item className={classes.gridItem} xs={2}>
             <TableContainer>
               <Table className={classes.table} size="small">
                 <TableHead>
@@ -430,12 +430,12 @@ const User = (props) => {
                   value={props.user.category || "none"} 
                   onChange={(event) => props.handleNodeChange(event, props.user)}
                 >
-                  <FormControlLabel value="left" control={<Radio />} label="LEFT"/>
-                  <FormControlLabel value="neutral" control={<Radio />} label="NEUTRAL" />
-                  <FormControlLabel value="right" control={<Radio />} label="RIGHT" />
-                  <FormControlLabel value="positive" control={<Radio />} label="POSITIVE" />
-                  <FormControlLabel value="negative" control={<Radio />} label="NEGATIVE" />
-                  <FormControlLabel value="none" control={<Radio />} label="NONE" />
+                  <FormControlLabel value="left" control={<Radio size="small"/>} label="LEFT"/>
+                  <FormControlLabel value="neutral" control={<Radio size="small" />} label="NEUTRAL" />
+                  <FormControlLabel value="right" control={<Radio size="small" />} label="RIGHT" />
+                  <FormControlLabel value="positive" control={<Radio size="small" />} label="POSITIVE" />
+                  <FormControlLabel value="negative" control={<Radio size="small" />} label="NEGATIVE" />
+                  <FormControlLabel value="none" control={<Radio size="small" />} label="NONE" />
                 </RadioGroup>
               </FormControl>
 
@@ -445,19 +445,19 @@ const User = (props) => {
                 size="small"
               >
                 <FormControlLabel
-                  control={<Checkbox checked={props.user.categoryVerified || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="catVerified" />}
+                  control={<Checkbox size="small" checked={props.user.categoryVerified || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="catVerified" />}
                   label="VERIFIED"
                 />
                 <FormControlLabel
-                  control={<Checkbox checked={props.user.following || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="following" />}
+                  control={<Checkbox size="small" checked={props.user.following || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="following" />}
                   label="FOLLOWING"
                 />
                 <FormControlLabel
-                  control={<Checkbox checked={props.user.ignored || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="ignored" />}
+                  control={<Checkbox size="small" checked={props.user.ignored || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="ignored" />}
                   label="IGNORED"
                 />
                 <FormControlLabel
-                  control={<Checkbox checked={props.user.isBot || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="isBot" />}
+                  control={<Checkbox size="small" checked={props.user.isBot || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="isBot" />}
                   label="BOT"
                 />
               </FormControl>

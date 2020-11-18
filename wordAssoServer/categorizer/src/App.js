@@ -248,9 +248,15 @@ const App = () => {
     rateMax: 0,
   }
 
+  const defaultTweets = {
+    search_metadata: {},
+    statuses: []
+  }
+
   const [twitterAuthenticated, setTwitterAuthenticated] = useState(false);
   const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState("");
   const [status, setStatus] = useState(defaultStatus);
+  const [tweets, setTweets] = useState(defaultTweets);
   const [progress, setProgress] = useState("idle");
 
   const [displayNodeType, setDisplayNodeType] = useState("user");
@@ -561,6 +567,7 @@ const App = () => {
       if (nodeValid(results.node)) { 
         setCurrentHashtag(currentHashtag => results.node) 
         console.debug("new: #" + results.node.nodeId);
+        setTweets(tweets => results.tweets)
       }
       setProgress(progress => "idle");
       setStatus(status => results.stats)
@@ -632,23 +639,23 @@ const App = () => {
   // left
   useHotkeys('L', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   useHotkeys('shift+L', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
-  useHotkeys('D', handleNodeChange)
+  useHotkeys('D', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   useHotkeys('shift+D', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
 
   // right
-  useHotkeys('R', handleNodeChange)
+  useHotkeys('R', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   useHotkeys('shift+R', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
 
   // neutral
-  useHotkeys('N', handleNodeChange)
+  useHotkeys('N', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   useHotkeys('shift+N', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
 
   // negative
-  useHotkeys('-', handleNodeChange)
+  useHotkeys('-', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   useHotkeys('shift+-', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
 
   // positive
-  useHotkeys('=', handleNodeChange)
+  useHotkeys('=', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   useHotkeys('shift+=', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
 
   // ignore toggle
@@ -664,7 +671,7 @@ const App = () => {
       return <UserView user={currentUser} stats={status} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
     }
     else{
-      return <HashtagView hashtag={currentHashtag} stats={status} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
+      return <HashtagView hashtag={currentHashtag} stats={status} tweets={tweets} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
     }
   }
 

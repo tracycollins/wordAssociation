@@ -213,12 +213,11 @@ const User = (props) => {
 
   const tweetRate = twitterAge.days > 0 ? Math.ceil(props.user.statusesCount/twitterAge.days) : 0;
 
-  const [userSearch, setUserSearch] = useState(props.user.screenName);
+  const [userSearch, setUserSearch] = useState("");
 
-  
-  useEffect(() => {
-    setUserSearch(props.user.screenName)
-  }, [props])
+  // useEffect(() => {
+  //   setUserSearch(props.user.screenName)
+  // }, [props])
   
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)
@@ -257,23 +256,6 @@ const User = (props) => {
             User
           </Typography>
 
-          <div className={classes.search}>
-            <div className={classes.searchIcon}>
-              <SearchIcon color="primary"/>
-            </div>
-            <InputBase
-              placeholder="search…"
-              classes={{
-                root: classes.inputRoot,
-                input: classes.inputInput,
-              }}
-              inputProps={{ 'aria-label': 'search' }}
-              value={userSearch}
-              onKeyPress={handleKeyPress}
-              onChange={handleChangeSearch}
-            />
-          </div>
-
           <Typography className={classes.buttonGroupLabel}>GET UNCAT</Typography>   
 
           <ButtonGroup color="primary" size="small" aria-label="small button group">
@@ -295,6 +277,24 @@ const User = (props) => {
               MISMATCH {props.stats.user.mismatched}
             </Button>
           </ButtonGroup>
+
+          <div className={classes.search}>
+            <div className={classes.searchIcon}>
+              <SearchIcon color="primary"/>
+            </div>
+            <InputBase
+              placeholder="search…"
+              classes={{
+                root: classes.inputRoot,
+                input: classes.inputInput,
+              }}
+              inputProps={{ 'aria-label': 'search' }}
+              value={userSearch}
+              onKeyPress={handleKeyPress}
+              onChange={handleChangeSearch}
+            />
+          </div>
+
 
         </Toolbar>
       </AppBar>

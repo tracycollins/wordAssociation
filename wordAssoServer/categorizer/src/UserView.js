@@ -37,6 +37,8 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 
+const fontSizeCategory = '1.0rem';
+
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 2,
@@ -164,7 +166,8 @@ const useStyles = makeStyles((theme) => ({
   },
 
   left: {
-    fontSize: '1.0rem',
+    width: '50%',
+    fontSize: fontSizeCategory,
     backgroundColor: 'blue',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
@@ -172,7 +175,8 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   neutral: {
-    fontSize: '1.0rem',
+    width: '50%',
+    fontSize: fontSizeCategory,
     backgroundColor: 'gray',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
@@ -180,7 +184,8 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   right: {
-    fontSize: '1.0rem',
+    width: '50%',
+    fontSize: fontSizeCategory,
     backgroundColor: 'red',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
@@ -188,7 +193,8 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   positive: {
-    fontSize: '1.0rem',
+    width: '50%',
+    fontSize: fontSizeCategory,
     backgroundColor: 'green',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
@@ -196,7 +202,8 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   negative: {
-    fontSize: '1.0rem',
+    width: '50%',
+    fontSize: fontSizeCategory,
     backgroundColor: 'red',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
@@ -204,7 +211,8 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   none: {
-    fontSize: '1.0rem',
+    width: '50%',
+    fontSize: fontSizeCategory,
     backgroundColor: 'lightgray',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
@@ -212,7 +220,8 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   ignored: {
-    fontSize: '1.0rem',
+    width: '50%',
+    fontSize: fontSizeCategory,
     backgroundColor: 'black',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),

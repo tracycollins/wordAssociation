@@ -567,12 +567,12 @@ const App = () => {
   useEffect(() => {
     if (displayNodeType === "user"){
       if (!history.location.pathname.endsWith("/user/" + currentUser.screenName)){
-        history.push("/user/" + currentUser.screenName)
+        history.push("/categorize/user/" + currentUser.screenName)
       }
     }
     if (displayNodeType === "hashtag"){
       if (!history.location.pathname.endsWith("/hashtag/" + currentHashtag.nodeId)){
-        history.push("/hashtag/" + currentHashtag.nodeId)
+        history.push("/categorize/hashtag/" + currentHashtag.nodeId)
       }
     }
   }, [currentUser, currentHashtag, displayNodeType, history])

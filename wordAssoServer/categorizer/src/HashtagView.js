@@ -70,10 +70,10 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
   },
   title: {
-    flexGrow: 1,
     color: 'blue',
   },
   search: {
+    flexGrow: 1,
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
     backgroundColor: "white",
@@ -220,17 +220,9 @@ const HashtagView = (props) => {
       <AppBar  className={classes.appBar} position="static">
         <Toolbar variant="dense">
 
-          <Typography variant="h6" className={classes.title}>
+          {/* <Typography variant="h6" className={classes.title}>
             Hashtag
-          </Typography>
-
-          <Typography className={classes.buttonGroupLabel}>
-            UNCAT
-          </Typography>   
-
-          <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
-            <Button onClick={(event) => props.handleNodeChange(event, props.hashtag)} name="all" >ALL: {props.stats.hashtag.uncategorized.all}</Button>
-          </ButtonGroup>
+          </Typography> */}
 
           <div className={classes.search}>
 
@@ -251,6 +243,14 @@ const HashtagView = (props) => {
             />
 
           </div>
+
+          <Typography className={classes.buttonGroupLabel}>
+            UNCAT
+          </Typography>   
+
+          <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
+            <Button onClick={(event) => props.handleNodeChange(event, props.hashtag)} name="all" >ALL: {props.stats.hashtag.uncategorized.all}</Button>
+          </ButtonGroup>
 
         </Toolbar>
       </AppBar>

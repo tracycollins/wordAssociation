@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+// import useSocket from 'use-socket.io-client';
+// import { useImmer } from 'use-immer';
 import { useHistory } from "react-router-dom";
 import { useHotkeys } from 'react-hotkeys-hook';
 import socketClient from "socket.io-client";
@@ -20,7 +22,7 @@ import Typography from '@material-ui/core/Typography';
 import './App.css';
 import UserView from './UserView.js';
 import HashtagView from './HashtagView.js';
-import { ButtonGroup } from '@material-ui/core';
+// import { ButtonGroup } from '@material-ui/core';
 
 // const ENDPOINT = "http://mbp3:9997/view";
 const ENDPOINT = "https://word.threeceelabs.com/view";
@@ -53,22 +55,25 @@ const viewerObj = DEFAULT_VIEWER_OBJ;
 
 console.log({viewerObj});
 
-let socket;
+let socket = socketClient(ENDPOINT);
 
 const useStyles = makeStyles((theme) => ({
   root: {
     width: "100%",
     flexGrow: 1,
+    boxShadow: 0,
   },
   appBar: {
     backgroundColor: 'black',
     marginBottom: theme.spacing(2),
+    boxShadow: 0,
   },
   tabs: {
     flexGrow: 1,
     color: 'white',
   },
   toolBar: {
+    shadows: 0,
   },
   title: {
     // flexGrow: 1,
@@ -141,20 +146,29 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-const formatDateTime = (dateInput) => {
-  return new Date(dateInput).toLocaleDateString(
-    'en-gb',
-    {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric'
-    }
-  );
-}
+// const formatDateTime = (dateInput) => {
+//   return new Date(dateInput).toLocaleDateString(
+//     'en-gb',
+//     {
+//       year: 'numeric',
+//       month: 'short',
+//       day: 'numeric',
+//       hour: 'numeric',
+//       minute: 'numeric'
+//     }
+//   );
+// }
+
+// const [socket] = useSocket(ENDPOINT);
 
 const App = () => {
+
+  // const socket = props.socket;
+
+  // const [socket] = useSocket(ENDPOINT);
+  // socket.connect();
+
+  // let socket;
 
   const history = useHistory();
 
@@ -265,25 +279,22 @@ const App = () => {
     statuses: []
   }
 
+  const [tabValue, setTabValue] = useState(0);
   const [twitterAuthenticated, setTwitterAuthenticated] = useState(false);
   const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState("");
   const [status, setStatus] = useState(defaultStatus);
+  // const [tweets, setTweets] = useState(defaultTweets);
   const [tweets, setTweets] = useState(defaultTweets);
-  const [progress, setProgress] = useState("loading");
 
+  const [progress, setProgress] = useState("loading ...");
   const [displayNodeType, setDisplayNodeType] = useState("user");
-
   const [currentUser, setCurrentUser] = useState(defaultUser);
-  // const [userHistory, setUserHistory] = useState([]);
-  // const [userHistoryIndex, setUserHistoryIndex] = useState(0);
-
   const [currentHashtag, setCurrentHashtag] = useState(defaultHashtag);
 
   const currentNode = displayNodeType === "user" ? currentUser : currentHashtag;
 
-  const [tabValue, setTabValue] = useState(0);
-
   const handleTabChange = (event, newValue) => {
+    event.preventDefault()
     console.log({newValue})
     setDisplayNodeType(newValue === 0 ? "user" : "hashtag")
     setTabValue(newValue);
@@ -296,16 +307,17 @@ const App = () => {
     socket.emit("TWITTER_SEARCH_NODE", searchTerm)
   }
 
-  const handleLoginLogout = () => {
+  const handleLoginLogout = useCallback((event, twitterAuthenticated) => {
 
+    event.preventDefault()
     setProgress(progress => "loginLogout");
 
     if (twitterAuthenticated){
-      console.warn(
-        "LOGGING OUT");
+      console.warn("LOGGING OUT");
       socket.emit("logout", viewerObj);
       setTwitterAuthenticated(false)
       setTwitterAuthenticatedUser("")
+      setProgress(progress => "idle");
     }
     else{
       console.warn(
@@ -317,9 +329,13 @@ const App = () => {
       window.open(DEFAULT_AUTH_URL, "LOGIN", "_new");
       socket.emit("login", viewerObj);
     }
-  }
+  }, []);
 
   const handleNodeChange = useCallback((event, node) => {
+
+    if (event.preventDefault !== undefined) { 
+      event.preventDefault() 
+    }
 
     if (displayNodeType === "user"){
       console.log("handleNodeChange | user: @" + node.screenName)
@@ -330,10 +346,6 @@ const App = () => {
 
     if (event.persist !== undefined) { 
       event.persist() 
-    }
-
-    if (event.preventDefault !== undefined) { 
-      event.preventDefault() 
     }
 
     let eventName = event.currentTarget.name || "nop";
@@ -444,7 +456,7 @@ const App = () => {
       console.log("handleNodeChange | #" + node.nodeId + " | name: " + eventName + " | value: " + eventValue)
     }
 
-    setProgress(progress => eventName);
+    setProgress(eventName);
 
     switch (eventName){
 
@@ -479,11 +491,17 @@ const App = () => {
         break
 
       case "category":
-        socket.emit("TWITTER_CATEGORIZE_NODE", {
-          category: eventValue,
-          following: true,
-          node: node,
-        });
+        if (twitterAuthenticated){
+          socket.emit("TWITTER_CATEGORIZE_NODE", {
+            category: eventValue,
+            following: true,
+            node: node,
+          });
+        }
+        else{
+          alert("NOT AUTHENTICATED")
+          // setProgress("not authenticated")
+        }
         break
 
       case "isBot":
@@ -533,7 +551,7 @@ const App = () => {
         console.log({event})
     }
     
-  }, [displayNodeType, history])
+  }, [ twitterAuthenticated, displayNodeType, history])
 
   const nodeValid = (node) => {
     if (node === undefined) return false
@@ -561,11 +579,14 @@ const App = () => {
 
   useEffect(() => {
 
-    socket = socketClient(ENDPOINT);
+    // socket = socketClient(ENDPOINT);
 
     socket.on("connect", ()=>{
+
       console.log("CONNECTED: " + socket.id)
+
       setProgress(progress => "authentication");
+
       socket.emit("authentication", {
         namespace: "view",
         userId: "test",
@@ -614,7 +635,7 @@ const App = () => {
           break
 
         case "stats":
-            setStatus(status => action.data)
+            setStatus(() => action.data)
           break
 
         default:
@@ -626,25 +647,27 @@ const App = () => {
       setProgress(progress => "idle");
       console.debug("AUTHENTICATED | " + socket.id);
 
-      // statsObj.socketId = socket.id;
-      // statsObj.serverConnected = true;
-      // statsObj.userReadyTransmitted = false;
-      // statsObj.userReadyAck = false;
       socket.emit("TWITTER_SEARCH_NODE", "@threecee")
     });
 
     socket.on("USER_AUTHENTICATED", function (userObj) {
       setProgress(progress => "idle");
-      setTwitterAuthenticated(twitterAuthenticated => true)
+      setTwitterAuthenticated(() => true)
       setTwitterAuthenticatedUser(twitterAuthenticatedUser => userObj.screenName)
       console.log("RX TWITTER USER_AUTHENTICATED | USER: @" + userObj.screenName);
     });
 
     socket.on("TWITTER_USER_NOT_FOUND", (results) => {
-      setProgress(progress => "idle");
       console.debug("RX TWITTER_USER_NOT_FOUND");
       console.debug(results);
-      setStatus(status => results.stats)
+      setStatus(status => results.stats);
+      if (results.searchNode.startsWith("@?")){
+        console.debug("RETRY NEXT UNCAT: " + results.searchNode);
+        socket.emit("TWITTER_SEARCH_NODE", results.searchNode);
+      }
+      else{
+        setProgress(progress => "idle");
+      }
     });
     
     setProgress("idle")
@@ -723,7 +746,7 @@ const App = () => {
               <Tab label="Hashtag"/>
             </Tabs>
 
-            {progress !== "idle" ? <CircularProgress className={classes.progress}>{progress}</CircularProgress> : <></>}
+            {progress !== "idle" ? <><Typography className={classes.progress}>{`${progress} ...`}</Typography> <CircularProgress className={classes.progress}>{progress}</CircularProgress></> : <></>}
 
             {/* <Typography  className={classes.serverStatus}>
               NN: {status.bestNetwork.networkId}
@@ -746,7 +769,7 @@ const App = () => {
               variant="contained" 
               color="primary" 
               size="small" 
-              onClick={handleLoginLogout} 
+              onClick={event => { handleLoginLogout(event, twitterAuthenticated)}} 
               name="login"
               label="login"
             >

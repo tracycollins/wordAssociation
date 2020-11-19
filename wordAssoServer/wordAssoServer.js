@@ -4495,11 +4495,26 @@ async function pubSubNodeSetProps(params) {
       }
 
       delete node._id;
-      const dbHashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(
-        { nodeId: node.nodeId },
-        node,
-        { upsert: true, new: true }
-      );
+
+      // const dbHashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(
+      //   { nodeId: node.nodeId },
+      //   node,
+      //   { upsert: true, new: true }
+      // );
+
+      let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId });
+
+      if (!dbHashtag) {
+        dbHashtag = new global.wordAssoDb.Hashtag(node);
+      }
+      else{
+        dbHashtag.mentions = Math.max(node.mentions, dbHashtag.mentions);
+        dbHashtag.category = node.category;
+        dbHashtag.rate = node.rate;
+        dbHashtag.lastSeen = node.lastSeen;
+      }
+
+      await dbHashtag.save();
 
       return dbHashtag;
     }
@@ -4926,18 +4941,18 @@ async function pubSubSearchNode(params) {
 
     clearTimeout(twitterSearchNodeTimeout);
 
-    const node = searchNodeResultHashMap[params.requestId] || false;
 
-    if (!node) {
+    if (!searchNodeResultHashMap[params.requestId].node) {
       console.log(chalkAlert(MODULE_ID +
         " | !!! " + params.node.nodeType + " NOT FOUND\n" + jsonPrint(params)
       ));
 
-      return null
+      return searchNodeResultHashMap[params.requestId];
     }
 
-    if (
-      node.nodeType === "user" &&
+    const node = searchNodeResultHashMap[params.requestId].node;
+
+    if (node.nodeType === "user" &&
       (isCategorized(node) || isAutoCategorized(node))
     ) {
 
@@ -4981,8 +4996,8 @@ async function pubSubSearchNode(params) {
     }
 
   } catch (err) {
-    const errCode =
-      err.code && err.code != undefined ? err.code : err.statusCode;
+
+    const errCode = err.code && err.code != undefined ? err.code : err.statusCode;
 
     let errorType;
 
@@ -7697,11 +7712,10 @@ function cursorDataHandler(user) {
 function hashtagCursorDataHandler(hashtag) {
 
   return new Promise(function (resolve) {
-    const text =
-      hashtag.text && hashtag.text !== undefined
-        ? hashtag.text.toLowerCase()
-        : hashtag.nodeId;
-    // const category = hashtag.category;
+
+    hashtag.mentions = hashtag.mentions || 0;
+    hashtag.lastSeen = hashtag.lastSeen || Date.now();
+    hashtag.createdAt = hashtag.createdAt || Date.now();
 
     if (
       hashtag.category &&
@@ -7710,23 +7724,28 @@ function hashtagCursorDataHandler(hashtag) {
     ) {
       categorizedHashtagHashMap.set(hashtag.nodeId, {
         nodeId: hashtag.nodeId,
-        text: text,
+        text: hashtag.nodeId,
         manual: hashtag.category,
         auto: "none",
       });
+    }
+    else if (
+      (hashtag.mentions !== undefined)
+      && (hashtag.mentions < 100) 
+      && (hashtag.lastSeen !== undefined)
+      && moment().isAfter(moment(hashtag.lastSeen).add(7, 'days'))
+    ){
+      console.log(chalkLog(MODULE_ID 
+        + " | HASHTAG SETS | OLD HT: " + hashtag.nodeId 
+        + " | Ms: " + hashtag.mentions
+        + " | LS: " + moment(hashtag.lastSeen).format(compactDateTimeFormat)
+      ));
     }
 
     statsObj.hashtagsProcessed += 1;
 
     if (statsObj.hashtagsProcessed % 10000 === 0) {
-      console.log(
-        chalkLog(
-          MODULE_ID +
-            " | HASHTAG SETS | " +
-            statsObj.hashtagsProcessed +
-            " HASHTAGS PROCESSED"
-        )
-      );
+      console.log(chalkLog(MODULE_ID + " | HASHTAG SETS | " + statsObj.hashtagsProcessed + " HASHTAGS PROCESSED"));
     }
 
     resolve();
@@ -7902,6 +7921,10 @@ async function updateHashtagSets() {
       text: 1,
       category: 1,
       categoryAuto: 1,
+      rate: 1,
+      mentions: 1,
+      lastSeen: 1,
+      createdAt: 1
     })
     .lean()
     .cursor({ batchSize: configuration.cursorBatchSize });
@@ -8237,23 +8260,25 @@ function initTransmitNodeQueueInterval(interval) {
         }
 
         if (node.nodeType == "hashtag") {
-          node = await updateNodeMeter(node);
-
-          const nCacheObj = nodeCache.get(node.nodeId);
-
-          if (nCacheObj !== undefined) {
-            node.mentions = Math.max(node.mentions, nCacheObj.mentions);
-            nodeCache.set(node.nodeId, node);
-          }
-
-          node.updateLastSeen = true;
-
-          if (!statsObj.dbConnectionReady) {
-            transmitNodeQueueReady = true;
-            return;
-          }
 
           try {
+
+            node = await updateNodeMeter(node);
+
+            const nCacheObj = nodeCache.get(node.nodeId);
+
+            if (nCacheObj !== undefined) {
+              node.mentions = Math.max(node.mentions, nCacheObj.mentions);
+              nodeCache.set(node.nodeId, node);
+            }
+
+            node.updateLastSeen = true;
+
+            if (!statsObj.dbConnectionReady) {
+              transmitNodeQueueReady = true;
+              return;
+            }
+
             delete node._id;
             node.text = node.nodeId;
 
@@ -8267,7 +8292,9 @@ function initTransmitNodeQueueInterval(interval) {
               "node",
               pick(updatedHashtag, fieldsTransmitKeys)
             );
+
             transmitNodeQueueReady = true;
+
             return;
           } catch (e) {
             console.log(

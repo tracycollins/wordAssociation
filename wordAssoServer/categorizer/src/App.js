@@ -716,7 +716,7 @@ const App = () => {
               <Tab label="Hashtag"/>
             </Tabs>
 
-            {progress !== "idle" ? <CircularProgress>{progress}</CircularProgress> : <></>}
+            {progress !== "idle" ? <CircularProgress color="secondary">{progress}</CircularProgress> : <></>}
 
             {/* <Typography  className={classes.serverStatus}>
               NN: {status.bestNetwork.networkId}

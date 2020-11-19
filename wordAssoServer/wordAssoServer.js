@@ -7730,7 +7730,7 @@ function hashtagCursorDataHandler(hashtag) {
         { upsert: true, new: true, lean: true }
       )
       .then()
-      .catch((err) => {
+      .catch(function(err){
         return reject(err);
       })
     }

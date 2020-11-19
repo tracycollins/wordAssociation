@@ -500,7 +500,7 @@ const App = () => {
         }
         else{
           alert("NOT AUTHENTICATED")
-          // setProgress("not authenticated")
+          setProgress("not authenticated")
         }
         break
 

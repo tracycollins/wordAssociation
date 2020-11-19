@@ -7711,11 +7711,29 @@ function cursorDataHandler(user) {
 
 function hashtagCursorDataHandler(hashtag) {
 
-  return new Promise(function (resolve) {
+  return new Promise(function (resolve, reject) {
 
-    hashtag.mentions = hashtag.mentions || 0;
-    hashtag.lastSeen = hashtag.lastSeen || Date.now();
-    hashtag.createdAt = hashtag.createdAt || Date.now();
+    if (hashtag.mentions === undefined || hashtag.lastSeen === undefined || hashtag.createdAt === undefined){
+
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! HT UNDEFINED PROPS | " + printHashtag({ hashtag: hashtag })));
+
+      hashtag.mentions = hashtag.mentions || 0;
+      hashtag.lastSeen = hashtag.lastSeen || Date.now();
+      hashtag.createdAt = hashtag.createdAt || Date.now();
+
+      delete hashtag._id;
+      hashtag.text = hashtag.nodeId;
+
+      global.wordAssoDb.Hashtag.findOneAndUpdate(
+        { nodeId: hashtag.nodeId },
+        hashtag,
+        { upsert: true, new: true, lean: true }
+      )
+      .then()
+      .catch((err) => {
+        return reject(err);
+      })
+    }
 
     if (
       hashtag.category &&

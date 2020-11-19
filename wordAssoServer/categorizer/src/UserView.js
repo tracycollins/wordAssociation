@@ -49,24 +49,19 @@ const useStyles = makeStyles((theme) => ({
   },
   grid: {
     display: 'flex',
-    // flexGrow: 1,
+    alignItems: 'stretch',
   },
   gridItem: {
-    // margin: 5,
-    flexGrow: 2,
-
-    marginRight: theme.spacing(1),
+    margin: theme.spacing(1),
   },  
   card: {
-    raised: false,
-    maxWidth: "80%",
+    maxWidth: "85%",
+    alignSelf: "center",
   },
   profileImage: {
-    maxHeight: 320,
     marginBottom: theme.spacing(1),
   },
   bannerImage: {
-    height: 60,
     marginBottom: theme.spacing(1),
   },
   radioGroupCategory: {
@@ -77,7 +72,6 @@ const useStyles = makeStyles((theme) => ({
   },
   table: {
     borderRadius: theme.shape.borderRadius,
-    // borderColor: 'red',
   },
   tableHead: {
     backgroundColor: '#ddeeee',
@@ -91,6 +85,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: 'lightgreen',
   },
   statusBar: {
+    raised: false,
     backgroundColor: 'white',
     margin: 2,
   },
@@ -222,10 +217,10 @@ const useStyles = makeStyles((theme) => ({
   ignored: {
     width: '50%',
     fontSize: fontSizeCategory,
-    backgroundColor: 'black',
+    backgroundColor: 'yellow',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
-    color: 'white',
+    color: 'black',
     marginBottom: theme.spacing(1),
   },
 
@@ -385,10 +380,10 @@ const User = (props) => {
                 sourceType: 'profile',
                 screenName: props.user.screenName
               }}
-              options={{height: '640'}}
+              options={{width: '100%', height: '640'}}
             />
           </Grid>
-          <Grid item className={classes.gridItem} xs={2}>
+          <Grid item className={classes.gridItem} xs={3}>
             <TableContainer>
               <Table className={classes.table} size="small">
                 <TableHead>

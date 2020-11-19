@@ -47,9 +47,12 @@ const useStyles = makeStyles((theme) => ({
   },
   grid: {
     display: 'flex',
+    // flexGrow: 1,
   },
   gridItem: {
     // margin: 5,
+    flexGrow: 2,
+
     marginRight: theme.spacing(1),
   },  
   card: {
@@ -93,10 +96,11 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
   },
   title: {
-    flexGrow: 1,
+    // flexGrow: 1,
     color: 'blue',
   },
   search: {
+    flexGrow: 1,
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
     backgroundColor: "white",
@@ -164,24 +168,42 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
     color: 'white',
+    marginBottom: theme.spacing(1),
   },
   neutral: {
     backgroundColor: 'gray',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
     color: 'white',
+    marginBottom: theme.spacing(1),
   },
   right: {
     backgroundColor: 'red',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
     color: 'white',
+    marginBottom: theme.spacing(1),
   },
-  none: {
-    backgroundColor: 'white',
+  positive: {
+    backgroundColor: 'green',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
     color: 'white',
+    marginBottom: theme.spacing(1),
+  },
+  negative: {
+    backgroundColor: 'red',
+    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(1),
+    color: 'white',
+    marginBottom: theme.spacing(1),
+  },
+  none: {
+    backgroundColor: 'lightgray',
+    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(1),
+    color: 'white',
+    marginBottom: theme.spacing(1),
   },
 
 }));
@@ -241,6 +263,8 @@ const User = (props) => {
       case "left":
       case "neutral":
       case "right":
+      case "positive":
+      case "negative":
         return classes[category]
       default:
         return classes.none
@@ -252,9 +276,26 @@ const User = (props) => {
       <AppBar  className={classes.appBar} position="static">
         <Toolbar variant="dense">
 
-          <Typography variant="h6" className={classes.title}>
+          {/* <Typography variant="h6" className={classes.title}>
             User
-          </Typography>
+          </Typography> */}
+
+          <div className={classes.search}>
+            <div className={classes.searchIcon}>
+              <SearchIcon color="primary"/>
+            </div>
+            <InputBase
+              placeholder="search…"
+              classes={{
+                root: classes.inputRoot,
+                input: classes.inputInput,
+              }}
+              inputProps={{ 'aria-label': 'search' }}
+              value={userSearch}
+              onKeyPress={handleKeyPress}
+              onChange={handleChangeSearch}
+            />
+          </div>
 
           <Typography className={classes.buttonGroupLabel}>GET UNCAT</Typography>   
 
@@ -278,24 +319,6 @@ const User = (props) => {
             </Button>
           </ButtonGroup>
 
-          <div className={classes.search}>
-            <div className={classes.searchIcon}>
-              <SearchIcon color="primary"/>
-            </div>
-            <InputBase
-              placeholder="search…"
-              classes={{
-                root: classes.inputRoot,
-                input: classes.inputInput,
-              }}
-              inputProps={{ 'aria-label': 'search' }}
-              value={userSearch}
-              onKeyPress={handleKeyPress}
-              onChange={handleChangeSearch}
-            />
-          </div>
-
-
         </Toolbar>
       </AppBar>
       <Grid className={classes.grid}>
@@ -303,6 +326,9 @@ const User = (props) => {
             <Card className={classes.card} variant="outlined">
               <CardContent onClick={openUserTwitterPage}>
                 <span>
+                  <Typography className={getCategoryClass(props.user.category)} align="center">
+                    MANUAL: {props.user.category.toUpperCase() || "NONE"}
+                  </Typography>
                   <Typography className={getCategoryClass(props.user.categoryAuto)} align="center">
                     AUTO: {props.user.categoryAuto.toUpperCase() || "NONE"}
                   </Typography>
@@ -402,19 +428,34 @@ const User = (props) => {
                 </TableHead>
                 <TableBody>
                   <TableRow>
-                    <TableCell>left</TableCell>
+                    <TableCell>LEFT</TableCell>
                     <TableCell align="right">{props.stats.user.manual.left}</TableCell>
                     <TableCell align="right">{props.stats.user.auto.left}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>neutral</TableCell>
+                    <TableCell>RIGHT</TableCell>
+                    <TableCell align="right">{props.stats.user.manual.right}</TableCell>
+                    <TableCell align="right">{props.stats.user.auto.right}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>NEUTRAL</TableCell>
                     <TableCell align="right">{props.stats.user.manual.neutral}</TableCell>
                     <TableCell align="right">{props.stats.user.auto.neutral}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell>right</TableCell>
-                    <TableCell align="right">{props.stats.user.manual.right}</TableCell>
-                    <TableCell align="right">{props.stats.user.auto.right}</TableCell>
+                    <TableCell>POSITIVE</TableCell>
+                    <TableCell align="right">{props.stats.user.manual.positive}</TableCell>
+                    <TableCell align="right">{props.stats.user.auto.positive}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>NEGATIVE</TableCell>
+                    <TableCell align="right">{props.stats.user.manual.negative}</TableCell>
+                    <TableCell align="right">{props.stats.user.auto.negative}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>NONE</TableCell>
+                    <TableCell align="right">{props.stats.user.manual.none}</TableCell>
+                    <TableCell align="right">{props.stats.user.auto.none}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -431,8 +472,8 @@ const User = (props) => {
                   onChange={(event) => props.handleNodeChange(event, props.user)}
                 >
                   <FormControlLabel value="left" control={<Radio size="small"/>} label="LEFT"/>
-                  <FormControlLabel value="neutral" control={<Radio size="small" />} label="NEUTRAL" />
                   <FormControlLabel value="right" control={<Radio size="small" />} label="RIGHT" />
+                  <FormControlLabel value="neutral" control={<Radio size="small" />} label="NEUTRAL" />
                   <FormControlLabel value="positive" control={<Radio size="small" />} label="POSITIVE" />
                   <FormControlLabel value="negative" control={<Radio size="small" />} label="NEGATIVE" />
                   <FormControlLabel value="none" control={<Radio size="small" />} label="NONE" />

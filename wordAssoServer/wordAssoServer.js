@@ -8716,7 +8716,7 @@ function initAppRouting(callback) {
     });
   });
   
-  app.get("/user/:query", async function searchUserById(req, res) {
+  app.get("/categorize/user/:query", async function searchUserById(req, res) {
 
     const query = req.params.query.startsWith("@") ? {screenName: req.params.query.slice(1)} : {nodeId: req.params.query}
 
@@ -8743,7 +8743,7 @@ function initAppRouting(callback) {
 
   });
 
-  app.get("/hashtag/:query", async function searchHashtagById(req, res) {
+  app.get("/categorize/hashtag/:query", async function searchHashtagById(req, res) {
 
     const query = {nodeId: req.params.query.toLowerCase()}
 
@@ -8772,7 +8772,7 @@ function initAppRouting(callback) {
 
   const categorizerHtml = path.join(__dirname, "/categorizer/build/index.html");
 
-  app.get("/categorizer", async function requestCategorizer(req, res) {
+  app.get("/categorize", async function requestCategorizer(req, res) {
 
     console.log(chalkLog(MODULE_ID + " | R< CATEGORIZER"));
 
@@ -8781,7 +8781,7 @@ function initAppRouting(callback) {
         console.log(
           chalkError(
             MODULE_ID +
-              " | GET /categorizer ERROR:" +
+              " | GET /categorize ERROR:" +
               " | " +
               getTimeStamp() +
               " | " +

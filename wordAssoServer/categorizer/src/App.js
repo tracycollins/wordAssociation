@@ -60,7 +60,7 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
   },
   appBar: {
-    backgroundColor: 'primary',
+    backgroundColor: 'black',
     marginBottom: theme.spacing(2),
   },
   tabs: {

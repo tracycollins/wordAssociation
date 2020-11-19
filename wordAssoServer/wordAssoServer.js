@@ -525,6 +525,13 @@ const nodeSearchResultHandler = async function (message) {
 
     const messageObj = JSON.parse(message.data.toString());
 
+    // results
+    // publishMessage.endCursor = results.endCursor;
+    // publishMessage.notFound = results.notFound;
+    // publishMessage.doesNotExist = results.doesNotExist;
+    // publishMessage.notAuthorized = results.notAuthorized;
+    // publishMessage.notCategorizable = results.notCategorizable;
+
     debug(chalkLog(MODULE_ID + " | RX NODE SEARCH RESULT " + message.id));
 
     if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)) {
@@ -622,23 +629,18 @@ const nodeSearchResultHandler = async function (message) {
           categorizedHashtagHashMap.set(catHashtagObj.nodeId, catHashtagObj);
         }
 
-        searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
+        searchNodeResultHashMap[messageObj.requestId] = {};
+        searchNodeResultHashMap[messageObj.requestId].node = messageObj.node;
+        searchNodeResultHashMap[messageObj.requestId].results = messageObj.results;
 
       } else {
-        console.log(
-          chalk.yellow(
-            MODULE_ID +
-              " | ==> PS SEARCH NODE -MISS- [" +
-              statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived +
-              "]" +
-              " | MID: " +
-              message.id +
-              " | " +
-              messageObj.requestId +
-              " | SEARCH CAT AUTO: " +
-              messageObj.categoryAuto
-          )
-        );
+        console.log(chalk.yellow(MODULE_ID 
+          + " | ==> PS SEARCH NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
+          + " | MID: " + message.id
+          + " | " + messageObj.requestId
+          + " | SEARCH CAT AUTO: " + messageObj.categoryAuto
+          + " | RESULTS" + jsonPrint(messageObj.results)
+        ));
       }
     }
 

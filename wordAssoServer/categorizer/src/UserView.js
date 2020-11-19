@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Timeline } from 'react-twitter-widgets'
 
 import Duration from 'duration';
@@ -8,7 +8,7 @@ import Button from '@material-ui/core/Button';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Card from '@material-ui/core/Card';
 // import CardActionArea from '@material-ui/core/CardActionArea';
-// import CardActions from '@material-ui/core/CardActions';
+import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 // import CardHeader from '@material-ui/core/CardHeader';
 import CardMedia from '@material-ui/core/CardMedia';
@@ -57,20 +57,20 @@ const useStyles = makeStyles((theme) => ({
   },  
   card: {
     raised: false,
-    maxWidth: 400,
+    maxWidth: "80%",
   },
   profileImage: {
-    maxHeight: 400,
+    maxHeight: 320,
     marginBottom: theme.spacing(1),
   },
   bannerImage: {
-    height: 80,
+    height: 60,
     marginBottom: theme.spacing(1),
   },
   radioGroupCategory: {
     backgroundColor: '#ddeeee',
     borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(1),
+    padding: theme.spacing(2),
     marginBottom: theme.spacing(1),
   },
   table: {
@@ -100,18 +100,18 @@ const useStyles = makeStyles((theme) => ({
     color: 'blue',
   },
   search: {
-    flexGrow: 1,
+    // flexGrow: 1,
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
     backgroundColor: "white",
     '&:hover': {
       backgroundColor: "#ddeeee",
     },
-    marginRight: theme.spacing(2),
-    marginLeft: 0,
+    marginRight: theme.spacing(1),
+    // marginLeft: 0,
     width: '100%',
     [theme.breakpoints.up('sm')]: {
-      marginLeft: theme.spacing(3),
+      // marginLeft: theme.spacing(3),
       width: 'auto',
     },
   },
@@ -164,6 +164,7 @@ const useStyles = makeStyles((theme) => ({
   },
 
   left: {
+    fontSize: '1.0rem',
     backgroundColor: 'blue',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
@@ -171,6 +172,7 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   neutral: {
+    fontSize: '1.0rem',
     backgroundColor: 'gray',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
@@ -178,6 +180,7 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   right: {
+    fontSize: '1.0rem',
     backgroundColor: 'red',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
@@ -185,6 +188,7 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   positive: {
+    fontSize: '1.0rem',
     backgroundColor: 'green',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
@@ -192,6 +196,7 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   negative: {
+    fontSize: '1.0rem',
     backgroundColor: 'red',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
@@ -199,7 +204,16 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   none: {
+    fontSize: '1.0rem',
     backgroundColor: 'lightgray',
+    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(1),
+    color: 'white',
+    marginBottom: theme.spacing(1),
+  },
+  ignored: {
+    fontSize: '1.0rem',
+    backgroundColor: 'black',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
     color: 'white',
@@ -265,6 +279,7 @@ const User = (props) => {
       case "right":
       case "positive":
       case "negative":
+      case "ignored":
         return classes[category]
       default:
         return classes.none
@@ -324,17 +339,17 @@ const User = (props) => {
       <Grid className={classes.grid}>
           <Grid item className={classes.gridItem} xs={3}>
             <Card className={classes.card} variant="outlined">
-              <CardContent onClick={openUserTwitterPage}>
-                <span>
-                  <Typography className={getCategoryClass(props.user.category)} align="center">
-                    MANUAL: {props.user.category.toUpperCase() || "NONE"}
+              <CardActions onClick={openUserTwitterPage}>
+                  <Typography className={props.user.ignored ? classes["ignored"] : getCategoryClass(props.user.category)} align="center">
+                    {props.user.ignored ? "IGNORED" : props.user.category.toUpperCase() || "MANUAL: NONE"}
                   </Typography>
                   <Typography className={getCategoryClass(props.user.categoryAuto)} align="center">
                     AUTO: {props.user.categoryAuto.toUpperCase() || "NONE"}
                   </Typography>
+              </CardActions>
+              <CardContent onClick={openUserTwitterPage}>
                   <Typography variant="h6">{props.user.name}</Typography>
                   <Typography>@{props.user.screenName}</Typography>
-                </span>
               </CardContent>
               <CardMedia
                 className={classes.profileImage}
@@ -468,6 +483,7 @@ const User = (props) => {
                   className={classes.radioGroupCategory}
                   aria-label="category" 
                   name="category" 
+                  size="small"
                   value={props.user.category || "none"} 
                   onChange={(event) => props.handleNodeChange(event, props.user)}
                 >

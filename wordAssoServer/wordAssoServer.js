@@ -586,7 +586,9 @@ const nodeSearchResultHandler = async function (message) {
           categorizedUserHashMap.set(catUserObj.nodeId, catUserObj);
         }
 
-        searchNodeResultHashMap[messageObj.requestId] = messageObj.node;
+        searchNodeResultHashMap[messageObj.requestId] = {};
+        searchNodeResultHashMap[messageObj.requestId].node = messageObj.node;
+        searchNodeResultHashMap[messageObj.requestId].results = messageObj.results;
 
       } else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
         if (configuration.verbose) {
@@ -634,6 +636,7 @@ const nodeSearchResultHandler = async function (message) {
         searchNodeResultHashMap[messageObj.requestId].results = messageObj.results;
 
       } else {
+
         console.log(chalk.yellow(MODULE_ID 
           + " | ==> PS SEARCH NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
           + " | MID: " + message.id
@@ -641,6 +644,9 @@ const nodeSearchResultHandler = async function (message) {
           + " | SEARCH CAT AUTO: " + messageObj.categoryAuto
           + " | RESULTS" + jsonPrint(messageObj.results)
         ));
+
+        searchNodeResultHashMap[messageObj.requestId] = {};
+        searchNodeResultHashMap[messageObj.requestId].results = messageObj.results;
       }
     }
 

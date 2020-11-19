@@ -57,6 +57,7 @@ let socket;
 
 const useStyles = makeStyles((theme) => ({
   root: {
+    width: "100%",
     flexGrow: 1,
   },
   appBar: {
@@ -65,10 +66,16 @@ const useStyles = makeStyles((theme) => ({
   },
   tabs: {
     flexGrow: 1,
+    color: 'white',
   },
   toolBar: {
   },
   title: {
+    // flexGrow: 1,
+    color: 'white',
+    marginRight: theme.spacing(2),
+  },
+  progress: {
     // flexGrow: 1,
     color: 'white',
     marginRight: theme.spacing(2),
@@ -708,15 +715,15 @@ const App = () => {
             <Tabs 
               className={classes.tabs}
               value={tabValue} 
-              indicatorColor="secondary"
-              textColor="white"
+              // indicatorColor="secondary"
+              // textColor="primary"
               onChange={handleTabChange}
             >
               <Tab label="User" />
               <Tab label="Hashtag"/>
             </Tabs>
 
-            {progress !== "idle" ? <CircularProgress color="secondary">{progress}</CircularProgress> : <></>}
+            {progress !== "idle" ? <CircularProgress className={classes.progress}>{progress}</CircularProgress> : <></>}
 
             {/* <Typography  className={classes.serverStatus}>
               NN: {status.bestNetwork.networkId}

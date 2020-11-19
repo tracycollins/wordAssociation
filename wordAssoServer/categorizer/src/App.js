@@ -12,6 +12,8 @@ import Button from '@material-ui/core/Button';
 // import InputBase from '@material-ui/core/InputBase';
 // import SearchIcon from '@material-ui/icons/Search';
 import Link from '@material-ui/core/Link';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 
@@ -58,18 +60,17 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
   },
   appBar: {
-    backgroundColor: 'white',
+    backgroundColor: 'primary',
     marginBottom: theme.spacing(2),
   },
-  toolBar: {
-    backgroundColor: 'white',
-  },
-  buttonNodeType: {
+  tabs: {
     flexGrow: 1,
+  },
+  toolBar: {
   },
   title: {
     // flexGrow: 1,
-    color: 'blue',
+    color: 'white',
     marginRight: theme.spacing(2),
   },
   serverStatus: {
@@ -79,11 +80,12 @@ const useStyles = makeStyles((theme) => ({
   },
   twitterAuth: {
     // backgroundColor: 'black',
-    color: "green",
+    color: "white",
     padding: theme.spacing(1),
     marginRight: theme.spacing(2),
   },  
   buttonLogin: {
+    backgroundColor: "green",
     marginRight: theme.spacing(2),
   },
   statusBar: {
@@ -271,6 +273,14 @@ const App = () => {
   const [currentHashtag, setCurrentHashtag] = useState(defaultHashtag);
 
   const currentNode = displayNodeType === "user" ? currentUser : currentHashtag;
+
+  const [tabValue, setTabValue] = useState(0);
+
+  const handleTabChange = (event, newValue) => {
+    console.log({newValue})
+    setDisplayNodeType(newValue === 0 ? "user" : "hashtag")
+    setTabValue(newValue);
+  };
 
   const handleSearchNode = (searchString) => {
     setProgress(progress => "searchNode");
@@ -690,45 +700,30 @@ const App = () => {
         <AppBar  className={classes.appBar} position="static">
           <Toolbar className={classes.toolBar}>
 
-            <Typography variant="h6" className={classes.title}>
+            <Typography className={classes.title}>
               {/* Categorizer | USER HISTORY: {userHistory.length} | PREV USER: {userHistory.length > 0 ? userHistory[userHistory.length-1] : ""} */}
-              Categorizer
+              CATEGORIZE
             </Typography>
-
-            <ButtonGroup                
-              className={classes.buttonNodeType}
+            
+            <Tabs 
+              className={classes.tabs}
+              value={tabValue} 
+              indicatorColor="secondary"
+              textColor="white"
+              onChange={handleTabChange}
             >
-              <Button 
-                variant="contained" 
-                color="primary" 
-                size="small" 
-                name="user"
-                label="user"
-                onClick={() => setDisplayNodeType("user")}
-              >
-                User
-              </Button>
-              <Button 
-                variant="contained" 
-                color="primary" 
-                size="small" 
-                name="hashtag"
-                label="hashtag"
-                onClick={() => setDisplayNodeType("hashtag")}
-              >
-                Hashtag
-              </Button>
-            </ButtonGroup>
+              <Tab label="User" />
+              <Tab label="Hashtag"/>
+            </Tabs>
 
             {progress !== "idle" ? <CircularProgress>{progress}</CircularProgress> : <></>}
 
-            <Typography  className={classes.serverStatus}>
+            {/* <Typography  className={classes.serverStatus}>
               NN: {status.bestNetwork.networkId}
             </Typography>
             <Typography  className={classes.serverStatus}>
               {status.nodesPerMin} nodes/min (max: {status.maxNodesPerMin} | time: {formatDateTime(status.maxNodesPerMinTime)})
-            </Typography>
-
+            </Typography> */}
 
             <Link
               className={classes.twitterAuth}

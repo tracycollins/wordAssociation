@@ -1,4 +1,12 @@
 const dotenv = require("dotenv");
+const envConfig = dotenv.config()
+
+if (envConfig.error) {
+  throw envConfig.error
+}
+ 
+console.log("WAS | ENV CONFIG")
+console.log(envConfig.parsed)
 
 const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
@@ -72,8 +80,7 @@ console.log(MODULE_ID + " | ==============================");
 
 let DROPBOX_ROOT_FOLDER;
 const TWITTER_WEBHOOK_URL = "/webhooks/twitter";
-let TWITTER_AUTH_CALLBACK_URL =
-  "https://word.threeceelabs.com/auth/twitter/callback";
+let TWITTER_AUTH_CALLBACK_URL = "https://word.threeceelabs.com/auth/twitter/callback";
 
 if (hostname == "google") {
   DROPBOX_ROOT_FOLDER = "/home/tc/Dropbox/Apps/wordAssociation";
@@ -177,7 +184,6 @@ const DEFAULT_TWITTER_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_NODE_SETPROPS_QUEUE_INTERVAL = 100;
 const DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = DEFAULT_INTERVAL;
-// const DEFAULT_TWITTER_SEARCH_NODE_QUEUE_INTERVAL = 100;
 
 const TWP_PING_INTERVAL = 15 * ONE_MINUTE;
 const DBU_PING_INTERVAL = 15 * ONE_MINUTE;
@@ -251,11 +257,9 @@ const chalkBlueBold = chalk.blue.bold;
 const chalkBot = chalk.gray;
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
-// const HashMap = require("hashmap").HashMap;
 const HashMap = require("hashmap");
 
 const btoa = require("btoa");
-// const request = require("request-promise-native");
 const axios = require("axios");
 const _ = require("lodash");
 const touch = require("touch");
@@ -1358,12 +1362,9 @@ configuration.rateQueueIntervalModulo = DEFAULT_RATE_QUEUE_INTERVAL_MODULO;
 configuration.statsUpdateIntervalTime = DEFAULT_STATS_UPDATE_INTERVAL;
 configuration.updateUserSetsInterval = DEFAULT_UPDATE_USER_SETS_INTERVAL;
 
-configuration.DROPBOX = {};
-configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
-configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
-configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
-configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE = process.env.DROPBOX_CONFIG_FILE || "wordAssoServerConfig.json";
-configuration.DROPBOX.DROPBOX_WAS_STATS_FILE = process.env.DROPBOX_STATS_FILE || "wordAssoServerStats.json";
+// configuration.DROPBOX = {};
+// configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE = process.env.DROPBOX_CONFIG_FILE || "wordAssoServerConfig.json";
+// configuration.DROPBOX.DROPBOX_WAS_STATS_FILE = process.env.DROPBOX_STATS_FILE || "wordAssoServerStats.json";
 
 configuration.twitterRxQueueInterval = DEFAULT_TWITTER_RX_QUEUE_INTERVAL;
 configuration.categoryHashmapsUpdateInterval = DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL;
@@ -1855,10 +1856,6 @@ let statsInterval;
 // ==================================================================
 // DROPBOX
 // ==================================================================
-const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
-const DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
-const DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
-
 const configDefaultFolder = path.join(
   DROPBOX_ROOT_FOLDER,
   "config/utility/default"
@@ -1884,10 +1881,7 @@ const statsFile =
 
 const twitterConfigFolder = path.join(DROPBOX_ROOT_FOLDER, "config/twitter");
 
-const bestNetworkFolder = path.join(
-  DROPBOX_ROOT_FOLDER,
-  "config/utility/best/neuralNetworks"
-);
+const bestNetworkFolder = path.join(DROPBOX_ROOT_FOLDER,"config/utility/best/neuralNetworks");
 
 const childPidFolderLocal = path.join(
   DROPBOX_ROOT_FOLDER,
@@ -1914,20 +1908,6 @@ configuration.dropboxChangeFolderArray = [
   twitterConfigFolder,
   trainingSetsUsersFolder,
 ];
-
-debug(chalkLog(MODULE_ID + " | DROPBOX_WORD_ASSO_ACCESS_TOKEN: " + DROPBOX_WORD_ASSO_ACCESS_TOKEN));
-console.log(
-  chalkLog(
-    MODULE_ID + " | DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY
-  )
-);
-console.log(
-  chalkLog(
-    MODULE_ID +
-      " | DROPBOX_WORD_ASSO_APP_SECRET :" +
-      DROPBOX_WORD_ASSO_APP_SECRET
-  )
-);
 
 const userDefaults = function (user) {
   user.rate = user.rate || 0;
@@ -7151,9 +7131,7 @@ async function initAllowLocations() {
       );
       throw new Error("DROPBOX FILE DOWNLOAD DATA UNDEFINED");
     }
-
-    // debug(chalkInfo(MODULE_ID + " | DROPBOX ALLOW LOCATIONS FILE\n" + jsonPrint(data)));
-
+    
     const dataArray = data.toString().toLowerCase().split("\n");
 
     console.log(
@@ -8437,7 +8415,8 @@ function initAppRouting(callback) {
       if (req.method == "GET") {
         const crc_token = req.query.crc_token;
 
-        if (crc_token) {console.log(chalkAlert(MODULE_ID + " | R< TWITTER WEB HOOK | CRC TOKEN: " + crc_token));
+        if (crc_token) {
+          console.log(chalkAlert(MODULE_ID + " | R< TWITTER WEB HOOK | CRC TOKEN: " + crc_token));
 
           const hmac = crypto
             .createHmac("sha256", threeceeConfig.consumer_secret)

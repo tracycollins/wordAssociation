@@ -4666,7 +4666,7 @@ async function updateDbIgnoredHashtags() {
       });
 
       if (!empty(dbHashtag)) {
-        
+
         console.log(chalkLog(MODULE_ID + " | FOUND IGNORED HASHTAG"
           + " [" + ignoredHashtagSet.size + "]"
           + " | " + printHashtag({ hashtag: dbHashtag })
@@ -7751,9 +7751,11 @@ function hashtagCursorDataHandler(hashtag) {
       && moment().isAfter(moment(hashtag.lastSeen).add(configuration.maxLastSeenDaysHashtags, 'days'))
     ){
       console.log(chalkAlert(MODULE_ID 
-        + " | HASHTAG SETS | XXX DELETE OLD HT: " + hashtag.nodeId 
-        + " | Ms: " + hashtag.mentions
+        + " | HASHTAG SETS | XXX DELETE OLD HT" 
+        + " | CR: " + moment(hashtag.createdAt).format(compactDateTimeFormat)
         + " | LS: " + moment(hashtag.lastSeen).format(compactDateTimeFormat)
+        + " | Ms: " + hashtag.mentions
+        + " | #" + hashtag.nodeId 
       ));
 
       global.wordAssoDb.Hashtag.deleteOne({nodeId: hashtag.nodeId})

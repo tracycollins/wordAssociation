@@ -7688,14 +7688,7 @@ function cursorDataHandler(user) {
         statsObj.user.processed += 1;
 
         if (statsObj.user.processed % 5000 === 0) {
-          console.log(
-            chalkLog(
-              MODULE_ID +
-                " | USER SETS | " +
-                statsObj.user.processed +
-                " USERS PROCESSED"
-            )
-          );
+          console.log(chalkLog(MODULE_ID + " | USER SETS | " + statsObj.user.processed + " USERS PROCESSED"));
         }
 
         resolve();

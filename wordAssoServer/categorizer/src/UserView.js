@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Timeline } from 'react-twitter-widgets'
 
 import Duration from 'duration';
+import clsx from 'clsx';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
@@ -35,9 +36,28 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, withStyles } from '@material-ui/core/styles';
 
-const fontSizeCategory = '1.0rem';
+const fontSizeCategory = '0.7rem';
+
+const StyledTableCell = withStyles((theme) => ({
+  head: {
+    // backgroundColor: theme.palette.common.black,
+    // color: theme.palette.common.white,
+  },
+  body: {
+    fontSize: 12,
+  },
+}))(TableCell);
+
+const StyledTableRow = withStyles((theme) => ({
+  root: {
+    // '&:nth-of-type(odd)': {
+    //   backgroundColor: theme.palette.action.hover,
+    // },
+  },
+}))(TableRow);
+
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -64,17 +84,58 @@ const useStyles = makeStyles((theme) => ({
   bannerImage: {
     marginBottom: theme.spacing(1),
   },
+  icon: {
+    borderRadius: '50%',
+    width: 16,
+    height: 16,
+    boxShadow: 'inset 0 0 0 1px rgba(16,22,26,.2), inset 0 -1px 0 rgba(16,22,26,.1)',
+    backgroundColor: '#f5f8fa',
+    backgroundImage: 'linear-gradient(180deg,hsla(0,0%,100%,.8),hsla(0,0%,100%,0))',
+    '$root.Mui-focusVisible &': {
+      outline: '2px auto rgba(19,124,189,.6)',
+      outlineOffset: 2,
+    },
+    'input:hover ~ &': {
+      backgroundColor: '#ebf1f5',
+    },
+    'input:disabled ~ &': {
+      boxShadow: 'none',
+      background: 'rgba(206,217,224,.5)',
+    },
+  },
+  checkedIcon: {
+    backgroundColor: '#137cbd',
+    backgroundImage: 'linear-gradient(180deg,hsla(0,0%,100%,.1),hsla(0,0%,100%,0))',
+    '&:before': {
+      display: 'block',
+      width: 16,
+      height: 16,
+      backgroundImage: 'radial-gradient(#fff,#fff 28%,transparent 32%)',
+      content: '""',
+    },
+    'input:hover ~ &': {
+      backgroundColor: '#106ba3',
+    },
+  },
   radioGroupCategory: {
+    fontSize: '0.5rem',
     backgroundColor: '#ddeeee',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(2),
     marginBottom: theme.spacing(1),
+  },
+  radioButtonLabel: {
+    fontSize: '0.9rem'
+  },
+  radioButton: {
   },
   table: {
     borderRadius: theme.shape.borderRadius,
   },
   tableHead: {
     backgroundColor: '#ddeeee',
+  },
+  tableCell: {
   },
   tableCategorized: {
     borderRadius: theme.shape.borderRadius,
@@ -226,6 +287,21 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
+function StyledRadio(props) {
+  const classes = useStyles();
+  return (
+    <Radio
+      className={classes.radioButton}
+      disableRipple
+      color="default"
+      checkedIcon={<span className={clsx(classes.icon, classes.checkedIcon)} />}
+      icon={<span className={classes.icon} />}
+      {...props}
+    />
+  );
+}
+
+
 const formatDate = (dateInput) => {
   return new Date(dateInput).toLocaleDateString(
     'en-gb',
@@ -374,7 +450,7 @@ const User = (props) => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item className={classes.gridItem} xs={2}>
+          <Grid item className={classes.gridItem} xs={3}>
             <Timeline
               dataSource={{
                 sourceType: 'profile',
@@ -383,51 +459,51 @@ const User = (props) => {
               options={{width: '100%', height: '640'}}
             />
           </Grid>
-          <Grid item className={classes.gridItem} xs={3}>
+          <Grid item className={classes.gridItem} xs={2}>
             <TableContainer>
               <Table className={classes.table} size="small">
                 <TableHead>
-                  <TableRow className={classes.tableHead}>
-                    <TableCell>@{props.user.screenName}</TableCell><TableCell align="right"></TableCell>
-                  </TableRow>
+                  <StyledTableRow className={classes.tableHead}>
+                    <StyledTableCell>@{props.user.screenName}</StyledTableCell><StyledTableCell align="right"></StyledTableCell>
+                  </StyledTableRow>
                 </TableHead>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>Twitter ID</TableCell><TableCell align="right">{props.user.nodeId}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Location</TableCell><TableCell align="right">{props.user.location}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Created</TableCell><TableCell align="right">{createdAt}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Twitter age</TableCell><TableCell align="right">{twitterAgeString}</TableCell>
-                  </TableRow>
-                  <TableRow className={props.user.followersCount > 5000 ? classes.tableRowGreen : null}>
-                    <TableCell>Followers</TableCell><TableCell align="right">{props.user.followersCount}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Friends</TableCell><TableCell align="right">{props.user.friendsCount}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Tweets</TableCell><TableCell align="right">{props.user.statusesCount}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Tweets/day</TableCell><TableCell align="right">{tweetRate}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Last Active</TableCell><TableCell align="right">{lastSeen} ({lastSeenDuration} ago)</TableCell>
-                  </TableRow>
-                  {/* <TableRow>
-                    <TableCell>Last Active</TableCell><TableCell align="right">{lastSeenDuration} ago</TableCell>
-                  </TableRow> */}
-                  <TableRow>
-                    <TableCell>Mentions</TableCell><TableCell align="right">{props.user.mentions}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Mentions/hour</TableCell><TableCell align="right">{props.user.rate ? 60*props.user.rate.toFixed(2) : 0}</TableCell>
-                  </TableRow>
+                  <StyledTableRow>
+                    <StyledTableCell>Twitter ID</StyledTableCell><StyledTableCell align="right">{props.user.nodeId}</StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow>
+                    <StyledTableCell>Location</StyledTableCell><StyledTableCell align="right">{props.user.location}</StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow>
+                    <StyledTableCell>Created</StyledTableCell><StyledTableCell align="right">{createdAt}</StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow>
+                    <StyledTableCell>Twitter age</StyledTableCell><StyledTableCell align="right">{twitterAgeString}</StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow className={props.user.followersCount > 5000 ? classes.tableRowGreen : null}>
+                    <StyledTableCell>Followers</StyledTableCell><StyledTableCell align="right">{props.user.followersCount}</StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow>
+                    <StyledTableCell>Friends</StyledTableCell><StyledTableCell align="right">{props.user.friendsCount}</StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow>
+                    <StyledTableCell>Tweets</StyledTableCell><StyledTableCell align="right">{props.user.statusesCount}</StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow>
+                    <StyledTableCell>Tweets/day</StyledTableCell><StyledTableCell align="right">{tweetRate}</StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow>
+                    <StyledTableCell>Active</StyledTableCell><StyledTableCell align="right">{lastSeen} ({lastSeenDuration} ago)</StyledTableCell>
+                  </StyledTableRow>
+                  {/* <StyledTableRow>
+                    <StyledTableCell>Last Active</StyledTableCell><StyledTableCell align="right">{lastSeenDuration} ago</StyledTableCell>
+                  </StyledTableRow> */}
+                  <StyledTableRow>
+                    <StyledTableCell>Mentions</StyledTableCell><StyledTableCell align="right">{props.user.mentions}</StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow>
+                    <StyledTableCell>Mentions/hour</StyledTableCell><StyledTableCell align="right">{props.user.rate ? 60*props.user.rate.toFixed(2) : 0}</StyledTableCell>
+                  </StyledTableRow>
                 </TableBody>
               </Table>
             </TableContainer>
@@ -436,67 +512,67 @@ const User = (props) => {
             <TableContainer>
               <Table size="small">
                 <TableHead>
-                  <TableRow className={classes.tableHead}>
-                    <TableCell colSpan={3}>ALL USERS</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>CAT</TableCell>
-                    <TableCell align="right">MAN</TableCell>
-                    <TableCell align="right">AUTO</TableCell>
-                  </TableRow>
+                  <StyledTableRow className={classes.tableHead}>
+                    <StyledTableCell colSpan={3}>ALL USERS</StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow>
+                    <StyledTableCell>CAT</StyledTableCell>
+                    <StyledTableCell align="right">MAN</StyledTableCell>
+                    <StyledTableCell align="right">AUTO</StyledTableCell>
+                  </StyledTableRow>
                 </TableHead>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>LEFT</TableCell>
-                    <TableCell align="right">{props.stats.user.manual.left}</TableCell>
-                    <TableCell align="right">{props.stats.user.auto.left}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>RIGHT</TableCell>
-                    <TableCell align="right">{props.stats.user.manual.right}</TableCell>
-                    <TableCell align="right">{props.stats.user.auto.right}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>NEUTRAL</TableCell>
-                    <TableCell align="right">{props.stats.user.manual.neutral}</TableCell>
-                    <TableCell align="right">{props.stats.user.auto.neutral}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>POSITIVE</TableCell>
-                    <TableCell align="right">{props.stats.user.manual.positive}</TableCell>
-                    <TableCell align="right">{props.stats.user.auto.positive}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>NEGATIVE</TableCell>
-                    <TableCell align="right">{props.stats.user.manual.negative}</TableCell>
-                    <TableCell align="right">{props.stats.user.auto.negative}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>NONE</TableCell>
-                    <TableCell align="right">{props.stats.user.manual.none}</TableCell>
-                    <TableCell align="right">{props.stats.user.auto.none}</TableCell>
-                  </TableRow>
+                  <StyledTableRow > 
+                    <StyledTableCell>LEFT</StyledTableCell>
+                    <StyledTableCell align="right">{props.stats.user.manual.left}</StyledTableCell>
+                    <StyledTableCell align="right">{props.stats.user.auto.left}</StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow>
+                    <StyledTableCell >RIGHT</StyledTableCell>
+                    <StyledTableCell align="right">{props.stats.user.manual.right}</StyledTableCell>
+                    <StyledTableCell align="right">{props.stats.user.auto.right}</StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow>
+                    <StyledTableCell >NEUTRAL</StyledTableCell>
+                    <StyledTableCell align="right">{props.stats.user.manual.neutral}</StyledTableCell>
+                    <StyledTableCell align="right">{props.stats.user.auto.neutral}</StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow>
+                    <StyledTableCell >POSITIVE</StyledTableCell>
+                    <StyledTableCell align="right">{props.stats.user.manual.positive}</StyledTableCell>
+                    <StyledTableCell align="right">{props.stats.user.auto.positive}</StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow>
+                    <StyledTableCell >NEGATIVE</StyledTableCell>
+                    <StyledTableCell align="right">{props.stats.user.manual.negative}</StyledTableCell>
+                    <StyledTableCell align="right">{props.stats.user.auto.negative}</StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow>
+                    <StyledTableCell >NONE</StyledTableCell>
+                    <StyledTableCell align="right">{props.stats.user.manual.none}</StyledTableCell>
+                    <StyledTableCell align="right">{props.stats.user.auto.none}</StyledTableCell>
+                  </StyledTableRow>
                 </TableBody>
               </Table>
             </TableContainer>
           </Grid>
           <Grid item className={classes.gridItem} xs={1}>
             <FormGroup>
-              <FormControl component="fieldset" size="small">
+              <FormControl component="fieldset">
                 <RadioGroup 
                   className={classes.radioGroupCategory}
                   aria-label="category" 
                   name="category" 
-                  size="small"
+                  // size="small"
                   value={props.user.category || "none"} 
                   onChange={(event) => props.handleNodeChange(event, props.user)}
                 >
-                  <FormControlLabel value="left" control={<Radio size="small"/>} label="LEFT"/>
-                  <FormControlLabel value="right" control={<Radio size="small" />} label="RIGHT" />
-                  <FormControlLabel value="neutral" control={<Radio size="small" />} label="NEUTRAL" />
-                  <FormControlLabel value="positive" control={<Radio size="small" />} label="POSITIVE" />
-                  <FormControlLabel value="negative" control={<Radio size="small" />} label="NEGATIVE" />
-                  <FormControlLabel value="none" control={<Radio size="small" />} label="NONE" />
+                  <FormControlLabel value="left" control={<StyledRadio/>} label={<Typography className={classes.radioButtonLabel}>LEFT</Typography>}/>
+                  <FormControlLabel value="right" control={<StyledRadio/>} label={<Typography className={classes.radioButtonLabel}>RIGHT</Typography>} />
+                  <FormControlLabel value="neutral" control={<StyledRadio/>} label={<Typography className={classes.radioButtonLabel}>NEUTRAL</Typography>} />
+                  <FormControlLabel value="positive" control={<StyledRadio/>} label={<Typography className={classes.radioButtonLabel}>POSITIVE</Typography>} />
+                  <FormControlLabel value="negative" control={<StyledRadio/>} label={<Typography className={classes.radioButtonLabel}>NEGATIVE</Typography>} />
+                  <FormControlLabel value="none" control={<StyledRadio/>} label={<Typography className={classes.radioButtonLabel}>NONE</Typography>} />
                 </RadioGroup>
               </FormControl>
 
@@ -506,20 +582,20 @@ const User = (props) => {
                 size="small"
               >
                 <FormControlLabel
-                  control={<Checkbox size="small" checked={props.user.categoryVerified || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="catVerified" />}
-                  label="VERIFIED"
+                  control={<Checkbox size="small" checked={props.user.following || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="following" />}
+                  label={<Typography className={classes.radioButtonLabel}>FOLLOWING</Typography>}
                 />
                 <FormControlLabel
-                  control={<Checkbox size="small" checked={props.user.following || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="following" />}
-                  label="FOLLOWING"
+                  control={<Checkbox size="small" checked={props.user.categoryVerified || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="catVerified" />}
+                  label={<Typography className={classes.radioButtonLabel}>VERIFIED</Typography>}
                 />
                 <FormControlLabel
                   control={<Checkbox size="small" checked={props.user.ignored || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="ignored" />}
-                  label="IGNORED"
+                  label={<Typography className={classes.radioButtonLabel}>IGNORED</Typography>}
                 />
                 <FormControlLabel
                   control={<Checkbox size="small" checked={props.user.isBot || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="isBot" />}
-                  label="BOT"
+                  label={<Typography className={classes.radioButtonLabel}>BOT</Typography>}
                 />
               </FormControl>
             </FormGroup>

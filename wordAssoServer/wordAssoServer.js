@@ -13,6 +13,8 @@ const ONE_DAY = 24 * ONE_HOUR;
 
 const twitterDateFormat = "ddd MMM DD HH:mm:ss Z YYYY"; // Wed Aug 27 13:08:45 +0000 2008
 
+const DEFAULT_MIN_MENTIONS_HASHTAGS = 100;
+const DEFAULT_MAX_LAST_SEEN_DAYS_HASHTAGS = 7;
 const DEFAULT_TWEET_SEARCH_COUNT = 5;
 const DEFAULT_PUBSUB_ENABLED = true;
 const DEFAULT_PUBSUB_PROJECT_ID = "graphic-tangent-627";
@@ -1281,6 +1283,9 @@ let hostConfiguration = {}; // host-specific configuration
 
 let configuration = {};
 
+configuration.minMentionsHashtags = DEFAULT_MIN_MENTIONS_HASHTAGS;
+configuration.maxLastSeenDaysHashtags = DEFAULT_MAX_LAST_SEEN_DAYS_HASHTAGS;
+
 configuration.tweetSearchCount = DEFAULT_TWEET_SEARCH_COUNT;
 configuration.primaryHost = process.env.PRIMARY_HOST || DEFAULT_PRIMARY_HOST;
 configuration.databaseHost = process.env.DATABASE_HOST || DEFAULT_DATABASE_HOST;
@@ -1998,19 +2003,17 @@ function printHashtag(params) {
   const hashtag = params.hashtag;
 
   if (params.verbose) {
+
     return jsonPrint(params.hashtag);
+
   } else {
-    text =
-      "#" +
-      hashtag.nodeId +
-      " | M  " +
-      hashtag.mentions +
-      " | LS " +
-      getTimeStamp(hashtag.lastSeen) +
-      " | C M " +
-      formatCategory(hashtag.category) +
-      " A " +
-      formatCategory(hashtag.categoryAuto);
+
+    text = "LS " + getTimeStamp(hashtag.lastSeen) 
+      + " | CR  " + getTimeStamp(hashtag.createdAt) 
+      + " | C M " + formatCategory(hashtag.category) + " A " + formatCategory(hashtag.categoryAuto)
+      + " | M  " + hashtag.mentions
+      + " | #" + hashtag.nodeId;
+
     return text;
   }
 }
@@ -4663,17 +4666,11 @@ async function updateDbIgnoredHashtags() {
       });
 
       if (!empty(dbHashtag)) {
-        console.log(
-          chalkLog(
-            MODULE_ID +
-              " | FOUND IGNORED HASHTAG" +
-              " [" +
-              ignoredHashtagSet.size +
-              "]" +
-              " | " +
-              printHashtag({ hashtag: dbHashtag })
-          )
-        );
+        
+        console.log(chalkLog(MODULE_ID + " | FOUND IGNORED HASHTAG"
+          + " [" + ignoredHashtagSet.size + "]"
+          + " | " + printHashtag({ hashtag: dbHashtag })
+        ));
 
         dbHashtag.ignored = true;
 
@@ -7749,15 +7746,21 @@ function hashtagCursorDataHandler(hashtag) {
     }
     else if (
       (hashtag.mentions !== undefined)
-      && (hashtag.mentions < 100) 
+      && (hashtag.mentions < configuration.minMentionsHashtags) 
       && (hashtag.lastSeen !== undefined)
-      && moment().isAfter(moment(hashtag.lastSeen).add(7, 'days'))
+      && moment().isAfter(moment(hashtag.lastSeen).add(configuration.maxLastSeenDaysHashtags, 'days'))
     ){
-      console.log(chalkLog(MODULE_ID 
-        + " | HASHTAG SETS | OLD HT: " + hashtag.nodeId 
+      console.log(chalkAlert(MODULE_ID 
+        + " | HASHTAG SETS | XXX DELETE OLD HT: " + hashtag.nodeId 
         + " | Ms: " + hashtag.mentions
         + " | LS: " + moment(hashtag.lastSeen).format(compactDateTimeFormat)
       ));
+
+      global.wordAssoDb.Hashtag.deleteOne({nodeId: hashtag.nodeId})
+        .then()
+        .catch(function(err){
+          return reject(err);
+        })
     }
 
     statsObj.hashtagsProcessed += 1;
@@ -11076,23 +11079,24 @@ async function loadConfigFile(params) {
       }
     }
 
+    if (loadedConfigObj.WAS_MAX_LAST_SEEN_DAYS_HASHTAGS !== undefined) {
+      console.log(MODULE_ID + " | LOADED WAS_MAX_LAST_SEEN_DAYS_HASHTAGS: " +loadedConfigObj.WAS_MAX_LAST_SEEN_DAYS_HASHTAGS);
+      newConfiguration.maxLastSeenDaysHashtags = loadedConfigObj.WAS_MAX_LAST_SEEN_DAYS_HASHTAGS;
+    }
+
+    if (loadedConfigObj.WAS_MIN_MENTIONS_HASHTAGS !== undefined) {
+      console.log(MODULE_ID + " | LOADED WAS_MIN_MENTIONS_HASHTAGS: " +loadedConfigObj.WAS_MIN_MENTIONS_HASHTAGS);
+      newConfiguration.minMentionsHashtags = loadedConfigObj.WAS_MIN_MENTIONS_HASHTAGS;
+    }
+
     if (loadedConfigObj.WAS_PUBSUB_PROJECT_ID !== undefined) {
-      console.log(
-        MODULE_ID +
-          " | LOADED WAS_PUBSUB_PROJECT_ID: " +
-          loadedConfigObj.WAS_PUBSUB_PROJECT_ID
-      );
+      console.log(MODULE_ID + " | LOADED WAS_PUBSUB_PROJECT_ID: " +loadedConfigObj.WAS_PUBSUB_PROJECT_ID);
       newConfiguration.pubSub.projectId = loadedConfigObj.WAS_PUBSUB_PROJECT_ID;
     }
 
     if (loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT !== undefined) {
-      console.log(
-        MODULE_ID +
-          " | LOADED WAS_PUBSUB_PROJECT_ID: " +
-          loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT
-      );
-      newConfiguration.pubSub.pubSubResultTimeout =
-        loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT;
+      console.log(MODULE_ID + " | LOADED WAS_PUBSUB_RESULT_TIMEOUT: " +loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT);
+      newConfiguration.pubSub.pubSubResultTimeout = loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT;
     }
 
     if (loadedConfigObj.TWEET_VERSION_2 !== undefined) {
@@ -12460,9 +12464,7 @@ async function initThreeceeTwitterUser(threeceeUser) {
 }
 
 async function deleteUser(params) {
-  const results = await global.wordAssoDb.User.deleteOne({
-    nodeId: params.user.nodeId,
-  });
+  const results = await global.wordAssoDb.User.deleteOne({nodeId: params.user.nodeId});
 
   if (results.deletedCount > 0) {
     deletedUsersSet.add(params.user.nodeId);

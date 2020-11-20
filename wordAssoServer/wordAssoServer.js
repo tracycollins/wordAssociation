@@ -1,3 +1,5 @@
+const dotenv = require("dotenv");
+
 const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
 
@@ -284,10 +286,10 @@ app.use(express.json());
 app.use(require("serve-static")(path.join(__dirname, "public")));
 
 const threeceeConfig = {
-  consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
-  consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
-  token: "14607119-S5EIEw89NSC462IkX4GWT67K1zWzoLzuZF7wiurku",
-  token_secret: "3NI3s4sTILiqBilgEDBSlC6oSJYXcdLQP7lXp58TQMk0A",
+  consumer_key: process.env.TWITTER_CONSUMER_KEY,
+  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+  token: process.env.TWITTER_TOKEN,
+  token_secret: process.env.TWITTER_TOKEN_SECRET
 };
 
 function dnsReverse(params) {
@@ -991,9 +993,8 @@ const slackChannelAdmin = MODULE_ID_PREFIX.toLowerCase() + "-admin";
 let slackText = "";
 const channelsHashMap = new HashMap();
 
-const slackOAuthAccessToken =
-  "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
-const slackRtmToken = "xoxb-209434353623-bNIoT4Dxu1vv8JZNgu7CDliy";
+const slackOAuthAccessToken = process.env.SLACK_OAUTH_ACCESS_TOKEN;
+const slackRtmToken = process.env.SLACK_RTM_TOKEN;
 
 let slackRtmClient;
 let slackWebClient;
@@ -1018,13 +1019,7 @@ async function slackSendWebMessage(msgObj) {
       const sendResponse = await slackWebClient.chat.postMessage(message);
       return sendResponse;
     } else {
-      console.log(
-        chalkAlert(
-          MODULE_ID +
-            " | SLACK WEB NOT CONFIGURED | SKIPPING SEND SLACK MESSAGE\n" +
-            jsonPrint(message)
-        )
-      );
+      console.log(chalkAlert(MODULE_ID + " | SLACK WEB NOT CONFIGURED | SKIPPING SEND SLACK MESSAGE\n" + jsonPrint(message)));
       return;
     }
   } catch (err) {
@@ -1050,11 +1045,6 @@ async function initSlackWebClient() {
     });
 
     conversationsListResponse.channels.forEach(async function (channel) {
-      debug(
-        chalkLog(
-          MODULE_ID + " | SLACK CHANNEL | " + channel.id + " | " + channel.name
-        )
-      );
 
       if (channel.name === slackChannel) {
         configuration.slackChannel = channel;
@@ -1083,9 +1073,7 @@ async function initSlackWebClient() {
 
     return;
   } catch (err) {
-    console.log(
-      chalkError(MODULE_ID + " | *** INIT SLACK WEB CLIENT ERROR: " + err)
-    );
+    console.log(chalkError(MODULE_ID + " | *** INIT SLACK WEB CLIENT ERROR: " + err));
     throw err;
   }
 }
@@ -1371,16 +1359,11 @@ configuration.statsUpdateIntervalTime = DEFAULT_STATS_UPDATE_INTERVAL;
 configuration.updateUserSetsInterval = DEFAULT_UPDATE_USER_SETS_INTERVAL;
 
 configuration.DROPBOX = {};
-configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN =
-  process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
-configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_KEY =
-  process.env.DROPBOX_WORD_ASSO_APP_KEY;
-configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_SECRET =
-  process.env.DROPBOX_WORD_ASSO_APP_SECRET;
-configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE =
-  process.env.DROPBOX_CONFIG_FILE || "wordAssoServerConfig.json";
-configuration.DROPBOX.DROPBOX_WAS_STATS_FILE =
-  process.env.DROPBOX_STATS_FILE || "wordAssoServerStats.json";
+configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
+configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
+configuration.DROPBOX.DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
+configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE = process.env.DROPBOX_CONFIG_FILE || "wordAssoServerConfig.json";
+configuration.DROPBOX.DROPBOX_WAS_STATS_FILE = process.env.DROPBOX_STATS_FILE || "wordAssoServerStats.json";
 
 configuration.twitterRxQueueInterval = DEFAULT_TWITTER_RX_QUEUE_INTERVAL;
 configuration.categoryHashmapsUpdateInterval = DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL;
@@ -1872,8 +1855,7 @@ let statsInterval;
 // ==================================================================
 // DROPBOX
 // ==================================================================
-const DROPBOX_WORD_ASSO_ACCESS_TOKEN =
-  process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
+const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
 const DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 const DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 
@@ -1933,13 +1915,7 @@ configuration.dropboxChangeFolderArray = [
   trainingSetsUsersFolder,
 ];
 
-console.log(
-  chalkLog(
-    MODULE_ID +
-      " | DROPBOX_WORD_ASSO_ACCESS_TOKEN :" +
-      DROPBOX_WORD_ASSO_ACCESS_TOKEN
-  )
-);
+debug(chalkLog(MODULE_ID + " | DROPBOX_WORD_ASSO_ACCESS_TOKEN: " + DROPBOX_WORD_ASSO_ACCESS_TOKEN));
 console.log(
   chalkLog(
     MODULE_ID + " | DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY
@@ -2118,8 +2094,11 @@ async function connectDb() {
 }
 
 function initPassport() {
+
   return new Promise(function (resolve) {
+
     const sessionId = btoa("threecee");
+
     console.log(
       chalk.green(MODULE_ID + " | PASSPORT SESSION ID: " + sessionId)
     );
@@ -2144,51 +2123,22 @@ function initPassport() {
           callbackURL: TWITTER_AUTH_CALLBACK_URL,
         },
         function (token, tokenSecret, profile, cb) {
-          console.log(
-            chalk.green(
-              MODULE_ID + " | PASSPORT TWITTER AUTH: token:       " + token
-            )
-          );
-          console.log(
-            chalk.green(
-              MODULE_ID +
-                " | PASSPORT TWITTER AUTH: tokenSecret: " +
-                tokenSecret
-            )
-          );
-          console.log(
-            chalk.green(
-              MODULE_ID +
-                " | PASSPORT TWITTER AUTH USER | @" +
-                profile.username +
-                " | " +
-                profile.id
-            )
-          );
+
+          console.log(chalk.green(MODULE_ID + " | PASSPORT TWITTER AUTH: token:       " + token));
+          console.log(chalk.green(MODULE_ID + " | PASSPORT TWITTER AUTH: tokenSecret: " + tokenSecret));
+          console.log(chalk.green(MODULE_ID + " | PASSPORT TWITTER AUTH: USER:       @" + profile.username + " | " + profile.id));
 
           if (configuration.verbose) {
-            console.log(
-              chalk.green(
-                MODULE_ID +
-                  " | PASSPORT TWITTER AUTH\nprofile\n" +
-                  jsonPrint(profile)
-              )
-            );
+            console.log(chalk.green(MODULE_ID + " | PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile)));
           }
 
           const rawUser = profile._json;
 
           if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-            console.log(
-              chalkAlert(
-                MODULE_ID +
-                  " | *** NOT READY" +
-                  " | statsObj.dbConnectionReady: " +
-                  statsObj.dbConnectionReady +
-                  " | userServerControllerReady: " +
-                  userServerControllerReady
-              )
-            );
+            console.log(chalkAlert(MODULE_ID + " | *** NOT READY"
+              + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
+              + " | userServerControllerReady: " + userServerControllerReady
+            ));
             return cb(new Error("userServerController not ready"), null);
           }
 
@@ -2197,14 +2147,8 @@ function initPassport() {
             user
           ) {
             if (err) {
-              console.log(
-                chalkError(
-                  MODULE_ID +
-                    " | *** UNCATEGORIZED USER | convertRawUser ERROR: " +
-                    err +
-                    "\nrawUser\n" +
-                    jsonPrint(rawUser)
-                )
+              console.log(chalkError(MODULE_ID
+                + " | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser))
               );
               return cb("RAW USER", rawUser);
             }
@@ -2216,16 +2160,12 @@ function initPassport() {
               { noInc: true, fields: fieldsExclude },
               async function (err, updatedUser) {
                 if (err) {
-                  console.log(
-                    chalkError(MODULE_ID + " | ***findOneUser ERROR: " + err)
-                  );
+                  console.log(chalkError(MODULE_ID + " | ***findOneUser ERROR: " + err));
                   return cb(err);
                 }
 
                 if (configuration.verbose) {
-                  console.log(
-                    chalk.blue(
-                      MODULE_ID +
+                  console.log(chalk.blue(MODULE_ID +
                         " | UPDATED updatedUser" +
                         " | PREV CR: " +
                         previousUserUncategorizedCreated.format(
@@ -2311,11 +2251,7 @@ function initPassport() {
         name: user.name,
       };
 
-      console.log(
-        chalk.green(
-          MODULE_ID + " | PASSPORT SERIALIZE USER | @" + user.screenName
-        )
-      );
+      console.log(chalk.green(MODULE_ID + " | PASSPORT SERIALIZE USER | @" + user.screenName));
 
       slackText = "*PASSPORT TWITTER SERIALIZE USER*";
       slackText = slackText + "\nUSER NID:  " + user.nodeId;
@@ -2328,13 +2264,7 @@ function initPassport() {
     });
 
     passport.deserializeUser(async function (sessionUser, done) {
-      console.log(
-        chalk.green(
-          MODULE_ID +
-            " | PASSPORT DESERIALIZE USER | @" +
-            sessionUser.screenName
-        )
-      );
+      console.log(chalk.green(MODULE_ID + " | PASSPORT DESERIALIZE USER | @" + sessionUser.screenName));
 
       slackText = "*PASSPORT TWITTER DESERIALIZE USER*";
       slackText = slackText + "\nUSER NID:  " + sessionUser.nodeId;
@@ -4174,13 +4104,10 @@ async function addTwitterAccountActivitySubscription(p) {
   }
 
   const options = {
-    url:
-      "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions.json",
+    url: "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions.json",
     method: "POST",
     resolveWithFullResponse: true,
-    headers: {
-      "Content-type": "application/x-www-form-urlencoded",
-    },
+    headers: {"Content-type": "application/x-www-form-urlencoded"},
     oauth: {
       consumer_key: threeceeTwitter.twitterConfig.consumer_key,
       consumer_secret: threeceeTwitter.twitterConfig.consumer_secret,
@@ -4681,7 +4608,7 @@ async function updateDbIgnoredHashtags() {
           + " [" + ignoredHashtagSet.size + "]"
           + " | " + printHashtag({ hashtag: dbUpdatedHashtag })
         ));
-        
+
       }
     } catch (err) {
       console.log(
@@ -8510,29 +8437,18 @@ function initAppRouting(callback) {
       if (req.method == "GET") {
         const crc_token = req.query.crc_token;
 
-        if (crc_token) {
-          console.log(
-            chalkAlert(
-              MODULE_ID + " | R< TWITTER WEB HOOK | CRC TOKEN: " + crc_token
-            )
-          );
+        if (crc_token) {console.log(chalkAlert(MODULE_ID + " | R< TWITTER WEB HOOK | CRC TOKEN: " + crc_token));
 
           const hmac = crypto
             .createHmac("sha256", threeceeConfig.consumer_secret)
             .update(crc_token)
             .digest("base64");
 
-          console.log(
-            chalkAlert(
-              MODULE_ID + " | T> TWITTER WEB HOOK | CRC TOKEN > HASH: " + hmac
-            )
-          );
+          console.log(chalkAlert(MODULE_ID + " | T> TWITTER WEB HOOK | CRC TOKEN > HASH: " + hmac));
 
           res.status(200);
 
-          res.send({
-            response_token: "sha256=" + hmac,
-          });
+          res.send({response_token: "sha256=" + hmac});
         } else {
           res.status(400);
           res.send("Error: crc_token missing from request.");
@@ -8543,16 +8459,13 @@ function initAppRouting(callback) {
         const followEvents = req.body.follow_events;
 
         if (followEvents && followEvents[0].type == "follow") {
-          console.log(
-            chalkAlert(
-              MODULE_ID +
-                " | >>> TWITTER USER FOLLOW EVENT" +
-                " | SOURCE: @" +
-                followEvents[0].source.screen_name +
-                " | TARGET: @" +
-                followEvents[0].target.screen_name
-            )
-          );
+          console.log(chalkAlert(MODULE_ID +
+            " | >>> TWITTER USER FOLLOW EVENT" +
+            " | SOURCE: @" +
+            followEvents[0].source.screen_name +
+            " | TARGET: @" +
+            followEvents[0].target.screen_name
+          ));
 
           const user = {
             nodeId: followEvents[0].target.id.toString(),
@@ -8592,9 +8505,7 @@ function initAppRouting(callback) {
       }
     } else if (req.path == "/dropbox_webhook") {
       if (configuration.verbose) {
-        console.log(
-          chalkInfo(MODULE_ID + " | R< DROPBOX WEB HOOK | /dropbox_webhook")
-        );
+        console.log(chalkInfo(MODULE_ID + " | R< DROPBOX WEB HOOK | /dropbox_webhook"));
       }
 
       res.send(req.query.challenge);

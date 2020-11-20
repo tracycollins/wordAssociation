@@ -188,17 +188,7 @@ configuration.twitterConfig = {};
 
 const threeceeUser = {};
 
-threeceeUser.twitterConfig = {
-  // screenName: process.env.TWITTER_SCREENNAME,
-  // CONSUMER_KEY: process.env.TWITTER_CONSUMER_KEY,
-  // consumer_key: process.env.TWITTER_CONSUMER_KEY,
-  // CONSUMER_SECRET: process.env.TWITTER_CONSUMER_SECRET,
-  // consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-  // TOKEN: process.env.TWITTER_TOKEN,
-  // access_token: process.env.TWITTER_TOKEN,
-  // TOKEN_SECRET: process.env.TWITTER_TOKEN_SECRET,
-  // access_token_secret: process.env.TWITTER_TOKEN_SECRET,
-};
+threeceeUser.twitterConfig = {};
 
 threeceeUser.stats = {};
 threeceeUser.stats.ready = false;

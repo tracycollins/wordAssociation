@@ -186,13 +186,7 @@ function initTweetParserQueueInterval(cnf){
 
       debug("params.tweetStatus\n", params.tweetStatus)
 
-      // console.log(chalkLog("TWP | <TW"
-      //   + " | " + params.tweetStatus.data.id
-      //   + " | @" + params.tweetStatus.includes.users[0].username
-      // ));
-
       try{
-        // tweetObjMessage.tweetObj = await tweetServerController.createStreamTweetAsyncV2(params);
         tweetObjMessage.tweetObj = await tweetServerController.createStreamTweetAsync(params);
         process.send(tweetObjMessage);
         tweetParserQueueReady = true;
@@ -201,8 +195,6 @@ function initTweetParserQueueInterval(cnf){
 
         console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: " + tcUtils.getTimeStamp()));
         console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: ", err));
-
-        // process.exit()
 
         process.send({op: "ERROR", err: err}, function(err){
 
@@ -222,17 +214,12 @@ function initTweetParserQueueInterval(cnf){
         });
 
       }
-
     }
 
   }, cnf.updateInterval);
 }
 
 process.on("message", function(m) {
-
-  debug(chalkAlert("TWEET PARSER RX MESSAGE"
-    + " | OP: " + m.op
-  ));
 
   switch (m.op) {
 

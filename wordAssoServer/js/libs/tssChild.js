@@ -1,3 +1,13 @@
+// const dotenv = require("dotenv");
+// const envConfig = dotenv.config()
+
+// if (envConfig.error) {
+//   throw envConfig.error
+// }
+ 
+// console.log("TSS | ENV CONFIG")
+// console.log(envConfig.parsed)
+
 const MODULE_ID_PREFIX = "TSS";
 
 const ignoredUserFile = "ignoredUser.json";
@@ -178,19 +188,17 @@ configuration.twitterConfig = {};
 
 const threeceeUser = {};
 
-// ??? KLUDGE: DON'T HARD CODE CREDENTIALS!! SECURITY RISK
-threeceeUser.twitterConfig = {};
-threeceeUser.twitterConfig.screenName = "altthreecee00";
-threeceeUser.twitterConfig.CONSUMER_KEY = "ex0jSXayxMOjNm4DZIiic9Nc0";
-threeceeUser.twitterConfig.consumer_key = "ex0jSXayxMOjNm4DZIiic9Nc0";
-threeceeUser.twitterConfig.CONSUMER_SECRET = "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa";
-threeceeUser.twitterConfig.consumer_secret = "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa";
-threeceeUser.twitterConfig.TOKEN = "848591649575927810-2MYMejf0VeXwMkQELca6uDqXUkfxKow";
-threeceeUser.twitterConfig.access_token = "848591649575927810-2MYMejf0VeXwMkQELca6uDqXUkfxKow";
-threeceeUser.twitterConfig.TOKEN_SECRET = "NL5UBvP2QFPH9fYe7MUZleH24RoMoErfbDTrJNglrEidB";
-threeceeUser.twitterConfig.access_token_secret = "NL5UBvP2QFPH9fYe7MUZleH24RoMoErfbDTrJNglrEidB";
-
-threeceeUser.screenName = "altthreecee00";
+threeceeUser.twitterConfig = {
+  // screenName: process.env.TWITTER_SCREENNAME,
+  // CONSUMER_KEY: process.env.TWITTER_CONSUMER_KEY,
+  // consumer_key: process.env.TWITTER_CONSUMER_KEY,
+  // CONSUMER_SECRET: process.env.TWITTER_CONSUMER_SECRET,
+  // consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+  // TOKEN: process.env.TWITTER_TOKEN,
+  // access_token: process.env.TWITTER_TOKEN,
+  // TOKEN_SECRET: process.env.TWITTER_TOKEN_SECRET,
+  // access_token_secret: process.env.TWITTER_TOKEN_SECRET,
+};
 
 threeceeUser.stats = {};
 threeceeUser.stats.ready = false;
@@ -1261,58 +1269,6 @@ function initSearchStream(){
   });
 }
 
-// async function initSetFromFile(params){
-
-//   statsObj.status = "INIT SET FROM FILE";
-
-//   console.log(chalkBlue(MODULE_ID + " | ... INIT SET FROM FILE: " + params.folder + "/" + params.file));
-
-//   try{
-
-//     const setObj = await tcUtils.loadFile({
-//       folder: params.folder, 
-//       file: params.file, 
-//       noErrorNotFound: params.noErrorNotFound
-//     });
-
-//     if (empty(setObj)) {
-//      console.log(chalkAlert(MODULE_ID + " | ??? NO ITEMS IN FILE ERROR ???"
-//         + " | " + params.folder + "/" + params.file
-//       ));
-
-//       if (params.errorOnNoItems) {
-//         throw new Error("NO ITEMS IN FILE: " + params.folder + "/" + params.file); 
-//       }
-//       return;
-//     }
-
-//     let fileSet;
-
-//     if (params.objArrayKey) {
-//       fileSet = new Set(setObj[params.objArrayKey]);
-//     }
-//     else{
-//       const itemArray = setObj.toString().toLowerCase().split("\n");
-//       fileSet = new Set(itemArray);
-//     }
-
-//     console.log(chalkLog(MODULE_ID + " | LOADED SET FROM FILE"
-//       + " | OBJ ARRAY KEY: " + params.objArrayKey
-//       + " | " + fileSet.size + " ITEMS"
-//       + " | " + params.folder + "/" + params.file
-//     ));
-
-//     return fileSet;
-//   }
-//   catch(err){
-//     console.log(chalkError(MODULE_ID + " | *** INIT SET FROM FILE ERROR: " + err));
-//     if (params.noErrorNotFound) {
-//       return;
-//     }
-//     throw err;
-//   }
-// }
-
 async function initSearchTerms(params){
 
   console.log(chalkTwitter(MODULE_ID + " | INIT TERMS | @" + threeceeUser.screenName));
@@ -1958,8 +1914,6 @@ process.on("message", async function(m) {
           + " | CHILD 3C @" + threeceeUser.screenName
           + " | AUTH USER @" + m.user.screenName
           + " | UID: " + m.user.userId
-          // + " | TOKEN: " + m.token
-          // + " | TOKEN SECRET: " + m.tokenSecret
         ));
         break;
       }

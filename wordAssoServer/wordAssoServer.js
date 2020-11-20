@@ -4676,17 +4676,12 @@ async function updateDbIgnoredHashtags() {
 
         const dbUpdatedHashtag = await dbHashtag.save();
 
-        console.log(
-          chalkLog(
-            MODULE_ID +
-              " | XXX IGNORE" +
-              " [" +
-              ignoredHashtagSet.size +
-              "]" +
-              " | " +
-              printHashtag({ hashtag: dbUpdatedHashtag })
-          )
-        );
+        console.log(chalkLog(MODULE_ID
+          + " | XXX IGNORE"
+          + " [" + ignoredHashtagSet.size + "]"
+          + " | " + printHashtag({ hashtag: dbUpdatedHashtag })
+        ));
+        
       }
     } catch (err) {
       console.log(

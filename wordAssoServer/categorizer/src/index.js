@@ -6,11 +6,6 @@ import {
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-// import socketClient from "socket.io-client";
-
-const ENDPOINT = "https://word.threeceelabs.com/view";
-
-// const socket = socketClient(ENDPOINT);
 
 ReactDOM.render(
   <Router>

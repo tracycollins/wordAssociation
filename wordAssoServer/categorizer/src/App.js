@@ -243,6 +243,7 @@ const App = () => {
     profileImageUrl: "https://pbs.twimg.com/profile_images/1205585278565527559/GrTkBpzl.jpg",
     bannerImage: "",
     createdAt: null,
+    status: {},
     followersCount: 0,
     friendsCount: 0,
     tweets: 0,
@@ -598,8 +599,8 @@ const App = () => {
 
       console.debug("RX SET_TWITTER_USER");
 
-      if (nodeValid(results.node)) { 
-        setCurrentUser(currentUser => results.node) 
+      if (nodeValid(results.node)) {
+        setCurrentUser(currentUser => results.node)
         console.debug("new: @" + results.node.screenName);
       }
       setProgress(progress => "idle");

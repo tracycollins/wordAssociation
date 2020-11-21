@@ -4798,13 +4798,10 @@ async function pubSubSearchNode(params) {
         nodeName = "#" + params.node.nodeId;
         break;
       default:
-        console.log(
-          chalkError(
-            MODULE_ID +
-              " | *** pubSubSearchNode UNKNOWN NODE TYPE: " +
-              params.node.nodeType
-          )
-        );
+        console.log(chalkError(
+          MODULE_ID +
+          " | *** pubSubSearchNode UNKNOWN NODE TYPE: " + params.node.nodeType
+        ));
         throw new Error(
           "pubSubSearchNode UNKNOWN NODE TYPE: " + params.node.nodeType
         );
@@ -4873,30 +4870,7 @@ async function pubSubSearchNode(params) {
     const node = searchNodeResultHashMap[params.requestId].node;
     const nodes = searchNodeResultHashMap[params.requestId].nodes;
 
-    if (node && node.nodeType === "user" &&
-      (isCategorized(node) || isAutoCategorized(node))
-    ) {
-
-      categorizedUserHashMap.set(node.nodeId, {
-        nodeId: node.nodeId,
-        screenName: node.screenName,
-        manual: node.category,
-        auto: node.categoryAuto,
-        network: node.categorizeNetwork,
-        verified: node.categoryVerified,
-      });
-
-      delete node._id;
-
-      const nodeUpdated = await global.wordAssoDb.User.findOneAndUpdate(
-        { nodeId: node.nodeId },
-        node,
-        { upsert: true, new: true }
-      );
-
-      return {node: nodeUpdated};
-
-    } else if (nodes && nodes.length > 0) {
+    if (nodes && nodes.length > 0) {
 
       const result = {};
       result.nodes = [];
@@ -4927,7 +4901,32 @@ async function pubSubSearchNode(params) {
 
       return result;
 
-    } else if (node.nodeType === "hashtag" && isCategorized(node)) {
+    } 
+    else if (node && node.nodeType === "user" &&
+      (isCategorized(node) || isAutoCategorized(node))
+    ) {
+
+      categorizedUserHashMap.set(node.nodeId, {
+        nodeId: node.nodeId,
+        screenName: node.screenName,
+        manual: node.category,
+        auto: node.categoryAuto,
+        network: node.categorizeNetwork,
+        verified: node.categoryVerified,
+      });
+
+      delete node._id;
+
+      const nodeUpdated = await global.wordAssoDb.User.findOneAndUpdate(
+        { nodeId: node.nodeId },
+        node,
+        { upsert: true, new: true }
+      );
+
+      return {node: nodeUpdated};
+
+    } 
+    else if (node.nodeType === "hashtag" && isCategorized(node)) {
 
       categorizedHashtagHashMap.set(node.nodeId, {
         nodeId: node.nodeId,
@@ -5027,15 +5026,11 @@ async function twitterSearchUser(params) {
     );
   }
   else {
-    console.log(
-      chalkInfo(
-        MODULE_ID +
-          " | -?- USER SEARCH | NID: " +
-          params.node.nodeId +
-          " | @" +
-          params.node.screenName
-      )
-    );
+    console.log(chalkInfo(
+      MODULE_ID +
+      " | -?- USER SEARCH | NID: " + params.node.nodeId +
+      " | @" + params.node.screenName
+    ));
   }
 
   try {

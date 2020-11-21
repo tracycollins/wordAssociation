@@ -24,7 +24,7 @@ const ONE_DAY = 24 * ONE_HOUR;
 const twitterDateFormat = "ddd MMM DD HH:mm:ss Z YYYY"; // Wed Aug 27 13:08:45 +0000 2008
 
 const DEFAULT_MIN_MENTIONS_HASHTAGS = 100;
-const DEFAULT_MAX_LAST_SEEN_DAYS_HASHTAGS = 7;
+const DEFAULT_MAX_LAST_SEEN_DAYS_HASHTAGS = 2;
 const DEFAULT_TWEET_SEARCH_COUNT = 5;
 const DEFAULT_PUBSUB_ENABLED = true;
 const DEFAULT_PUBSUB_PROJECT_ID = "graphic-tangent-627";
@@ -5068,7 +5068,7 @@ async function twitterSearchUser(params) {
         message.node = params.node;
     }
 
-    const {node, nodes } = await pubSubSearchNode(message);
+    const { node, nodes } = await pubSubSearchNode(message);
 
     return {
       node: node,
@@ -5125,7 +5125,7 @@ async function twitterSearchHashtag(params) {
     message.categoryAuto = "SPECIFIC";
     message.node = params.node;
 
-    const {node, nodes} = await pubSubSearchNode(message);
+    const { node, nodes} = await pubSubSearchNode(message);
 
     return {
       node: node,

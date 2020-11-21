@@ -538,6 +538,7 @@ const nodeSearchResultHandler = async function (message) {
     // publishMessage.notFound = results.notFound;
     // publishMessage.doesNotExist = results.doesNotExist;
     // publishMessage.notAuthorized = results.notAuthorized;
+    // publishMessage.suspended = results.suspended;
     // publishMessage.notCategorizable = results.notCategorizable;
 
     debug(chalkLog(MODULE_ID + " | RX NODE SEARCH RESULT " + message.id));
@@ -5171,7 +5172,14 @@ async function twitterSearchNode(params) {
       node: { nodeType: "user", screenName: searchNode.slice(1) },
     });
 
-    if (results.node) {
+    if (results.nodes) {
+      viewNameSpace.emit("TWITTER_USERS", {
+        searchNod: searchNode,
+        nodes: results.node,
+        stats: statsObj,
+      });
+    }
+    else if (results.node) {
       viewNameSpace.emit("SET_TWITTER_USER", {
         node: results.node,
         stats: statsObj,

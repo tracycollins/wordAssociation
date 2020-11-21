@@ -163,13 +163,6 @@ const useStyles = makeStyles((theme) => ({
 
 const App = () => {
 
-  // const socket = props.socket;
-
-  // const [socket] = useSocket(ENDPOINT);
-  // socket.connect();
-
-  // let socket;
-
   const history = useHistory();
 
   const classes = useStyles();
@@ -284,7 +277,6 @@ const App = () => {
   const [twitterAuthenticated, setTwitterAuthenticated] = useState(false);
   const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState("");
   const [status, setStatus] = useState(defaultStatus);
-  // const [tweets, setTweets] = useState(defaultTweets);
   const [tweets, setTweets] = useState(defaultTweets);
 
   const [progress, setProgress] = useState("loading ...");
@@ -299,7 +291,7 @@ const App = () => {
     console.log({newValue})
     setDisplayNodeType(newValue === 0 ? "user" : "hashtag")
     setTabValue(newValue);
-  };
+  }
 
   const handleSearchNode = (searchString) => {
     setProgress(progress => "searchNode");
@@ -580,8 +572,6 @@ const App = () => {
 
   useEffect(() => {
 
-    // socket = socketClient(ENDPOINT);
-
     socket.on("connect", ()=>{
 
       console.log("CONNECTED: " + socket.id)
@@ -599,10 +589,19 @@ const App = () => {
 
       console.debug("RX SET_TWITTER_USER");
 
+      if (results.nodes) {
+        setUsers(users => results.node)
+        console.debug("RX nodes: " + results.nodes.length);
+      }
+      
       if (nodeValid(results.node)) {
         setCurrentUser(currentUser => results.node)
         console.debug("new: @" + results.node.screenName);
       }
+      else{
+
+      }
+
       setProgress(progress => "idle");
       setStatus(status => results.stats)
     });
@@ -610,11 +609,16 @@ const App = () => {
     socket.on("SET_TWITTER_HASHTAG", (results) => {
 
       console.debug("RX SET_TWITTER_HASHTAG");
+
       if (nodeValid(results.node)) { 
         setCurrentHashtag(currentHashtag => results.node) 
         console.debug("new: #" + results.node.nodeId);
         setTweets(tweets => results.tweets)
       }
+      else{
+
+      }
+
       setProgress(progress => "idle");
       setStatus(status => results.stats)
     });
@@ -681,33 +685,26 @@ const App = () => {
   // - back
   useHotkeys('left', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   // - forward
-  useHotkeys('right', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
-
+  useHotkeys('right', (event) => handleNodeChange(event, currentNode), {}, [currentNode])\
   // all
   useHotkeys('A', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
-
   // left
   useHotkeys('L', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   useHotkeys('shift+L', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   useHotkeys('D', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   useHotkeys('shift+D', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
-
   // right
   useHotkeys('R', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   useHotkeys('shift+R', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
-
   // neutral
   useHotkeys('N', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   useHotkeys('shift+N', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
-
   // negative
   useHotkeys('-', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   useHotkeys('shift+-', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
-
   // positive
   useHotkeys('=', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   useHotkeys('shift+=', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
-
   // ignore toggle
   useHotkeys('shift+I', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   useHotkeys('shift+X', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
@@ -739,8 +736,6 @@ const App = () => {
             <Tabs 
               className={classes.tabs}
               value={tabValue} 
-              // indicatorColor="secondary"
-              // textColor="primary"
               onChange={handleTabChange}
             >
               <Tab label="User" />

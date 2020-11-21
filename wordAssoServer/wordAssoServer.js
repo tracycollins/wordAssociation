@@ -611,7 +611,7 @@ const nodeSearchResultHandler = async function (message) {
             }
             
           })
-          
+
         }
         
         searchNodeResultHashMap[messageObj.requestId] = {};
@@ -5042,6 +5042,7 @@ async function twitterSearchUser(params) {
     const message = {};
     message.requestId = "rId_" + hostname + "_" + moment().valueOf();
     message.node = {};
+    message.nodes = params.nodes;
     message.node.nodeType = "user";
     message.newCategory = params.newCategory || false;
     message.newCategoryVerified = params.newCategoryVerified || false;

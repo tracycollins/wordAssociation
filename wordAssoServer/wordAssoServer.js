@@ -575,9 +575,7 @@ const nodeSearchResultHandler = async function (message) {
         );
 
         if (messageObj.stats) {
-          debug(
-            chalkLog(MODULE_ID + "\nUSER STATS\n" + jsonPrint(messageObj.stats))
-          );
+          debug(chalkLog(MODULE_ID + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
           defaults(statsObj.user, messageObj.stats);
         }
 
@@ -595,8 +593,26 @@ const nodeSearchResultHandler = async function (message) {
           categorizedUserHashMap.set(catUserObj.nodeId, catUserObj);
         }
 
+        if (messageObj.nodes && messageObj.nodes.length > 0) {
+          messageObj.nodes.forEach((node) => {
+
+          const catObj = categorizedUserHashMap.get(messageObj.node.nodeId);
+
+          if (isCategorized(node)) {
+              catObj.manual = node.category;
+            }
+
+            if (isAutoCategorized(node)) {
+              catObj.auto = node.categoryAuto;
+            }
+
+            categorizedUserHashMap.set(catObj.nodeId, catObj);
+          })
+        }
+
         searchNodeResultHashMap[messageObj.requestId] = {};
         searchNodeResultHashMap[messageObj.requestId].node = messageObj.node;
+        searchNodeResultHashMap[messageObj.requestId].nodes = messageObj.nodes;
         searchNodeResultHashMap[messageObj.requestId].results = messageObj.results;
 
       } else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
@@ -4842,7 +4858,7 @@ async function pubSubSearchNode(params) {
     clearTimeout(twitterSearchNodeTimeout);
 
 
-    if (!searchNodeResultHashMap[params.requestId].node) {
+    if (!searchNodeResultHashMap[params.requestId].node && !searchNodeResultHashMap[params.requestId].nodes) {
       console.log(chalkAlert(MODULE_ID +
         " | !!! " + params.node.nodeType + " NOT FOUND\n" + jsonPrint(params)
       ));
@@ -4851,8 +4867,9 @@ async function pubSubSearchNode(params) {
     }
 
     const node = searchNodeResultHashMap[params.requestId].node;
+    const nodes = searchNodeResultHashMap[params.requestId].nodes;
 
-    if (node.nodeType === "user" &&
+    if (node && node.nodeType === "user" &&
       (isCategorized(node) || isAutoCategorized(node))
     ) {
 
@@ -4873,7 +4890,38 @@ async function pubSubSearchNode(params) {
         { upsert: true, new: true }
       );
 
-      return nodeUpdated;
+      return {node: nodeUpdated};
+
+    } else if (nodes && nodes.length > 0) {
+
+      const result = {};
+      result.nodes = [];
+
+      nodes.forEach(async (node) => {
+
+        categorizedUserHashMap.set(node.nodeId, {
+          nodeId: node.nodeId,
+          screenName: node.screenName,
+          manual: node.category,
+          auto: node.categoryAuto,
+          network: node.categorizeNetwork,
+          verified: node.categoryVerified,
+        });
+
+        delete node._id;
+
+        const nodeUpdated = await global.wordAssoDb.User.findOneAndUpdate(
+
+          { nodeId: node.nodeId },
+          node,
+          { upsert: true, new: true }
+        );
+
+        result.nodes.push(nodeUpdated);
+
+      });
+
+      return result;
 
     } else if (node.nodeType === "hashtag" && isCategorized(node)) {
 
@@ -4891,7 +4939,7 @@ async function pubSubSearchNode(params) {
         node,
         { upsert: true, new: true }
       );
-      return nodeUpdated;
+      return {node: nodeUpdated};
 
     }
 
@@ -5020,10 +5068,11 @@ async function twitterSearchUser(params) {
         message.node = params.node;
     }
 
-    const node = await pubSubSearchNode(message);
+    const {node, nodes } = await pubSubSearchNode(message);
 
     return {
       node: node,
+      nodes: nodes,
       categoryAuto: message.categoryAuto,
       stats: statsObj.user,
     };
@@ -5076,10 +5125,11 @@ async function twitterSearchHashtag(params) {
     message.categoryAuto = "SPECIFIC";
     message.node = params.node;
 
-    const node = await pubSubSearchNode(message);
+    const {node, nodes} = await pubSubSearchNode(message);
 
     return {
       node: node,
+      nodes: nodes,
       categoryAuto: message.categoryAuto,
       stats: statsObj.hashtag,
     };

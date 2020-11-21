@@ -1859,6 +1859,24 @@ socket.on("SET_TWITTER_USER", function (message) {
   currentSessionView.setTwitterUser(message);
 });
 
+socket.on("TWITTER_USERS", function (message) {
+  statsObj.serverConnected = true;
+  statsObj.socket.connected = true;
+
+  console.log(
+    "<R TWITTER_USERS" +
+  );
+
+  console.log("TWITTER_USERS STATS\n" + jsonPrint(message.stats));
+
+  if (message.node.nodeId === twitterUserThreecee.nodeId) {
+    twitterUserThreecee = message.node;
+    config.twitterUser = message.node;
+  }
+
+  currentSessionView.setTwitterUser(message);
+});
+
 socket.on("TWITTER_USER_NOT_FOUND", function (message) {
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;

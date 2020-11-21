@@ -594,22 +594,26 @@ const nodeSearchResultHandler = async function (message) {
         }
 
         if (messageObj.nodes && messageObj.nodes.length > 0) {
+
           messageObj.nodes.forEach((node) => {
+            const catObj = categorizedUserHashMap.get(messageObj.node.nodeId);
 
-          const catObj = categorizedUserHashMap.get(messageObj.node.nodeId);
+            if (catObj !== undefined) {
+              if (isCategorized(node)) {
+                  catObj.manual = node.category;
+                }
 
-          if (isCategorized(node)) {
-              catObj.manual = node.category;
+                if (isAutoCategorized(node)) {
+                  catObj.auto = node.categoryAuto;
+                }
+
+                categorizedUserHashMap.set(catObj.nodeId, catObj);
             }
-
-            if (isAutoCategorized(node)) {
-              catObj.auto = node.categoryAuto;
-            }
-
-            categorizedUserHashMap.set(catObj.nodeId, catObj);
+            
           })
+          
         }
-
+        
         searchNodeResultHashMap[messageObj.requestId] = {};
         searchNodeResultHashMap[messageObj.requestId].node = messageObj.node;
         searchNodeResultHashMap[messageObj.requestId].nodes = messageObj.nodes;

@@ -5169,16 +5169,14 @@ async function twitterSearchHashtag(params) {
 async function twitterSearchNode(params) {
   const searchNode = params.searchNode.toLowerCase().trim();
 
-  console.log(
-    chalkSocket(
-      MODULE_ID +
-        " | twitterSearchNode" +
-        " | " +
-        getTimeStamp() +
-        " | " +
-        searchNode
-    )
-  );
+  console.log(chalkSocket(
+    MODULE_ID +
+    " | twitterSearchNode" +
+    " | " +
+    getTimeStamp() +
+    " | " +
+    searchNode
+  ));
 
   await updateUserCounts();
   await updateHashtagCounts();
@@ -5227,7 +5225,17 @@ async function twitterSearchNode(params) {
       node: { nodeType: "user", screenName: searchNode.slice(1) },
     });
 
+    
     if (results.nodes) {
+
+      console.log(chalkSocket(
+        MODULE_ID +
+        " | twitterSearchUser" +
+        " | " +
+        getTimeStamp() +
+        " | NODES: " + results.nodes.length
+      ));
+
       viewNameSpace.emit("TWITTER_USERS", {
         searchNod: searchNode,
         nodes: results.node,
@@ -5235,6 +5243,15 @@ async function twitterSearchNode(params) {
       });
     }
     else if (results.node) {
+
+      console.log(chalkSocket(
+        MODULE_ID +
+        " | twitterSearchUser" +
+        " | " +
+        getTimeStamp() +
+        " | NODE: @" + results.node.screenName
+      ));
+
       viewNameSpace.emit("SET_TWITTER_USER", {
         node: results.node,
         stats: statsObj,

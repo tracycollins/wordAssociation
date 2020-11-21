@@ -75,7 +75,7 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(1),
   },  
   card: {
-    maxWidth: "85%",
+    maxWidth: "90%",
     alignSelf: "center",
   },
   profileImage: {

@@ -281,6 +281,7 @@ const App = () => {
 
   const [progress, setProgress] = useState("loading ...");
   const [displayNodeType, setDisplayNodeType] = useState("user");
+  const [currentUsers, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(defaultUser);
   const [currentHashtag, setCurrentHashtag] = useState(defaultHashtag);
 
@@ -323,6 +324,16 @@ const App = () => {
       socket.emit("login", viewerObj);
     }
   }, []);
+
+  const currentUsersAvailable = useCallback(() => {
+    if (currentUsers.length > 0){
+      const [user] = currentUsers.splice(0,1)
+      console.log("USING CURRENT USERS | @" + user.screenName)
+      setCurrentUser(user);
+      return true;
+    }
+    return false;
+  }, [currentUsers])
 
   const handleNodeChange = useCallback((event, node) => {
 
@@ -473,6 +484,9 @@ const App = () => {
       case "right":
       case "positive":
       case "negative":
+        if (eventName === "all" && currentUsersAvailable()){
+          break; 
+        }
         searchFilter += eventName
         socket.emit("TWITTER_SEARCH_NODE", searchFilter);
         break
@@ -544,7 +558,7 @@ const App = () => {
         console.log({event})
     }
     
-  }, [ twitterAuthenticated, displayNodeType, history])
+  }, [ twitterAuthenticated, displayNodeType, history, currentUsersAvailable])
 
   const nodeValid = (node) => {
     if (node === undefined) return false
@@ -584,6 +598,18 @@ const App = () => {
         password: "0123456789",
       });
     })
+
+    socket.on("TWITTER_USERS", (results) => {
+
+      console.debug("RX TWITTER_USERS");
+
+      if (results.nodes) {
+        setUsers(users => [...users, ...results.nodes])
+        console.debug("RX nodes: " + results.nodes.length);
+      }
+      setProgress(progress => "idle");
+      setStatus(status => results.stats)
+    });
 
     socket.on("SET_TWITTER_USER", (results) => {
 
@@ -685,7 +711,7 @@ const App = () => {
   // - back
   useHotkeys('left', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   // - forward
-  useHotkeys('right', (event) => handleNodeChange(event, currentNode), {}, [currentNode])\
+  useHotkeys('right', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   // all
   useHotkeys('A', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   // left

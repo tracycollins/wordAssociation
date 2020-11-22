@@ -616,6 +616,7 @@ const nodeSearchResultHandler = async function (message) {
         
         searchNodeResultHashMap[messageObj.requestId] = {};
         searchNodeResultHashMap[messageObj.requestId].node = messageObj.node;
+        searchNodeResultHashMap[messageObj.requestId].nodes = [];
         searchNodeResultHashMap[messageObj.requestId].nodes = messageObj.nodes;
         searchNodeResultHashMap[messageObj.requestId].results = messageObj.results;
 
@@ -4773,16 +4774,11 @@ let twitterSearchNodeTimeout;
 const categorizedArray = ["left", "neutral", "right", "positive", "negative"];
 
 const isCategorized = function (node) {
-  return (
-    node.category !== undefined && categorizedArray.includes(node.category)
-  );
+  return (node.category !== undefined && categorizedArray.includes(node.category));
 };
 
 const isAutoCategorized = function (node) {
-  return (
-    node.categoryAuto !== undefined &&
-    categorizedArray.includes(node.categoryAuto)
-  );
+  return (node.categoryAuto !== undefined && categorizedArray.includes(node.categoryAuto));
 };
 
 async function pubSubSearchNode(params) {
@@ -4798,8 +4794,7 @@ async function pubSubSearchNode(params) {
         nodeName = "#" + params.node.nodeId;
         break;
       default:
-        console.log(chalkError(
-          MODULE_ID +
+        console.log(chalkError(MODULE_ID +
           " | *** pubSubSearchNode UNKNOWN NODE TYPE: " + params.node.nodeType
         ));
         throw new Error(
@@ -4807,25 +4802,14 @@ async function pubSubSearchNode(params) {
         );
     }
 
-    console.log(
-      chalkBlue(
-        MODULE_ID +
-          " | PS SEARCH NODE [" +
-          statsObj.pubSub.messagesSent +
-          "]" +
-          " | TYPE: " +
-          params.node.nodeType +
-          " | " +
-          params.requestId +
-          " | TOPIC: node-search" +
-          " | SEARCH CAT AUTO: " +
-          params.categoryAuto +
-          " | NID: " +
-          params.node.nodeId +
-          " | " +
-          nodeName
-      )
-    );
+    console.log(chalkBlue(MODULE_ID +
+      " | PS SEARCH NODE [" + statsObj.pubSub.messagesSent + "]" +
+      " | TYPE: " + params.node.nodeType +
+      " | " + params.requestId +
+      " | TOPIC: node-search | SEARCH CAT AUTO: " + params.categoryAuto +
+      " | NID: " + params.node.nodeId +
+      " | " + nodeName
+    ));
 
     await pubSubPublishMessage({
       publishName: "node-search",
@@ -4837,18 +4821,15 @@ async function pubSubSearchNode(params) {
     clearTimeout(twitterSearchNodeTimeout);
 
     twitterSearchNodeTimeout = setTimeout(function () {
-      console.log(
-        chalkAlert(
-          MODULE_ID +
-            " | !!! NODE SEARCH TIMEOUT" +
-            "\nPARAMS\n" +
-            jsonPrint(params)
-        )
-      );
+      console.log(chalkAlert(MODULE_ID +
+        " | !!! NODE SEARCH TIMEOUT" +
+        "\nPARAMS\n" + jsonPrint(params)
+      ));
 
       tcUtils.emitter.emit(eventName);
 
       return;
+
     }, configuration.pubSub.pubSubResultTimeout);
 
     await tcUtils.waitEvent({
@@ -7681,11 +7662,7 @@ function hashtagCursorDataHandler(hashtag) {
       })
     }
 
-    if (
-      hashtag.category &&
-      hashtag.category !== undefined &&
-      hashtag.category !== "none"
-    ) {
+    if (isCategorized(hashtag)) {
       categorizedHashtagHashMap.set(hashtag.nodeId, {
         nodeId: hashtag.nodeId,
         text: hashtag.nodeId,
@@ -7697,7 +7674,7 @@ function hashtagCursorDataHandler(hashtag) {
       (hashtag.mentions !== undefined)
       && (hashtag.mentions < configuration.minMentionsHashtags) 
       && (hashtag.lastSeen !== undefined)
-      && !isCategorized(hashtag)
+      // && !isCategorized(hashtag)
       && moment().isAfter(moment(hashtag.lastSeen).add(configuration.maxLastSeenDaysHashtags, 'days'))
     ){
       console.log(chalkAlert(MODULE_ID 

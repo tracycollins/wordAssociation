@@ -5223,11 +5223,9 @@ async function twitterSearchNode(params) {
     
     if (results.nodes) {
 
-      console.log(chalkSocket(
-        MODULE_ID +
+      console.log(chalkSocket(MODULE_ID +
         " | twitterSearchUser" +
-        " | " +
-        getTimeStamp() +
+        " | " + getTimeStamp() +
         " | NODES: " + results.nodes.length
       ));
 
@@ -5239,11 +5237,9 @@ async function twitterSearchNode(params) {
     }
     else if (results.node) {
 
-      console.log(chalkSocket(
-        MODULE_ID +
+      console.log(chalkSocket(MODULE_ID +
         " | twitterSearchUser" +
-        " | " +
-        getTimeStamp() +
+        " | " + getTimeStamp() +
         " | NODE: @" + results.node.screenName
       ));
 
@@ -5278,31 +5274,19 @@ async function initSocketHandler(socketObj) {
     try {
       domainName = await dnsReverse({ ipAddress: ipAddress });
     } catch (err) {
-      console.log(
-        chalkError(MODULE_ID + " | *** initAppRouting DNS ERROR: " + err)
-      );
+      console.log(chalkError(MODULE_ID + " | *** initAppRouting DNS ERROR: " + err));
     }
 
-    console.log(
-      chalk.blue(
-        MODULE_ID +
-          " | SOCKET CONNECT" +
-          " | " +
-          ipAddress +
-          " | DOMAIN: " +
-          domainName +
-          " | " +
-          socketObj.namespace +
-          " | " +
-          socket.id +
-          " | AD: " +
-          statsObj.admin.connected +
-          " | UT: " +
-          statsObj.entity.util.connected +
-          " | VW: " +
-          statsObj.entity.viewer.connected
-      )
-    );
+    console.log(chalk.blue(MODULE_ID +
+      " | SOCKET CONNECT" +
+      " | " + ipAddress +
+      " | DOMAIN: " + domainName +
+      " | " + socketObj.namespace +
+      " | " + socket.id +
+      " | AD: " + statsObj.admin.connected +
+      " | UT: " + statsObj.entity.util.connected +
+      " | VW: " + statsObj.entity.viewer.connected
+    ));
 
     socket.on("reconnect_error", function reconnectError(errorObj) {
       const timeStamp = moment().valueOf();
@@ -5313,15 +5297,12 @@ async function initSocketHandler(socketObj) {
       statsObj.socket.errors.reconnect_errors += 1;
       statsObj.socket.errors.errorObj = errorObj;
 
-      console.log(
-        chalkError(
-          getTimeStamp(timeStamp) +
-            " | SOCKET RECONNECT ERROR: " +
-            socketId +
-            "\nerrorObj\n" +
-            jsonPrint(errorObj)
-        )
-      );
+      console.log(chalkError(MODULE_ID +
+        " | " + getTimeStamp(timeStamp) +
+        " | SOCKET RECONNECT ERROR: " + socketId +
+        "\nerrorObj\n" +
+        jsonPrint(errorObj)
+      ));
     });
 
     socket.on("reconnect_failed", function reconnectFailed(errorObj) {
@@ -7716,6 +7697,7 @@ function hashtagCursorDataHandler(hashtag) {
       (hashtag.mentions !== undefined)
       && (hashtag.mentions < configuration.minMentionsHashtags) 
       && (hashtag.lastSeen !== undefined)
+      && !isCategorized(hashtag)
       && moment().isAfter(moment(hashtag.lastSeen).add(configuration.maxLastSeenDaysHashtags, 'days'))
     ){
       console.log(chalkAlert(MODULE_ID 

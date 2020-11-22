@@ -4858,7 +4858,8 @@ async function pubSubSearchNode(params) {
       const result = {};
       result.nodes = [];
 
-      nodes.forEach(async (node) => {
+      // nodes.forEach(async (node) => {
+      for(const node of nodes){
 
         categorizedUserHashMap.set(node.nodeId, {
           nodeId: node.nodeId,
@@ -4880,7 +4881,7 @@ async function pubSubSearchNode(params) {
 
         result.nodes.push(nodeUpdated);
 
-      });
+      }
 
       return result;
 
@@ -5020,7 +5021,7 @@ async function twitterSearchUser(params) {
     const message = {};
     message.requestId = "rId_" + hostname + "_" + moment().valueOf();
     message.node = {};
-    message.nodes = [];
+    // message.nodes = [];
     message.node.nodeType = "user";
     message.newCategory = params.newCategory || false;
     message.newCategoryVerified = params.newCategoryVerified || false;

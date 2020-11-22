@@ -327,7 +327,9 @@ const App = () => {
 
   const currentUsersAvailable = useCallback(() => {
     if (currentUsers.length > 0){
-      const [user] = currentUsers.splice(0,1)
+      const users = [...currentUsers]
+      const user = users.shift()
+      setUsers(users)
       console.log("USING CURRENT USERS | @" + user.screenName)
       setCurrentUser(user);
       return true;
@@ -462,6 +464,8 @@ const App = () => {
 
     setProgress(eventName);
 
+    let usersAvailable = 0;
+
     switch (eventName){
 
       case "nop":
@@ -484,10 +488,17 @@ const App = () => {
       case "right":
       case "positive":
       case "negative":
-        if (eventName === "all" && currentUsersAvailable()){
-          break; 
-        }
+
         searchFilter += eventName
+
+        usersAvailable = currentUsersAvailable()
+
+        if (eventName === "all" && usersAvailable > 0){
+          if (usersAvailable >= 2){
+            break; 
+          }
+        }
+
         socket.emit("TWITTER_SEARCH_NODE", searchFilter);
         break
 

@@ -5233,7 +5233,7 @@ async function twitterSearchNode(params) {
 
       viewNameSpace.emit("TWITTER_USERS", {
         searchNod: searchNode,
-        nodes: results.node,
+        nodes: results.nodes,
         stats: statsObj,
       });
     }

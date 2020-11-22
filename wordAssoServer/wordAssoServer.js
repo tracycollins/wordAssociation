@@ -595,6 +595,8 @@ const nodeSearchResultHandler = async function (message) {
 
         if (messageObj.nodes && messageObj.nodes.length > 0) {
 
+          console.log(MODULE_ID + " | nodeSearchResultHandler | NODES: " + messageObj.nodes.length)
+
           messageObj.nodes.forEach((node) => {
             const catObj = categorizedUserHashMap.get(messageObj.node.nodeId);
 

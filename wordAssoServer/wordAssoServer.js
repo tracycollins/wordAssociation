@@ -4830,7 +4830,7 @@ async function pubSubSearchNode(params) {
 
       tcUtils.emitter.emit(eventName);
 
-      return;
+      return {node: null, nodes: null};
 
     }, configuration.pubSub.pubSubResultTimeout);
 
@@ -4847,7 +4847,8 @@ async function pubSubSearchNode(params) {
         " | !!! " + params.node.nodeType + " NOT FOUND\n" + jsonPrint(params)
       ));
 
-      return searchNodeResultHashMap[params.requestId];
+      // return searchNodeResultHashMap[params.requestId];
+      return {node: null, nodes: null};
     }
 
     const node = searchNodeResultHashMap[params.requestId].node;
@@ -4856,6 +4857,7 @@ async function pubSubSearchNode(params) {
     if (nodes && nodes.length > 0) {
 
       const result = {};
+      result.node = null;
       result.nodes = [];
 
       // nodes.forEach(async (node) => {
@@ -4907,7 +4909,7 @@ async function pubSubSearchNode(params) {
         { upsert: true, new: true }
       );
 
-      return {node: nodeUpdated};
+      return {node: nodeUpdated, nodes: null};
 
     } 
     else if (node.nodeType === "hashtag" && isCategorized(node)) {
@@ -4926,7 +4928,7 @@ async function pubSubSearchNode(params) {
         node,
         { upsert: true, new: true }
       );
-      return {node: nodeUpdated};
+      return {node: nodeUpdated, nodes: null};
 
     }
 

@@ -276,7 +276,7 @@ const App = () => {
   const [tabValue, setTabValue] = useState(0);
   const [twitterAuthenticated, setTwitterAuthenticated] = useState(false);
   const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState("");
-  const [pendingSetCurrentUser, setPendingSetCurrentUser] = useState(false)
+  // const [pendingSetCurrentUser, setPendingSetCurrentUser] = useState(false)
   const [status, setStatus] = useState(defaultStatus);
   const [tweets, setTweets] = useState(defaultTweets);
 
@@ -326,19 +326,18 @@ const App = () => {
     }
   }, []);
 
-  const currentUsersAvailable = useCallback(() => {
+  const currentUsersAvailable = () => {
     if (currentUsers && currentUsers.length > 0){
       const tempUsers = [...currentUsers]
-      const user = tempUsers[0]
-      tempUsers.splice(0,1)
+      const user = tempUsers.shift()
       setUsers(tempUsers)
-      console.log("USING CURRENT USERS | @" + user.screenName)
+      console.log("USING CURRENT USERS | CURRENT USERS: " + tempUsers.length + " | @" + user.screenName)
       setCurrentUser(user);
-      setStatus("idle")
-      return true;
+      setProgress("idle");
+      return tempUsers.length;
     }
-    return false;
-  }, [])
+    return 0;
+  }
 
   const handleNodeChange = useCallback((event, node) => {
 
@@ -496,13 +495,10 @@ const App = () => {
 
         usersAvailable = currentUsersAvailable()
 
-        if (eventName === "all" && usersAvailable > 0){
-          if (usersAvailable >= 2){
-            break; 
-          }
+        if (eventName !== "all" || usersAvailable < 3){
+          socket.emit("TWITTER_SEARCH_NODE", searchFilter);
         }
 
-        socket.emit("TWITTER_SEARCH_NODE", searchFilter);
         break
 
       case "mismatch":
@@ -572,7 +568,7 @@ const App = () => {
         console.log({event})
     }
     
-  }, [ twitterAuthenticated, displayNodeType, history, currentUsersAvailable])
+  }, [ currentUsers, twitterAuthenticated, displayNodeType, history])
 
   const nodeValid = (node) => {
     if (node === undefined) return false

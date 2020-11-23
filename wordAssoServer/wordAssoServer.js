@@ -4888,9 +4888,8 @@ async function pubSubSearchNode(params) {
       return result;
 
     } 
-    else if (node && node.nodeType === "user" &&
-      (isCategorized(node) || isAutoCategorized(node))
-    ) {
+    
+    if (node && node.nodeType === "user" && (isCategorized(node) || isAutoCategorized(node))) {
 
       categorizedUserHashMap.set(node.nodeId, {
         nodeId: node.nodeId,
@@ -4912,7 +4911,8 @@ async function pubSubSearchNode(params) {
       return {node: nodeUpdated, nodes: false};
 
     } 
-    else if (node.nodeType === "hashtag" && isCategorized(node)) {
+    
+    if (node.nodeType === "hashtag" && isCategorized(node)) {
 
       categorizedHashtagHashMap.set(node.nodeId, {
         nodeId: node.nodeId,
@@ -4932,6 +4932,8 @@ async function pubSubSearchNode(params) {
       return {node: nodeUpdated, nodes: false};
 
     }
+
+    return { node: false, nodes: false }
 
   } catch (err) {
 

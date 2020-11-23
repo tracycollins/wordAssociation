@@ -338,7 +338,7 @@ const App = () => {
       return true;
     }
     return false;
-  }, [currentUsers])
+  }, [])
 
   const handleNodeChange = useCallback((event, node) => {
 

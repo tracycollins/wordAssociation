@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 // import useSocket from 'use-socket.io-client';
 // import { useImmer } from 'use-immer';
 import { useHistory } from "react-router-dom";
@@ -283,10 +283,16 @@ const App = () => {
   const [progress, setProgress] = useState("loading ...");
   const [displayNodeType, setDisplayNodeType] = useState("user");
   const [currentUsers, setUsers] = useState([]);
+  const currentUsersRef = useRef(currentUsers)
+
   const [currentUser, setCurrentUser] = useState(defaultUser);
   const [currentHashtag, setCurrentHashtag] = useState(defaultHashtag);
 
   const currentNode = displayNodeType === "user" ? currentUser : currentHashtag;
+
+  useEffect(() => { 
+    currentUsersRef.current = currentUsers 
+  },[currentUsers])
 
   const handleTabChange = (event, newValue) => {
     event.preventDefault()
@@ -327,8 +333,8 @@ const App = () => {
   }, []);
 
   const currentUsersAvailable = () => {
-    if (currentUsers && currentUsers.length > 0){
-      const tempUsers = [...currentUsers]
+    if (currentUsersRef.current && currentUsersRef.current.length > 0){
+      const tempUsers = [...currentUsersRef.current]
       const user = tempUsers.shift()
       setUsers(tempUsers)
       console.log("USING CURRENT USERS | CURRENT USERS: " + tempUsers.length + " | @" + user.screenName)
@@ -568,7 +574,7 @@ const App = () => {
         console.log({event})
     }
     
-  }, [ currentUsers, twitterAuthenticated, displayNodeType, history])
+  }, [ twitterAuthenticated, displayNodeType, history])
 
   const nodeValid = (node) => {
     if (node === undefined) return false

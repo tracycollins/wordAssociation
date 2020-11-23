@@ -326,12 +326,14 @@ const App = () => {
   }, []);
 
   const currentUsersAvailable = useCallback(() => {
-    if (currentUsers.length > 0){
-      const users = [...currentUsers]
-      const user = users.shift()
-      setUsers(users)
+    if (currentUsers && currentUsers.length > 0){
+      const tempUsers = [...currentUsers]
+      const user = tempUsers[0]
+      tempUsers.splice(0,1)
+      setUsers(tempUsers)
       console.log("USING CURRENT USERS | @" + user.screenName)
       setCurrentUser(user);
+      setStatus("idle")
       return true;
     }
     return false;
@@ -617,6 +619,7 @@ const App = () => {
       if (results.nodes) {
         setUsers(users => [...users, ...results.nodes])
         console.debug("RX nodes: " + results.nodes.length);
+        // console.log({currentUsers})
       }
       setProgress(progress => "idle");
       setStatus(status => results.stats)
@@ -627,7 +630,7 @@ const App = () => {
       console.debug("RX SET_TWITTER_USER");
 
       if (results.nodes) {
-        setUsers(users => results.node)
+        setUsers(users => [...users, ...results.nodes])
         console.debug("RX nodes: " + results.nodes.length);
       }
       
@@ -688,7 +691,6 @@ const App = () => {
     socket.on("authenticated", function () {
       setProgress(progress => "idle");
       console.debug("AUTHENTICATED | " + socket.id);
-
       socket.emit("TWITTER_SEARCH_NODE", "@threecee")
     });
 

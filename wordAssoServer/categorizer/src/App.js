@@ -276,23 +276,35 @@ const App = () => {
   const [tabValue, setTabValue] = useState(0);
   const [twitterAuthenticated, setTwitterAuthenticated] = useState(false);
   const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState("");
-  // const [pendingSetCurrentUser, setPendingSetCurrentUser] = useState(false)
   const [status, setStatus] = useState(defaultStatus);
   const [tweets, setTweets] = useState(defaultTweets);
 
   const [progress, setProgress] = useState("loading ...");
   const [displayNodeType, setDisplayNodeType] = useState("user");
+
   const [currentUsers, setUsers] = useState([]);
   const currentUsersRef = useRef(currentUsers)
 
   const [currentUser, setCurrentUser] = useState(defaultUser);
+  const currentUserRef = useRef(currentUser)
+
   const [currentHashtag, setCurrentHashtag] = useState(defaultHashtag);
+  const currentHashtagRef = useRef(currentHashtag)
 
-  const currentNode = displayNodeType === "user" ? currentUser : currentHashtag;
-
+  
   useEffect(() => { 
     currentUsersRef.current = currentUsers 
   },[currentUsers])
+  
+  useEffect(() => { 
+    currentUserRef.current = currentUser
+  },[currentUser])
+  
+  useEffect(() => { 
+    currentHashtagRef.current = currentHashtag 
+  },[currentHashtag])
+  
+  const currentNode = displayNodeType === "user" ? currentUserRef.current : currentHashtagRef.current;
 
   const handleTabChange = (event, newValue) => {
     event.preventDefault()
@@ -589,16 +601,16 @@ const App = () => {
 
   useEffect(() => {
     if (displayNodeType === "user"){
-      if (!history.location.pathname.endsWith("/user/" + currentUser.screenName)){
-        history.push("/categorize/user/" + currentUser.screenName)
+      if (!history.location.pathname.endsWith("/user/" + currentUserRef.current.screenName)){
+        history.push("/categorize/user/" + currentUserRef.current.screenName)
       }
     }
     if (displayNodeType === "hashtag"){
-      if (!history.location.pathname.endsWith("/hashtag/" + currentHashtag.nodeId)){
-        history.push("/categorize/hashtag/" + currentHashtag.nodeId)
+      if (!history.location.pathname.endsWith("/hashtag/" + currentHashtagRef.current.nodeId)){
+        history.push("/categorize/hashtag/" + currentHashtagRef.current.nodeId)
       }
     }
-  }, [currentUser, currentHashtag, displayNodeType, history])
+  }, [displayNodeType, history])
 
   useEffect(() => {
 
@@ -758,10 +770,10 @@ const App = () => {
 
   const displayNode = (nodeType) => {
     if (nodeType === "user"){
-      return <UserView user={currentUser} stats={status} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
+      return <UserView user={currentUserRef.current} stats={status} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
     }
     else{
-      return <HashtagView hashtag={currentHashtag} stats={status} tweets={tweets} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
+      return <HashtagView hashtag={currentHashtagRef.current} stats={status} tweets={tweets} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
     }
   }
 

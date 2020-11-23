@@ -276,6 +276,7 @@ const App = () => {
   const [tabValue, setTabValue] = useState(0);
   const [twitterAuthenticated, setTwitterAuthenticated] = useState(false);
   const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState("");
+  const [pendingSetCurrentUser, setPendingSetCurrentUser] = useState(false)
   const [status, setStatus] = useState(defaultStatus);
   const [tweets, setTweets] = useState(defaultTweets);
 
@@ -617,10 +618,10 @@ const App = () => {
       console.debug("RX TWITTER_USERS");
 
       if (results.nodes) {
-        setUsers(users => [...users, ...results.nodes])
         console.debug("RX nodes: " + results.nodes.length);
-        // console.log({currentUsers})
+        setUsers(users => [...users, ...results.nodes])
       }
+
       setProgress(progress => "idle");
       setStatus(status => results.stats)
     });
@@ -691,6 +692,7 @@ const App = () => {
     socket.on("authenticated", function () {
       setProgress(progress => "idle");
       console.debug("AUTHENTICATED | " + socket.id);
+      socket.emit("TWITTER_SEARCH_NODE", "@?all")
       socket.emit("TWITTER_SEARCH_NODE", "@threecee")
     });
 

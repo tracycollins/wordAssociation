@@ -5069,20 +5069,16 @@ async function twitterSearchUser(params) {
       stats: statsObj.user,
     };
 
-  } catch (err) {
-    console.log(
-      chalkError(
-        MODULE_ID +
-          " | *** TWITTER_SEARCH_NODE ERROR" +
-          " | " +
-          getTimeStamp() +
-          " | SEARCH USER" +
-          " | searchNode: " +
-          params.node +
-          " | ERROR: " +
-          err
-      )
-    );
+  } 
+  catch (err) {
+
+    console.log(chalkError(MODULE_ID +
+      " | *** TWITTER_SEARCH_NODE ERROR" +
+      " | " + getTimeStamp() +
+      " | SEARCH USER" +
+      " | searchNode: " + params.node +
+      " | ERROR: " + err
+    ));
 
     // const sObj = {};
     // sObj.user = statsObj.user;
@@ -5092,7 +5088,13 @@ async function twitterSearchUser(params) {
       node: params.node,
       stats: statsObj,
     });
-    throw err;
+
+    return {
+      node: false,
+      nodes: false,
+      stats: statsObj.user,
+      err: err
+    };
   }
 }
 
@@ -5154,15 +5156,13 @@ async function twitterSearchHashtag(params) {
 }
 
 async function twitterSearchNode(params) {
+
   const searchNode = params.searchNode.toLowerCase().trim();
 
-  console.log(chalkSocket(
-    MODULE_ID +
+  console.log(chalkSocket(MODULE_ID +
     " | twitterSearchNode" +
-    " | " +
-    getTimeStamp() +
-    " | " +
-    searchNode
+    " | " + getTimeStamp() +
+    " | " + searchNode
   ));
 
   await updateUserCounts();
@@ -5239,7 +5239,8 @@ async function twitterSearchNode(params) {
         node: results.node,
         stats: statsObj,
       });
-    } else {
+    } 
+    else {
       viewNameSpace.emit("TWITTER_USER_NOT_FOUND", { searchNode: searchNode, stats: statsObj });
     }
 
@@ -5250,6 +5251,7 @@ async function twitterSearchNode(params) {
     searchNode: searchNode,
     stats: statsObj,
   });
+
   throw new Error("UNKNOWN SEARCH MODE: " + searchNode);
 }
 
@@ -6316,7 +6318,8 @@ async function initSocketHandler(socketObj) {
             viewerSessionKey: moment().valueOf(),
           });
 
-        } catch (err) {
+        } 
+        catch (err) {
           console.log(
             chalkError(
               MODULE_ID +

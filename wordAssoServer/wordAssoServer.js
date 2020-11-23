@@ -1546,7 +1546,7 @@ ignoredProfileWordsSet.add("nsfw");
 ignoredProfileWordsSet.add("18+");
 // let ignoredProfileWordsArray = [...ignoredProfileWordsSet];
 
-const categorizeableUserSet = new Set();
+// const categorizeableUserSet = new Set();
 const uncategorizeableUserSet = new Set();
 let followableSearchTermSet = new Set();
 
@@ -4430,25 +4430,25 @@ async function pubSubNodeSetProps(params) {
 
       delete node._id;
 
-      // const dbHashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(
-      //   { nodeId: node.nodeId },
-      //   node,
-      //   { upsert: true, new: true }
-      // );
+      const dbHashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(
+        { nodeId: node.nodeId },
+        node,
+        { upsert: true, new: true }
+      );
 
-      let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId });
+      // let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId });
 
-      if (!dbHashtag) {
-        dbHashtag = new global.wordAssoDb.Hashtag(node);
-      }
-      else{
-        dbHashtag.mentions = Math.max(node.mentions, dbHashtag.mentions);
-        dbHashtag.category = node.category;
-        dbHashtag.rate = node.rate;
-        dbHashtag.lastSeen = node.lastSeen;
-      }
+      // if (!dbHashtag) {
+      //   dbHashtag = new global.wordAssoDb.Hashtag(node);
+      // }
+      // else{
+      //   dbHashtag.mentions = Math.max(node.mentions, dbHashtag.mentions);
+      //   dbHashtag.category = node.category;
+      //   dbHashtag.rate = node.rate;
+      //   dbHashtag.lastSeen = node.lastSeen;
+      // }
 
-      await dbHashtag.save();
+      // await dbHashtag.save();
 
       return dbHashtag;
     }
@@ -4926,13 +4926,22 @@ async function pubSubSearchNode(params) {
 
       delete node._id;
 
-      const nodeUpdated = await global.wordAssoDb.Hashtag.findOneAndUpdate(
-        { nodeId: node.nodeId },
-        node,
-        { upsert: true, new: true }
-      );
+      // const nodeUpdated = await global.wordAssoDb.Hashtag.findOneAndUpdate(
+      //   { nodeId: node.nodeId },
+      //   node,
+      //   { upsert: true, new: true }
+      // );
 
-      return {node: nodeUpdated, nodes: false};
+      let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId})
+
+      if (!dbHashtag) {
+        dbHashtag = new global.wordAssoDb.Hashtag(node);
+      }
+
+      dbHashtag.mentions = Math.max(dbHashtag.mentions, node.mentions);
+      await dbHashtag.save();
+
+      return {node: dbHashtag, nodes: false};
 
     }
 
@@ -7806,8 +7815,13 @@ async function updateUserSets(p) {
   return;
 }
 
-async function updateHashtagSets() {
+let updateHashtagSetsRunning = false;
+
+async function updateHashtagSets(p) {
+  
   statsObj.status = "UPDATE HASHTAG SETS";
+
+  console.log(chalkInfo(MODULE_ID + " | UPDATING HASHTAG SETS..."));
 
   if (!statsObj.dbConnectionReady) {
     console.log(
@@ -7818,64 +7832,55 @@ async function updateHashtagSets() {
     throw new Error("DB CONNECTION NOT READY");
   }
 
+  if (updateHashtagSetsRunning) {
+    return;
+  }
+
+  updateHashtagSetsRunning = true;
+
+  const params = p || {};
+
+  params.query = params.query || {
+    $or: [{ categorized: true }, { categorizedAuto: true }],
+  };
+
   statsObj.hashtag.total = await countDocuments({ documentType: "hashtags" });
-  console.log(
-    chalkBlue(MODULE_ID + " | GRAND TOTAL HASHTAGS: " + statsObj.hashtag.total)
-  );
+  console.log(chalkBlue(MODULE_ID + " | GRAND TOTAL HASHTAGS: " + statsObj.hashtag.total));
 
   statsObj.hashtag.ignored = await countDocuments({
     documentType: "hashtags",
     query: { ignored: true },
   });
-  console.log(
-    chalkBlue(MODULE_ID + " | IGNORED HASHTAGS: " + statsObj.hashtag.ignored)
-  );
+
+  console.log(chalkBlue(MODULE_ID + " | IGNORED HASHTAGS: " + statsObj.hashtag.ignored));
 
   statsObj.hashtag.categorizedManual = await countDocuments({
     documentType: "hashtags",
     query: { category: { $nin: ["none", false, "false", null] } },
   });
-  console.log(
-    chalkBlue(
-      MODULE_ID +
-        " | CAT MANUAL HASHTAGS: " +
-        statsObj.hashtag.categorizedManual
-    )
-  );
+
+  console.log(chalkBlue(MODULE_ID + " | CAT MANUAL HASHTAGS: " + statsObj.hashtag.categorizedManual));
 
   statsObj.hashtag.uncategorizedManual = await countDocuments({
     documentType: "hashtags",
     query: { category: { $in: ["none", false, "false", null] } },
   });
-  console.log(
-    chalkBlue(
-      MODULE_ID +
-        " | UNCAT MANUAL HASHTAGS: " +
-        statsObj.hashtag.uncategorizedManual
-    )
-  );
+
+  console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL HASHTAGS: " + statsObj.hashtag.uncategorizedManual));
 
   statsObj.hashtag.categorizedAuto = await countDocuments({
     documentType: "hashtags",
     query: { categoryAuto: { $nin: ["none", false, "false", null] } },
   });
-  console.log(
-    chalkBlue(
-      MODULE_ID + " | CAT AUTO HASHTAGS: " + statsObj.hashtag.categorizedAuto
-    )
-  );
+
+  console.log(chalkBlue(MODULE_ID + " | CAT AUTO HASHTAGS: " + statsObj.hashtag.categorizedAuto));
 
   statsObj.hashtag.uncategorizedAuto = await countDocuments({
     documentType: "hashtags",
     query: { categoryAuto: { $in: ["none", false, "false", null] } },
   });
-  console.log(
-    chalkBlue(
-      MODULE_ID +
-        " | UNCAT AUTO HASHTAGS: " +
-        statsObj.hashtag.uncategorizedAuto
-    )
-  );
+
+  console.log(chalkBlue(MODULE_ID + " | UNCAT AUTO HASHTAGS: " + statsObj.hashtag.uncategorizedAuto));
 
   const hashtagSearchQuery = {};
 
@@ -7898,41 +7903,24 @@ async function updateHashtagSets() {
   statsObj.hashtagsProcessed = 0;
 
   hashtagSearchCursor.on("end", function () {
-    console.log(
-      chalkBlue(
-        MODULE_ID +
-          " | END FOLLOWING CURSOR" +
-          " | " +
-          getTimeStamp() +
-          " | FOLLOWING HASHTAG SET | RUN TIME: " +
-          msToTime(moment().valueOf() - cursorStartTime)
-      )
-    );
-    console.log(
-      chalkLog(
-        MODULE_ID + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)
-      )
-    );
+    console.log(chalkBlue(MODULE_ID +
+      " | END FOLLOWING CURSOR" +
+      " | " + getTimeStamp() +
+      " | FOLLOWING HASHTAG SET | RUN TIME: " + msToTime(moment().valueOf() - cursorStartTime)
+    ));
+    console.log(chalkLog(MODULE_ID + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
+    updateHashtagSetsRunning = false;
   });
 
   hashtagSearchCursor.on("error", function (err) {
-    console.log(
-      chalkError(MODULE_ID + " | *** ERROR hashtagSearchCursor: " + err)
-    );
-    console.log(
-      chalkAlert(
-        MODULE_ID + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)
-      )
-    );
+    console.log(chalkError(MODULE_ID + " | *** ERROR hashtagSearchCursor: " + err));
+    console.log(chalkAlert(MODULE_ID + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
   });
 
   hashtagSearchCursor.on("close", function () {
     console.log(chalkBlue(MODULE_ID + " | CLOSE FOLLOWING CURSOR"));
-    console.log(
-      chalkBlue(
-        MODULE_ID + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)
-      )
-    );
+    console.log(chalkBlue(MODULE_ID + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)));
+    updateHashtagSetsRunning = false;
   });
 
   await hashtagSearchCursor.eachAsync(
@@ -7942,6 +7930,7 @@ async function updateHashtagSets() {
     { parallel: 32 }
   );
 
+  updateHashtagSetsRunning = false;
   return;
 }
 
@@ -9320,7 +9309,7 @@ async function initTweetParserMessageRxQueueInterval(interval) {
           if (
             dbuChild &&
             dbuChildReady &&
-            categorizeableUserSet.has(tweetObj.user.nodeId)
+            !uncategorizeableUserSet.has(tweetObj.user.nodeId)
           ) {
             dbUserMessage.tweetObj = tweetObj;
             dbuChild.send(dbUserMessage);

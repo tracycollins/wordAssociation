@@ -53,6 +53,7 @@ const msToTime = tcUtils.msToTime;
 const getTimeStamp = tcUtils.getTimeStamp;
 
 const chalk = require("chalk");
+// const { truncateSync } = require("fs");
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
@@ -143,7 +144,7 @@ function quit(options){
 
   console.log(chalkAlert( "DBU | ... QUITTING ..." ));
 
-  clearInterval(userUpdateQueueInterval);
+  clearInterval(tweetUpdateQueueInterval);
 
   statsObj.elapsed = moment().valueOf() - statsObj.startTime;
 
@@ -182,10 +183,10 @@ async function connectDb(){
     db.on("error", async function(err){
       statsObj.status = "MONGO ERROR";
       statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR: " + err));
     });
 
-    db.on("close", async function(err){
+    db.on("close", async function(){
       statsObj.status = "MONGO CLOSED";
       statsObj.dbConnectionReady = false;
       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
@@ -242,25 +243,39 @@ function printUserObj(title, user) {
   ));
 }
 
-let userUpdateQueueInterval;
-let userUpdateQueueReady = false;
-const userUpdateQueue = [];
+function printHashtagObj(title, hashtag) {
+  console.log(chalkLog(title
+    + " | #" + hashtag.nodeId
+    + " | M  " + hashtag.mentions
+    + " | R  " + hashtag.rate.toFixed(3)
+    + " | CR " + getTimeStamp(hashtag.createdAt)
+    + " | LS " + getTimeStamp(hashtag.lastSeen)
+    + " | CAT M " + hashtag.category + " A " + hashtag.categoryAuto
+  ));
+}
+
+let tweetUpdateQueueInterval;
+let tweetUpdateQueueReady = false;
+const tweetUpdateQueue = [];
 
 function getNumKeys(obj){
   if (!obj || obj === undefined || typeof obj !== "object" || obj === null) { return 0; }
   return Object.keys(obj).length;
 }
 
-async function userUpdateDb(params){
+// const update = { $inc: {mentions: 1} };
+const options = { new: true, upsert: true };
+
+async function tweetUpdateDb(params){
 
   try{
 
-    statsObj.status = "USER UPDATE DB";
+    statsObj.status = "TWEET UPDATE DB";
 
     const user = await global.wordAssoDb.User.findOne({ nodeId: params.tweetObj.user.nodeId });
 
     if (!user) {
-      console.log(chalkLog("DBU | --- USER DB MISS: @" + params.tweetObj.user.screenName));
+      // console.log(chalkLog("DBU | --- USER DB MISS: @" + params.tweetObj.user.screenName));
       return;
     }
 
@@ -333,11 +348,36 @@ async function userUpdateDb(params){
     user.markModified("lastHistogramQuoteId");
 
     await user.save();
+
+    for(const ht of params.tweetObj.hashtags){
+
+      const hashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(
+        { nodeId: ht }, 
+        { $inc: { mentions: 1}, lastSeen: Date.now() }, 
+        options
+      );
+
+      printHashtagObj("DBU | +++ HT DB HIT ", hashtag);
+
+      // if (hashtag) { 
+      //   hashtag.mentions = hashtag.mentions + 1;
+      //   hashtag.lastSeen = Date.now();
+      //   await hashtag.update();
+      //   printHashtagObj("DBU | +++ HT DB HIT ", hashtag);
+      // }
+      // else{
+      //   console.log("DBU | --- HT DB MISS | " + ht);
+      //   const newHashtag = new global.wordAssoDb.Hashtag({nodeId: ht, mentions: 1});
+      //   await newHashtag.save();
+      //   printHashtagObj("DBU | ==> HT DB NEW ", newHashtag);
+      // }
+    }
+
     return;
 
   }
   catch(err){
-    console.log(chalkError("DBU | *** ERROR userUpdateDb | " + err));
+    console.log(chalkError("DBU | *** ERROR tweetUpdateDb | " + err));
     throw err;
   }
 }
@@ -348,24 +388,24 @@ function initUserUpdateQueueInterval(interval){
 
     try {
 
-      clearInterval(userUpdateQueueInterval);
+      clearInterval(tweetUpdateQueueInterval);
 
-      userUpdateQueueReady = true;
+      tweetUpdateQueueReady = true;
 
-      userUpdateQueueInterval = setInterval(async function(){
+        tweetUpdateQueueInterval = setInterval(async function(){
 
-        if (userUpdateQueueReady && (userUpdateQueue.length > 0)) {
+        if (tweetUpdateQueueReady && (tweetUpdateQueue.length > 0)) {
 
-          userUpdateQueueReady = false;
+          tweetUpdateQueueReady = false;
 
           try {
-            const twObj = userUpdateQueue.shift();
-            await userUpdateDb({tweetObj: twObj});
-            userUpdateQueueReady = true;
+            const twObj = tweetUpdateQueue.shift();
+            await tweetUpdateDb({tweetObj: twObj});
+            tweetUpdateQueueReady = true;
           }
           catch(e){
-            console.log(chalkError("DBU | *** USER UPDATE DB ERROR: " + e));
-            userUpdateQueueReady = true;
+            console.log(chalkError("DBU | *** TWEET UPDATE DB ERROR: " + e));
+            tweetUpdateQueueReady = true;
           }
 
         }
@@ -375,7 +415,7 @@ function initUserUpdateQueueInterval(interval){
       resolve();
     }
     catch(err){
-      console.log(chalkError("DBU | *** INIT USER UPDATE QUEUE INTERVAL ERROR: ", err));
+      console.log(chalkError("DBU | *** INIT TWEET UPDATE QUEUE INTERVAL ERROR: ", err));
       reject(err);
     }
 
@@ -396,9 +436,9 @@ process.on("message", async function(m) {
 
       configuration.verbose = m.verbose || DEFAULT_VERBOSE;
       configuration.testMode = m.testMode || DEFAULT_TEST_MODE;
-      configuration.userUpdateQueueInterval = m.interval || DEFAULT_USER_UPDATE_QUEUE_INTERVAL;
+      configuration.tweetUpdateQueueInterval = m.interval || DEFAULT_USER_UPDATE_QUEUE_INTERVAL;
 
-      await initUserUpdateQueueInterval(configuration.userUpdateQueueInterval);
+      await initUserUpdateQueueInterval(configuration.tweetUpdateQueueInterval);
 
       console.log(chalkInfo("DBU | ==== INIT ====="
         + " | TITLE: " + process.title
@@ -408,18 +448,18 @@ process.on("message", async function(m) {
 
     case "TWEET":
 
-      if (userUpdateQueue.length < configuration.maxUserUpdateQueue){
-        userUpdateQueue.push(m.tweetObj);
+      if (tweetUpdateQueue.length < configuration.maxUserUpdateQueue){
+        tweetUpdateQueue.push(m.tweetObj);
       }
 
       if (configuration.verbose) {
-        console.log(chalkLog("DBU | [" + userUpdateQueue.length + "]"
+        console.log(chalkLog("DBU | [" + tweetUpdateQueue.length + "]"
           + " | TW " + m.tweetObj.tweetId 
           + " | @" + m.tweetObj.user.screenName 
         ));
       }
 
-      statsObj.userUpdateQueue = userUpdateQueue.length;
+      statsObj.tweetUpdateQueue = tweetUpdateQueue.length;
 
     break;
 

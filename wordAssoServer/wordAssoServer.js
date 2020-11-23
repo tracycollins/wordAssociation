@@ -4928,6 +4928,7 @@ async function pubSubSearchNode(params) {
         node,
         { upsert: true, new: true }
       );
+
       return {node: nodeUpdated, nodes: false};
 
     }
@@ -5054,11 +5055,11 @@ async function twitterSearchUser(params) {
         message.node = params.node;
     }
 
-    const { node, nodes } = await pubSubSearchNode(message);
+    const results = await pubSubSearchNode(message);
 
     return {
-      node: node,
-      nodes: nodes,
+      node: results.node,
+      nodes: results.nodes,
       categoryAuto: message.categoryAuto,
       stats: statsObj.user,
     };
@@ -5111,11 +5112,11 @@ async function twitterSearchHashtag(params) {
     message.categoryAuto = "SPECIFIC";
     message.node = params.node;
 
-    const { node, nodes} = await pubSubSearchNode(message);
+    const results = await pubSubSearchNode(message);
 
     return {
-      node: node,
-      nodes: nodes,
+      node: results.node,
+      nodes: results.nodes,
       categoryAuto: message.categoryAuto,
       stats: statsObj.hashtag,
     };

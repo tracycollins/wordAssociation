@@ -1863,9 +1863,7 @@ socket.on("TWITTER_USERS", function (message) {
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;
 
-  console.log(
-    "<R TWITTER_USERS" +
-  );
+  console.log("<R TWITTER_USERS | NODES: " + message.nodes.length);
 
   console.log("TWITTER_USERS STATS\n" + jsonPrint(message.stats));
 

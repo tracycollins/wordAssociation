@@ -4841,6 +4841,9 @@ async function pubSubSearchNode(params) {
 
     clearTimeout(twitterSearchNodeTimeout);
 
+    if (!searchNodeResultHashMap[params.requestId]){
+      throw new Error("UNDEFINED searchNodeResultHashMap entry: " + params.requestId)
+    }
 
     if (!searchNodeResultHashMap[params.requestId].node && !searchNodeResultHashMap[params.requestId].nodes) {
       console.log(chalkAlert(MODULE_ID +

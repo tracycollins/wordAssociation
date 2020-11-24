@@ -274,7 +274,10 @@ const App = () => {
   }
 
   const [tabValue, setTabValue] = useState(0);
+
   const [twitterAuthenticated, setTwitterAuthenticated] = useState(false);
+  const twitterAuthenticatedRef = useRef(twitterAuthenticated)
+
   const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState("");
   const [status, setStatus] = useState(defaultStatus);
   const [tweets, setTweets] = useState(defaultTweets);
@@ -291,6 +294,10 @@ const App = () => {
   const [currentHashtag, setCurrentHashtag] = useState(defaultHashtag);
   const currentHashtagRef = useRef(currentHashtag)
 
+  
+  useEffect(() => { 
+    twitterAuthenticatedRef.current = twitterAuthenticated 
+  },[twitterAuthenticated])
   
   useEffect(() => { 
     currentUsersRef.current = currentUsers 
@@ -320,12 +327,12 @@ const App = () => {
     socket.emit("TWITTER_SEARCH_NODE", searchTerm)
   }
 
-  const handleLoginLogout = useCallback((event, twitterAuthenticated) => {
+  const handleLoginLogout = useCallback((event) => {
 
     event.preventDefault()
     setProgress(progress => "loginLogout");
 
-    if (twitterAuthenticated){
+    if (twitterAuthenticatedRef.current){
       console.warn("LOGGING OUT");
       socket.emit("logout", viewerObj);
       setTwitterAuthenticated(false)
@@ -335,7 +342,7 @@ const App = () => {
     else{
       console.warn(
         "LOGIN: AUTH: " +
-          twitterAuthenticated +
+          twitterAuthenticatedRef.current +
           " | URL: " +
           DEFAULT_AUTH_URL
       );
@@ -526,7 +533,7 @@ const App = () => {
         break
 
       case "category":
-        if (twitterAuthenticated){
+        if (twitterAuthenticatedRef.current){
           socket.emit("TWITTER_CATEGORIZE_NODE", {
             category: eventValue,
             following: true,
@@ -535,7 +542,8 @@ const App = () => {
         }
         else{
           alert("NOT AUTHENTICATED")
-          setProgress("not authenticated")
+          return;
+          // setProgress("not authenticated")
         }
         break
 
@@ -586,7 +594,7 @@ const App = () => {
         console.log({event})
     }
     
-  }, [ twitterAuthenticated, displayNodeType, history])
+  }, [displayNodeType, history])
 
   const nodeValid = (node) => {
     if (node === undefined) return false
@@ -820,11 +828,11 @@ const App = () => {
               variant="contained" 
               color="primary" 
               size="small" 
-              onClick={event => { handleLoginLogout(event, twitterAuthenticated)}} 
+              onClick={event => { handleLoginLogout(event)}} 
               name="login"
               label="login"
             >
-              {twitterAuthenticated ? "LOGOUT" : "LOGIN TWITTER"}
+              {twitterAuthenticatedRef.current ? "LOGOUT" : "LOGIN TWITTER"}
             </Button>
 
           </Toolbar>

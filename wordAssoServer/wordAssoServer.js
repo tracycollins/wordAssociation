@@ -5114,8 +5114,8 @@ async function twitterSearchHashtag(params) {
     console.log(chalkLog(MODULE_ID +
       " | +++ TWITTER_SEARCH_NODE" +
       " | " + getTimeStamp() +
-      " | SEARCH HASHTAG" +
-      "\n" + MODULE_ID + " | RESPONSE\n" + jsonPrint(searchResponse)
+      " | SEARCH HASHTAG: #" + params.node.nodeId
+      // "\n" + MODULE_ID + " | RESPONSE\n" + jsonPrint(searchResponse)
     ));
 
     return {

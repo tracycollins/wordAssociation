@@ -375,7 +375,7 @@ const App = () => {
     }
   }, []);
 
-  const currentUsersAvailable = () => {
+  const currentUsersAvailable = (eventName) => {
     if (currentUsersRef.current && currentUsersRef.current.length > 0){
       const tempUsers = [...currentUsersRef.current]
       const user = tempUsers.shift()
@@ -542,9 +542,11 @@ const App = () => {
 
         searchFilter += eventName
 
-        usersAvailable = currentUsersAvailable()
+        usersAvailable = currentUsersAvailable(eventName)
 
-        if (eventName !== "all" || usersAvailable < 3){
+        // if (eventName !== "all" || usersAvailable < 3){
+        if (usersAvailable < 3){
+          console.log("GET MORE USERS | usersAvailable: " + usersAvailable)
           socket.emit("TWITTER_SEARCH_NODE", searchFilter);
         }
 

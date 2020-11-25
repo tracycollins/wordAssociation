@@ -544,6 +544,7 @@ const nodeSearchResultHandler = async function (message) {
     debug(chalkLog(MODULE_ID + " | RX NODE SEARCH RESULT " + message.id));
 
     if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)) {
+
       statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived += 1;
 
       if (messageObj.node && messageObj.node.nodeType === "user") {
@@ -624,25 +625,14 @@ const nodeSearchResultHandler = async function (message) {
 
       } else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
         if (configuration.verbose) {
-          console.log(
-            chalkBlueBold(
-              MODULE_ID +
-                " | ==> SUB [" +
-                statsObj.pubSub.subscriptions.nodeSearchResult
-                  .messagesReceived +
-                "]" +
-                " | " +
-                messageObj.requestId +
-                " | SEARCH CAT AUTO: " +
-                messageObj.categoryAuto +
-                " | NID: " +
-                messageObj.node.nodeId +
-                " | CM: " +
-                formatCategory(messageObj.node.category) +
-                " | CA: " +
-                formatCategory(messageObj.node.categoryAuto)
-            )
-          );
+          console.log(chalkBlueBold(MODULE_ID +
+            " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]" +
+            " | " + messageObj.requestId +
+            " | SEARCH CAT AUTO: " + messageObj.categoryAuto +
+            " | NID: " + messageObj.node.nodeId +
+            " | CM: " + formatCategory(messageObj.node.category) +
+            " | CA: " + formatCategory(messageObj.node.categoryAuto)
+          ));
         }
 
         const catHashtagObj = categorizedHashtagHashMap.get(
@@ -5128,20 +5118,28 @@ async function twitterSearchHashtag(params) {
     message.categoryAuto = "SPECIFIC";
     message.node = params.node;
 
-    const results = await pubSubSearchNode(message);
+    const searchResponse = await pubSubSearchNode(message);
 
     console.log(chalkLog(MODULE_ID +
       " | +++ TWITTER_SEARCH_NODE" +
       " | " + getTimeStamp() +
       " | SEARCH HASHTAG" +
-      " | RESULTS NODE: " + jsonPrint(results.node)
+      " | NODE\n" + jsonPrint(searchResponse.node)
+    ));
+
+    console.log(chalkLog(MODULE_ID +
+      " | +++ TWITTER_SEARCH_NODE" +
+      " | " + getTimeStamp() +
+      " | SEARCH HASHTAG" +
+      " | RESULTS\n" + jsonPrint(searchResponse.results)
     ));
 
     return {
-      node: results.node,
-      nodes: results.nodes,
+      node: searchResponse.node,
+      nodes: searchResponse.nodes,
+      results: searchResponse.results,
       categoryAuto: message.categoryAuto,
-      stats: statsObj.hashtag,
+      stats: searchResponse.stats,
     };
 
   } 

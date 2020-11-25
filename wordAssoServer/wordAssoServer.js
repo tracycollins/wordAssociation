@@ -5085,8 +5085,8 @@ async function twitterSearchUser(params) {
       " | *** TWITTER_SEARCH_NODE ERROR" +
       " | " + getTimeStamp() +
       " | SEARCH USER" +
-      " | searchNode: " + params.node +
-      " | ERROR: " + err
+      " | ERROR: " + err + 
+      " | searchNode: " + jsonPrint(params.node)
     ));
 
     // const sObj = {};
@@ -5130,6 +5130,13 @@ async function twitterSearchHashtag(params) {
 
     const results = await pubSubSearchNode(message);
 
+    console.log(chalkLog(MODULE_ID +
+      " | +++ TWITTER_SEARCH_NODE" +
+      " | " + getTimeStamp() +
+      " | SEARCH HASHTAG" +
+      " | RESULTS NODE: " + results.node.nodeId
+    ));
+
     return {
       node: results.node,
       nodes: results.nodes,
@@ -5137,20 +5144,16 @@ async function twitterSearchHashtag(params) {
       stats: statsObj.hashtag,
     };
 
-  } catch (err) {
-    console.log(
-      chalkError(
-        MODULE_ID +
-          " | *** TWITTER_SEARCH_NODE ERROR" +
-          " | " +
-          getTimeStamp() +
-          " | SEARCH USER" +
-          " | searchNode: " +
-          params.node +
-          " | ERROR: " +
-          err
-      )
-    );
+  } 
+  catch (err) {
+
+    console.log(chalkError(MODULE_ID +
+      " | *** TWITTER_SEARCH_NODE ERROR" +
+      " | " + getTimeStamp() +
+      " | SEARCH HASHTAG" +
+      " | searchNode: " + params.node +
+      " | ERROR: " + err
+    ));
 
     // const sObj = {};
     // sObj.user = statsObj.user;
@@ -5160,108 +5163,116 @@ async function twitterSearchHashtag(params) {
       node: params.node,
       stats: statsObj,
     });
+
     throw err;
   }
 }
 
 async function twitterSearchNode(params) {
 
-  const searchNode = params.searchNode.toLowerCase().trim();
+  try {
+    const searchNode = params.searchNode.toLowerCase().trim();
 
-  console.log(chalkSocket(MODULE_ID +
-    " | twitterSearchNode" +
-    " | " + getTimeStamp() +
-    " | " + searchNode
-  ));
+    console.log(chalkSocket(MODULE_ID +
+      " | twitterSearchNode" +
+      " | " + getTimeStamp() +
+      " | " + searchNode
+    ));
 
-  await updateUserCounts();
-  await updateHashtagCounts();
+    await updateUserCounts();
+    await updateHashtagCounts();
 
-  if (searchNode.startsWith("#")) {
-    const results = await twitterSearchHashtag({
-      node: {
-        nodeType: "hashtag",
-        nodeId: searchNode.slice(1).toLowerCase(),
-      },
-    });
+    if (searchNode.startsWith("#")) {
+      
+      const results = await twitterSearchHashtag({
+        node: {
+          nodeType: "hashtag",
+          nodeId: searchNode.slice(1).toLowerCase(),
+        },
+      });
 
-    if (results.node) {
+      if (results.node) {
 
-      if (twitterClient) {
-        twitterClient.get("search/tweets", { q: results.node.nodeId, count: configuration.tweetSearchCount }, (err, tweets) => {
+        if (twitterClient) {
+          twitterClient.get("search/tweets", { q: results.node.nodeId, count: configuration.tweetSearchCount }, (err, tweets) => {
+            viewNameSpace.emit("SET_TWITTER_HASHTAG", {
+              node: results.node,
+              tweets: tweets,
+              stats: statsObj,
+            });
+          })
+        }
+        else{
           viewNameSpace.emit("SET_TWITTER_HASHTAG", {
             node: results.node,
-            tweets: tweets,
+            tweets: [],
             stats: statsObj,
           });
-        })
+        }
+        
+      } else {
+        viewNameSpace.emit("TWITTER_HASHTAG_NOT_FOUND", { searchNode: searchNode, stats: statsObj });
       }
-      else{
-        viewNameSpace.emit("SET_TWITTER_HASHTAG", {
-          node: results.node,
-          tweets: [],
+
+      return;
+    }
+
+    // const sObj = {};
+    // sObj.user = statsObj.user;
+    // sObj.bestNetwork = statsObj.bestNetwork;
+
+    if (searchNode.startsWith("@")) {
+
+      const results = await twitterSearchUser({
+        node: { nodeType: "user", screenName: searchNode.slice(1) },
+      });
+
+      
+      if (results.nodes) {
+
+        console.log(chalkSocket(MODULE_ID +
+          " | twitterSearchUser" +
+          " | " + getTimeStamp() +
+          " | NODES: " + results.nodes.length
+        ));
+
+        viewNameSpace.emit("TWITTER_USERS", {
+          searchNod: searchNode,
+          nodes: results.nodes,
           stats: statsObj,
         });
       }
-       
-    } else {
-      viewNameSpace.emit("TWITTER_HASHTAG_NOT_FOUND", { searchNode: searchNode, stats: statsObj });
+      else if (results.node) {
+
+        console.log(chalkSocket(MODULE_ID +
+          " | twitterSearchUser" +
+          " | " + getTimeStamp() +
+          " | NODE: @" + results.node.screenName
+        ));
+
+        viewNameSpace.emit("SET_TWITTER_USER", {
+          node: results.node,
+          stats: statsObj,
+        });
+      } 
+      else {
+        viewNameSpace.emit("TWITTER_USER_NOT_FOUND", { searchNode: searchNode, stats: statsObj });
+      }
+
+      return;
     }
 
-    return;
-  }
-
-  // const sObj = {};
-  // sObj.user = statsObj.user;
-  // sObj.bestNetwork = statsObj.bestNetwork;
-
-  if (searchNode.startsWith("@")) {
-
-    const results = await twitterSearchUser({
-      node: { nodeType: "user", screenName: searchNode.slice(1) },
+    viewNameSpace.emit("TWITTER_SEARCH_NODE_UNKNOWN_MODE", {
+      searchNode: searchNode,
+      stats: statsObj,
     });
 
-    
-    if (results.nodes) {
-
-      console.log(chalkSocket(MODULE_ID +
-        " | twitterSearchUser" +
-        " | " + getTimeStamp() +
-        " | NODES: " + results.nodes.length
-      ));
-
-      viewNameSpace.emit("TWITTER_USERS", {
-        searchNod: searchNode,
-        nodes: results.nodes,
-        stats: statsObj,
-      });
-    }
-    else if (results.node) {
-
-      console.log(chalkSocket(MODULE_ID +
-        " | twitterSearchUser" +
-        " | " + getTimeStamp() +
-        " | NODE: @" + results.node.screenName
-      ));
-
-      viewNameSpace.emit("SET_TWITTER_USER", {
-        node: results.node,
-        stats: statsObj,
-      });
-    } 
-    else {
-      viewNameSpace.emit("TWITTER_USER_NOT_FOUND", { searchNode: searchNode, stats: statsObj });
-    }
-
-    return;
+    return new Error("UNKNOWN SEARCH MODE: " + searchNode);
   }
-
-  viewNameSpace.emit("TWITTER_SEARCH_NODE_UNKNOWN_MODE", {
-    searchNode: searchNode,
-    stats: statsObj,
-  });
-
-  throw new Error("UNKNOWN SEARCH MODE: " + searchNode);
+  catch(err){
+    console.log(chalkError(MODULE_ID + " | *** twitterSearchNode ERROR: " + err));
+    return err;
+  }
 }
 
 async function initSocketHandler(socketObj) {

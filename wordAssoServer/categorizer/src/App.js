@@ -669,6 +669,12 @@ const App = () => {
       setStatus(status => results.stats)
     });
 
+    socket.on("TWITTER_HASHTAG_NOT_FOUND", (results) => {
+      console.debug("RX TWITTER_HASHTAG_NOT_FOUND");
+      console.debug({results})
+      setProgress(progress => "idle");
+      setStatus(status => results.stats)    })
+
     socket.on("SET_TWITTER_HASHTAG", (results) => {
 
       console.debug("RX SET_TWITTER_HASHTAG");
@@ -679,7 +685,8 @@ const App = () => {
         setTweets(tweets => results.tweets)
       }
       else{
-
+        console.debug("INVALID HT NODE | RESULTS");
+        console.debug({results})
       }
 
       setProgress(progress => "idle");

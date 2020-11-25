@@ -5093,7 +5093,7 @@ async function twitterSearchUser(params) {
 }
 
 async function twitterSearchHashtag(params) {
-  
+
   if (typeof params.node === "string") {
     console.log(chalkInfo(MODULE_ID + " | -?- HASHTAG SEARCH | HASHTAG: " + params.node));
   } else {
@@ -5115,7 +5115,7 @@ async function twitterSearchHashtag(params) {
       " | +++ TWITTER_SEARCH_NODE" +
       " | " + getTimeStamp() +
       " | SEARCH HASHTAG" +
-      " | RESPONSE\n" + jsonPrint(searchResponse)
+      "\n" + MODULE_ID + " | RESPONSE\n" + jsonPrint(searchResponse)
     ));
 
     return {

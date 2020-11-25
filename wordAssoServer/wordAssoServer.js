@@ -5207,40 +5207,46 @@ async function twitterSearchNode(params) {
 
     if (searchNode.startsWith("@")) {
 
-      const results = await twitterSearchUser({
+      const response = await twitterSearchUser({
         node: { nodeType: "user", screenName: searchNode.slice(1) },
       });
 
       
-      if (results.nodes) {
+      if (response.nodes) {
 
         console.log(chalkSocket(MODULE_ID +
           " | twitterSearchUser" +
           " | " + getTimeStamp() +
-          " | NODES: " + results.nodes.length
+          " | NODES: " + response.nodes.length
         ));
 
         viewNameSpace.emit("TWITTER_USERS", {
           searchNod: searchNode,
-          nodes: results.nodes,
+          nodes: response.nodes,
+          results: response.results,
           stats: statsObj,
         });
       }
-      else if (results.node) {
+      else if (response.node) {
 
         console.log(chalkSocket(MODULE_ID +
           " | twitterSearchUser" +
           " | " + getTimeStamp() +
-          " | NODE: @" + results.node.screenName
+          " | NODE: @" + response.node.screenName
         ));
 
         viewNameSpace.emit("SET_TWITTER_USER", {
-          node: results.node,
+          node: response.node,
+          results: response.results,
           stats: statsObj,
         });
       } 
       else {
-        viewNameSpace.emit("TWITTER_USER_NOT_FOUND", { searchNode: searchNode, stats: statsObj });
+        viewNameSpace.emit("TWITTER_USER_NOT_FOUND", { 
+          searchNode: searchNode, 
+          results: response.results,
+          stats: statsObj
+        });
       }
 
       return;

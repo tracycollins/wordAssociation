@@ -779,7 +779,7 @@ const App = () => {
       console.debug("RX TWITTER_USER_NOT_FOUND");
       console.debug(response);
       setStatus(status => response.stats);
-      if (response.searchNode.startsWith("@?") && !response.endCursor){
+      if (response.searchNode.startsWith("@?") && !response.results.endCursor){
         console.debug("RETRY NEXT UNCAT: " + response.searchNode);
         socket.emit("TWITTER_SEARCH_NODE", response.searchNode);
       }

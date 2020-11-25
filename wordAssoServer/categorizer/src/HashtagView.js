@@ -178,12 +178,12 @@ const HashtagView = (props) => {
 
   const classes = useStyles();
 
-  const createdAt = formatDate(props.hashtag.createdAt)
-  const lastSeen = formatDate(props.hashtag.lastSeen)
+  const createdAt = props.hashtag.createdAt ? formatDate(props.hashtag.createdAt) : "---"
+  const lastSeen = props.hashtag.lastSeen ? formatDate(props.hashtag.lastSeen) : "---"
  
-  const lastSeenDuration = new Duration(new Date(props.hashtag.lastSeen)).toString(1, 4)
-  const twitterAge = props.hashtag.createdAt ? new Duration(new Date(props.hashtag.createdAt)) : new Duration(new Date())
-  const twitterAgeString = twitterAge.toString(1, 4)
+  const lastSeenDuration = props.hashtag.lastSeen ? new Duration(new Date(props.hashtag.lastSeen)).toString(1, 4) : "---"
+  const twitterAge = props.hashtag.createdAt ? new Duration(new Date(props.hashtag.createdAt)) : "---"
+  const twitterAgeString = props.hashtag.createdAt ? twitterAge.toString(1, 4) : "---"
 
   const [hashtagSearch, setHashtagSearch] = useState("");
 
@@ -254,17 +254,17 @@ const HashtagView = (props) => {
 
         </Toolbar>
       </AppBar>
+
       <Grid className={classes.grid}>
         <Grid item className={classes.gridItem} xs={3}>
           <Card className={classes.card} variant="outlined">
             <CardContent onClick={openHashtagTwitterPage}>
-              <Typography variant="h6">#{props.hashtag.nodeId}</Typography>
+              <Typography variant="h6">#{props.statusHashtag === "notFound" ? props.hashtag.nodeId + " NOT FOUND" : props.hashtag.nodeId}</Typography>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item className={classes.gridItem} xs={3}>
-          {displayTweets(props.tweets)}
-        </Grid>
+        <Grid item className={classes.gridItem} xs={3}>{displayTweets(props.tweets)}</Grid>
+
         <Grid item className={classes.gridItem} xs={3}>
           <TableContainer>
             <Table className={classes.table} size="small">
@@ -285,10 +285,10 @@ const HashtagView = (props) => {
                   <TableCell>last seen</TableCell><TableCell align="right">{lastSeenDuration} ago</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell>mentions</TableCell><TableCell align="right">{props.hashtag.mentions}</TableCell>
+                  <TableCell>mentions</TableCell><TableCell align="right">{props.hashtag.mentions ? props.hashtag.mentions : "---"}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell>mentions/min</TableCell><TableCell align="right">{props.hashtag.rate ? props.hashtag.rate.toFixed(1) : 0}</TableCell>
+                  <TableCell>mentions/min</TableCell><TableCell align="right">{props.hashtag.rate ? props.hashtag.rate.toFixed(1) : "---"}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>

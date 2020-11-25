@@ -5134,7 +5134,7 @@ async function twitterSearchHashtag(params) {
       " | +++ TWITTER_SEARCH_NODE" +
       " | " + getTimeStamp() +
       " | SEARCH HASHTAG" +
-      " | RESULTS NODE: " + results.node.nodeId
+      " | RESULTS NODE: " + jsonPrint(results.node)
     ));
 
     return {

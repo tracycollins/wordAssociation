@@ -279,8 +279,16 @@ const App = () => {
   const twitterAuthenticatedRef = useRef(twitterAuthenticated)
 
   const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState("");
+  const twitterAuthenticatedUserRef = useRef(twitterAuthenticatedUser)
+
   const [status, setStatus] = useState(defaultStatus);
+  const statusRef = useRef(status)
+
+  const [statusHashtag, setStatusHashtag] = useState(false);
+  const statusHashtagRef = useRef(statusHashtag)
+
   const [tweets, setTweets] = useState(defaultTweets);
+  const tweetsRef = useRef(tweets)
 
   const [progress, setProgress] = useState("loading ...");
   const [displayNodeType, setDisplayNodeType] = useState("user");
@@ -296,20 +304,36 @@ const App = () => {
 
   
   useEffect(() => { 
+    twitterAuthenticatedUserRef.current = twitterAuthenticatedUser
+  }, [twitterAuthenticatedUser])
+  
+  useEffect(() => { 
     twitterAuthenticatedRef.current = twitterAuthenticated 
-  },[twitterAuthenticated])
+  }, [twitterAuthenticated])
   
   useEffect(() => { 
     currentUsersRef.current = currentUsers 
-  },[currentUsers])
+  }, [currentUsers])
   
   useEffect(() => { 
     currentUserRef.current = currentUser
-  },[currentUser])
+  }, [currentUser])
   
   useEffect(() => { 
     currentHashtagRef.current = currentHashtag 
-  },[currentHashtag])
+  }, [currentHashtag])
+  
+  useEffect(() => { 
+    statusHashtagRef.current = statusHashtag
+  }, [statusHashtag])
+  
+  useEffect(() => { 
+    statusRef.current = status 
+  }, [status])
+  
+  useEffect(() => { 
+    tweetsRef.current = tweets 
+  }, [tweets])
   
   const currentNode = displayNodeType === "user" ? currentUserRef.current : currentHashtagRef.current;
 
@@ -681,6 +705,11 @@ const App = () => {
     socket.on("TWITTER_HASHTAG_NOT_FOUND", (response) => {
       console.debug("RX TWITTER_HASHTAG_NOT_FOUND");
       console.debug({response})
+      setStatusHashtag(statusHashtag => "notFound")
+      setCurrentHashtag(currentHashtag => {
+        return {nodeId: response.searchNode.slice(1)}
+      }) 
+      setTweets(tweets => [])
       setProgress(progress => "idle");
       setStatus(status => response.stats)
     })
@@ -690,12 +719,14 @@ const App = () => {
       console.debug("RX SET_TWITTER_HASHTAG");
 
       if (nodeValid(response.node)) { 
+        setStatusHashtag(statusHashtag => "found")
         setCurrentHashtag(currentHashtag => response.node) 
         console.debug("new: #" + response.node.nodeId);
         setTweets(tweets => response.tweets)
       }
       else
       {
+        setStatusHashtag(statusHashtag => "invalid")
         console.debug("INVALID HT NODE | RESULTS");
         console.debug({response})
       }
@@ -796,10 +827,10 @@ const App = () => {
 
   const displayNode = (nodeType) => {
     if (nodeType === "user"){
-      return <UserView user={currentUserRef.current} stats={status} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
+      return <UserView user={currentUserRef.current} stats={statusRef.current} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
     }
     else{
-      return <HashtagView hashtag={currentHashtagRef.current} stats={status} tweets={tweets} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
+      return <HashtagView hashtag={currentHashtagRef.current} statusHashtag={statusHashtagRef.current} stats={statusRef.current} tweets={tweetsRef.current} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
     }
   }
 
@@ -834,11 +865,11 @@ const App = () => {
 
             <Link
               className={classes.twitterAuth}
-              href={"http://twitter.com/" + twitterAuthenticatedUser}
+              href={"http://twitter.com/" + twitterAuthenticatedUserRef.current}
               target="_blank"
               rel="noopener"
             >
-              {twitterAuthenticatedUser ? "@" + twitterAuthenticatedUser : ""}
+              {twitterAuthenticatedUserRef.current ? "@" + twitterAuthenticatedUserRef.current : ""}
             </Link>
 
             <Button 

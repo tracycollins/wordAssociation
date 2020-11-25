@@ -765,7 +765,7 @@ const App = () => {
       console.debug("AUTHENTICATED | " + socket.id);
       socket.emit("TWITTER_SEARCH_NODE", "@?all")
       socket.emit("TWITTER_SEARCH_NODE", "@threecee")
-      socket.emit("TWITTER_SEARCH_NODE", "@#blacklivesmatter")
+      socket.emit("TWITTER_SEARCH_NODE", "#blacklivesmatter")
     });
 
     socket.on("USER_AUTHENTICATED", function (userObj) {

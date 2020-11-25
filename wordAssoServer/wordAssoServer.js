@@ -623,7 +623,8 @@ const nodeSearchResultHandler = async function (message) {
         searchNodeResultHashMap[messageObj.requestId].nodes = messageObj.nodes;
         searchNodeResultHashMap[messageObj.requestId].results = messageObj.results;
 
-      } else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
+      } 
+      else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
         if (configuration.verbose) {
           console.log(chalkBlueBold(MODULE_ID +
             " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]" +

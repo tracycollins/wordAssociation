@@ -664,7 +664,7 @@ const nodeSearchResultHandler = async function (message) {
           + " | MID: " + message.id
           + " | " + messageObj.requestId
           + " | SEARCH CAT AUTO: " + messageObj.categoryAuto
-          + " | RESULTS" + jsonPrint(messageObj.results)
+          + "\nRESULTS" + jsonPrint(messageObj.results)
         ));
 
         searchNodeResultHashMap[messageObj.requestId] = {};
@@ -4824,10 +4824,7 @@ async function pubSubSearchNode(params) {
 
     }, configuration.pubSub.pubSubResultTimeout);
 
-    await tcUtils.waitEvent({
-      event: eventName,
-      verbose: configuration.verbose,
-    });
+    await tcUtils.waitEvent({ event: eventName, verbose: configuration.verbose });
 
     clearTimeout(twitterSearchNodeTimeout);
 
@@ -4839,9 +4836,7 @@ async function pubSubSearchNode(params) {
       console.log(chalkAlert(MODULE_ID +
         " | !!! " + params.node.nodeType + " NOT FOUND\n" + jsonPrint(params)
       ));
-
-      // return searchNodeResultHashMap[params.requestId];
-      return {node: false, nodes: false};
+      return searchNodeResultHashMap[params.requestId];
     }
 
     const node = searchNodeResultHashMap[params.requestId].node;
@@ -5028,7 +5023,6 @@ async function twitterSearchUser(params) {
     const message = {};
     message.requestId = "rId_" + hostname + "_" + moment().valueOf();
     message.node = {};
-    // message.nodes = [];
     message.node.nodeType = "user";
     message.newCategory = params.newCategory || false;
     message.newCategoryVerified = params.newCategoryVerified || false;
@@ -5059,11 +5053,12 @@ async function twitterSearchUser(params) {
         message.node = params.node;
     }
 
-    const results = await pubSubSearchNode(message);
+    const response = await pubSubSearchNode(message);
 
     return {
-      node: results.node,
-      nodes: results.nodes,
+      node: response.node,
+      nodes: response.nodes,
+      results: response.results,
       categoryAuto: message.categoryAuto,
       stats: statsObj.user,
     };
@@ -5098,19 +5093,15 @@ async function twitterSearchUser(params) {
 }
 
 async function twitterSearchHashtag(params) {
+  
   if (typeof params.node === "string") {
-    console.log(
-      chalkInfo(MODULE_ID + " | -?- HASHTAG SEARCH | HASHTAG: " + params.node)
-    );
+    console.log(chalkInfo(MODULE_ID + " | -?- HASHTAG SEARCH | HASHTAG: " + params.node));
   } else {
-    console.log(
-      chalkInfo(
-        MODULE_ID + " | -?- HASHTAG SEARCH | NID: #" + params.node.nodeId
-      )
-    );
+    console.log(chalkInfo(MODULE_ID + " | -?- HASHTAG SEARCH | NID: #" + params.node.nodeId));
   }
 
   try {
+    
     const message = {};
     message.requestId = "rId_" + hostname + "_" + moment().valueOf();
     message.node = {};
@@ -5124,14 +5115,7 @@ async function twitterSearchHashtag(params) {
       " | +++ TWITTER_SEARCH_NODE" +
       " | " + getTimeStamp() +
       " | SEARCH HASHTAG" +
-      " | NODE\n" + jsonPrint(searchResponse.node)
-    ));
-
-    console.log(chalkLog(MODULE_ID +
-      " | +++ TWITTER_SEARCH_NODE" +
-      " | " + getTimeStamp() +
-      " | SEARCH HASHTAG" +
-      " | RESULTS\n" + jsonPrint(searchResponse.results)
+      " | RESPONSE\n" + jsonPrint(searchResponse)
     ));
 
     return {
@@ -5182,19 +5166,19 @@ async function twitterSearchNode(params) {
 
     if (searchNode.startsWith("#")) {
       
-      const results = await twitterSearchHashtag({
+      const response = await twitterSearchHashtag({
         node: {
           nodeType: "hashtag",
           nodeId: searchNode.slice(1).toLowerCase(),
         },
       });
 
-      if (results.node) {
+      if (response.node) {
 
         if (twitterClient) {
-          twitterClient.get("search/tweets", { q: results.node.nodeId, count: configuration.tweetSearchCount }, (err, tweets) => {
+          twitterClient.get("search/tweets", { q: response.node.nodeId, count: configuration.tweetSearchCount }, (err, tweets) => {
             viewNameSpace.emit("SET_TWITTER_HASHTAG", {
-              node: results.node,
+              node: response.node,
               tweets: tweets,
               stats: statsObj,
             });
@@ -5202,13 +5186,14 @@ async function twitterSearchNode(params) {
         }
         else{
           viewNameSpace.emit("SET_TWITTER_HASHTAG", {
-            node: results.node,
+            node: response.node,
             tweets: [],
             stats: statsObj,
           });
         }
         
-      } else {
+      } 
+      else {
         viewNameSpace.emit("TWITTER_HASHTAG_NOT_FOUND", { searchNode: searchNode, stats: statsObj });
       }
 

@@ -635,62 +635,73 @@ const App = () => {
       });
     })
 
-    socket.on("TWITTER_USERS", (results) => {
+    socket.on("TWITTER_USERS", (response) => {
 
       console.debug("RX TWITTER_USERS");
 
-      if (results.nodes) {
-        console.debug("RX nodes: " + results.nodes.length);
-        setUsers(users => [...users, ...results.nodes])
+      if (response.nodes) {
+        console.debug("RX nodes: " + response.nodes.length);
+        setUsers(users => [...users, ...response.nodes])
       }
 
       setProgress(progress => "idle");
-      setStatus(status => results.stats)
+      setStatus(status => response.stats)
     });
 
-    socket.on("SET_TWITTER_USER", (results) => {
+    socket.on("SET_TWITTER_USER", (response) => {
 
       console.debug("RX SET_TWITTER_USER");
 
-      if (results.nodes) {
-        setUsers(users => [...users, ...results.nodes])
-        console.debug("RX nodes: " + results.nodes.length);
+      if (response.nodes) {
+        setUsers(users => [...users, ...response.nodes])
+        console.debug("RX nodes: " + response.nodes.length);
       }
       
-      if (nodeValid(results.node)) {
-        setCurrentUser(currentUser => results.node)
-        console.debug("new: @" + results.node.screenName);
+      if (nodeValid(response.node)) {
+        setCurrentUser(currentUser => response.node)
+        console.debug("new: @" + response.node.screenName);
       }
       else{
 
       }
 
       setProgress(progress => "idle");
-      setStatus(status => results.stats)
+      setStatus(status => response.stats)
     });
 
-    socket.on("TWITTER_HASHTAG_NOT_FOUND", (results) => {
-      console.debug("RX TWITTER_HASHTAG_NOT_FOUND");
-      console.debug({results})
-      setProgress(progress => "idle");
-      setStatus(status => results.stats)    })
+    
 
-    socket.on("SET_TWITTER_HASHTAG", (results) => {
+    socket.on("TWITTER_SEARCH_NODE_UNKNOWN_MODE", (response) => {
+      console.debug("RX TWITTER_SEARCH_NODE_UNKNOWN_MODE");
+      console.debug({response})
+      setProgress(progress => "idle");
+      setStatus(status => response.stats)
+    })
+
+    socket.on("TWITTER_HASHTAG_NOT_FOUND", (response) => {
+      console.debug("RX TWITTER_HASHTAG_NOT_FOUND");
+      console.debug({response})
+      setProgress(progress => "idle");
+      setStatus(status => response.stats)
+    })
+
+    socket.on("SET_TWITTER_HASHTAG", (response) => {
 
       console.debug("RX SET_TWITTER_HASHTAG");
 
-      if (nodeValid(results.node)) { 
-        setCurrentHashtag(currentHashtag => results.node) 
-        console.debug("new: #" + results.node.nodeId);
-        setTweets(tweets => results.tweets)
+      if (nodeValid(response.node)) { 
+        setCurrentHashtag(currentHashtag => response.node) 
+        console.debug("new: #" + response.node.nodeId);
+        setTweets(tweets => response.tweets)
       }
-      else{
+      else
+      {
         console.debug("INVALID HT NODE | RESULTS");
-        console.debug({results})
+        console.debug({response})
       }
 
       setProgress(progress => "idle");
-      setStatus(status => results.stats)
+      setStatus(status => response.stats)
     });
 
     socket.on("action", (action) => {
@@ -732,13 +743,13 @@ const App = () => {
       console.log("RX TWITTER USER_AUTHENTICATED | USER: @" + userObj.screenName);
     });
 
-    socket.on("TWITTER_USER_NOT_FOUND", (results) => {
+    socket.on("TWITTER_USER_NOT_FOUND", (response) => {
       console.debug("RX TWITTER_USER_NOT_FOUND");
-      console.debug(results);
-      setStatus(status => results.stats);
-      if (results.searchNode.startsWith("@?") && !results.endCursor){
-        console.debug("RETRY NEXT UNCAT: " + results.searchNode);
-        socket.emit("TWITTER_SEARCH_NODE", results.searchNode);
+      console.debug(response);
+      setStatus(status => response.stats);
+      if (response.searchNode.startsWith("@?") && !response.endCursor){
+        console.debug("RETRY NEXT UNCAT: " + response.searchNode);
+        socket.emit("TWITTER_SEARCH_NODE", response.searchNode);
       }
       else{
         setProgress(progress => "idle");

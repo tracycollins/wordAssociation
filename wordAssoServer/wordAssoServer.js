@@ -548,32 +548,19 @@ const nodeSearchResultHandler = async function (message) {
       statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived += 1;
 
       if (messageObj.node && messageObj.node.nodeType === "user") {
-        debug(
-          chalkBlue(
-            MODULE_ID +
-              " | ==> SUB [" +
-              statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived +
-              "]" +
-              " | " +
-              messageObj.requestId +
-              " | SEARCH CAT AUTO: " +
-              messageObj.categoryAuto +
-              " | NID: " +
-              messageObj.node.nodeId +
-              " | @" +
-              messageObj.node.screenName +
-              " | FLW: " +
-              formatBoolean(messageObj.node.following) +
-              " | CN: " +
-              messageObj.node.categorizeNetwork +
-              " | CV: " +
-              formatBoolean(messageObj.node.categoryVerified) +
-              " | CM: " +
-              formatCategory(messageObj.node.category) +
-              " | CA: " +
-              formatCategory(messageObj.node.categoryAuto)
-          )
-        );
+
+        debug(chalkBlue(MODULE_ID +
+          " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]" +
+          " | " + messageObj.requestId +
+          " | SEARCH CAT AUTO: " + messageObj.categoryAuto +
+          " | NID: " + messageObj.node.nodeId +
+          " | @" + messageObj.node.screenName +
+          " | FLW: " + formatBoolean(messageObj.node.following) +
+          " | CN: " + messageObj.node.categorizeNetwork +
+          " | CV: " + formatBoolean(messageObj.node.categoryVerified) +
+          " | CM: " + formatCategory(messageObj.node.category) +
+          " | CA: " + formatCategory(messageObj.node.categoryAuto)
+        ));
 
         if (messageObj.stats) {
           debug(chalkLog(MODULE_ID + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
@@ -595,9 +582,7 @@ const nodeSearchResultHandler = async function (message) {
         }
 
         if (messageObj.nodes && messageObj.nodes.length > 0) {
-
           console.log(MODULE_ID + " | nodeSearchResultHandler | NODES: " + messageObj.nodes.length)
-
           messageObj.nodes.forEach((node) => {
             const catObj = categorizedUserHashMap.get(messageObj.node.nodeId);
 
@@ -612,9 +597,7 @@ const nodeSearchResultHandler = async function (message) {
 
                 categorizedUserHashMap.set(catObj.nodeId, catObj);
             }
-            
           })
-
         }
         
         searchNodeResultHashMap[messageObj.requestId] = {};
@@ -4821,7 +4804,7 @@ async function pubSubSearchNode(params) {
 
       tcUtils.emitter.emit(eventName);
 
-      return {node: false, nodes: false};
+      return { node: false, nodes: false, results: {} };
 
     }, configuration.pubSub.pubSubResultTimeout);
 
@@ -4878,26 +4861,40 @@ async function pubSubSearchNode(params) {
 
     } 
     
-    if (node && node.nodeType === "user" && (isCategorized(node) || isAutoCategorized(node))) {
+    if (node && node.nodeType === "user") {
 
-      categorizedUserHashMap.set(node.nodeId, {
-        nodeId: node.nodeId,
-        screenName: node.screenName,
-        manual: node.category,
-        auto: node.categoryAuto,
-        network: node.categorizeNetwork,
-        verified: node.categoryVerified,
-      });
+      if (isCategorized(node) || isAutoCategorized(node)) {
 
-      delete node._id;
+        categorizedUserHashMap.set(node.nodeId, {
+          nodeId: node.nodeId,
+          screenName: node.screenName,
+          manual: node.category,
+          auto: node.categoryAuto,
+          network: node.categorizeNetwork,
+          verified: node.categoryVerified,
+        });
 
-      const nodeUpdated = await global.wordAssoDb.User.findOneAndUpdate(
-        { nodeId: node.nodeId },
-        node,
-        { upsert: true, new: true }
-      );
+        delete node._id;
 
-      return {node: nodeUpdated, nodes: false};
+        const nodeUpdated = await global.wordAssoDb.User.findOneAndUpdate(
+          { nodeId: node.nodeId },
+          node,
+          { upsert: true, new: true }
+        );
+
+        return {
+          node: nodeUpdated, 
+          nodes: false, 
+          results: searchNodeResultHashMap[params.requestId].results
+        };
+      }
+      else{
+        return {
+          node: node, 
+          nodes: false, 
+          results: searchNodeResultHashMap[params.requestId].results
+        };
+      }
 
     } 
     
@@ -4931,7 +4928,7 @@ async function pubSubSearchNode(params) {
 
     }
 
-    return { node: false, nodes: false }
+    return { node: false, nodes: false, results: {} }
 
   } catch (err) {
 

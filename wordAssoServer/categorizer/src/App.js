@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 // import useSocket from 'use-socket.io-client';
 // import { useImmer } from 'use-immer';
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation, useParams } from "react-router-dom";
 import { useHotkeys } from 'react-hotkeys-hook';
 import socketClient from "socket.io-client";
 import { makeStyles } from '@material-ui/core/styles';
@@ -146,24 +146,13 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-// const formatDateTime = (dateInput) => {
-//   return new Date(dateInput).toLocaleDateString(
-//     'en-gb',
-//     {
-//       year: 'numeric',
-//       month: 'short',
-//       day: 'numeric',
-//       hour: 'numeric',
-//       minute: 'numeric'
-//     }
-//   );
-// }
-
-// const [socket] = useSocket(ENDPOINT);
-
 const App = () => {
 
   const history = useHistory();
+  let location = useLocation()
+  let { slug } = useParams();
+
+  console.log({slug})
 
   const classes = useStyles();
 
@@ -275,6 +264,12 @@ const App = () => {
 
   const [tabValue, setTabValue] = useState(0);
 
+  const [historyArray, setHistoryArray] = useState([location.pathname])
+  const historyArrayRef = useRef(historyArray)
+
+  const [historyArrayIndex, setHistoryArrayIndex] = useState(0)
+  const historyArrayIndexRef = useRef(historyArrayIndex)
+
   const [twitterAuthenticated, setTwitterAuthenticated] = useState(false);
   const twitterAuthenticatedRef = useRef(twitterAuthenticated)
 
@@ -291,7 +286,9 @@ const App = () => {
   const tweetsRef = useRef(tweets)
 
   const [progress, setProgress] = useState("loading ...");
+
   const [displayNodeType, setDisplayNodeType] = useState("user");
+  const displayNodeTypeRef = useRef(displayNodeType)
 
   const [currentUsers, setUsers] = useState([]);
   const currentUsersRef = useRef(currentUsers)
@@ -301,7 +298,16 @@ const App = () => {
 
   const [currentHashtag, setCurrentHashtag] = useState(defaultHashtag);
   const currentHashtagRef = useRef(currentHashtag)
-
+  
+  useEffect(() => {
+    const tempHistoryArray = [...historyArrayRef.current]
+    if (tempHistoryArray.length > 0 && location.pathname !== tempHistoryArray[0]){
+      tempHistoryArray.push(location.pathname)
+      setHistoryArray(() => [...tempHistoryArray])
+      setHistoryArrayIndex(tempHistoryArray.length-1);
+      historyArrayRef.current = tempHistoryArray
+    }
+  }, [location.pathname])
   
   useEffect(() => { 
     twitterAuthenticatedUserRef.current = twitterAuthenticatedUser
@@ -310,6 +316,10 @@ const App = () => {
   useEffect(() => { 
     twitterAuthenticatedRef.current = twitterAuthenticated 
   }, [twitterAuthenticated])
+  
+  useEffect(() => { 
+    displayNodeTypeRef.current = displayNodeType 
+  }, [displayNodeType])
   
   useEffect(() => { 
     currentUsersRef.current = currentUsers 
@@ -335,7 +345,10 @@ const App = () => {
     tweetsRef.current = tweets 
   }, [tweets])
   
-  const currentNode = displayNodeType === "user" ? currentUserRef.current : currentHashtagRef.current;
+  const currentNode = displayNodeTypeRef.current === "user" ? currentUserRef.current : currentHashtagRef.current;
+  const currentNodeRouteSlug = displayNodeTypeRef.current === "user" ? currentUserRef.current.screenName : currentHashtagRef.current.nodeId;
+
+  // history.replace(`/categorize/${displayNodeTypeRef.current}/${currentNodeRouteSlug}`)
 
   const handleTabChange = (event, newValue) => {
     event.preventDefault()
@@ -394,7 +407,7 @@ const App = () => {
       event.preventDefault() 
     }
 
-    if (displayNodeType === "user"){
+    if (displayNodeTypeRef.current === "user"){
       console.log("handleNodeChange | user: @" + node.screenName)
     }
     else{
@@ -415,10 +428,20 @@ const App = () => {
 
         case "ArrowRight":
         case "ArrowLeft":
+          console.log("location.pathname: " + location.pathname)
+          console.log({historyArrayRef})
+          console.log({historyArrayIndexRef})
           eventName = "history"
-          if (event.code === "ArrrowRight"){ history.goForward(); }
-          if (event.code === "ArrowLeft"){ history.goBack(); }
-          eventValue = history.location.pathname.split("/").pop()
+          if (event.code === "ArrrowRight"){
+          }
+          if (event.code === "ArrowLeft"){ 
+            if (historyArrayRef.current.length > 0){
+              const currentRoute = historyArrayRef.current.pop();
+              const nextRoute = historyArrayRef.current.pop();
+              history.push(nextRoute)
+              eventValue = nextRoute.split("/").pop()
+            }
+          }
           break;
 
         case "KeyA":
@@ -620,7 +643,7 @@ const App = () => {
         console.log({event})
     }
     
-  }, [displayNodeType, history])
+  }, [history, location])
 
   const nodeValid = (node) => {
     if (node === undefined) return false
@@ -634,17 +657,26 @@ const App = () => {
   }
 
   useEffect(() => {
-    if (displayNodeType === "user"){
-      if (!history.location.pathname.endsWith("/user/" + currentUserRef.current.screenName)){
+    if (displayNodeTypeRef.current === "user"){
+      console.log({history})
+      console.log("loc:  " + location.pathname)
+      // if (!history.location.pathname.endsWith("/user/" + currentUserRef.current.screenName)){
+      if (!location.pathname.endsWith("/user/" + currentUserRef.current.screenName)){
+        console.log("history push: /categorize/user/" + currentUserRef.current.screenName)
         history.push("/categorize/user/" + currentUserRef.current.screenName)
       }
     }
-    if (displayNodeType === "hashtag"){
+  }, [history, currentUser, location.pathname])
+
+  useEffect(() => {
+    if (displayNodeTypeRef.current === "hashtag"){
+      console.log("history loc:  " + history.location.pathname)
       if (!history.location.pathname.endsWith("/hashtag/" + currentHashtagRef.current.nodeId)){
+        console.log("history push: /categorize/hashtag/" + currentHashtagRef.current.nodeId)
         history.push("/categorize/hashtag/" + currentHashtagRef.current.nodeId)
       }
     }
-  }, [displayNodeType, history])
+  }, [history, currentHashtag, location.pathname])
 
   useEffect(() => {
 
@@ -694,8 +726,6 @@ const App = () => {
       setProgress(progress => "idle");
       setStatus(status => response.stats)
     });
-
-    
 
     socket.on("TWITTER_SEARCH_NODE_UNKNOWN_MODE", (response) => {
       console.debug("RX TWITTER_SEARCH_NODE_UNKNOWN_MODE");
@@ -781,7 +811,7 @@ const App = () => {
       console.debug("RX TWITTER_USER_NOT_FOUND");
       console.debug(response);
       setStatus(status => response.stats);
-      if (response.searchNode.startsWith("@?") && !response.results.endCursor){
+      if (response.searchNode.startsWith("@?") && response.results && !response.results.endCursor){
         console.debug("RETRY NEXT UNCAT: " + response.searchNode);
         socket.emit("TWITTER_SEARCH_NODE", response.searchNode);
       }
@@ -889,7 +919,7 @@ const App = () => {
 
           </Toolbar>
         </AppBar>
-        {displayNode(displayNodeType)}
+        {displayNode(displayNodeTypeRef.current)}
       </Container>
     </div>
   );

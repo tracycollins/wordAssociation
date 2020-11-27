@@ -609,7 +609,7 @@ const nodeSearchResultHandler = async function (message) {
       }
       else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
 
-        if (configuration.verbose) {
+        // if (configuration.verbose) {
           console.log(chalkBlueBold(MODULE_ID +
             " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]" +
             " | " + messageObj.requestId +
@@ -618,7 +618,7 @@ const nodeSearchResultHandler = async function (message) {
             " | CM: " + formatCategory(messageObj.node.category) +
             " | CA: " + formatCategory(messageObj.node.categoryAuto)
           ));
-        }
+        // }
 
         const catHashtagObj = categorizedHashtagHashMap.get(messageObj.node.nodeId);
 
@@ -634,7 +634,7 @@ const nodeSearchResultHandler = async function (message) {
           categorizedHashtagHashMap.set(catHashtagObj.nodeId, catHashtagObj);
         }
 
-        debug(chalkBlue(MODULE_ID +
+        console.log(chalkBlue(MODULE_ID +
           " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]" +
           " | " + messageObj.requestId +
           " | #" + messageObj.node.nodeId +
@@ -688,7 +688,7 @@ const nodeSearchResultHandler = async function (message) {
 
         searchNodeResultHashMap[messageObj.requestId] = {};
         searchNodeResultHashMap[messageObj.requestId].results = messageObj.results;
-        
+
         console.log(MODULE_ID + " | *** nodeSearchResultHandler | UNKNOWN NODE TYPE\n" + jsonPrint(messageObj))
         throw new Error("nodeSearchResultHandler | UNKNOWN NODE TYPE")
       }

@@ -4449,25 +4449,25 @@ async function pubSubNodeSetProps(params) {
 
       delete node._id;
 
-      const dbHashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(
-        { nodeId: node.nodeId },
-        node,
-        { upsert: true, new: true }
-      ).exec();
+      // const dbHashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(
+      //   { nodeId: node.nodeId },
+      //   node,
+      //   { upsert: true, new: true }
+      // ).exec();
 
-      // let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId }).exec();
+      let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId }).exec();
 
-      // if (!dbHashtag) {
-      //   dbHashtag = new global.wordAssoDb.Hashtag(node);
-      // }
-      // else{
-      //   dbHashtag.mentions = Math.max(node.mentions, dbHashtag.mentions);
-      //   dbHashtag.category = node.category;
-      //   dbHashtag.rate = node.rate;
-      //   dbHashtag.lastSeen = node.lastSeen;
-      // }
+      if (!dbHashtag) {
+        dbHashtag = new global.wordAssoDb.Hashtag(node);
+      }
+      else{
+        dbHashtag.mentions = Math.max(node.mentions, dbHashtag.mentions);
+        dbHashtag.category = node.category;
+        dbHashtag.rate = node.rate;
+        dbHashtag.lastSeen = node.lastSeen;
+      }
 
-      // await dbHashtag.save();
+      await dbHashtag.save();
 
       return dbHashtag;
     }

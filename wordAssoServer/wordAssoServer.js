@@ -547,38 +547,43 @@ const nodeSearchResultHandler = async function (message) {
 
       statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived += 1;
 
-      if (messageObj.node && messageObj.node.nodeType === "user") {
+      if ((messageObj.node && messageObj.node.nodeType === "user") 
+      || (messageObj.nodes && messageObj.nodes.length > 0 && messageObj.nodes[0].nodeType === "user")) {
 
-        debug(chalkBlue(MODULE_ID +
-          " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]" +
-          " | " + messageObj.requestId +
-          " | SEARCH CAT AUTO: " + messageObj.categoryAuto +
-          " | NID: " + messageObj.node.nodeId +
-          " | @" + messageObj.node.screenName +
-          " | FLW: " + formatBoolean(messageObj.node.following) +
-          " | CN: " + messageObj.node.categorizeNetwork +
-          " | CV: " + formatBoolean(messageObj.node.categoryVerified) +
-          " | CM: " + formatCategory(messageObj.node.category) +
-          " | CA: " + formatCategory(messageObj.node.categoryAuto)
-        ));
+        if (messageObj.node){
+          debug(chalkBlue(MODULE_ID +
+            " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]" +
+            " | " + messageObj.requestId +
+            " | SEARCH CAT AUTO: " + messageObj.categoryAuto +
+            " | NID: " + messageObj.node.nodeId +
+            " | @" + messageObj.node.screenName +
+            " | FLW: " + formatBoolean(messageObj.node.following) +
+            " | CN: " + messageObj.node.categorizeNetwork +
+            " | CV: " + formatBoolean(messageObj.node.categoryVerified) +
+            " | CM: " + formatCategory(messageObj.node.category) +
+            " | CA: " + formatCategory(messageObj.node.categoryAuto)
+          ));
+        }
 
         if (messageObj.stats) {
           debug(chalkLog(MODULE_ID + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
           defaults(statsObj.user, messageObj.stats);
         }
 
-        const catUserObj = categorizedUserHashMap.get(messageObj.node.nodeId);
+        if (messageObj.node){
+          const catUserObj = categorizedUserHashMap.get(messageObj.node.nodeId);
 
-        if (catUserObj !== undefined) {
-          if (isCategorized(messageObj.node)) {
-            catUserObj.manual = messageObj.node.category;
+          if (catUserObj !== undefined) {
+            if (isCategorized(messageObj.node)) {
+              catUserObj.manual = messageObj.node.category;
+            }
+
+            if (isAutoCategorized(messageObj.node)) {
+              catUserObj.auto = messageObj.node.categoryAuto;
+            }
+
+            categorizedUserHashMap.set(catUserObj.nodeId, catUserObj);
           }
-
-          if (isAutoCategorized(messageObj.node)) {
-            catUserObj.auto = messageObj.node.categoryAuto;
-          }
-
-          categorizedUserHashMap.set(catUserObj.nodeId, catUserObj);
         }
 
         if (messageObj.nodes && messageObj.nodes.length > 0) {
@@ -683,7 +688,7 @@ const nodeSearchResultHandler = async function (message) {
           + " | MID: " + message.id
           + " | " + messageObj.requestId
           + " | SEARCH CAT AUTO: " + messageObj.categoryAuto
-          + "\nRESULTS" + jsonPrint(messageObj.results)
+          + "\nRESULTS\n" + jsonPrint(messageObj.results)
         ));
 
         searchNodeResultHashMap[messageObj.requestId] = {};
@@ -3475,7 +3480,7 @@ process.on("message", async function processMessageRx(msg) {
     );
 
     try {
-      
+
       await tcUtils.saveFile({
         folder: statsHostFolder,
         statsFile: statsFile,

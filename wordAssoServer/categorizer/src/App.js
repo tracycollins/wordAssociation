@@ -346,7 +346,7 @@ const App = () => {
   }, [tweets])
   
   const currentNode = displayNodeTypeRef.current === "user" ? currentUserRef.current : currentHashtagRef.current;
-  const currentNodeRouteSlug = displayNodeTypeRef.current === "user" ? currentUserRef.current.screenName : currentHashtagRef.current.nodeId;
+  // const currentNodeRouteSlug = displayNodeTypeRef.current === "user" ? currentUserRef.current.screenName : currentHashtagRef.current.nodeId;
 
   // history.replace(`/categorize/${displayNodeTypeRef.current}/${currentNodeRouteSlug}`)
 

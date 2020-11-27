@@ -606,8 +606,9 @@ const nodeSearchResultHandler = async function (message) {
         searchNodeResultHashMap[messageObj.requestId].nodes = messageObj.nodes;
         searchNodeResultHashMap[messageObj.requestId].results = messageObj.results;
 
-      } 
+      }
       else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
+
         if (configuration.verbose) {
           console.log(chalkBlueBold(MODULE_ID +
             " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]" +
@@ -619,17 +620,13 @@ const nodeSearchResultHandler = async function (message) {
           ));
         }
 
-        const catHashtagObj = categorizedHashtagHashMap.get(
-          messageObj.node.nodeId
-        );
+        const catHashtagObj = categorizedHashtagHashMap.get(messageObj.node.nodeId);
 
         if (catHashtagObj !== undefined) {
-          // if (["left", "neutral", "right"].includes(messageObj.node.category)){
           if (isCategorized(messageObj.node)) {
             catHashtagObj.manual = messageObj.node.category;
           }
 
-          // if (["left", "neutral", "right"].includes(messageObj.node.categoryAuto)){
           if (isAutoCategorized(messageObj.node)) {
             catHashtagObj.auto = messageObj.node.categoryAuto;
           }
@@ -637,11 +634,49 @@ const nodeSearchResultHandler = async function (message) {
           categorizedHashtagHashMap.set(catHashtagObj.nodeId, catHashtagObj);
         }
 
+        debug(chalkBlue(MODULE_ID +
+          " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]" +
+          " | " + messageObj.requestId +
+          " | #" + messageObj.node.nodeId +
+          " | CM: " + formatCategory(messageObj.node.category) +
+          " | CA: " + formatCategory(messageObj.node.categoryAuto)
+        ));
+
+        if (messageObj.stats) {
+          debug(chalkLog(MODULE_ID + "\nHASHTAG STATS\n" + jsonPrint(messageObj.stats)));
+          defaults(statsObj.hashtag, messageObj.stats);
+        }
+
+        if (messageObj.nodes && messageObj.nodes.length > 0) {
+
+          console.log(MODULE_ID + " | nodeSearchResultHandler | NODES: " + messageObj.nodes.length)
+
+          messageObj.nodes.forEach((node) => {
+
+            const catObj = categorizedHashtagHashMap.get(messageObj.node.nodeId);
+
+            if (catObj !== undefined) {
+              if (isCategorized(node)) {
+                  catObj.manual = node.category;
+                }
+
+                if (isAutoCategorized(node)) {
+                  catObj.auto = node.categoryAuto;
+                }
+
+                categorizedHashtagHashMap.set(catObj.nodeId, catObj);
+            }
+          })
+        }
+        
         searchNodeResultHashMap[messageObj.requestId] = {};
         searchNodeResultHashMap[messageObj.requestId].node = messageObj.node;
+        searchNodeResultHashMap[messageObj.requestId].nodes = [];
+        searchNodeResultHashMap[messageObj.requestId].nodes = messageObj.nodes;
         searchNodeResultHashMap[messageObj.requestId].results = messageObj.results;
 
-      } else {
+      } 
+      else {
 
         console.log(chalk.yellow(MODULE_ID 
           + " | ==> PS SEARCH NODE -MISS- [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
@@ -653,6 +688,9 @@ const nodeSearchResultHandler = async function (message) {
 
         searchNodeResultHashMap[messageObj.requestId] = {};
         searchNodeResultHashMap[messageObj.requestId].results = messageObj.results;
+        
+        console.log(MODULE_ID + " | *** nodeSearchResultHandler | UNKNOWN NODE TYPE\n" + jsonPrint(messageObj))
+        throw new Error("nodeSearchResultHandler | UNKNOWN NODE TYPE")
       }
     }
 
@@ -5112,7 +5150,7 @@ async function twitterSearchHashtag(params) {
     console.log(chalkLog(MODULE_ID +
       " | +++ TWITTER_SEARCH_NODE" +
       " | " + getTimeStamp() +
-      " | SEARCH HASHTAG: #" + params.node.nodeId + 
+      " | SEARCH HASHTAG: #" + searchResponse.node.nodeId + 
       " | RESPONSE RESULTS\n" + jsonPrint(searchResponse.results)
       // "\n" + MODULE_ID + " | RESPONSE\n" + jsonPrint(searchResponse)
     ));

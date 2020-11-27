@@ -364,7 +364,7 @@ async function tweetUpdateDb(params){
       if (hashtag) { 
         hashtag.mentions += 1;
         hashtag.lastSeen = Date.now();
-        await hashtag.update();
+        await hashtag.save();
         printHashtagObj("DBU | +++ HT DB HIT ", hashtag);
       }
       else{

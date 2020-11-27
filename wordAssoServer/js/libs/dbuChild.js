@@ -264,7 +264,7 @@ function getNumKeys(obj){
 }
 
 // const update = { $inc: {mentions: 1} };
-const options = { new: true, upsert: true };
+// const options = { new: true, upsert: true };
 
 async function tweetUpdateDb(params){
 
@@ -351,26 +351,28 @@ async function tweetUpdateDb(params){
 
     for(const ht of params.tweetObj.hashtags){
 
-      const hashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(
-        { nodeId: ht }, 
-        { $inc: { mentions: 1}, lastSeen: Date.now() }, 
-        options
-      );
+      // const hashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(
+      //   { nodeId: ht }, 
+      //   { $inc: { mentions: 1}, lastSeen: Date.now() }, 
+      //   options
+      // );
 
-      printHashtagObj("DBU | +++ HT DB HIT ", hashtag);
+      // printHashtagObj("DBU | +++ HT DB HIT ", hashtag);
 
-      // if (hashtag) { 
-      //   hashtag.mentions = hashtag.mentions + 1;
-      //   hashtag.lastSeen = Date.now();
-      //   await hashtag.update();
-      //   printHashtagObj("DBU | +++ HT DB HIT ", hashtag);
-      // }
-      // else{
-      //   console.log("DBU | --- HT DB MISS | " + ht);
-      //   const newHashtag = new global.wordAssoDb.Hashtag({nodeId: ht, mentions: 1});
-      //   await newHashtag.save();
-      //   printHashtagObj("DBU | ==> HT DB NEW ", newHashtag);
-      // }
+      const hashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: ht });
+
+      if (hashtag) { 
+        hashtag.mentions += 1;
+        hashtag.lastSeen = Date.now();
+        await hashtag.update();
+        printHashtagObj("DBU | +++ HT DB HIT ", hashtag);
+      }
+      else{
+        console.log("DBU | --- HT DB MISS | " + ht);
+        const newHashtag = new global.wordAssoDb.Hashtag({nodeId: ht, mentions: 1});
+        await newHashtag.save();
+        printHashtagObj("DBU | ==> HT DB NEW ", newHashtag);
+      }
     }
 
     return;

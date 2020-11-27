@@ -272,7 +272,7 @@ async function tweetUpdateDb(params){
 
     statsObj.status = "TWEET UPDATE DB";
 
-    const user = await global.wordAssoDb.User.findOne({ nodeId: params.tweetObj.user.nodeId });
+    const user = await global.wordAssoDb.User.findOne({ nodeId: params.tweetObj.user.nodeId }).exec();
 
     if (!user) {
       // console.log(chalkLog("DBU | --- USER DB MISS: @" + params.tweetObj.user.screenName));
@@ -359,7 +359,7 @@ async function tweetUpdateDb(params){
 
       // printHashtagObj("DBU | +++ HT DB HIT ", hashtag);
 
-      const hashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: ht });
+      const hashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: ht }).exec();
 
       if (hashtag) { 
         hashtag.mentions += 1;

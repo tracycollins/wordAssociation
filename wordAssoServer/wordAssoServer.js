@@ -587,9 +587,13 @@ const nodeSearchResultHandler = async function (message) {
         }
 
         if (messageObj.nodes && messageObj.nodes.length > 0) {
+
           console.log(MODULE_ID + " | nodeSearchResultHandler | NODES: " + messageObj.nodes.length)
-          messageObj.nodes.forEach((node) => {
-            const catObj = categorizedUserHashMap.get(messageObj.node.nodeId);
+
+          // messageObj.nodes.forEach((node) => {
+          for(const node of messageObj.nodes){
+
+            const catObj = categorizedUserHashMap.get(node.nodeId);
 
             if (catObj !== undefined) {
               if (isCategorized(node)) {
@@ -602,7 +606,7 @@ const nodeSearchResultHandler = async function (message) {
 
                 categorizedUserHashMap.set(catObj.nodeId, catObj);
             }
-          })
+          }
         }
         
         searchNodeResultHashMap[messageObj.requestId] = {};
@@ -6778,7 +6782,8 @@ async function updateNodeMeter(node) {
   } else {
     if ((/TSS_/).test(meterNodeId) || nodeObj.isServer) {
       return node;
-    } else if (empty(nodeMeter[meterNodeId])) {
+    } 
+    else if (empty(nodeMeter[meterNodeId])) {
       nodeMeter[meterNodeId] = new Measured.Meter({ rateUnit: 60000 });
       nodeMeterType[nodeType][meterNodeId] = new Measured.Meter({
         rateUnit: 60000,
@@ -6797,7 +6802,9 @@ async function updateNodeMeter(node) {
       nodeCache.set(meterNodeId, nodeObj);
 
       return node;
-    } else {
+    } 
+    else {
+      
       nodeMeter[meterNodeId].mark();
       globalNodeMeter.mark();
 

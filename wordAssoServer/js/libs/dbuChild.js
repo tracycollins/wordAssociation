@@ -362,10 +362,11 @@ async function tweetUpdateDb(params){
       const hashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: ht }).exec();
 
       if (hashtag) { 
+        printHashtagObj("DBU | +++ HT DB HIT (before update)", hashtag);
         hashtag.mentions += 1;
         hashtag.lastSeen = Date.now();
         await hashtag.save();
-        printHashtagObj("DBU | +++ HT DB HIT ", hashtag);
+        printHashtagObj("DBU | +++ HT DB HIT (after update) ", hashtag);
       }
       else{
         console.log("DBU | --- HT DB MISS | " + ht);

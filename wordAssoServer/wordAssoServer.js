@@ -4461,15 +4461,14 @@ async function pubSubNodeSetProps(params) {
 
       let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId }).exec();
 
-      if (!dbHashtag) {
+      if (empty(dbHashtag)) {
         dbHashtag = new global.wordAssoDb.Hashtag(node);
       }
-      else{
-        dbHashtag.mentions = Math.max(node.mentions, dbHashtag.mentions);
-        dbHashtag.category = node.category;
-        dbHashtag.rate = node.rate;
-        dbHashtag.lastSeen = node.lastSeen;
-      }
+
+      dbHashtag.mentions = Math.max(node.mentions, dbHashtag.mentions);
+      dbHashtag.category = node.category;
+      dbHashtag.rate = node.rate;
+      dbHashtag.lastSeen = node.lastSeen;
 
       await dbHashtag.save();
 
@@ -4617,26 +4616,27 @@ async function updateDbIgnoredHashtags() {
     
     try {
 
-      const dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: hashtag.toLowerCase()}).exec();
+      let dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: hashtag.toLowerCase()}).exec();
 
-      if (!empty(dbHashtag)) {
-
-        console.log(chalkLog(MODULE_ID + " | FOUND IGNORED HASHTAG"
-          + " [" + ignoredHashtagSet.size + "]"
-          + " | " + printHashtag({ hashtag: dbHashtag })
-        ));
-
-        dbHashtag.ignored = true;
-
-        const dbUpdatedHashtag = await dbHashtag.save();
-
-        console.log(chalkLog(MODULE_ID
-          + " | XXX IGNORE"
-          + " [" + ignoredHashtagSet.size + "]"
-          + " | " + printHashtag({ hashtag: dbUpdatedHashtag })
-        ));
-
+      if (empty(dbHashtag)) {
+        dbHashtag = new global.wordAssoDb.Hashtag({nodeId: hashtag.toLowerCase()});
       }
+
+      dbHashtag.ignored = true;
+
+      console.log(chalkLog(MODULE_ID + " | +++ IGNORED HASHTAG"
+        + " [" + ignoredHashtagSet.size + "]"
+        + " | " + printHashtag({ hashtag: dbHashtag })
+      ));
+
+      const dbUpdatedHashtag = await dbHashtag.save();
+
+      console.log(chalkLog(MODULE_ID
+        + " | XXX IGNORE"
+        + " [" + ignoredHashtagSet.size + "]"
+        + " | " + printHashtag({ hashtag: dbUpdatedHashtag })
+      ));
+
     } catch (err) {
       console.log(
         chalkError(MODULE_ID + " | *** UPDATE IGNORED HASHTAG DB ERROR: " + err)
@@ -4965,7 +4965,7 @@ async function pubSubSearchNode(params) {
 
       let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId}).exec();
 
-      if (!dbHashtag) {
+      if (empty(dbHashtag)) {
         dbHashtag = new global.wordAssoDb.Hashtag(node);
       }
 

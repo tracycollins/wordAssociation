@@ -41,6 +41,12 @@ const merge = require("deepmerge");
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
 
+const jsonPrint = tcUtils.jsonPrint;
+const formatBoolean = tcUtils.formatBoolean;
+const formatCategory = tcUtils.formatCategory;
+const getTimeStamp = tcUtils.getTimeStamp;
+const msToTime = tcUtils.msToTime;
+
 tcUtils.on("error", function(err){
   console.log(chalkError(MODULE_ID_PREFIX + " | *** TCU ERROR | " + err));
 });
@@ -48,9 +54,6 @@ tcUtils.on("error", function(err){
 tcUtils.on("ready", function(appname){
   console.log(chalk.green(MODULE_ID_PREFIX + " | TCU READY | " + appname));
 });
-
-const msToTime = tcUtils.msToTime;
-const getTimeStamp = tcUtils.getTimeStamp;
 
 const chalk = require("chalk");
 // const { truncateSync } = require("fs");
@@ -245,12 +248,12 @@ function printUserObj(title, user) {
 
 function printHashtagObj(title, hashtag) {
   console.log(chalkLog(title
+    + " | CR: " + getTimeStamp(hashtag.createdAt)
+    + " | LS: " + getTimeStamp(hashtag.lastSeen)
+    + " | R: " + hashtag.rate.toFixed(1)
+    + " | Ms: " + hashtag.mentions
+    + " | CAT: " + formatCategory(hashtag.category)
     + " | #" + hashtag.nodeId
-    + " | M  " + hashtag.mentions
-    + " | R  " + hashtag.rate.toFixed(3)
-    + " | CR " + getTimeStamp(hashtag.createdAt)
-    + " | LS " + getTimeStamp(hashtag.lastSeen)
-    + " | CAT M " + hashtag.category + " A " + hashtag.categoryAuto
   ));
 }
 

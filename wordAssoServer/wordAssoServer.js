@@ -7112,7 +7112,7 @@ async function fetchBotIds(p){
         }
         else{
           
-          botArray.forEach(async (botObj) => {
+          botArray.forEach(async (botObj, botIndex) => {
 
             const nodeUpdated = await global.wordAssoDb.User.findOneAndUpdate(
               { nodeId: botObj.id },
@@ -7135,10 +7135,12 @@ async function fetchBotIds(p){
 
             botNodeIdSet.add(nodeUpdated.nodeId)
             
-            printUserObj(
-              MODULE_ID + " [OFFSET: " + options.params.offset + "] | BOT CAT: " + options.params.category + " | +++ BOT [" + botNodeIdSet.size + "]",
-              nodeUpdated
-            );
+            if (configuration.verbose || botIndex % 1000 === 0){
+              printUserObj(
+                MODULE_ID + "| +++ BOT [" + botIndex + "] | BOT CAT: " + options.params.category + " | BOT SET SIZE: " + botNodeIdSet.size,
+                nodeUpdated
+              );
+            }
 
           })
 

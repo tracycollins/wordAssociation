@@ -41,8 +41,8 @@ const merge = require("deepmerge");
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
 
-const jsonPrint = tcUtils.jsonPrint;
-const formatBoolean = tcUtils.formatBoolean;
+// const jsonPrint = tcUtils.jsonPrint;
+// const formatBoolean = tcUtils.formatBoolean;
 const formatCategory = tcUtils.formatCategory;
 const getTimeStamp = tcUtils.getTimeStamp;
 const msToTime = tcUtils.msToTime;

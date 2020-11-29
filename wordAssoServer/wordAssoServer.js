@@ -7112,7 +7112,11 @@ async function fetchBotIds(p){
         }
         else{
           
-          botArray.forEach(async (botObj, botIndex) => {
+          let botIndex = 0
+          // botArray.forEach(async (botObj, botIndex) => {
+          for(const botObj of botArray) {
+
+            botIndex += 1
 
             const nodeUpdated = await global.wordAssoDb.User.findOneAndUpdate(
               { nodeId: botObj.id },
@@ -7141,8 +7145,7 @@ async function fetchBotIds(p){
                 nodeUpdated
               );
             }
-
-          })
+          }
 
           options.params.offset += botArray.length
 
@@ -7185,11 +7188,20 @@ async function initBotSet() {
   try {
 
     const dbBotNodes = await global.wordAssoDb.User.find({isBot: true}).select({nodeId: 1, screenName: 1}).lean()
+
     console.log(chalkTwitter(MODULE_ID + " | BOTS IN DB: " + dbBotNodes.length));
 
     for(const botNode of dbBotNodes){
       botNodeIdSet.add(botNode.nodeId)
-      console.log(chalk.black(MODULE_ID + " | LOADED DB BOT NODE IDs [" + botNodeIdSet.size + "] | NID" + botNode.nodeId + " | @" + botNode.screenName));
+
+      if (botNodeIdSet.size % 1000 === 0){
+        console.log(chalk.black(MODULE_ID 
+          + " | LOADED DB BOT NODE IDs [" + botNodeIdSet.size + "]"
+          + " | NID" + botNode.nodeId 
+          + " | @" + botNode.screenName
+        ));
+      }
+        
     }
 
     clearInterval(botSetInterval)
@@ -7937,16 +7949,16 @@ async function updateHashtagSets(p) {
   const hashtagSearchQuery = {};
 
   hashtagSearchCursor = global.wordAssoDb.Hashtag.find(hashtagSearchQuery)
-    .select({
-      nodeId: 1,
-      text: 1,
-      category: 1,
-      categoryAuto: 1,
-      rate: 1,
-      mentions: 1,
-      lastSeen: 1,
-      createdAt: 1
-    })
+    // .select({
+    //   nodeId: 1,
+    //   text: 1,
+    //   category: 1,
+    //   categoryAuto: 1,
+    //   rate: 1,
+    //   mentions: 1,
+    //   lastSeen: 1,
+    //   createdAt: 1
+    // })
     .lean()
     .cursor({ batchSize: configuration.cursorBatchSize });
 
@@ -11995,17 +12007,14 @@ async function initDbUserChangeStream() {
       // change obj doesn't contain userDoc, so use DB BSON ID
 
       deletedUsersSet.add(change._id._data);
+
       statsObj.user.deleted = deletedUsersSet.size;
-      console.log(
-        chalkLog(
-          MODULE_ID +
-            " | DB CHG | X USR [" +
-            statsObj.user.deleted +
-            "]" +
-            " | DB _id: " +
-            change._id._data
-        )
-      );
+
+      console.log(chalkLog(
+        MODULE_ID + " | DB CHG"
+        + " | X USR [" + statsObj.user.deleted + "]"
+        + " | DB _id: " + change._id._data
+      ));
     }
 
     if (
@@ -12183,18 +12192,11 @@ async function initDbHashtagChangeStream() {
 
       statsObj.hashtag.added = addedHashtagsSet.size;
 
-      console.log(
-        chalkLog(
-          MODULE_ID +
-            " | DB CHG | + HT [" +
-            statsObj.hashtag.added +
-            "]" +
-            " | #" +
-            change.fullDocument.nodeId +
-            " | C M: " +
-            formatCategory(change.fullDocument.category)
-        )
-      );
+      console.log(chalkLog(MODULE_ID +
+        " | DB CHG | + HT [" + statsObj.hashtag.added + "]" + 
+        " | CAT: " + formatCategory(change.fullDocument.category) +
+        " | #" + change.fullDocument.nodeId
+      ));
     }
 
     if (change && change.operationType === "delete") {

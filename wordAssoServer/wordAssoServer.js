@@ -4465,10 +4465,11 @@ async function pubSubNodeSetProps(params) {
         dbHashtag = new global.wordAssoDb.Hashtag(node);
       }
 
-      dbHashtag.mentions = Math.max(node.mentions, dbHashtag.mentions);
-      dbHashtag.category = node.category;
-      dbHashtag.rate = node.rate;
-      dbHashtag.lastSeen = node.lastSeen;
+      dbHashtag.mentions = node.mentions ? Math.max(node.mentions, dbHashtag.mentions) : dbHashtag.mentions;
+      dbHashtag.category = node.category || dbHashtag.category;
+      dbHashtag.rate = node.rate || 0;
+      dbHashtag.createdAt = node.createdAt || Date.now();
+      dbHashtag.lastSeen = node.lastSeen || Date.now();
 
       await dbHashtag.save();
 
@@ -4969,7 +4970,12 @@ async function pubSubSearchNode(params) {
         dbHashtag = new global.wordAssoDb.Hashtag(node);
       }
 
-      dbHashtag.mentions = Math.max(dbHashtag.mentions, node.mentions);
+      dbHashtag.mentions = node.mentions ? Math.max(node.mentions, dbHashtag.mentions) : dbHashtag.mentions;
+      dbHashtag.category = node.category || dbHashtag.category;
+      dbHashtag.rate = node.rate || 0;
+      dbHashtag.createdAt = node.createdAt || Date.now();
+      dbHashtag.lastSeen = node.lastSeen || Date.now();
+      
       await dbHashtag.save();
 
       return {node: dbHashtag, nodes: false, results: {} };

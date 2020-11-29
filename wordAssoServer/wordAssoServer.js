@@ -7137,7 +7137,7 @@ async function fetchBotIds(p){
             
             if (configuration.verbose || botIndex % 1000 === 0){
               printUserObj(
-                MODULE_ID + "| +++ BOT [" + botIndex + "] | BOT CAT: " + options.params.category + " | BOT SET SIZE: " + botNodeIdSet.size,
+                MODULE_ID + "| +++ BOT [" + botIndex + "] | SET SIZE: " + botNodeIdSet.size + " | BOT CAT: " + options.params.category,
                 nodeUpdated
               );
             }

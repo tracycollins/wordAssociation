@@ -4443,6 +4443,9 @@ async function pubSubNodeSetProps(params) {
     }
 
     if (node.nodeType === "hashtag") {
+
+      node.text = node.nodeId;
+
       if (isCategorized(node)) {
         categorizedHashtagHashMap.set(node.nodeId, {
           nodeId: node.nodeId,
@@ -8136,19 +8139,17 @@ async function uncatDbCheck(params) {
 }
 
 function initTransmitNodeQueueInterval(interval) {
+
   return new Promise(function (resolve) {
-    console.log(
-      chalk.bold.black(
-        MODULE_ID +
-          " | INIT TRANSMIT NODE QUEUE INTERVAL: " +
-          msToTime(interval)
-      )
-    );
+
+    console.log(chalk.bold.black(MODULE_ID + " | INIT TRANSMIT NODE QUEUE INTERVAL: " + msToTime(interval)));
 
     clearInterval(transmitNodeQueueInterval);
 
     transmitNodeQueueInterval = setInterval(async function () {
+
       try {
+
         if (!transmitNodeQueueReady || transmitNodeQueue.length == 0) {
           return;
         }
@@ -8158,9 +8159,7 @@ function initTransmitNodeQueueInterval(interval) {
         let node = transmitNodeQueue.shift();
 
         if (!node) {
-          console.log(
-            chalkError(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q"))
-          );
+          console.log(chalkError(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q")));
           transmitNodeQueueReady = true;
           return;
         }
@@ -8170,9 +8169,11 @@ function initTransmitNodeQueueInterval(interval) {
         if (empty(node.category)) {
           node.category = "none";
         }
+
         if (empty(node.categoryAuto)) {
           node.categoryAuto = "none";
         }
+        
         if (empty(node.categoryVerified)) {
           node.categoryVerified = false;
         }
@@ -8288,60 +8289,59 @@ function initTransmitNodeQueueInterval(interval) {
 
           try {
 
-            node = await updateNodeMeter(node);
-
-            const nCacheObj = nodeCache.get(node.nodeId);
-
-            if (nCacheObj !== undefined) {
-              node.mentions = Math.max(node.mentions, nCacheObj.mentions);
-              nodeCache.set(node.nodeId, node);
-            }
-
-            node.updateLastSeen = true;
-
             if (!statsObj.dbConnectionReady) {
               transmitNodeQueueReady = true;
               return;
             }
 
-            delete node._id;
-            node.text = node.nodeId;
+            node = await updateNodeMeter(node);
+              
+            let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId });
 
-            const updatedHashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(
-              { nodeId: node.nodeId },
-              node,
-              { upsert: true, new: true, lean: true }
-            );
+            if (!dbHashtag || dbHashtag === undefined){
+              dbHashtag = new global.wordAssoDb.Hashtag(node)
+            }
+
+            dbHashtag.lastSeen = Date.now();
+            dbHashtag.text = node.nodeId;
+            dbHashtag.mentions = node.mentions ? Math.max(node.mentions, dbHashtag.mentions) : 1;
+            
+            const nCacheObj = nodeCache.get(node.nodeId);
+
+            if (nCacheObj !== undefined) {
+              dbHashtag.mentions = Math.max(dbHashtag.mentions, nCacheObj.mentions);
+              nodeCache.set(dbHashtag.nodeId, dbHashtag);
+            }
+
 
             viewNameSpace.volatile.emit(
               "node",
-              pick(updatedHashtag, fieldsTransmitKeys)
+              pick(dbHashtag, fieldsTransmitKeys)
             );
 
             transmitNodeQueueReady = true;
 
             return;
+
           } catch (e) {
-            console.log(
-              chalkError(
-                MODULE_ID + " | findOneAndUpdate HT ERROR\n" + jsonPrint(e)
-              )
-            );
+
+            console.log(chalkError(MODULE_ID + " | findOneAndUpdate HT ERROR\n" + jsonPrint(e)));
 
             viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
             transmitNodeQueueReady = true;
+
             return;
           }
         }
 
         viewNameSpace.volatile.emit("node", node);
         transmitNodeQueueReady = true;
+
       } catch (err) {
         transmitNodeQueueReady = true;
-        console.trace(
-          chalkError(MODULE_ID + " | *** TRANSMIT NODE QUEUE ERROR: " + err)
-        );
+        console.trace(chalkError(MODULE_ID + " | *** TRANSMIT NODE QUEUE ERROR: " + err));
       }
+
     }, interval);
 
     resolve();

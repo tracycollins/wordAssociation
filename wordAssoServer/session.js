@@ -572,6 +572,7 @@ function saveConfig() {
 
 var controlDivElement = document.getElementById("controlDiv");
 var statsDivElement = document.getElementById("statsDiv");
+statsDivElement.style.visibility = "hidden";
 var statsText = document.getElementById("stats-text");
 
 var statsLeftBarDiv = document.getElementById("left-bar");
@@ -679,7 +680,7 @@ function displayStats(isVisible, dColor) {
   }
 
   statsDivElement.style.visibility = isVisible ? "visible" : "hidden";
-  
+
   if (dColor !== undefined) {
     statsDivElement.style.color = dColor;
   }

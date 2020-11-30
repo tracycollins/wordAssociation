@@ -224,7 +224,7 @@ requirejs(
             }
             mouseMovingFlag = true;
             currentSessionView.mouseMoving(true);
-            displayStats(true, palette.white);
+            // displayStats(true, palette.white);
             displayControl(true);
             resetMouseMoveTimer();
           }
@@ -679,6 +679,7 @@ function displayStats(isVisible, dColor) {
   }
 
   statsDivElement.style.visibility = isVisible ? "visible" : "hidden";
+  
   if (dColor !== undefined) {
     statsDivElement.style.color = dColor;
   }
@@ -705,9 +706,9 @@ function resetMouseMoveTimer() {
       currentSessionView.simulationControl("RESUME");
     }
 
-    if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
-      displayStats(false, palette.white);
-    }
+    // if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
+    //   displayStats(false, palette.white);
+    // }
 
     document.dispatchEvent(mouseMoveTimeoutEventObj);
   }, mouseMoveTimeoutInterval);
@@ -1291,11 +1292,11 @@ function toggleStats() {
   config.showStatsFlag = !config.showStatsFlag;
   console.warn("TOGGLE STATS: " + config.showStatsFlag);
 
-  if (config.showStatsFlag) {
-    displayStats(config.showStatsFlag);
-  } else {
-    displayStats(false, palette.white);
-  }
+  // if (config.showStatsFlag) {
+  //   displayStats(config.showStatsFlag);
+  // } else {
+  //   displayStats(false, palette.white);
+  // }
 
   if (controlPanelFlag) {
     controlPanel.updateControlPanel(config);
@@ -2356,12 +2357,14 @@ function initialize(callback) {
             });
 
             setTimeout(function () {
+
               console.log("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
               initStatsUpdate(STATS_UPDATE_INTERVAL);
-              if (!config.showStatsFlag) {
-                displayStats(false, palette.white);
-              }
+
+              // if (!config.showStatsFlag) {
+              //   displayStats(false, palette.white);
+              // }
 
               statsObj.isAuthenticated = LOCAL_SOURCE === DEFAULT_SOURCE;
               console.log("AUTHENTICATED: " + statsObj.isAuthenticated);
@@ -2390,9 +2393,10 @@ function initialize(callback) {
               console.log("END PAGE LOAD TIMEOUT");
               initStatsUpdate(STATS_UPDATE_INTERVAL);
               pageLoadedTimeIntervalFlag = false;
-              if (!config.showStatsFlag) {
-                displayStats(false, palette.white);
-              }
+
+              // if (!config.showStatsFlag) {
+              //   displayStats(false, palette.white);
+              // }
 
               statsObj.isAuthenticated = LOCAL_SOURCE === DEFAULT_SOURCE;
               console.log("AUTHENTICATED: " + statsObj.isAuthenticated);
@@ -2419,13 +2423,15 @@ function initialize(callback) {
           });
 
           setTimeout(function () {
+
             console.log("END PAGE LOAD TIMEOUT");
 
             initStatsUpdate(STATS_UPDATE_INTERVAL);
             pageLoadedTimeIntervalFlag = false;
-            if (!config.showStatsFlag) {
-              displayStats(false, palette.white);
-            }
+
+            // if (!config.showStatsFlag) {
+            //   displayStats(false, palette.white);
+            // }
 
             statsObj.isAuthenticated = LOCAL_SOURCE === DEFAULT_SOURCE;
             console.log("AUTHENTICATED: " + statsObj.isAuthenticated);

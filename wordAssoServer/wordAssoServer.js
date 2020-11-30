@@ -5229,29 +5229,42 @@ async function twitterSearchNode(params) {
         },
       });
 
-      if (response.node) {
-
-        if (twitterClient) {
-          twitterClient.get("search/tweets", { q: response.node.nodeId, count: configuration.tweetSearchCount }, (err, tweets) => {
-            viewNameSpace.emit("SET_TWITTER_HASHTAG", {
-              node: response.node,
-              tweets: tweets,
-              stats: statsObj,
-            });
-          })
-        }
-        else{
+      if (twitterClient) {
+        twitterClient.get("search/tweets", { q: searchNode, count: configuration.tweetSearchCount }, (err, tweets) => {
           viewNameSpace.emit("SET_TWITTER_HASHTAG", {
             node: response.node,
-            tweets: [],
+            tweets: tweets,
             stats: statsObj,
           });
-        }
-        
-      } 
+        })
+      }
       else {
         viewNameSpace.emit("TWITTER_HASHTAG_NOT_FOUND", { searchNode: searchNode, stats: statsObj });
       }
+
+      // if (response.node) {
+
+      //   if (twitterClient) {
+      //     twitterClient.get("search/tweets", { q: response.node.nodeId, count: configuration.tweetSearchCount }, (err, tweets) => {
+      //       viewNameSpace.emit("SET_TWITTER_HASHTAG", {
+      //         node: response.node,
+      //         tweets: tweets,
+      //         stats: statsObj,
+      //       });
+      //     })
+      //   }
+      //   else{
+      //     viewNameSpace.emit("SET_TWITTER_HASHTAG", {
+      //       node: response.node,
+      //       tweets: [],
+      //       stats: statsObj,
+      //     });
+      //   }
+        
+      // } 
+      // else {
+      //   viewNameSpace.emit("TWITTER_HASHTAG_NOT_FOUND", { searchNode: searchNode, stats: statsObj });
+      // }
 
       return;
     }

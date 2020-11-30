@@ -250,7 +250,7 @@ function printHashtagObj(title, hashtag) {
   console.log(chalkLog(title
     + " | CR: " + getTimeStamp(hashtag.createdAt)
     + " | LS: " + getTimeStamp(hashtag.lastSeen)
-    + " | R: " + hashtag.rate.toFixed(1)
+    + " | R: " + hashtag.rate.toFixed(2)
     + " | Ms: " + hashtag.mentions
     + " | CAT: " + formatCategory(hashtag.category)
     + " | #" + hashtag.nodeId

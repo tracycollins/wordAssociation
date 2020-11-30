@@ -802,7 +802,7 @@ const nodeSetPropsResultHandler = async function (message) {
             { nodeId: messageObj.node.nodeId },
             messageObj.node,
             { upsert: true, new: true }
-          ).exec();
+          );
 
           // return dbUser;
         }
@@ -4437,7 +4437,7 @@ async function pubSubNodeSetProps(params) {
         { nodeId: node.nodeId },
         node,
         { upsert: true, new: true }
-      ).exec();
+      );
 
       return dbUser;
     }
@@ -4457,9 +4457,9 @@ async function pubSubNodeSetProps(params) {
       //   { nodeId: node.nodeId },
       //   node,
       //   { upsert: true, new: true }
-      // ).exec();
+      // );
 
-      let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId }).exec();
+      let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId });
 
       if (empty(dbHashtag)) {
         dbHashtag = new global.wordAssoDb.Hashtag(node);
@@ -4617,7 +4617,7 @@ async function updateDbIgnoredHashtags() {
     
     try {
 
-      let dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: hashtag.toLowerCase()}).exec();
+      let dbHashtag = await global.wordAssoDb.Hashtag.findOne({nodeId: hashtag.toLowerCase()});
 
       if (empty(dbHashtag)) {
         dbHashtag = new global.wordAssoDb.Hashtag({nodeId: hashtag.toLowerCase()});
@@ -4900,7 +4900,7 @@ async function pubSubSearchNode(params) {
           { nodeId: node.nodeId },
           node,
           { upsert: true, new: true }
-        ).exec();
+        );
 
         result.nodes.push(nodeUpdated);
 
@@ -4929,7 +4929,7 @@ async function pubSubSearchNode(params) {
           { nodeId: node.nodeId },
           node,
           { upsert: true, new: true }
-        ).exec();
+        );
 
         return {
           node: nodeUpdated, 
@@ -4962,9 +4962,9 @@ async function pubSubSearchNode(params) {
       //   { nodeId: node.nodeId },
       //   node,
       //   { upsert: true, new: true }
-      // ).exec();
+      // );
 
-      let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId}).exec();
+      let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId});
 
       if (empty(dbHashtag)) {
         dbHashtag = new global.wordAssoDb.Hashtag(node);
@@ -7141,7 +7141,7 @@ async function fetchBotIds(p){
                 bannerImageUrl: botObj.cover_photo,
               },
               { upsert: true, new: true }
-            ).exec();
+            );
 
             botNodeIdSet.add(nodeUpdated.nodeId)
             
@@ -8084,7 +8084,7 @@ function initNodeSetPropsQueueInterval(interval) {
 async function uncatDbCheck(params) {
   statsObj.user.dbUncat = await global.wordAssoDb.Uncat.estimatedDocumentCount();
 
-  let dbUncat = await global.wordAssoDb.Uncat.findOne({nodeId: params.node.nodeId}).lean().exec();
+  let dbUncat = await global.wordAssoDb.Uncat.findOne({nodeId: params.node.nodeId}).lean();
 
   if (!dbUncat || dbUncat === undefined) {
     debug(
@@ -8307,7 +8307,7 @@ function initTransmitNodeQueueInterval(interval) {
               { nodeId: node.nodeId },
               node,
               { upsert: true, new: true, lean: true }
-            ).exec();
+            );
 
             viewNameSpace.volatile.emit(
               "node",
@@ -8765,7 +8765,7 @@ function initAppRouting(callback) {
 
     try{
 
-      const user = await global.wordAssoDb.User.findOne(query).exec()
+      const user = await global.wordAssoDb.User.findOne(query)
 
       if (user) {
         console.log(chalkLog(MODULE_ID + " | R< SEARCH | USER | +++ FOUND: " + user.screenName));
@@ -8792,7 +8792,7 @@ function initAppRouting(callback) {
 
     try{
 
-      const hashtag = await global.wordAssoDb.Hashtag.findOne(query).exec()
+      const hashtag = await global.wordAssoDb.Hashtag.findOne(query) 
 
       if (hashtag) {
         console.log(chalkLog(MODULE_ID + " | R< SEARCH | HASHTAG | +++ FOUND: " + hashtag.nodeId));

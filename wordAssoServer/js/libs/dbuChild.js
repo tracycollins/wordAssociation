@@ -365,17 +365,17 @@ async function tweetUpdateDb(params){
       const hashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: ht });
 
       if (hashtag) { 
-        printHashtagObj("DBU | +++ HT DB HIT (before update)", hashtag);
+        // printHashtagObj("DBU | +++ HT DB HIT (before update)", hashtag);
         hashtag.mentions += 1;
         hashtag.lastSeen = Date.now();
         await hashtag.save();
-        printHashtagObj("DBU | +++ HT DB HIT (after update) ", hashtag);
+        printHashtagObj("DBU | +++ HT DB HIT", hashtag);
       }
       else{
         console.log("DBU | --- HT DB MISS | " + ht);
         const newHashtag = new global.wordAssoDb.Hashtag({nodeId: ht, mentions: 1});
         await newHashtag.save();
-        printHashtagObj("DBU | ==> HT DB NEW ", newHashtag);
+        printHashtagObj("DBU | ==> HT DB NEW", newHashtag);
       }
     }
 
@@ -424,7 +424,6 @@ function initUserUpdateQueueInterval(interval){
       console.log(chalkError("DBU | *** INIT TWEET UPDATE QUEUE INTERVAL ERROR: ", err));
       reject(err);
     }
-
   });
 }
 

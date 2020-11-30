@@ -646,6 +646,7 @@ const App = () => {
   }, [history, location])
 
   const nodeValid = (node) => {
+
     if (node === undefined) return false
     if (node.nodeId === undefined) return false
 
@@ -756,8 +757,7 @@ const App = () => {
         console.debug("new: #" + response.node.nodeId);
         setTweets(tweets => response.tweets)
       }
-      else
-      {
+      else{
         setStatusHashtag(statusHashtag => "invalid")
         console.debug("INVALID HT NODE | RESULTS");
         console.debug({response})

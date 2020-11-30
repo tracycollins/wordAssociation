@@ -5229,29 +5229,65 @@ async function twitterSearchNode(params) {
       if (response.node) {
 
         if (twitterClient) {
+
           const searchTerm = "#" + response.node.nodeId;
+
+          console.log(chalkSocket(MODULE_ID +
+            " | twitterSearchNode | SEARCH FOR HT TWEETS" +
+            " | " + getTimeStamp() +
+            " | " + searchTerm
+          ));
+
           twitterClient.get("search/tweets", { q: searchTerm, count: configuration.tweetSearchCount }, (err, tweets) => {
+
+            if (err){
+              console.log(chalkError(MODULE_ID +
+                " | twitterSearchNode | *** SEARCH FOR HT TWEETS ERROR" +
+                " | " + getTimeStamp() +
+                " | " + searchTerm +
+                " | " + err
+              ));
+
+              viewNameSpace.emit("SET_TWITTER_HASHTAG", {
+                node: response.node,
+                stats: statsObj,
+              });
+
+              return;
+            }
+
+            console.log(chalkSocket(MODULE_ID +
+              " | twitterSearchNode | HT TWEETS" +
+              " | " + getTimeStamp() +
+              " | " + searchTerm + 
+              " | TWs: " + tweets.statuses.length
+            ));
+
             viewNameSpace.emit("SET_TWITTER_HASHTAG", {
               node: response.node,
               tweets: tweets,
               stats: statsObj,
             });
+
+            return;
           })
         }
         else{
+          
           viewNameSpace.emit("SET_TWITTER_HASHTAG", {
             node: response.node,
-            tweets: [],
             stats: statsObj,
           });
+
+          return;
         }
         
       } 
       else {
         viewNameSpace.emit("TWITTER_HASHTAG_NOT_FOUND", { searchNode: searchNode, stats: statsObj });
+        return;
       }
 
-      return;
     }
 
     if (searchNode.startsWith("@")) {

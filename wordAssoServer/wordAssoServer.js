@@ -5229,7 +5229,8 @@ async function twitterSearchNode(params) {
       if (response.node) {
 
         if (twitterClient) {
-          twitterClient.get("search/tweets", { q: response.node.nodeId, count: configuration.tweetSearchCount }, (err, tweets) => {
+          const searchTerm = "#" + response.node.nodeId;
+          twitterClient.get("search/tweets", { q: searchTerm, count: configuration.tweetSearchCount }, (err, tweets) => {
             viewNameSpace.emit("SET_TWITTER_HASHTAG", {
               node: response.node,
               tweets: tweets,
@@ -5252,10 +5253,6 @@ async function twitterSearchNode(params) {
 
       return;
     }
-
-    // const sObj = {};
-    // sObj.user = statsObj.user;
-    // sObj.bestNetwork = statsObj.bestNetwork;
 
     if (searchNode.startsWith("@")) {
 

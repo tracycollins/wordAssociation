@@ -526,6 +526,7 @@ async function initPubSub(p) {
 const subscriptionHashMap = {};
 
 const nodeSearchResultHandler = async function (message) {
+  
   try {
     message.ack();
 
@@ -4950,7 +4951,7 @@ async function pubSubSearchNode(params) {
 
     } 
     
-    if (node.nodeType === "hashtag" && isCategorized(node)) {
+    if (node && node.nodeType === "hashtag" && isCategorized(node)) {
 
       categorizedHashtagHashMap.set(node.nodeId, {
         nodeId: node.nodeId,
@@ -5229,42 +5230,29 @@ async function twitterSearchNode(params) {
         },
       });
 
-      if (twitterClient) {
-        twitterClient.get("search/tweets", { q: searchNode, count: configuration.tweetSearchCount }, (err, tweets) => {
+      if (response.node) {
+
+        if (twitterClient) {
+          twitterClient.get("search/tweets", { q: response.node.nodeId, count: configuration.tweetSearchCount }, (err, tweets) => {
+            viewNameSpace.emit("SET_TWITTER_HASHTAG", {
+              node: response.node,
+              tweets: tweets,
+              stats: statsObj,
+            });
+          })
+        }
+        else{
           viewNameSpace.emit("SET_TWITTER_HASHTAG", {
             node: response.node,
-            tweets: tweets,
+            tweets: [],
             stats: statsObj,
           });
-        })
-      }
+        }
+        
+      } 
       else {
         viewNameSpace.emit("TWITTER_HASHTAG_NOT_FOUND", { searchNode: searchNode, stats: statsObj });
       }
-
-      // if (response.node) {
-
-      //   if (twitterClient) {
-      //     twitterClient.get("search/tweets", { q: response.node.nodeId, count: configuration.tweetSearchCount }, (err, tweets) => {
-      //       viewNameSpace.emit("SET_TWITTER_HASHTAG", {
-      //         node: response.node,
-      //         tweets: tweets,
-      //         stats: statsObj,
-      //       });
-      //     })
-      //   }
-      //   else{
-      //     viewNameSpace.emit("SET_TWITTER_HASHTAG", {
-      //       node: response.node,
-      //       tweets: [],
-      //       stats: statsObj,
-      //     });
-      //   }
-        
-      // } 
-      // else {
-      //   viewNameSpace.emit("TWITTER_HASHTAG_NOT_FOUND", { searchNode: searchNode, stats: statsObj });
-      // }
 
       return;
     }

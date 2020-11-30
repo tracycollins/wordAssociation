@@ -152,7 +152,7 @@ const App = () => {
   let location = useLocation()
   let { slug } = useParams();
 
-  console.log({slug})
+  // console.log({slug})
 
   const classes = useStyles();
 
@@ -755,7 +755,10 @@ const App = () => {
         setStatusHashtag(statusHashtag => "found")
         setCurrentHashtag(currentHashtag => response.node) 
         console.debug("new: #" + response.node.nodeId);
-        setTweets(tweets => response.tweets)
+        if (response.tweets) {
+          console.debug("RX SET_TWITTER_HASHTAG | SET TWEETS: " + response.tweets.statuses.length);
+          setTweets(tweets => response.tweets)
+        }
       }
       else{
         setStatusHashtag(statusHashtag => "invalid")
@@ -808,8 +811,10 @@ const App = () => {
     });
 
     socket.on("TWITTER_USER_NOT_FOUND", (response) => {
+
       console.debug("RX TWITTER_USER_NOT_FOUND");
       console.debug(response);
+      
       setStatus(status => response.stats);
       if (response.searchNode.startsWith("@?") && response.results && !response.results.endCursor){
         console.debug("RETRY NEXT UNCAT: " + response.searchNode);

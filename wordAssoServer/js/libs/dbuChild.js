@@ -250,9 +250,9 @@ function printHashtagObj(title, hashtag) {
   console.log(chalkLog(title
     + " | CR: " + getTimeStamp(hashtag.createdAt)
     + " | LS: " + getTimeStamp(hashtag.lastSeen)
+    + " | CAT: " + formatCategory(hashtag.category)
     + " | R: " + hashtag.rate.toFixed(2)
     + " | Ms: " + hashtag.mentions
-    + " | CAT: " + formatCategory(hashtag.category)
     + " | #" + hashtag.nodeId
   ));
 }
@@ -354,18 +354,9 @@ async function tweetUpdateDb(params){
 
     for(const ht of params.tweetObj.hashtags){
 
-      // const hashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(
-      //   { nodeId: ht }, 
-      //   { $inc: { mentions: 1}, lastSeen: Date.now() }, 
-      //   options
-      // );
-
-      // printHashtagObj("DBU | +++ HT DB HIT ", hashtag);
-
       const hashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: ht });
 
       if (hashtag) { 
-        // printHashtagObj("DBU | +++ HT DB HIT (before update)", hashtag);
         hashtag.mentions += 1;
         hashtag.lastSeen = Date.now();
         await hashtag.save();

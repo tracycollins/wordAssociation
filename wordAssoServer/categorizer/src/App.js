@@ -436,7 +436,7 @@ const App = () => {
           }
           if (event.code === "ArrowLeft"){ 
             if (historyArrayRef.current.length > 0){
-              const currentRoute = historyArrayRef.current.pop();
+              historyArrayRef.current.pop();
               const nextRoute = historyArrayRef.current.pop();
               history.push(nextRoute)
               eventValue = nextRoute.split("/").pop()
@@ -742,7 +742,7 @@ const App = () => {
       setCurrentHashtag(currentHashtag => {
         return {nodeId: response.searchNode.slice(1)}
       }) 
-      setTweets(tweets => [])
+      setTweets({ search_metadata: {}, statuses: [] })
       setProgress(progress => "idle");
       setStatus(status => response.stats)
     })

@@ -8303,6 +8303,7 @@ function initTransmitNodeQueueInterval(interval) {
             }
 
             dbHashtag.lastSeen = Date.now();
+            dbHashtag.rate = node.rate;
             dbHashtag.text = node.nodeId;
             dbHashtag.mentions = node.mentions ? Math.max(node.mentions, dbHashtag.mentions) : 1;
             
@@ -8313,6 +8314,7 @@ function initTransmitNodeQueueInterval(interval) {
               nodeCache.set(dbHashtag.nodeId, dbHashtag);
             }
 
+            await dbHashtag.save();
 
             viewNameSpace.volatile.emit(
               "node",

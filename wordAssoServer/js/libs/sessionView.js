@@ -302,9 +302,9 @@ var viewerObj = {
 
 var mouseMoveTimeout = setTimeout(function(){
   d3.select("body").style("cursor", "none");
-  if (!showStatsFlag && !pageLoadedTimeIntervalFlag){
-    displayInfoOverlay(1);
-  }
+  // if (!showStatsFlag && !pageLoadedTimeIntervalFlag){
+  //   displayInfoOverlay(1);
+  // }
   displayControlOverlay(true);
 }, mouseMoveTimeoutInterval);
 
@@ -313,7 +313,7 @@ var mouseMoveTimeout = setTimeout(function(){
 function resetMouseMoveTimer() {
   clearTimeout(mouseMoveTimeout);
 
-  displayInfoOverlay(1);
+  // displayInfoOverlay(1);
   displayControlOverlay(true);
 
   mouseMoveTimeout = setTimeout(function(){
@@ -425,7 +425,7 @@ socket.on("reconnect", function(){
 
 socket.on("connect", function(){
   serverConnected = true;
-  displayInfoOverlay(1.0, defaultTextFill);
+  // displayInfoOverlay(1.0, defaultTextFill);
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
   updateStatsOverlay4(socket.id);
 
@@ -433,7 +433,7 @@ socket.on("connect", function(){
 
 socket.on("disconnect", function(){
   serverConnected = false;
-  displayInfoOverlay(1.0, 'red');
+  // displayInfoOverlay(1.0, 'red');
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
   deleteAllSessions(function(){
     console.log("DELETED ALL SESSIONS");
@@ -1005,7 +1005,7 @@ d3.select('#statsToggleButton').on("click", function() {  // STATS BUTTON
 
   if (showStatsFlag || pageLoadedTimeIntervalFlag) {
     d3.select("#statsToggleButton").text("hide stats");
-    displayInfoOverlay(1.0);
+    // displayInfoOverlay(1.0);
   }
   else {
     d3.select("#statsToggleButton").text("show stats");
@@ -2394,7 +2394,7 @@ function resize() {
 
 window.onload = function () {
   resize();
-  displayInfoOverlay(1.0);
+  // displayInfoOverlay(1.0);
   displayControlOverlay(true);
   getUrlVariables(function(err, urlVariablesObj){
     if (!err) {

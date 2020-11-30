@@ -7737,11 +7737,15 @@ function hashtagCursorDataHandler(hashtag) {
 
       console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! HT UNDEFINED PROPS | " + printHashtag({ hashtag: hashtag })));
 
+      hashtag.category = hashtag.category || "none";
       hashtag.mentions = hashtag.mentions || 0;
       hashtag.lastSeen = hashtag.lastSeen || Date.now();
       hashtag.createdAt = hashtag.createdAt || Date.now();
 
       delete hashtag._id;
+      delete hashtag.keywords;
+      delete hashtag.keywordsAuto;
+      
       hashtag.text = hashtag.nodeId;
 
       global.wordAssoDb.Hashtag.findOneAndUpdate(

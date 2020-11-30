@@ -4951,22 +4951,18 @@ async function pubSubSearchNode(params) {
 
     } 
     
-    if (node && node.nodeType === "hashtag" && isCategorized(node)) {
-
-      categorizedHashtagHashMap.set(node.nodeId, {
-        nodeId: node.nodeId,
-        text: node.nodeId,
-        manual: node.category,
-        auto: "none",
-      });
+    if (node && node.nodeType === "hashtag") {
+ 
+      if(isCategorized(node)){
+        categorizedHashtagHashMap.set(node.nodeId, {
+          nodeId: node.nodeId,
+          text: node.nodeId,
+          manual: node.category,
+          auto: "none",
+        });
+      }
 
       delete node._id;
-
-      // const nodeUpdated = await global.wordAssoDb.Hashtag.findOneAndUpdate(
-      //   { nodeId: node.nodeId },
-      //   node,
-      //   { upsert: true, new: true }
-      // );
 
       let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId});
 
@@ -4982,11 +4978,11 @@ async function pubSubSearchNode(params) {
       
       await dbHashtag.save();
 
-      return {node: dbHashtag, nodes: false, results: {} };
+      return {node: dbHashtag, nodes: [], results: {} };
 
     }
 
-    return { node: false, nodes: false, results: {} }
+    return { node: false, nodes: [], results: {} }
 
   } catch (err) {
 

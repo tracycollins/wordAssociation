@@ -209,7 +209,7 @@ const HashtagView = (props) => {
   }
 
   const displayTweets = (tweets) => {
-    if (tweets.statuses === undefined) { return <></>}
+    if (!tweets || tweets === undefined || tweets.statuses === undefined) { return <></>}
     return tweets.statuses.map((tweet) => {
       return <Tweet key={tweet.id_str} tweetId={tweet.id_str} options={{ width: "400" }} />
     })

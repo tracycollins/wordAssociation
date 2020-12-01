@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { red, blue, green, gray, black, white, yellow } from '@material-ui/core/colors';
+
 import { Timeline } from 'react-twitter-widgets'
 
 import Duration from 'duration';
@@ -23,11 +25,14 @@ import FormGroup from '@material-ui/core/FormGroup';
 import Grid from '@material-ui/core/Grid';
 // import IconButton from '@material-ui/core/IconButton';
 import InputBase from '@material-ui/core/InputBase';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
 // import MenuIcon from '@material-ui/icons/Menu';
 // import Paper from '@material-ui/core/Paper';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import SearchIcon from '@material-ui/icons/Search';
+import Select from '@material-ui/core/Select';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -38,7 +43,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 
-const fontSizeCategory = '0.7rem';
+const fontSizeCategory = '0.9rem';
 
 const StyledTableCell = withStyles((theme) => ({
   head: {
@@ -46,7 +51,7 @@ const StyledTableCell = withStyles((theme) => ({
     // color: theme.palette.common.white,
   },
   body: {
-    fontSize: 10,
+    fontSize: 11,
   },
 }))(TableCell);
 
@@ -75,7 +80,7 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(1),
   },  
   card: {
-    maxWidth: "90%",
+    // maxWidth: "90%",
     alignSelf: "center",
   },
   profileImage: {
@@ -117,6 +122,14 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: '#106ba3',
     },
   },
+  
+  selectCategory: {
+    fontSize: '0.5rem',
+    backgroundColor: '#ddeeee',
+    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+  },
   radioGroupCategory: {
     fontSize: '0.5rem',
     backgroundColor: '#ddeeee',
@@ -124,6 +137,13 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(2),
     marginBottom: theme.spacing(1),
   },
+  checkbox: {
+    color: green[400],
+    '&$checked': {
+      color: green[600],
+    },
+  },
+  checked: {},
   radioButtonLabel: {
     fontSize: '0.9rem'
   },
@@ -139,7 +159,7 @@ const useStyles = makeStyles((theme) => ({
   },
   tableCategorized: {
     borderRadius: theme.shape.borderRadius,
-    borderColor: 'red',
+    // borderColor: 'red',
     backgroundColor: '#ddeeee',
   },
   tableRowGreen: {
@@ -222,7 +242,7 @@ const useStyles = makeStyles((theme) => ({
   },
 
   left: {
-    width: '50%',
+    textAlign: 'center',
     fontSize: fontSizeCategory,
     backgroundColor: 'blue',
     borderRadius: theme.shape.borderRadius,
@@ -231,16 +251,16 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   neutral: {
-    width: '50%',
+    textAlign: 'center',
     fontSize: fontSizeCategory,
-    backgroundColor: 'gray',
+    backgroundColor: 'darkgray',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
     color: 'white',
     marginBottom: theme.spacing(1),
   },
   right: {
-    width: '50%',
+    textAlign: 'center',
     fontSize: fontSizeCategory,
     backgroundColor: 'red',
     borderRadius: theme.shape.borderRadius,
@@ -249,7 +269,7 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   positive: {
-    width: '50%',
+    textAlign: 'center',
     fontSize: fontSizeCategory,
     backgroundColor: 'green',
     borderRadius: theme.shape.borderRadius,
@@ -258,25 +278,25 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   negative: {
-    width: '50%',
+    textAlign: 'center',
     fontSize: fontSizeCategory,
-    backgroundColor: 'red',
+    backgroundColor: 'yellow',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
-    color: 'white',
+    color: 'black',
     marginBottom: theme.spacing(1),
   },
   none: {
-    width: '50%',
+    textAlign: 'center',
     fontSize: fontSizeCategory,
-    backgroundColor: 'lightgray',
+    backgroundColor: 'white',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
-    color: 'white',
+    color: 'black',
     marginBottom: theme.spacing(1),
   },
   ignored: {
-    width: '50%',
+    // width: '40%',
     fontSize: fontSizeCategory,
     backgroundColor: 'yellow',
     borderRadius: theme.shape.borderRadius,
@@ -368,12 +388,8 @@ const User = (props) => {
 
   return (
     <>
-      <AppBar  className={classes.appBar} position="static">
+      {/* <AppBar  className={classes.appBar} position="static">
         <Toolbar variant="dense">
-
-          {/* <Typography variant="h6" className={classes.title}>
-            User
-          </Typography> */}
 
           <div className={classes.search}>
             <div className={classes.searchIcon}>
@@ -415,23 +431,26 @@ const User = (props) => {
           </ButtonGroup>
 
         </Toolbar>
-      </AppBar>
+      </AppBar> */}
       
       <Grid className={classes.grid}>
           <Grid item className={classes.gridItem} xs={3}>
             <Card className={classes.card} variant="outlined">
-              <CardActions onClick={openUserTwitterPage}>
+
+              <CardContent onClick={openUserTwitterPage}>
+                  <Typography variant="h6">{props.user.name}</Typography>
+                  <Typography>@{props.user.screenName}</Typography>
+              </CardContent>
+
+              {/* <CardActions onClick={openUserTwitterPage}>
                   <Typography className={props.user.ignored ? classes["ignored"] : getCategoryClass(props.user.category)} align="center">
                     {props.user.ignored ? "IGNORED" : props.user.category.toUpperCase() || "MANUAL: NONE"}
                   </Typography>
                   <Typography className={getCategoryClass(props.user.categoryAuto)} align="center">
                     AUTO: {props.user.categoryAuto.toUpperCase() || "NONE"}
                   </Typography>
-              </CardActions>
-              <CardContent onClick={openUserTwitterPage}>
-                  <Typography variant="h6">{props.user.name}</Typography>
-                  <Typography>@{props.user.screenName}</Typography>
-              </CardContent>
+              </CardActions> */}
+
               <CardMedia
                 className={classes.profileImage}
                 src={props.user.profileImageUrl || defaultProfileImage}
@@ -445,9 +464,7 @@ const User = (props) => {
                 onError={e => {}}              
               />
               <CardContent>
-                <Typography>
-                  {props.user.description}
-                </Typography>
+                <Typography>{props.user.description}</Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -457,7 +474,7 @@ const User = (props) => {
                 sourceType: 'profile',
                 screenName: props.user.screenName
               }}
-              options={{width: '100%', height: '640'}}
+              options={{width: '100%', height: '800'}}
             />
           </Grid>
           <Grid item className={classes.gridItem} xs={2}>
@@ -559,23 +576,29 @@ const User = (props) => {
           </Grid>
           <Grid item className={classes.gridItem} xs={1}>
             <FormGroup>
-              <FormControl component="fieldset">
-                <RadioGroup 
-                  className={classes.radioGroupCategory}
-                  aria-label="category" 
-                  name="category" 
-                  // size="small"
-                  value={props.user.category || "none"} 
+              <FormControl >
+                <InputLabel id="category-manual">CATEGORY</InputLabel>
+                <Select
+                  labelId="category-manual-label"
+                  id="category-manual"
+                  name="category"
+                  className={getCategoryClass(props.user.category)}
+                  value={props.user.category || "none"}
                   onChange={(event) => props.handleNodeChange(event, props.user)}
                 >
-                  <FormControlLabel value="left" control={<StyledRadio/>} label={<Typography className={classes.radioButtonLabel}>LEFT</Typography>}/>
-                  <FormControlLabel value="right" control={<StyledRadio/>} label={<Typography className={classes.radioButtonLabel}>RIGHT</Typography>} />
-                  <FormControlLabel value="neutral" control={<StyledRadio/>} label={<Typography className={classes.radioButtonLabel}>NEUTRAL</Typography>} />
-                  <FormControlLabel value="positive" control={<StyledRadio/>} label={<Typography className={classes.radioButtonLabel}>POSITIVE</Typography>} />
-                  <FormControlLabel value="negative" control={<StyledRadio/>} label={<Typography className={classes.radioButtonLabel}>NEGATIVE</Typography>} />
-                  <FormControlLabel value="none" control={<StyledRadio/>} label={<Typography className={classes.radioButtonLabel}>NONE</Typography>} />
-                </RadioGroup>
+                  <MenuItem dense={true} value={"none"} >NONE</MenuItem>
+                  <MenuItem dense={true} value={"left"} >LEFT</MenuItem>
+                  <MenuItem dense={true} value={"neutral"}>NEUTRAL</MenuItem>
+                  <MenuItem dense={true} value={"right"}>RIGHT</MenuItem>
+                  <MenuItem dense={true} value={"positive"}>POSITIVE</MenuItem>
+                  <MenuItem dense={true} value={"negative"}>NEGATIVE</MenuItem>
+
+                </Select>
               </FormControl>
+
+              <Typography className={getCategoryClass(props.user.categoryAuto)} align="center">
+                AUTO: {props.user.categoryAuto ? props.user.categoryAuto.toUpperCase() : "NONE"}
+              </Typography>
 
               <FormControl 
                 component="fieldset"
@@ -583,19 +606,19 @@ const User = (props) => {
                 size="small"
               >
                 <FormControlLabel
-                  control={<Checkbox size="small" checked={props.user.following || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="following" />}
+                  control={<Checkbox className={classes.checkbox} size="small" checked={props.user.following || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="following" />}
                   label={<Typography className={classes.radioButtonLabel}>FOLLOWING</Typography>}
                 />
                 <FormControlLabel
-                  control={<Checkbox size="small" checked={props.user.categoryVerified || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="catVerified" />}
+                  control={<Checkbox className={classes.checkbox} size="small" checked={props.user.categoryVerified || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="catVerified" />}
                   label={<Typography className={classes.radioButtonLabel}>VERIFIED</Typography>}
                 />
                 <FormControlLabel
-                  control={<Checkbox size="small" checked={props.user.ignored || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="ignored" />}
+                  control={<Checkbox className={classes.checkbox} size="small" checked={props.user.ignored || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="ignored" />}
                   label={<Typography className={classes.radioButtonLabel}>IGNORED</Typography>}
                 />
                 <FormControlLabel
-                  control={<Checkbox size="small" checked={props.user.isBot || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="isBot" />}
+                  control={<Checkbox className={classes.checkbox} size="small" checked={props.user.isBot || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="isBot" />}
                   label={<Typography className={classes.radioButtonLabel}>BOT</Typography>}
                 />
               </FormControl>

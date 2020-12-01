@@ -967,7 +967,7 @@ const App = () => {
             </Typography>
 
 
-            {progress !== "idle" ? <><Typography className={classes.progress}>{`${progress} ...`}</Typography> <CircularProgress className={classes.progress}>{progress}</CircularProgress></> : <div className={classes.progress}>status: idle</div>}
+            {progress !== "idle" ? <><Typography className={classes.progress}>{`${progress} ...`}</Typography> <CircularProgress className={classes.progress}>{progress}</CircularProgress></> : <div className={classes.progress}></div>}
 
             <Link
               className={classes.twitterAuth}

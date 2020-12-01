@@ -952,7 +952,7 @@ const App = () => {
                 <SearchIcon color="primary"/>
               </div>
               <InputBase
-                placeholder="search…"
+                placeholder={displayNodeTypeRef.current === "user" ? "user search..." : "hashtag search..."}
                 classes={{
                   root: classes.inputRoot,
                   input: classes.inputInput,

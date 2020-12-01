@@ -84,13 +84,13 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
   },
   progress: {
-    flexGrow: 1,
+    // flexGrow: 1,
     color: 'white',
     marginRight: theme.spacing(2),
   },
   serverStatus: {
-    // flexGrow: 1,
-    color: 'gray',
+    flexGrow: 1,
+    color: 'lightgray',
     padding: theme.spacing(1),
   },
   twitterAuth: {
@@ -151,6 +151,10 @@ const useStyles = makeStyles((theme) => ({
   },
 
 }));
+
+const formatDateTime = (dateInput) => {
+  return new Date(dateInput).toLocaleString();
+}
 
 const App = () => {
 
@@ -958,15 +962,12 @@ const App = () => {
               />
             </div>
             
+            <Typography  className={classes.serverStatus}>
+              {status.nodesPerMin} nodes/min ( max: {status.maxNodesPerMin} at {formatDateTime(status.maxNodesPerMinTime)} )
+            </Typography>
+
 
             {progress !== "idle" ? <><Typography className={classes.progress}>{`${progress} ...`}</Typography> <CircularProgress className={classes.progress}>{progress}</CircularProgress></> : <div className={classes.progress}>status: idle</div>}
-
-            {/* <Typography  className={classes.serverStatus}>
-              NN: {status.bestNetwork.networkId}
-            </Typography>
-            <Typography  className={classes.serverStatus}>
-              {status.nodesPerMin} nodes/min (max: {status.maxNodesPerMin} | time: {formatDateTime(status.maxNodesPerMinTime)})
-            </Typography> */}
 
             <Link
               className={classes.twitterAuth}

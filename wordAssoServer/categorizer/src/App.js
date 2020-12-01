@@ -13,7 +13,10 @@ import Button from '@material-ui/core/Button';
 // import ButtonGroup from '@material-ui/core/ButtonGroup';
 // import InputBase from '@material-ui/core/InputBase';
 // import SearchIcon from '@material-ui/icons/Search';
+import InputBase from '@material-ui/core/InputBase';
 import Link from '@material-ui/core/Link';
+import SearchIcon from '@material-ui/icons/Search';
+
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -263,6 +266,7 @@ const App = () => {
   }
 
   const [tabValue, setTabValue] = useState(0);
+  const tabValueRef = useRef(tabValue)
 
   const [historyArray, setHistoryArray] = useState([location.pathname])
   const historyArrayRef = useRef(historyArray)
@@ -275,6 +279,9 @@ const App = () => {
 
   const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState("");
   const twitterAuthenticatedUserRef = useRef(twitterAuthenticatedUser)
+
+  const [userSearch, setUserSearch] = useState("");
+  const userSearchRef = useRef(userSearch)
 
   const [status, setStatus] = useState(defaultStatus);
   const statusRef = useRef(status)
@@ -889,6 +896,18 @@ const App = () => {
   useHotkeys('shift+B', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
   // verified toggle
   useHotkeys('shift+V', (event) => handleNodeChange(event, currentNode), {}, [currentNode])
+  
+  const handleChangeSearch = (event) => {
+    console.log("handleChangeSearch: " + event.target.value)
+    setUserSearch(event.target.value);
+  }
+
+  const handleKeyPress = (event) => {
+    if (event.charCode === 13) { // enter key pressed
+      console.log("ENTER")
+      handleSearchNode(userSearch)
+    }
+  }
 
   const displayNode = (nodeType) => {
     if (nodeType === "user"){
@@ -928,6 +947,23 @@ const App = () => {
               {status.nodesPerMin} nodes/min (max: {status.maxNodesPerMin} | time: {formatDateTime(status.maxNodesPerMinTime)})
             </Typography> */}
 
+            <div className={classes.search}>
+              <div className={classes.searchIcon}>
+                <SearchIcon color="primary"/>
+              </div>
+              <InputBase
+                placeholder="search…"
+                classes={{
+                  root: classes.inputRoot,
+                  input: classes.inputInput,
+                }}
+                inputProps={{ 'aria-label': 'search' }}
+                value={userSearch}
+                onKeyPress={handleKeyPress}
+                onChange={handleChangeSearch}
+              />
+            </div>
+            
             <Link
               className={classes.twitterAuth}
               href={"http://twitter.com/" + twitterAuthenticatedUserRef.current}

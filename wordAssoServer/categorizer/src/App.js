@@ -72,7 +72,7 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: 0,
   },
   tabs: {
-    flexGrow: 1,
+    // flexGrow: 1,
     color: 'white',
   },
   toolBar: {
@@ -84,7 +84,7 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
   },
   progress: {
-    // flexGrow: 1,
+    flexGrow: 1,
     color: 'white',
     marginRight: theme.spacing(2),
   },
@@ -95,12 +95,14 @@ const useStyles = makeStyles((theme) => ({
   },
   twitterAuth: {
     // backgroundColor: 'black',
+    fontSize: "1.2rem",
+    fontWeight: 600,
     color: "green",
     padding: theme.spacing(1),
     marginRight: theme.spacing(2),
   },  
   buttonLogin: {
-    backgroundColor: "green",
+    // backgroundColor: "green",
     marginRight: theme.spacing(2),
   },
   statusBar: {
@@ -111,6 +113,7 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
   },
   search: {
+    // flexGrow: 1,
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
     backgroundColor: "white",
@@ -119,7 +122,7 @@ const useStyles = makeStyles((theme) => ({
     },
     marginRight: theme.spacing(2),
     marginLeft: 0,
-    width: '100%',
+    width: '20%',
     [theme.breakpoints.up('sm')]: {
       marginLeft: theme.spacing(3),
       width: 'auto',
@@ -938,15 +941,6 @@ const App = () => {
               <Tab label="Hashtag"/>
             </Tabs>
 
-            {progress !== "idle" ? <><Typography className={classes.progress}>{`${progress} ...`}</Typography> <CircularProgress className={classes.progress}>{progress}</CircularProgress></> : <></>}
-
-            {/* <Typography  className={classes.serverStatus}>
-              NN: {status.bestNetwork.networkId}
-            </Typography>
-            <Typography  className={classes.serverStatus}>
-              {status.nodesPerMin} nodes/min (max: {status.maxNodesPerMin} | time: {formatDateTime(status.maxNodesPerMinTime)})
-            </Typography> */}
-
             <div className={classes.search}>
               <div className={classes.searchIcon}>
                 <SearchIcon color="primary"/>
@@ -964,6 +958,16 @@ const App = () => {
               />
             </div>
             
+
+            {progress !== "idle" ? <><Typography className={classes.progress}>{`${progress} ...`}</Typography> <CircularProgress className={classes.progress}>{progress}</CircularProgress></> : <div className={classes.progress}>status: idle</div>}
+
+            {/* <Typography  className={classes.serverStatus}>
+              NN: {status.bestNetwork.networkId}
+            </Typography>
+            <Typography  className={classes.serverStatus}>
+              {status.nodesPerMin} nodes/min (max: {status.maxNodesPerMin} | time: {formatDateTime(status.maxNodesPerMinTime)})
+            </Typography> */}
+
             <Link
               className={classes.twitterAuth}
               href={"http://twitter.com/" + twitterAuthenticatedUserRef.current}
@@ -976,7 +980,7 @@ const App = () => {
             <Button 
               className={classes.buttonLogin}
               variant="contained" 
-              color="primary" 
+              color={twitterAuthenticatedRef.current ? "secondary" : "primary"} 
               size="small" 
               onClick={event => { handleLoginLogout(event)}} 
               name="login"

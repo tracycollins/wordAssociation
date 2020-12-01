@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
-import { red, blue, green, gray, black, white, yellow } from '@material-ui/core/colors';
+// import React, { useState } from 'react';
+import React from 'react';
+import { green } from '@material-ui/core/colors';
+import clsx from 'clsx';
 
 import { Timeline } from 'react-twitter-widgets'
 
 import Duration from 'duration';
-import clsx from 'clsx';
 
-import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
+// import AppBar from '@material-ui/core/AppBar';
+// import Button from '@material-ui/core/Button';
+// import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Card from '@material-ui/core/Card';
 // import CardActionArea from '@material-ui/core/CardActionArea';
-import CardActions from '@material-ui/core/CardActions';
+// import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 // import CardHeader from '@material-ui/core/CardHeader';
 import CardMedia from '@material-ui/core/CardMedia';
@@ -24,14 +25,14 @@ import FormGroup from '@material-ui/core/FormGroup';
 // import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 // import IconButton from '@material-ui/core/IconButton';
-import InputBase from '@material-ui/core/InputBase';
+// import InputBase from '@material-ui/core/InputBase';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 // import MenuIcon from '@material-ui/icons/Menu';
 // import Paper from '@material-ui/core/Paper';
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import SearchIcon from '@material-ui/icons/Search';
+// import Radio from '@material-ui/core/Radio';
+// import RadioGroup from '@material-ui/core/RadioGroup';
+// import SearchIcon from '@material-ui/icons/Search';
 import Select from '@material-ui/core/Select';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -39,7 +40,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Toolbar from '@material-ui/core/Toolbar';
+// import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 
@@ -241,59 +242,36 @@ const useStyles = makeStyles((theme) => ({
     color: 'white',
   },
 
-  left: {
-    textAlign: 'center',
-    fontSize: fontSizeCategory,
-    backgroundColor: 'blue',
+  category: {
+    // fontSize: fontSizeCategory,
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
-    color: 'white',
     marginBottom: theme.spacing(1),
+  },
+
+  left: {
+    backgroundColor: 'blue',
+    color: 'white',
   },
   neutral: {
-    textAlign: 'center',
-    fontSize: fontSizeCategory,
     backgroundColor: 'darkgray',
-    borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(1),
     color: 'white',
-    marginBottom: theme.spacing(1),
   },
   right: {
-    textAlign: 'center',
-    fontSize: fontSizeCategory,
     backgroundColor: 'red',
-    borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(1),
     color: 'white',
-    marginBottom: theme.spacing(1),
   },
   positive: {
-    textAlign: 'center',
-    fontSize: fontSizeCategory,
     backgroundColor: 'green',
-    borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(1),
     color: 'white',
-    marginBottom: theme.spacing(1),
   },
   negative: {
-    textAlign: 'center',
-    fontSize: fontSizeCategory,
     backgroundColor: 'yellow',
-    borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(1),
     color: 'black',
-    marginBottom: theme.spacing(1),
   },
   none: {
-    textAlign: 'center',
-    fontSize: fontSizeCategory,
-    backgroundColor: 'white',
-    borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(1),
+    backgroundColor: 'lightgray',
     color: 'black',
-    marginBottom: theme.spacing(1),
   },
   ignored: {
     // width: '40%',
@@ -307,19 +285,19 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-function StyledRadio(props) {
-  const classes = useStyles();
-  return (
-    <Radio
-      className={classes.radioButton}
-      disableRipple
-      color="default"
-      checkedIcon={<span className={clsx(classes.icon, classes.checkedIcon)} />}
-      icon={<span className={classes.icon} />}
-      {...props}
-    />
-  );
-}
+// function StyledRadio(props) {
+//   const classes = useStyles();
+//   return (
+//     <Radio
+//       className={classes.radioButton}
+//       disableRipple
+//       color="default"
+//       checkedIcon={<span className={clsx(classes.icon, classes.checkedIcon)} />}
+//       icon={<span className={classes.icon} />}
+//       {...props}
+//     />
+//   );
+// }
 
 
 const formatDate = (dateInput) => {
@@ -349,23 +327,23 @@ const User = (props) => {
 
   const tweetRate = twitterAge.days > 0 ? Math.ceil(props.user.statusesCount/twitterAge.days) : 0;
 
-  const [userSearch, setUserSearch] = useState("");
+  // const [userSearch, setUserSearch] = useState("");
 
   // useEffect(() => {
   //   setUserSearch(props.user.screenName)
   // }, [props])
   
-  const handleChangeSearch = (event) => {
-    console.log("handleChangeSearch: " + event.target.value)
-    setUserSearch(event.target.value);
-  }
+  // const handleChangeSearch = (event) => {
+  //   console.log("handleChangeSearch: " + event.target.value)
+  //   setUserSearch(event.target.value);
+  // }
 
-  const handleKeyPress = (event) => {
-    if (event.charCode === 13) { // enter key pressed
-      console.log("ENTER")
-      props.handleSearchNode(userSearch)
-    }
-  }
+  // const handleKeyPress = (event) => {
+  //   if (event.charCode === 13) { // enter key pressed
+  //     console.log("ENTER")
+  //     props.handleSearchNode(userSearch)
+  //   }
+  // }
 
   const openUserTwitterPage = () => {
     console.log("open twitter")
@@ -438,8 +416,19 @@ const User = (props) => {
             <Card className={classes.card} variant="outlined">
 
               <CardContent onClick={openUserTwitterPage}>
-                  <Typography className={props.user.ignored ? getCategoryClass("ignored") : getCategoryClass(props.user.category)} variant="h6">{props.user.name}</Typography>
-                  <Typography>@{props.user.screenName}</Typography>
+                  <Typography 
+                    // className={props.user.ignored ? getCategoryClass("ignored") : getCategoryClass(props.user.category)} 
+                    className={clsx(classes.category, props.user.ignored ? getCategoryClass("ignored") : getCategoryClass(props.user.category))} 
+
+                    variant="h6"
+                    // textalign="left"
+                  >
+                    {props.user.name}
+                  </Typography>
+                  <Typography variant="h6">@{props.user.screenName} </Typography>
+              </CardContent>
+              <CardContent >
+                  <Typography>{props.user.description}</Typography>
               </CardContent>
 
               {/* <CardActions onClick={openUserTwitterPage}>
@@ -463,9 +452,9 @@ const User = (props) => {
                 component="img"
                 onError={e => {}}              
               />
-              <CardContent>
-                <Typography>{props.user.description}</Typography>
-              </CardContent>
+              {/* <CardContent> */}
+                {/* <Typography>{props.user.description}</Typography> */}
+              {/* </CardContent> */}
             </Card>
           </Grid>
           <Grid item className={classes.gridItem} xs={3}>
@@ -582,10 +571,14 @@ const User = (props) => {
                   labelId="category-manual-label"
                   id="category-manual"
                   name="category"
-                  className={getCategoryClass(props.user.category)}
+                  // className={getCategoryClass(props.user.category)}
+                  className={clsx(classes.category, getCategoryClass(props.user.category))} 
+                  align="center"
                   value={props.user.category || "none"}
                   onChange={(event) => props.handleNodeChange(event, props.user)}
                 >
+                        {/* checkedIcon={<span className={clsx(classes.icon, classes.checkedIcon)} />} */}
+
                   <MenuItem dense={true} value={"none"} >NONE</MenuItem>
                   <MenuItem dense={true} value={"left"} >LEFT</MenuItem>
                   <MenuItem dense={true} value={"neutral"}>NEUTRAL</MenuItem>
@@ -596,7 +589,10 @@ const User = (props) => {
                 </Select>
               </FormControl>
 
-              <Typography className={getCategoryClass(props.user.categoryAuto)} align="center">
+              <Typography
+                className={clsx(classes.autoCategory, getCategoryClass(props.user.categoryAuto))} 
+                align="center"
+              >
                 AUTO: {props.user.categoryAuto ? props.user.categoryAuto.toUpperCase() : "NONE"}
               </Typography>
 

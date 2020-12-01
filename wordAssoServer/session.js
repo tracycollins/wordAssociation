@@ -215,10 +215,6 @@ requirejs(
       addCategoryButton();
       resetMouseMoveTimer();
 
-      document.addEventListener("nodeSearch",function (event) {
-        console.log("nodeSearch event", event.detail)
-      });
-
       document.addEventListener(
         "mousemove",
         function () {
@@ -577,6 +573,11 @@ function saveConfig() {
 var controlDivElement = document.getElementById("controlDiv");
 var statsDivElement = document.getElementById("statsDiv");
 statsDivElement.style.visibility = "hidden";
+
+statsDivElement.addEventListener("nodeSearch",function (event) {
+  console.log("nodeSearch event", event.detail)
+});
+      
 var statsText = document.getElementById("stats-text");
 
 var statsLeftBarDiv = document.getElementById("left-bar");

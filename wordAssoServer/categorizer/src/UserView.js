@@ -274,13 +274,8 @@ const useStyles = makeStyles((theme) => ({
     color: 'black',
   },
   ignored: {
-    // width: '40%',
-    fontSize: fontSizeCategory,
     backgroundColor: 'yellow',
-    borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(1),
     color: 'black',
-    marginBottom: theme.spacing(1),
   },
 
 }));

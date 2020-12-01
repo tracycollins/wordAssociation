@@ -89,6 +89,7 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
   },
   serverStatus: {
+    fontSize: "0.75rem",
     flexGrow: 1,
     color: 'lightgray',
     padding: theme.spacing(1),
@@ -963,7 +964,7 @@ const App = () => {
             </div>
             
             <Typography  className={classes.serverStatus}>
-              {status.nodesPerMin} nodes/min ( max: {status.maxNodesPerMin} at {formatDateTime(status.maxNodesPerMinTime)} )
+              {status.nodesPerMin} NPM ( max: {status.maxNodesPerMin} at {formatDateTime(status.maxNodesPerMinTime)} )
             </Typography>
 
 

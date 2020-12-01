@@ -418,11 +418,16 @@ const App = () => {
       event.persist() 
     }
 
-    let eventName = event.currentTarget.name || "nop";
-    let eventValue = event.currentTarget.value;
-    let eventChecked = event.currentTarget.checked;
+    // let eventName = event.currentTarget.name || "nop";
+    // let eventValue = event.currentTarget.value;
+    // let eventChecked = event.currentTarget.checked;
 
-    if (event.currentTarget.name === undefined && event.code){
+    let eventName = event.target.name || "nop";
+    let eventValue = event.target.value;
+    let eventChecked = event.target.checked;
+
+    // if (event.currentTarget.name === undefined && event.code){
+    if (event.target.name === undefined && event.code){
 
       switch (event.code){
 
@@ -591,51 +596,63 @@ const App = () => {
         }
         else{
           alert("NOT AUTHENTICATED")
+          setProgress("idle")
           return;
-          // setProgress("not authenticated")
         }
         break
 
       case "isBot":
-        if (node.nodeType === "user"){
-          if (eventChecked){
-            socket.emit("TWITTER_BOT", node);
-          }
-          else{
-            socket.emit("TWITTER_UNBOT", node);
-          }
-        }
-        break
-
       case "following":
-        if (node.nodeType === "user"){
-          if (eventChecked){
-            socket.emit("TWITTER_FOLLOW", node);
-          }
-          else{
-            socket.emit("TWITTER_UNFOLLOW", node);
-          }
-        }
-        break
-
       case "catVerified":
-        if (node.nodeType === "user"){
+      case "ignored":
+
+        if (!twitterAuthenticatedRef.current){
+          alert("NOT AUTHENTICATED")
+          setProgress("idle")
+          return;
+        }
+
+        if (eventName === "ignored"){
           if (eventChecked){
-            socket.emit("TWITTER_CATEGORY_VERIFIED", node);
+            socket.emit("TWITTER_IGNORE", node);
           }
           else{
-            socket.emit("TWITTER_CATEGORY_UNVERIFIED", node);
+            socket.emit("TWITTER_UNIGNORE", node);
           }
+          break
         }
-        break
 
-      case "ignored":
-        if (eventChecked){
-          socket.emit("TWITTER_IGNORE", node);
+        if (node.nodeType === "user"){
+
+          if (eventName === "bot"){
+            if (eventChecked){
+              socket.emit("TWITTER_BOT", node);
+            }
+            else{
+              socket.emit("TWITTER_UNBOT", node);
+            }
+          }
+
+          if (eventName === "following"){
+            if (eventChecked){
+              socket.emit("TWITTER_FOLLOW", node);
+            }
+            else{
+              socket.emit("TWITTER_UNFOLLOW", node);
+            }
+          }
+
+          if (eventName === "catVerified"){
+            if (eventChecked){
+              socket.emit("TWITTER_CATEGORY_VERIFIED", node);
+            }
+            else{
+              socket.emit("TWITTER_CATEGORY_UNVERIFIED", node);
+            }
+          }
+          
         }
-        else{
-          socket.emit("TWITTER_UNIGNORE", node);
-        }
+
         break
 
       default:
@@ -814,7 +831,7 @@ const App = () => {
 
       console.debug("RX TWITTER_USER_NOT_FOUND");
       console.debug(response);
-      
+
       setStatus(status => response.stats);
       if (response.searchNode.startsWith("@?") && response.results && !response.results.endCursor){
         console.debug("RETRY NEXT UNCAT: " + response.searchNode);

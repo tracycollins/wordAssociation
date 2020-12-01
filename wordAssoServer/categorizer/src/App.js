@@ -573,7 +573,7 @@ const App = () => {
         usersAvailable = currentUsersAvailable(eventName)
 
         // if (eventName !== "all" || usersAvailable < 3){
-        if (usersAvailable < 3){
+        if (usersAvailable < 5){
           console.log("GET MORE USERS | usersAvailable: " + usersAvailable)
           socket.emit("TWITTER_SEARCH_NODE", searchFilter);
         }
@@ -650,7 +650,7 @@ const App = () => {
               socket.emit("TWITTER_CATEGORY_UNVERIFIED", node);
             }
           }
-          
+
         }
 
         break
@@ -715,9 +715,19 @@ const App = () => {
 
       console.debug("RX TWITTER_USERS");
 
-      if (response.nodes) {
-        console.debug("RX nodes: " + response.nodes.length);
-        setUsers(users => [...users, ...response.nodes])
+      if (response.nodes && response.nodes.length > 0) {
+
+        console.debug("RX USERS: " + response.nodes.length);
+
+        const tempUsers = [...currentUsersRef.current];
+
+        for(const user of response.nodes){
+          if (user.screenName && user.screenName !== ""){
+            tempUsers.push(user)
+          }
+        }
+        console.debug("TOTAL USERS: " + tempUsers.length);
+        setUsers(users => [...tempUsers])
       }
 
       setProgress(progress => "idle");

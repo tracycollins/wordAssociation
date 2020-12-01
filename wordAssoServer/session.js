@@ -215,6 +215,10 @@ requirejs(
       addCategoryButton();
       resetMouseMoveTimer();
 
+      document.addEventListener("nodeSearch",function (event) {
+        console.log("nodeSearch event", event.detail)
+      });
+
       document.addEventListener(
         "mousemove",
         function () {

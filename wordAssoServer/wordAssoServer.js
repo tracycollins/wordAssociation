@@ -6231,22 +6231,17 @@ async function initSocketHandler(socketObj) {
     });
 
     socket.on("TWITTER_SEARCH_NODE", async function (sn) {
-      console.log(
-        chalkSocket(
-          MODULE_ID +
-            " | R< TWITTER_SEARCH_NODE" +
-            " | " +
-            getTimeStamp() +
-            " | " +
-            ipAddress +
-            " | " +
-            socket.id +
-            " | " +
-            sn
-        )
-      );
+
+      console.log(chalkSocket(MODULE_ID +
+        " | R< TWITTER_SEARCH_NODE" +
+        " | " + getTimeStamp() +
+        " | " + ipAddress +
+        " | " + socket.id +
+        " | " + sn
+      ));
 
       await twitterSearchNode({ searchNode: sn });
+
     });
 
     socket.on("TWITTER_CATEGORIZE_NODE", async function twitterCategorizeNode(
@@ -8792,32 +8787,19 @@ function initAppRouting(callback) {
       }
     });
   });
-  
+
+  const categorizerHtml = path.join(__dirname, "/categorizer/build/index.html");
+
   app.get("/categorize/user/:query", async function searchUserById(req, res) {
 
-    const query = req.params.query.startsWith("@") ? { screenName: req.params.query.slice(1) } : { nodeId: req.params.query }
-
-    console.log(chalkLog(MODULE_ID + " | R< SEARCH | USER | QUERY: ", query));
-
-    const categorizerHtml = path.join(__dirname, "/categorizer/build/index.html");
+    console.log(chalkLog(MODULE_ID + " | R< SEARCH | USER | QUERY: " + req.params.query));
 
     try{
-
       res.sendFile(categorizerHtml);
-
-      const user = await global.wordAssoDb.User.findOne(query)
-
-      if (user) {
-        console.log(chalkLog(MODULE_ID + " | R< SEARCH | USER | +++ FOUND: " + user.screenName));
-        res.send(user);
-      }
-      else{
-        console.log(chalkLog(MODULE_ID + " | R< SEARCH | USER | !!! NOT FOUND | QUERY: " + query));
-        res.sendStatus(404);
-      }
+      await twitterSearchNode({ searchNode: req.params.query });
     }
     catch(e){
-      console.log(chalkError(MODULE_ID + " | R< SEARCH | *** USER ERROR | QUERY: " + query));
+      console.log(chalkError(MODULE_ID + " | R< SEARCH | *** USER ERROR | QUERY: " + req.params.query));
       console.log(chalkError(MODULE_ID + " | R< SEARCH | *** USER ERROR: " + e));
       res.sendStatus(500);
     }
@@ -8826,32 +8808,19 @@ function initAppRouting(callback) {
 
   app.get("/categorize/hashtag/:query", async function searchHashtagById(req, res) {
 
-    const query = { nodeId: req.params.query.toLowerCase() }
-
-    console.log(chalkLog(MODULE_ID + " | R< SEARCH | HASHTAG | QUERY: ", query ));
+    console.log(chalkLog(MODULE_ID + " | R< SEARCH | HASHTAG | QUERY: " + req.params.query));
 
     try{
-
-      const hashtag = await global.wordAssoDb.Hashtag.findOne(query) 
-
-      if (hashtag) {
-        console.log(chalkLog(MODULE_ID + " | R< SEARCH | HASHTAG | +++ FOUND: " + hashtag.nodeId));
-        res.send(hashtag);
-      }
-      else{
-        console.log(chalkLog(MODULE_ID + " | R< SEARCH | HASHTAG | !!! NOT FOUND | QUERY: " + query));
-        res.sendStatus(404);
-      }
+      res.sendFile(categorizerHtml);
+      await twitterSearchNode({ searchNode: req.params.query });
     }
     catch(e){
-      console.log(chalkError(MODULE_ID + " | R< SEARCH | *** HASHTAG ERROR | QUERY: " + query));
+      console.log(chalkError(MODULE_ID + " | R< SEARCH | *** HASHTAG ERROR | QUERY: " + req.params.query));
       console.log(chalkError(MODULE_ID + " | R< SEARCH | *** HASHTAG ERROR: " + e));
       res.sendStatus(500);
     }
 
   });
-
-  const categorizerHtml = path.join(__dirname, "/categorizer/build/index.html");
 
   app.get("/categorize", async function requestCategorizer(req, res) {
 

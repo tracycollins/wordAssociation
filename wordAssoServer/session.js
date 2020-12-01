@@ -574,7 +574,7 @@ var controlDivElement = document.getElementById("controlDiv");
 var statsDivElement = document.getElementById("statsDiv");
 statsDivElement.style.visibility = "hidden";
 
-statsDivElement.addEventListener("nodeSearch",function (event) {
+document.addEventListener("nodeSearch",function (event) {
   console.log("nodeSearch event", event.detail)
 });
       

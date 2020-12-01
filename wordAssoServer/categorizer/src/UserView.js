@@ -438,7 +438,7 @@ const User = (props) => {
             <Card className={classes.card} variant="outlined">
 
               <CardContent onClick={openUserTwitterPage}>
-                  <Typography variant="h6">{props.user.name}</Typography>
+                  <Typography className={props.user.ignored ? getCategoryClass("ignored") : getCategoryClass(props.user.category)} variant="h6">{props.user.name}</Typography>
                   <Typography>@{props.user.screenName}</Typography>
               </CardContent>
 

@@ -2,6 +2,7 @@
 "use strict";
 
 function ViewTreepack() {
+
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
   let initialXposition = 0.5;
@@ -295,8 +296,7 @@ function ViewTreepack() {
   if (config.panzoomTransform === undefined) {
     config.panzoomTransform = {};
   }
-  config.panzoomTransform.scale =
-    config.panzoomTransform.scale || config.defaultZoomFactor;
+  config.panzoomTransform.scale = config.panzoomTransform.scale || config.defaultZoomFactor;
   config.panzoomTransform.x = config.panzoomTransform.x || 0.5 * width;
   config.panzoomTransform.y = config.panzoomTransform.y || 0.5 * height;
 
@@ -324,10 +324,7 @@ function ViewTreepack() {
   maxRateMentions.x = 100;
   maxRateMentions.y = 100;
 
-  console.warn(
-    "TREEPACK CONFIG"
-    // + "\n" + jsonPrint(config)
-  );
+  console.warn("TREEPACK CONFIG");
 
   let testMode = false;
   let freezeFlag = false;
@@ -497,6 +494,7 @@ function ViewTreepack() {
   });
 
   let zoomEndTimeout;
+
   const resetZoomEndTimeout = function () {
     clearTimeout(zoomEndTimeout);
 
@@ -1320,7 +1318,6 @@ function ViewTreepack() {
     });
   }
 
-
   function nodeMouseOut(event, d) {
     d.mouseHoverFlag = false;
 
@@ -1360,10 +1357,7 @@ function ViewTreepack() {
       if (d.rate > minRate) {
         return "unset";
       }
-      if (
-        d.nodeType === "hashtag" &&
-        (d.mentions > minMentionsHashtags || d.nodeId.includes("trump"))
-      ) {
+      if (d.nodeType === "hashtag" && (d.mentions > minMentionsHashtags || d.nodeId.includes("trump"))) {
         return "unset";
       }
       if (
@@ -1422,64 +1416,45 @@ function ViewTreepack() {
     return d.nodeId;
   }
 
+  // const nodeSearchEvent = new CustomEvent("nodeSearch", { detail: elem });
+
   function nodeClick(event, d) {
+
     switch (d.nodeType) {
+
       case "user":
+
+        d.dispatchEvent(new CustomEvent("nodeSearch", { detail: { node: d }}));
+
         if (controlPanelReadyFlag) {
-          controlPanelWindow.postMessage(
-            { op: "SET_TWITTER_USER", node: d, nodeSearch: true },
-            DEFAULT_SOURCE
-          );
+          controlPanelWindow.postMessage({ op: "SET_TWITTER_USER", node: d, nodeSearch: true }, DEFAULT_SOURCE);
         }
 
-        if (
-          mouseMovingFlag &&
-          controlPanelReadyFlag &&
-          (!previousTwitterUserId || previousTwitterUserId !== d.nodeId)
-        ) {
+        if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterUserId || previousTwitterUserId !== d.nodeId)) {
           previousTwitterUserId = d.nodeId;
         }
 
         if (d.lastTweetId && d.lastTweetId !== undefined) {
-          console.debug(
-            "LOADING TWITTER USER: " +
-              "https://twitter.com/" +
-              d.screenName +
-              "/status/" +
-              d.lastTweetId
-          );
-          window.open(
-            "https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId,
-            "_blank"
-          );
-        } else {
-          console.debug(
-            "LOADING TWITTER USER: " + "https://twitter.com/" + d.screenName
-          );
+          console.debug("LOADING TWITTER USER: https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId);
+          window.open("https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId, "_blank");
+        } 
+        else {
+          console.debug("LOADING TWITTER USER: https://twitter.com/" + d.screenName);
           window.open("https://twitter.com/" + d.screenName, "_blank");
         }
         break;
 
       case "hashtag":
+
         if (controlPanelReadyFlag) {
-          controlPanelWindow.postMessage(
-            { op: "SET_TWITTER_HASHTAG", node: d, nodeSearch: true },
-            DEFAULT_SOURCE
-          );
+          controlPanelWindow.postMessage({ op: "SET_TWITTER_HASHTAG", node: d, nodeSearch: true }, DEFAULT_SOURCE);
         }
 
-        if (
-          mouseMovingFlag &&
-          controlPanelReadyFlag &&
-          (!previousTwitterHashtag || previousTwitterHashtag !== d.nodeId)
-        ) {
+        if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterHashtag || previousTwitterHashtag !== d.nodeId)) {
           previousTwitterHashtag = d.nodeId;
         }
 
-        window.open(
-          "https://twitter.com/search?f=tweets&q=%23" + d.nodeId,
-          "_blank"
-        );
+        window.open("https://twitter.com/search?f=tweets&q=%23" + d.nodeId, "_blank");
         break;
     }
   }

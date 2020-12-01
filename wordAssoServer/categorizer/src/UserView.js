@@ -46,7 +46,7 @@ const StyledTableCell = withStyles((theme) => ({
     // color: theme.palette.common.white,
   },
   body: {
-    fontSize: 12,
+    fontSize: 10,
   },
 }))(TableCell);
 
@@ -121,7 +121,7 @@ const useStyles = makeStyles((theme) => ({
     fontSize: '0.5rem',
     backgroundColor: '#ddeeee',
     borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(3),
+    padding: theme.spacing(2),
     marginBottom: theme.spacing(1),
   },
   radioButtonLabel: {
@@ -460,7 +460,7 @@ const User = (props) => {
               options={{width: '100%', height: '640'}}
             />
           </Grid>
-          <Grid item className={classes.gridItem} xs={3}>
+          <Grid item className={classes.gridItem} xs={2}>
             <TableContainer>
               <Table className={classes.table} size="small">
                 <TableHead>
@@ -509,7 +509,7 @@ const User = (props) => {
               </Table>
             </TableContainer>
           </Grid>
-          {/* <Grid item className={classes.gridItem} xs={2}>
+          <Grid item className={classes.gridItem} xs={2}>
             <TableContainer>
               <Table size="small">
                 <TableHead>
@@ -556,8 +556,8 @@ const User = (props) => {
                 </TableBody>
               </Table>
             </TableContainer>
-          </Grid> */}
-          <Grid item className={classes.gridItem} xs={2}>
+          </Grid>
+          <Grid item className={classes.gridItem} xs={1}>
             <FormGroup>
               <FormControl component="fieldset">
                 <RadioGroup 

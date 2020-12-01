@@ -5273,7 +5273,7 @@ async function twitterSearchNode(params) {
           })
         }
         else{
-          
+
           viewNameSpace.emit("SET_TWITTER_HASHTAG", {
             node: response.node,
             stats: statsObj,
@@ -8795,11 +8795,15 @@ function initAppRouting(callback) {
   
   app.get("/categorize/user/:query", async function searchUserById(req, res) {
 
-    const query = req.params.query.startsWith("@") ? {screenName: req.params.query.slice(1)} : {nodeId: req.params.query}
+    const query = req.params.query.startsWith("@") ? { screenName: req.params.query.slice(1) } : { nodeId: req.params.query }
 
-    console.log(chalkLog(MODULE_ID + " | R< SEARCH | USER | QUERY: " + query));
+    console.log(chalkLog(MODULE_ID + " | R< SEARCH | USER | QUERY: ", query));
+
+    const categorizerHtml = path.join(__dirname, "/categorizer/build/index.html");
 
     try{
+
+      res.sendFile(categorizerHtml);
 
       const user = await global.wordAssoDb.User.findOne(query)
 
@@ -8822,9 +8826,9 @@ function initAppRouting(callback) {
 
   app.get("/categorize/hashtag/:query", async function searchHashtagById(req, res) {
 
-    const query = {nodeId: req.params.query.toLowerCase()}
+    const query = { nodeId: req.params.query.toLowerCase() }
 
-    console.log(chalkLog(MODULE_ID + " | R< SEARCH | HASHTAG | QUERY: " + query));
+    console.log(chalkLog(MODULE_ID + " | R< SEARCH | HASHTAG | QUERY: ", query ));
 
     try{
 
@@ -8854,24 +8858,20 @@ function initAppRouting(callback) {
     console.log(chalkLog(MODULE_ID + " | R< CATEGORIZER"));
 
     res.sendFile(categorizerHtml, function responseCategorizer(err) {
+
       if (err) {
-        console.log(
-          chalkError(
-            MODULE_ID +
-              " | GET /categorize ERROR:" +
-              " | " +
-              getTimeStamp() +
-              " | " +
-              req.url +
-              " | " +
-              categorizerHtml +
-              " | " +
-              err
-          )
-        );
-      } else {
+        console.log(chalkError(MODULE_ID +
+          " | GET /categorize ERROR:" +
+          " | " + getTimeStamp() +
+          " | " + req.url +
+          " | " + categorizerHtml +
+          " | " + err
+          ));
+      } 
+      else {
         console.log(chalkAlert(MODULE_ID + " | SENT:", categorizerHtml));
       }
+
     });
 
   });

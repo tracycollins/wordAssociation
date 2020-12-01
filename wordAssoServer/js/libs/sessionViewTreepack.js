@@ -1423,9 +1423,8 @@ function ViewTreepack() {
     switch (d.nodeType) {
 
       case "user":
-        const elem = document.getElementById(d.nodePoolId);
 
-        elem.dispatchEvent(new CustomEvent("nodeSearch", { detail: { node: d }}));
+        document.dispatchEvent(new CustomEvent("nodeSearch", { detail: { node: d }}));
 
         if (controlPanelReadyFlag) {
           controlPanelWindow.postMessage({ op: "SET_TWITTER_USER", node: d, nodeSearch: true }, DEFAULT_SOURCE);

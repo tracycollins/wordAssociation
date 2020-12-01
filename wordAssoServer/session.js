@@ -575,7 +575,9 @@ var statsDivElement = document.getElementById("statsDiv");
 statsDivElement.style.visibility = "hidden";
 
 document.addEventListener("nodeSearch",function (event) {
-  console.log("nodeSearch event", event.detail)
+  console.log("nodeSearch event", event.detail);
+  const searchTerm = event.detail.node && event.detail.node.nodeType === "user" ? "@" + event.detail.node.screenName : "#" + event.detail.node.nodeId;
+  socket.emit("TWITTER_SEARCH_NODE", searchTerm);
 });
       
 var statsText = document.getElementById("stats-text");

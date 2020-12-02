@@ -280,21 +280,6 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-// function StyledRadio(props) {
-//   const classes = useStyles();
-//   return (
-//     <Radio
-//       className={classes.radioButton}
-//       disableRipple
-//       color="default"
-//       checkedIcon={<span className={clsx(classes.icon, classes.checkedIcon)} />}
-//       icon={<span className={classes.icon} />}
-//       {...props}
-//     />
-//   );
-// }
-
-
 const formatDate = (dateInput) => {
   return new Date(dateInput).toLocaleDateString(
     'en-gb',
@@ -322,24 +307,6 @@ const User = (props) => {
 
   const tweetRate = twitterAge.days > 0 ? Math.ceil(props.user.statusesCount/twitterAge.days) : 0;
 
-  // const [userSearch, setUserSearch] = useState("");
-
-  // useEffect(() => {
-  //   setUserSearch(props.user.screenName)
-  // }, [props])
-  
-  // const handleChangeSearch = (event) => {
-  //   console.log("handleChangeSearch: " + event.target.value)
-  //   setUserSearch(event.target.value);
-  // }
-
-  // const handleKeyPress = (event) => {
-  //   if (event.charCode === 13) { // enter key pressed
-  //     console.log("ENTER")
-  //     props.handleSearchNode(userSearch)
-  //   }
-  // }
-
   const openUserTwitterPage = () => {
     console.log("open twitter")
     window.open(`http://twitter.com/${props.user.screenName || null}`, "_blank") //to open new page
@@ -361,62 +328,14 @@ const User = (props) => {
 
   return (
     <>
-      {/* <AppBar  className={classes.appBar} position="static">
-        <Toolbar variant="dense">
-
-          <div className={classes.search}>
-            <div className={classes.searchIcon}>
-              <SearchIcon color="primary"/>
-            </div>
-            <InputBase
-              placeholder="search…"
-              classes={{
-                root: classes.inputRoot,
-                input: classes.inputInput,
-              }}
-              inputProps={{ 'aria-label': 'search' }}
-              value={userSearch}
-              onKeyPress={handleKeyPress}
-              onChange={handleChangeSearch}
-            />
-          </div>
-
-          <Typography className={classes.buttonGroupLabel}>GET UNCAT</Typography>   
-
-          <ButtonGroup color="primary" size="small" aria-label="small button group">
-            <Button onClick={(event) => props.handleNodeChange(event, props.user)} name="all" >ALL: {props.stats.user.uncategorized.all}</Button>
-            <Button onClick={(event) => props.handleNodeChange(event, props.user)} name="left" >LEFT: {props.stats.user.uncategorized.left}</Button>
-            <Button onClick={(event) => props.handleNodeChange(event, props.user)} name="neutral" >NEUTRAL: {props.stats.user.uncategorized.neutral}</Button>
-            <Button onClick={(event) => props.handleNodeChange(event, props.user)} name="right" >RIGHT: {props.stats.user.uncategorized.right}</Button>
-          </ButtonGroup>
-
-          <ButtonGroup color="primary" size="small" aria-label="small button group">
-            <Button 
-              className={classes.buttonMismatch}
-              // variant="contained" 
-              color="primary" 
-              size="small" 
-              onClick={(event) => props.handleNodeChange(event, props.user)} 
-              name="mismatch" 
-            >
-              MISMATCH {props.stats.user.mismatched}
-            </Button>
-          </ButtonGroup>
-
-        </Toolbar>
-      </AppBar> */}
-      
       <Grid className={classes.grid}>
           <Grid item className={classes.gridItem} xs={3}>
             <Card className={classes.card} variant="outlined">
 
               <CardContent onClick={openUserTwitterPage}>
                   <Typography 
-                    // className={props.user.ignored ? getCategoryClass("ignored") : getCategoryClass(props.user.category)} 
                     className={clsx(classes.category, props.user.ignored ? getCategoryClass("ignored") : getCategoryClass(props.user.category))} 
-
                     variant="h6"
-                    // textalign="left"
                   >
                     {props.user.name}
                   </Typography>
@@ -425,15 +344,6 @@ const User = (props) => {
               <CardContent >
                   <Typography>{props.user.description}</Typography>
               </CardContent>
-
-              {/* <CardActions onClick={openUserTwitterPage}>
-                  <Typography className={props.user.ignored ? classes["ignored"] : getCategoryClass(props.user.category)} align="center">
-                    {props.user.ignored ? "IGNORED" : props.user.category.toUpperCase() || "MANUAL: NONE"}
-                  </Typography>
-                  <Typography className={getCategoryClass(props.user.categoryAuto)} align="center">
-                    AUTO: {props.user.categoryAuto.toUpperCase() || "NONE"}
-                  </Typography>
-              </CardActions> */}
 
               <CardMedia
                 className={classes.profileImage}
@@ -447,9 +357,6 @@ const User = (props) => {
                 component="img"
                 onError={e => {}}              
               />
-              {/* <CardContent> */}
-                {/* <Typography>{props.user.description}</Typography> */}
-              {/* </CardContent> */}
             </Card>
           </Grid>
           <Grid item className={classes.gridItem} xs={3}>
@@ -566,14 +473,11 @@ const User = (props) => {
                   labelId="category-manual-label"
                   id="category-manual"
                   name="category"
-                  // className={getCategoryClass(props.user.category)}
                   className={clsx(classes.category, getCategoryClass(props.user.category))} 
                   align="center"
                   value={props.user.category || "none"}
                   onChange={(event) => props.handleNodeChange(event, props.user)}
                 >
-                        {/* checkedIcon={<span className={clsx(classes.icon, classes.checkedIcon)} />} */}
-
                   <MenuItem dense={true} value={"none"} >NONE</MenuItem>
                   <MenuItem dense={true} value={"left"} >LEFT</MenuItem>
                   <MenuItem dense={true} value={"neutral"}>NEUTRAL</MenuItem>

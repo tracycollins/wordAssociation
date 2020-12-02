@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
+import clsx from 'clsx';
 import { Tweet } from 'react-twitter-widgets'
 
 import Duration from 'duration';
+import { green } from '@material-ui/core/colors';
 
-import AppBar from '@material-ui/core/AppBar';
-// import Box from '@material-ui/core/Box';
-import Button from '@material-ui/core/Button';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
+// import AppBar from '@material-ui/core/AppBar';
+// // import Box from '@material-ui/core/Box';
+// import Button from '@material-ui/core/Button';
+// import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Card from '@material-ui/core/Card';
 // import CardActionArea from '@material-ui/core/CardActionArea';
 // import CardActions from '@material-ui/core/CardActions';
@@ -22,19 +24,22 @@ import FormGroup from '@material-ui/core/FormGroup';
 // import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 // import IconButton from '@material-ui/core/IconButton';
-import InputBase from '@material-ui/core/InputBase';
+// import InputBase from '@material-ui/core/InputBase';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
 // import MenuIcon from '@material-ui/icons/Menu';
 // import Paper from '@material-ui/core/Paper';
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import SearchIcon from '@material-ui/icons/Search';
+// import Radio from '@material-ui/core/Radio';
+// import RadioGroup from '@material-ui/core/RadioGroup';
+// import SearchIcon from '@material-ui/icons/Search';
+import Select from '@material-ui/core/Select';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 // import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Toolbar from '@material-ui/core/Toolbar';
+// import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import { TableHead } from '@material-ui/core';
@@ -109,6 +114,32 @@ const useStyles = makeStyles((theme) => ({
       width: '20ch',
     },
   },
+  selectCategory: {
+    fontSize: '0.5rem',
+    backgroundColor: '#ddeeee',
+    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+  },
+  radioGroupCategory: {
+    fontSize: '0.5rem',
+    backgroundColor: '#ddeeee',
+    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(2),
+    marginBottom: theme.spacing(1),
+  },
+  checkbox: {
+    color: green[400],
+    '&$checked': {
+      color: green[600],
+    },
+  },
+  checked: {},
+  radioButtonLabel: {
+    fontSize: '0.9rem'
+  },
+  radioButton: {
+  },
 
   buttonGroupLabel: {
     color: 'blue',
@@ -136,29 +167,40 @@ const useStyles = makeStyles((theme) => ({
     color: 'white',
   },
 
-  left: {
-    backgroundColor: 'blue',
+  category: {
+    // fontSize: fontSizeCategory,
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+  },
+
+  left: {
+    backgroundColor: 'blue',
     color: 'white',
   },
   neutral: {
-    backgroundColor: 'gray',
-    borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(1),
+    backgroundColor: 'darkgray',
     color: 'white',
   },
   right: {
     backgroundColor: 'red',
-    borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(1),
     color: 'white',
   },
-  none: {
-    backgroundColor: 'white',
-    borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(1),
+  positive: {
+    backgroundColor: 'green',
     color: 'white',
+  },
+  negative: {
+    backgroundColor: 'yellow',
+    color: 'black',
+  },
+  none: {
+    backgroundColor: 'lightgray',
+    color: 'black',
+  },
+  ignored: {
+    backgroundColor: 'yellow',
+    color: 'black',
   },
 
 }));
@@ -185,24 +227,6 @@ const HashtagView = (props) => {
   const twitterAge = props.hashtag.createdAt ? new Duration(new Date(props.hashtag.createdAt)) : "---"
   const twitterAgeString = props.hashtag.createdAt ? twitterAge.toString(1, 4) : "---"
 
-  const [hashtagSearch, setHashtagSearch] = useState("");
-
-  // useEffect(() => {
-  //   setHashtagSearch(props.hashtag.nodeId)
-  // }, [props])
-  
-  const handleChangeSearch = (event) => {
-    console.log("handleChangeSearch: " + event.target.value)
-    setHashtagSearch(event.target.value);
-  }
-
-  const handleKeyPress = (event) => {
-    if (event.charCode === 13) { // enter key pressed
-      console.log("ENTER: hashtagSearch: " + hashtagSearch)
-      props.handleSearchNode(hashtagSearch)
-    }
-  }
-
   const openHashtagTwitterPage = () => {
     console.log("open twitter")
     window.open(`https://twitter.com/search?f=tweets&q=%23${props.hashtag.nodeId || null}`, "_blank") //to open new page
@@ -215,51 +239,32 @@ const HashtagView = (props) => {
     })
   }
 
+  const getCategoryClass = (category) => {
+    switch (category){
+      case "left":
+      case "neutral":
+      case "right":
+      case "positive":
+      case "negative":
+      case "ignored":
+        return classes[category]
+      default:
+        return classes.none
+    }
+  }
+
   return (
     <>
-      <AppBar  className={classes.appBar} position="static">
-        <Toolbar variant="dense">
-
-          {/* <Typography variant="h6" className={classes.title}>
-            Hashtag
-          </Typography> */}
-
-          <div className={classes.search}>
-
-            <div className={classes.searchIcon}>
-              <SearchIcon color="primary"/>
-            </div>
-
-            <InputBase
-              placeholder="search…"
-              classes={{
-                root: classes.inputRoot,
-                input: classes.inputInput,
-              }}
-              inputProps={{ 'aria-label': 'search' }}
-              value={hashtagSearch}
-              onKeyPress={handleKeyPress}
-              onChange={handleChangeSearch}
-            />
-
-          </div>
-
-          <Typography className={classes.buttonGroupLabel}>
-            UNCAT
-          </Typography>   
-
-          <ButtonGroup variant="contained" color="primary" size="small" aria-label="small button group">
-            <Button onClick={(event) => props.handleNodeChange(event, props.hashtag)} name="all" >ALL: {props.stats.hashtag.uncategorized.all}</Button>
-          </ButtonGroup>
-
-        </Toolbar>
-      </AppBar>
-
       <Grid className={classes.grid}>
         <Grid item className={classes.gridItem} xs={3}>
           <Card className={classes.card} variant="outlined">
             <CardContent onClick={openHashtagTwitterPage}>
-              <Typography variant="h6">#{props.statusHashtag === "notFound" ? props.hashtag.nodeId + " NOT FOUND" : props.hashtag.nodeId}</Typography>
+              <Typography 
+                className={clsx(classes.category, props.hashtag.ignored ? getCategoryClass("ignored") : getCategoryClass(props.hashtag.category))} 
+                variant="h6"
+              >
+                #{props.statusHashtag === "notFound" ? props.hashtag.nodeId + " NOT FOUND" : props.hashtag.nodeId}
+            </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -329,7 +334,51 @@ const HashtagView = (props) => {
           </TableContainer>
         </Grid>
         <Grid item className={classes.gridItem} xs={1}>
+
           <FormGroup>
+            <FormControl >
+              <InputLabel id="category-manual">CATEGORY</InputLabel>
+              <Select
+                labelId="category-manual-label"
+                id="category-manual"
+                name="category"
+                className={clsx(classes.category, getCategoryClass(props.hashtag.category))} 
+                align="center"
+                value={props.hashtag.category || "none"}
+                onChange={(event) => props.handleNodeChange(event, props.hashtag)}
+              >
+                <MenuItem dense={true} value={"none"} >NONE</MenuItem>
+                <MenuItem dense={true} value={"left"} >LEFT</MenuItem>
+                <MenuItem dense={true} value={"neutral"}>NEUTRAL</MenuItem>
+                <MenuItem dense={true} value={"right"}>RIGHT</MenuItem>
+                <MenuItem dense={true} value={"positive"}>POSITIVE</MenuItem>
+                <MenuItem dense={true} value={"negative"}>NEGATIVE</MenuItem>
+
+              </Select>
+            </FormControl>
+
+            <Typography
+              className={clsx(classes.autoCategory, getCategoryClass(props.hashtag.categoryAuto))} 
+              align="center"
+            >
+              AUTO: {props.hashtag.categoryAuto ? props.hashtag.categoryAuto.toUpperCase() : "NONE"}
+            </Typography>
+
+            <FormControl 
+              component="fieldset"
+              className={classes.radioGroupCategory}
+              size="small"
+            >
+
+              <FormControlLabel
+                control={<Checkbox className={classes.checkbox} size="small" checked={props.hashtag.ignored || false} onChange={(event) => props.handleNodeChange(event, props.hashtag)} name="ignored" />}
+                label={<Typography className={classes.radioButtonLabel}>IGNORED</Typography>}
+              />
+
+            </FormControl>
+          </FormGroup>
+
+          {/* <FormGroup>
             <FormControl component="fieldset">
               <RadioGroup aria-label="category" name="category" value={props.hashtag.category || "none"} onChange={(event) => props.handleNodeChange(event, props.hashtag)}>
                 <FormControlLabel labelPlacement="start" value="left" control={<Radio />} label="left"/>
@@ -347,6 +396,8 @@ const HashtagView = (props) => {
               labelPlacement="start"
             />
           </FormGroup>
+ */}
+
         </Grid>
       </Grid>
     </>

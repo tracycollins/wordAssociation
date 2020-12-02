@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 // import useSocket from 'use-socket.io-client';
 // import { useImmer } from 'use-immer';
-import { useHistory, useLocation, useParams } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { useHotkeys } from 'react-hotkeys-hook';
 import socketClient from "socket.io-client";
 import { makeStyles } from '@material-ui/core/styles';
@@ -161,9 +161,9 @@ const App = () => {
 
   const history = useHistory();
   let location = useLocation()
-  let { slug } = useParams();
+  // let { slug } = useParams();
 
-  // console.log({slug})
+  // // console.log({slug})
 
   const classes = useStyles();
 
@@ -361,9 +361,6 @@ const App = () => {
   }, [tweets])
   
   const currentNode = displayNodeTypeRef.current === "user" ? currentUserRef.current : currentHashtagRef.current;
-  // const currentNodeRouteSlug = displayNodeTypeRef.current === "user" ? currentUserRef.current.screenName : currentHashtagRef.current.nodeId;
-
-  // history.replace(`/categorize/${displayNodeTypeRef.current}/${currentNodeRouteSlug}`)
 
   const handleTabChange = (event, newValue) => {
     event.preventDefault()
@@ -433,15 +430,10 @@ const App = () => {
       event.persist() 
     }
 
-    // let eventName = event.currentTarget.name || "nop";
-    // let eventValue = event.currentTarget.value;
-    // let eventChecked = event.currentTarget.checked;
-
     let eventName = event.target.name || "nop";
     let eventValue = event.target.value;
     let eventChecked = event.target.checked;
 
-    // if (event.currentTarget.name === undefined && event.code){
     if (event.target.name === undefined && event.code){
 
       switch (event.code){
@@ -993,7 +985,8 @@ const App = () => {
 
           </Toolbar>
         </AppBar>
-        {displayNode(displayNodeTypeRef.current)}
+        {/* {displayNode(displayNodeTypeRef.current)} */}
+        {displayNode(displayNodeType)}
       </Container>
     </div>
   );

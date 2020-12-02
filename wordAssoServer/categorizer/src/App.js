@@ -964,23 +964,27 @@ const App = () => {
 
             <Link
               className={classes.twitterAuth}
-              href={"http://twitter.com/" + twitterAuthenticatedUserRef.current}
+              // href={"http://twitter.com/" + twitterAuthenticatedUserRef.current}
+              href={"http://twitter.com/" + twitterAuthenticatedUser}
               target="_blank"
               rel="noopener"
             >
-              {twitterAuthenticatedUserRef.current ? "@" + twitterAuthenticatedUserRef.current : ""}
+              {/* {twitterAuthenticatedUserRef.current ? "@" + twitterAuthenticatedUserRef.current : ""} */}
+              {twitterAuthenticatedUser ? "@" + twitterAuthenticatedUser : ""}
             </Link>
 
             <Button 
               className={classes.buttonLogin}
               variant="contained" 
-              color={twitterAuthenticatedRef.current ? "secondary" : "primary"} 
+              // color={twitterAuthenticatedRef.current ? "secondary" : "primary"} 
+              color={twitterAuthenticated ? "secondary" : "primary"} 
               size="small" 
               onClick={event => { handleLoginLogout(event)}} 
               name="login"
               label="login"
             >
-              {twitterAuthenticatedRef.current ? "LOGOUT" : "LOGIN TWITTER"}
+              {/* {twitterAuthenticatedRef.current ? "LOGOUT" : "LOGIN TWITTER"} */}
+              {twitterAuthenticated ? "LOGOUT" : "LOGIN TWITTER"}
             </Button>
 
           </Toolbar>

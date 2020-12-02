@@ -911,7 +911,7 @@ const App = () => {
 
   const displayNode = (nodeType) => {
     if (nodeType === "user"){
-      return <UserView user={currentUserRef.current} stats={statusRef.current} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
+      return <UserView user={currentUser} stats={status} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
     }
     else{
       return <HashtagView hashtag={currentHashtagRef.current} statusHashtag={statusHashtagRef.current} stats={statusRef.current} tweets={tweetsRef.current} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>

@@ -686,6 +686,20 @@ const nodeSearchResultHandler = async function (message) {
         searchNodeResultHashMap[messageObj.requestId].results = messageObj.results;
 
       } 
+      else if (messageObj.results && messageObj.results.endCursor){
+
+        console.log(chalk.yellow(MODULE_ID 
+          + " | ==> PS SEARCH NODE X END CURSOR X [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]"
+          + " | MID: " + message.id
+          + " | " + messageObj.requestId
+          + " | SEARCH CAT AUTO: " + messageObj.categoryAuto
+          + "\nRESULTS\n" + jsonPrint(messageObj.results)
+        ));
+
+        searchNodeResultHashMap[messageObj.requestId] = {};
+        searchNodeResultHashMap[messageObj.requestId].results = messageObj.results;
+
+      }
       else {
 
         console.log(chalk.yellow(MODULE_ID 

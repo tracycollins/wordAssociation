@@ -6239,6 +6239,14 @@ async function initSocketHandler(socketObj) {
               " | CM: " + formatCategory(node.category)
             ));
 
+            if (!empty(node.categorizedBy)){
+              console.log(chalkSocket(MODULE_ID +
+                " | R< TWITTER_CATEGORIZE_NODE | CAT BY" +
+                " | @" + node.screenName +
+                " | CAT BY\n" + jsonPrint(node.categorizedBy)
+              ));
+            }
+
             viewNameSpace.emit("SET_TWITTER_USER", { node: node, stats: statsObj });
           }
 

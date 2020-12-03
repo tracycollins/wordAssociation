@@ -528,19 +528,12 @@ const subscriptionHashMap = {};
 const nodeSearchResultHandler = async function (message) {
   
   try {
+
     message.ack();
 
     statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived += 1;
 
     const messageObj = JSON.parse(message.data.toString());
-
-    // results
-    // publishMessage.endCursor = results.endCursor;
-    // publishMessage.notFound = results.notFound;
-    // publishMessage.doesNotExist = results.doesNotExist;
-    // publishMessage.notAuthorized = results.notAuthorized;
-    // publishMessage.suspended = results.suspended;
-    // publishMessage.notCategorizable = results.notCategorizable;
 
     debug(chalkLog(MODULE_ID + " | RX NODE SEARCH RESULT " + message.id));
 
@@ -619,16 +612,14 @@ const nodeSearchResultHandler = async function (message) {
       }
       else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
 
-        // if (configuration.verbose) {
-          console.log(chalkBlueBold(MODULE_ID +
-            " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]" +
-            " | " + messageObj.requestId +
-            " | SEARCH CAT AUTO: " + messageObj.categoryAuto +
-            " | NID: " + messageObj.node.nodeId +
-            " | CM: " + formatCategory(messageObj.node.category) +
-            " | CA: " + formatCategory(messageObj.node.categoryAuto)
-          ));
-        // }
+        console.log(chalkBlueBold(MODULE_ID +
+          " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived + "]" +
+          " | " + messageObj.requestId +
+          " | SEARCH CAT AUTO: " + messageObj.categoryAuto +
+          " | NID: " + messageObj.node.nodeId +
+          " | CM: " + formatCategory(messageObj.node.category) +
+          " | CA: " + formatCategory(messageObj.node.categoryAuto)
+        ));
 
         const catHashtagObj = categorizedHashtagHashMap.get(messageObj.node.nodeId);
 
@@ -741,48 +732,27 @@ const nodeSetPropsResultHandler = async function (message) {
   // data host (mp2) only processes its own nodeSetProps
   // primary host (google) processes all nodeSetProps
 
-  if (
-    (configuration.isDatabaseHost &&
-      pubSubPublishMessageRequestIdSet.has(messageObj.requestId)) ||
-    !configuration.isDatabaseHost
-  ) {
+  if ((configuration.isDatabaseHost && pubSubPublishMessageRequestIdSet.has(messageObj.requestId)) || !configuration.isDatabaseHost) {
+
     statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived += 1;
 
     if (messageObj.node && messageObj.node.nodeType === "user") {
-      if (
-        !pubSubPublishMessageRequestIdSet.has(messageObj.requestId) ||
-        configuration.verbose
-      ) {
-        debug(
-          chalkBlueBold(
-            MODULE_ID +
-              " | ==> SUB [" +
-              statsObj.pubSub.subscriptions.nodeSetPropsResult
-                .messagesReceived +
-              "]" +
-              " | TOPIC: node-setprops-result" +
-              " | " +
-              messageObj.requestId +
-              " | TYPE: " +
-              messageObj.node.nodeType +
-              " | NID: " +
-              messageObj.node.nodeId +
-              " | @" +
-              messageObj.node.screenName +
-              " | AUTO FLW: " +
-              formatBoolean(messageObj.node.autoFollowFlag) +
-              " | FLW: " +
-              formatBoolean(messageObj.node.following) +
-              " | CN: " +
-              messageObj.node.categorizeNetwork +
-              " | CV: " +
-              formatBoolean(messageObj.node.categoryVerified) +
-              " | CM: " +
-              formatCategory(messageObj.node.category) +
-              " | CA: " +
-              formatCategory(messageObj.node.categoryAuto)
-          )
-        );
+
+      if (!pubSubPublishMessageRequestIdSet.has(messageObj.requestId) || configuration.verbose) {
+        debug(chalkBlueBold( MODULE_ID +
+          " | ==> SUB [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]" +
+          " | TOPIC: node-setprops-result" +
+          " | " + messageObj.requestId +
+          " | TYPE: " + messageObj.node.nodeType +
+          " | NID: " + messageObj.node.nodeId +
+          " | @" + messageObj.node.screenName +
+          " | AUTO FLW: " + formatBoolean(messageObj.node.autoFollowFlag) +
+          " | FLW: " + formatBoolean(messageObj.node.following) +
+          " | CN: " + messageObj.node.categorizeNetwork +
+          " | CV: " + formatBoolean(messageObj.node.categoryVerified) +
+          " | CM: " + formatCategory(messageObj.node.category) +
+          " | CA: " + formatCategory(messageObj.node.categoryAuto)
+        ));
       }
 
       if (messageObj.stats) {
@@ -794,7 +764,8 @@ const nodeSetPropsResultHandler = async function (message) {
 
       if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)) {
         nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
-      } else {
+      } 
+      else {
         // nodeSetProps not sent by this host
         if (messageObj.node.nodeType === "user") {
           if (
@@ -848,16 +819,10 @@ const nodeSetPropsResultHandler = async function (message) {
 
       nodeSetPropsResultHashMap[messageObj.requestId] = messageObj.node;
     } else {
-      console.log(
-        chalk.yellow(
-          MODULE_ID +
-            " | ==> NODE SET PROPS -MISS- [" +
-            statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived +
-            "]" +
-            " | " +
-            messageObj.requestId
-        )
-      );
+      console.log(chalk.yellow(MODULE_ID +
+        " | ==> NODE SET PROPS -MISS- [" + statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived + "]" +
+        " | " + messageObj.requestId
+      ));
     }
   }
 
@@ -868,6 +833,7 @@ const nodeSetPropsResultHandler = async function (message) {
 };
 
 const nodeIgnoreHandler = async function (message) {
+
   message.ack();
 
   statsObj.pubSub.searchNode.messagesReceived += 1;
@@ -4367,26 +4333,19 @@ let nodeSetPropsResultTimeout;
 const nodeSetPropsResultHashMap = {};
 
 async function pubSubNodeSetProps(params) {
+
   try {
-    debug(
-      chalkBlue(
-        MODULE_ID +
-          " | NODE SET PROPS [" +
-          statsObj.pubSub.messagesSent +
-          "]" +
-          " | " +
-          params.requestId +
-          " | TOPIC: node-setprops" +
-          " | NODE TYPE: " +
-          params.node.nodeType +
-          " | CREATE NODE ON MISS: " +
-          formatBoolean(params.createNodeOnMiss) +
-          " | NID: " +
-          params.node.nodeId +
-          " | PROPS: " +
-          Object.keys(params.props)
-      )
-    );
+
+    debug(chalkBlue(MODULE_ID +
+      " | NODE SET PROPS [" + statsObj.pubSub.messagesSent + "]" +
+      " | " + params.requestId +
+      " | TOPIC: node-setprops" +
+      " | NODE TYPE: " + params.node.nodeType +
+      " | CREATE NODE ON MISS: " + formatBoolean(params.createNodeOnMiss) +
+      " | NID: " + params.node.nodeId +
+      " | CAT BY: " + params.categorizedBy +
+      " | PROPS: " + Object.keys(params.props)
+    ));
 
     await pubSubPublishMessage({
       publishName: "node-setprops",
@@ -4398,30 +4357,22 @@ async function pubSubNodeSetProps(params) {
     clearTimeout(nodeSetPropsResultTimeout);
 
     nodeSetPropsResultTimeout = setTimeout(function () {
-      console.log(
-        chalkAlert(
-          MODULE_ID +
-            " | !!! NODE SET PROPS TIMEOUT" +
-            " | " +
-            msToTime(configuration.pubSub.pubSubResultTimeout) +
-            " [" +
-            statsObj.pubSub.messagesSent +
-            "]" +
-            " | " +
-            params.requestId +
-            " | TOPIC: node-setprops" +
-            " | NODE TYPE: " +
-            params.node.nodeType +
-            " | NID: " +
-            params.node.nodeId +
-            " | PROPS: " +
-            Object.keys(params.props)
-        )
-      );
+
+      console.log(chalkAlert(MODULE_ID +
+        " | !!! NODE SET PROPS TIMEOUT" +
+        " | " + msToTime(configuration.pubSub.pubSubResultTimeout) +
+        " [" + statsObj.pubSub.messagesSent + "]" +
+        " | " + params.requestId +
+        " | TOPIC: node-setprops" +
+        " | NODE TYPE: " + params.node.nodeType +
+        " | NID: " + params.node.nodeId +
+        " | PROPS: " + Object.keys(params.props)
+      ));
 
       tcUtils.emitter.emit(eventName);
 
       return;
+
     }, configuration.pubSub.pubSubResultTimeout);
 
     await tcUtils.waitEvent({
@@ -4619,6 +4570,7 @@ async function nodeSetProps(params) {
   const node = await pubSubNodeSetProps({
     requestId: requestId,
     createNodeOnMiss: params.createNodeOnMiss,
+    categorizedBy: params.categorizedBy,
     node: params.node,
     props: params.props,
   });
@@ -6258,12 +6210,12 @@ async function initSocketHandler(socketObj) {
 
     });
 
-    socket.on("TWITTER_CATEGORIZE_NODE", async function twitterCategorizeNode(
-      catNodeObj
-    ) {
+    socket.on("TWITTER_CATEGORIZE_NODE", async function twitterCategorizeNode(catNodeObj) {
       try {
+
         const node = await nodeSetProps({
           createNodeOnMiss: true,
+          categorizedBy: catNodeObj.categorizedBy, // screenName
           node: catNodeObj.node,
           props: {
             screenName: catNodeObj.node.screenName,
@@ -6275,29 +6227,17 @@ async function initSocketHandler(socketObj) {
 
         if (node) {
           if (node.nodeType === "user") {
-            console.log(
-              chalkSocket(
-                MODULE_ID +
-                  " | R< TWITTER_CATEGORIZE_NODE" +
-                  " | " +
-                  getTimeStamp() +
-                  " | " +
-                  ipAddress +
-                  " | " +
-                  socket.id +
-                  " | NID: " +
-                  node.nodeId +
-                  " | @" +
-                  node.screenName +
-                  " | CM: " +
-                  formatCategory(node.category)
-              )
-            );
+            console.log(chalkSocket(MODULE_ID +
+              " | R< TWITTER_CATEGORIZE_NODE" +
+              " | " + getTimeStamp() +
+              " | " + ipAddress +
+              " | " + socket.id +
+              " | NID: " + node.nodeId +
+              " | @" + node.screenName +
+              " | CM: " + formatCategory(node.category)
+            ));
 
-            viewNameSpace.emit("SET_TWITTER_USER", {
-              node: node,
-              stats: statsObj,
-            });
+            viewNameSpace.emit("SET_TWITTER_USER", { node: node, stats: statsObj });
           }
 
           if (node.nodeType === "hashtag") {
@@ -6308,20 +6248,13 @@ async function initSocketHandler(socketObj) {
           }
         }
       } catch (err) {
-        console.log(
-          chalkError(
-            MODULE_ID +
-              " | *** TWITTER_CATEGORIZE_NODE ERROR" +
-              " | TYPE: " +
-              catNodeObj.node.nodeType +
-              " | NID: " +
-              catNodeObj.node.nodeId +
-              " | @" +
-              catNodeObj.node.screenName +
-              " | ERROR: " +
-              err
-          )
-        );
+        console.log(chalkError(MODULE_ID +
+          " | *** TWITTER_CATEGORIZE_NODE ERROR" +
+          " | TYPE: " + catNodeObj.node.nodeType +
+          " | NID: " + catNodeObj.node.nodeId +
+          " | @" + catNodeObj.node.screenName +
+          " | ERROR: " + err
+        ));
       }
     });
 
@@ -8582,7 +8515,8 @@ function initAppRouting(callback) {
           res.status(400);
           res.send("Error: crc_token missing from request.");
         }
-      } else {
+      } 
+      else {
         // ACCOUNT EVENTS
 
         const followEvents = req.body.follow_events;
@@ -8590,10 +8524,8 @@ function initAppRouting(callback) {
         if (followEvents && followEvents[0].type == "follow") {
           console.log(chalkAlert(MODULE_ID +
             " | >>> TWITTER USER FOLLOW EVENT" +
-            " | SOURCE: @" +
-            followEvents[0].source.screen_name +
-            " | TARGET: @" +
-            followEvents[0].target.screen_name
+            " | SOURCE: @" + followEvents[0].source.screen_name +
+            " | TARGET: @" + followEvents[0].target.screen_name
           ));
 
           const user = {

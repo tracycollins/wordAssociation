@@ -1637,6 +1637,8 @@ const fieldsTransmit = {
   ageDays: 1,
   bannerImageUrl: 1,
   categorizeNetwork: 1,
+  categorized: 1,
+  categorizedBy: 1,
   category: 1,
   categoryAuto: 1,
   categoryVerified: 1,

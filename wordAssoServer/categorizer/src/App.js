@@ -596,7 +596,7 @@ const App = () => {
       case "category":
         if (twitterAuthenticatedRef.current){
           socket.emit("TWITTER_CATEGORIZE_NODE", {
-            categorizedBy: twitterAuthenticatedUser,
+            categorizedBy: twitterAuthenticatedUserRef.current,
             category: eventValue,
             following: true,
             node: node,

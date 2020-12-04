@@ -7584,7 +7584,7 @@ async function updateUserCounts() {
 
   statsObj.user.categorizedBy.threecee.total = await countDocuments({
     documentType: "users",
-    query: { "categorizedBy.users.threecee": {$nin: [null, false]} },
+    query: { "categorizedBy.users.threecee.category": {$nin: [null, false]} },
   });
   
   console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED BY @threecee: " + statsObj.user.categorizedBy.threecee.total));
@@ -7609,7 +7609,7 @@ async function updateUserCounts() {
 
   statsObj.user.categorizedBy.altthreecee00.total = await countDocuments({
     documentType: "users",
-    query: { "categorizedBy.users.altthreecee00": {$nin: [null, false]} },
+    query: { "categorizedBy.users.altthreecee00.category": {$nin: [null, false]} },
   });
   
   console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED BY @altthreecee00: " + statsObj.user.categorizedBy.altthreecee00.total));

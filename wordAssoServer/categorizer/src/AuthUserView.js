@@ -217,6 +217,8 @@ const AuthUserView = (props) => {
 
   const categorized = {};
   categorized.total = props.authUser.screenName? props.stats.user.categorizedBy[props.authUser.screenName].total : "---"
+  categorized.today = props.authUser.screenName? props.stats.user.categorizedBy[props.authUser.screenName].today : "---"
+  categorized.periodCurrent = props.authUser.screenName? props.stats.user.categorizedBy[props.authUser.screenName].periodCurrent : "---"
 
   const createdAt = formatDate(props.authUser.createdAt)
   const lastSeen = formatDate(props.authUser.lastSeen)

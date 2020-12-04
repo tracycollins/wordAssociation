@@ -89,7 +89,7 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
   },
   serverStatus: {
-    fontSize: "0.75rem",
+    fontSize: "0.85rem",
     flexGrow: 1,
     color: 'lightgray',
     padding: theme.spacing(1),
@@ -274,7 +274,7 @@ const App = () => {
   }
 
   const [tabValue, setTabValue] = useState(0);
-  const tabValueRef = useRef(tabValue)
+  // const tabValueRef = useRef(tabValue)
 
   const [historyArray, setHistoryArray] = useState([location.pathname])
   const historyArrayRef = useRef(historyArray)
@@ -289,7 +289,7 @@ const App = () => {
   const twitterAuthenticatedUserRef = useRef(twitterAuthenticatedUser)
 
   const [userSearch, setUserSearch] = useState("");
-  const userSearchRef = useRef(userSearch)
+  // const userSearchRef = useRef(userSearch)
 
   const [status, setStatus] = useState(defaultStatus);
   const statusRef = useRef(status)
@@ -926,7 +926,6 @@ const App = () => {
           <Toolbar className={classes.toolBar}>
 
             <Typography className={classes.title}>
-              {/* Categorizer | USER HISTORY: {userHistory.length} | PREV USER: {userHistory.length > 0 ? userHistory[userHistory.length-1] : ""} */}
               CATEGORIZE
             </Typography>
             
@@ -960,37 +959,31 @@ const App = () => {
               {status.nodesPerMin} NPM ( max: {status.maxNodesPerMin} at {formatDateTime(status.maxNodesPerMinTime)} )
             </Typography>
 
-
             {progress !== "idle" ? <><Typography className={classes.progress}>{`${progress} ...`}</Typography> <CircularProgress className={classes.progress}>{progress}</CircularProgress></> : <div className={classes.progress}></div>}
 
             <Link
               className={classes.twitterAuth}
-              // href={"http://twitter.com/" + twitterAuthenticatedUserRef.current}
               href={"http://twitter.com/" + twitterAuthenticatedUser}
               target="_blank"
               rel="noopener"
             >
-              {/* {twitterAuthenticatedUserRef.current ? "@" + twitterAuthenticatedUserRef.current : ""} */}
               {twitterAuthenticatedUser ? "@" + twitterAuthenticatedUser : ""}
             </Link>
 
             <Button 
               className={classes.buttonLogin}
               variant="contained" 
-              // color={twitterAuthenticatedRef.current ? "secondary" : "primary"} 
               color={twitterAuthenticated ? "secondary" : "primary"} 
               size="small" 
               onClick={event => { handleLoginLogout(event)}} 
               name="login"
               label="login"
             >
-              {/* {twitterAuthenticatedRef.current ? "LOGOUT" : "LOGIN TWITTER"} */}
               {twitterAuthenticated ? "LOGOUT" : "LOGIN TWITTER"}
             </Button>
 
           </Toolbar>
         </AppBar>
-        {/* {displayNode(displayNodeTypeRef.current)} */}
         {displayNode(displayNodeType)}
       </Container>
     </div>

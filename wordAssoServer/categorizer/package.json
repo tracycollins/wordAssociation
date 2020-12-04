@@ -10,7 +10,7 @@
     "@material-ui/lab": "^4.0.0-alpha.57",
     "@testing-library/jest-dom": "^5.11.6",
     "@testing-library/react": "^11.2.2",
-    "@testing-library/user-event": "^12.4.0",
+    "@testing-library/user-event": "^12.5.0",
     "clsx": "^1.1.1",
     "duration": "^0.2.2",
     "moment": "^2.29.1",

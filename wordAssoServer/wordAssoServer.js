@@ -1257,11 +1257,17 @@ statsObj.traffic.users.percentBots = 0;
 statsObj.traffic.users.total = 0;
 
 statsObj.user = {};
+
 statsObj.user.categorizedBy = {};
 statsObj.user.categorizedBy.threecee = {};
-statsObj.user.categorizedBy.threecee.total = {};
+statsObj.user.categorizedBy.threecee.total = 0;
+statsObj.user.categorizedBy.threecee.today = 0;
+statsObj.user.categorizedBy.threecee.periodCurrent = 0;
+
 statsObj.user.categorizedBy.altthreecee00 = {};
-statsObj.user.categorizedBy.altthreecee00.total = {};
+statsObj.user.categorizedBy.altthreecee00.total = 0;
+statsObj.user.categorizedBy.altthreecee00.today = 0;
+statsObj.user.categorizedBy.altthreecee00.periodCurrent = 0;
 
 statsObj.user.total = 0;
 statsObj.user.dbUncat = 0;

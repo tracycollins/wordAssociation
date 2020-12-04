@@ -353,9 +353,9 @@ const AuthUserView = (props) => {
                     <TableCell align="right">{earned.today || "---"}</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell >This Period</TableCell>
-                    <TableCell align="right">{categorized.period || "---"}</TableCell>
-                    <TableCell align="right">{earned.period || "---"}</TableCell>
+                    <TableCell >Current Period</TableCell>
+                    <TableCell align="right">{categorized.periodCurrent || "---"}</TableCell>
+                    <TableCell align="right">{earned.periodCurrent || "---"}</TableCell>
                   </TableRow>
                 </TableBody>
 

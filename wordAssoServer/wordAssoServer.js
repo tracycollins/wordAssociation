@@ -725,6 +725,7 @@ const nodeSearchResultHandler = async function (message) {
 };
 
 const nodeSetPropsResultHandler = async function (message) {
+
   message.ack();
 
   const messageObj = JSON.parse(message.data.toString());
@@ -4424,12 +4425,6 @@ async function pubSubNodeSetProps(params) {
 
       delete node._id;
 
-      // const dbHashtag = await global.wordAssoDb.Hashtag.findOneAndUpdate(
-      //   { nodeId: node.nodeId },
-      //   node,
-      //   { upsert: true, new: true }
-      // );
-
       let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId });
 
       if (empty(dbHashtag)) {
@@ -4448,25 +4443,19 @@ async function pubSubNodeSetProps(params) {
     }
 
     if (!node) {
-      console.log(
-        chalkAlert(
-          MODULE_ID +
-            " | !!! NODE SET PROP NODE NOT FOUND" +
-            " | " +
-            params.requestId +
-            " | TYPE: " +
-            params.node.nodeType +
-            " | NID: " +
-            params.node.nodeId
-          // + "\n" + jsonPrint(params)
-        )
-      );
+      console.log(chalkAlert(MODULE_ID +
+        " | !!! NODE SET PROP NODE NOT FOUND" +
+        " | " + params.requestId +
+        " | TYPE: " + params.node.nodeType +
+        " | NID: " + params.node.nodeId
+      ));
     }
 
     return node;
-  } catch (err) {
-    const errCode =
-      err.code && err.code != undefined ? err.code : err.statusCode;
+
+  } 
+  catch (err) {
+    const errCode = err.code && err.code != undefined ? err.code : err.statusCode;
 
     let errorType;
 
@@ -4474,20 +4463,14 @@ async function pubSubNodeSetProps(params) {
       case 34:
       case 50:
         errorType = "USER_NOT_FOUND";
-        console.log(
-          chalkError(
-            MODULE_ID +
-              " | *** TWITTER USER NOT FOUND" +
-              " | " +
-              getTimeStamp() +
-              " | ERR CODE: " +
-              errCode +
-              " | ERR TYPE: " +
-              errorType +
-              " | UID: " +
-              params.node.nodeId
-          )
-        );
+        console.log(chalkError(
+          MODULE_ID +
+            " | *** TWITTER USER NOT FOUND" +
+            " | " + getTimeStamp() +
+            " | ERR CODE: " + errCode +
+            " | ERR TYPE: " + errorType +
+            " | UID: " + params.node.nodeId
+        ));
 
         await deleteUser({ user: params.node });
         return;
@@ -4552,22 +4535,16 @@ async function pubSubNodeSetProps(params) {
 }
 
 async function nodeSetProps(params) {
+
   const requestId = "rId_" + hostname + "_" + moment().valueOf();
 
-  debug(
-    chalk.blue(
-      MODULE_ID +
-        " | NODE SET PROPS" +
-        " | " +
-        requestId +
-        " | TYPE: " +
-        params.node.nodeType +
-        " | NID: " +
-        params.node.nodeId +
-        " | PROPS: " +
-        Object.keys(params.props)
-    )
-  );
+  debug(chalk.blue(MODULE_ID +
+    " | NODE SET PROPS" +
+    " | " + requestId +
+    " | TYPE: " + params.node.nodeType +
+    " | NID: " + params.node.nodeId +
+    " | PROPS: " + Object.keys(params.props)
+  ));
 
   const node = await pubSubNodeSetProps({
     requestId: requestId,
@@ -5912,22 +5889,14 @@ async function initSocketHandler(socketObj) {
 
       user.nodeType = "user";
 
-      console.log(
-        chalkSocket(
-          MODULE_ID +
-            " | R< TWITTER_FOLLOW" +
-            " | " +
-            getTimeStamp() +
-            " | " +
-            ipAddress +
-            " | " +
-            socket.id +
-            " | NID: " +
-            user.nodeId +
-            " | @" +
-            user.screenName
-        )
-      );
+      console.log(chalkSocket(MODULE_ID +
+        " | R< TWITTER_FOLLOW" +
+        " | " + getTimeStamp() +
+        " | " + ipAddress +
+        " | " + socket.id +
+        " | NID: " + user.nodeId +
+        " | @" + user.screenName
+      ));
 
       try {
         const node = await nodeSetProps({
@@ -6226,6 +6195,9 @@ async function initSocketHandler(socketObj) {
           },
           autoCategorizeFlag: true,
         });
+
+        await updateUserCounts();
+        await updateHashtagCounts();
 
         if (node) {
           if (node.nodeType === "user") {

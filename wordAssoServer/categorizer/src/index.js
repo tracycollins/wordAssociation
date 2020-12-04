@@ -32,6 +32,9 @@ ReactDOM.render(
         <Route path="/categorize/hashtag/:slug">
           <App />
         </Route>
+        <Route path="/categorize/account/:slug">
+          <App />
+        </Route>
         <Route >
           <App />
         </Route>

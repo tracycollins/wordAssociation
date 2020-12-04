@@ -25,6 +25,7 @@ import Typography from '@material-ui/core/Typography';
 import './App.css';
 import UserView from './UserView.js';
 import HashtagView from './HashtagView.js';
+import AuthUserView from './AuthUserView.js';
 // import { ButtonGroup } from '@material-ui/core';
 
 // const ENDPOINT = "http://mbp3:9997/view";
@@ -285,7 +286,7 @@ const App = () => {
   const [twitterAuthenticated, setTwitterAuthenticated] = useState(false);
   const twitterAuthenticatedRef = useRef(twitterAuthenticated)
 
-  const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState("");
+  const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState({});
   const twitterAuthenticatedUserRef = useRef(twitterAuthenticatedUser)
 
   const [userSearch, setUserSearch] = useState("");
@@ -302,8 +303,8 @@ const App = () => {
 
   const [progress, setProgress] = useState("loading ...");
 
-  const [displayNodeType, setDisplayNodeType] = useState("user");
-  const displayNodeTypeRef = useRef(displayNodeType)
+  const [currentTab, setCurrentTab] = useState("user");
+  const currentTabRef = useRef(currentTab)
 
   const [currentUsers, setUsers] = useState([]);
   const currentUsersRef = useRef(currentUsers)
@@ -333,8 +334,8 @@ const App = () => {
   }, [twitterAuthenticated])
   
   useEffect(() => { 
-    displayNodeTypeRef.current = displayNodeType 
-  }, [displayNodeType])
+    currentTabRef.current = currentTab 
+  }, [currentTab])
   
   useEffect(() => { 
     currentUsersRef.current = currentUsers 
@@ -360,18 +361,33 @@ const App = () => {
     tweetsRef.current = tweets 
   }, [tweets])
   
-  const currentNode = displayNodeTypeRef.current === "user" ? currentUserRef.current : currentHashtagRef.current;
+  const currentNode = currentTabRef.current === "user" ? currentUserRef.current : currentHashtagRef.current;
 
   const handleTabChange = (event, newValue) => {
+
     event.preventDefault()
     console.log({newValue})
-    setDisplayNodeType(newValue === 0 ? "user" : "hashtag")
+
+    switch (newValue){
+      case 0:
+        setCurrentTab("user")
+        break
+      case 1:
+        setCurrentTab("hashtag")
+        break
+      case 2:
+        setCurrentTab("authUser")
+        break
+      default:
+        setCurrentTab("user")
+    }
+
     setTabValue(newValue);
   }
 
   const handleSearchNode = (searchString) => {
     setProgress(progress => "searchNode");
-    const searchTerm = displayNodeType === "user" ? "@" + searchString : "#" + searchString
+    const searchTerm = currentTab === "user" ? "@" + searchString : "#" + searchString
     console.log("SEARCH TERM: " + searchTerm)
     socket.emit("TWITTER_SEARCH_NODE", searchTerm)
   }
@@ -385,7 +401,7 @@ const App = () => {
       console.warn("LOGGING OUT");
       socket.emit("logout", viewerObj);
       setTwitterAuthenticated(false)
-      setTwitterAuthenticatedUser("")
+      setTwitterAuthenticatedUser({})
       setProgress(progress => "idle");
     }
     else{
@@ -419,7 +435,7 @@ const App = () => {
       event.preventDefault() 
     }
 
-    if (displayNodeTypeRef.current === "user"){
+    if (currentTabRef.current === "user"){
       console.log("handleNodeChange | user: @" + node.screenName)
     }
     else{
@@ -683,10 +699,9 @@ const App = () => {
   }
 
   useEffect(() => {
-    if (displayNodeTypeRef.current === "user"){
+    if (currentTabRef.current === "user"){
       console.log({history})
       console.log("loc:  " + location.pathname)
-      // if (!history.location.pathname.endsWith("/user/" + currentUserRef.current.screenName)){
       if (!location.pathname.endsWith("/user/" + currentUserRef.current.screenName)){
         console.log("history push: /categorize/user/" + currentUserRef.current.screenName)
         history.push("/categorize/user/" + currentUserRef.current.screenName)
@@ -695,7 +710,7 @@ const App = () => {
   }, [history, currentUser, location.pathname])
 
   useEffect(() => {
-    if (displayNodeTypeRef.current === "hashtag"){
+    if (currentTabRef.current === "hashtag"){
       console.log("history loc:  " + history.location.pathname)
       if (!history.location.pathname.endsWith("/hashtag/" + currentHashtagRef.current.nodeId)){
         console.log("history push: /categorize/hashtag/" + currentHashtagRef.current.nodeId)
@@ -841,7 +856,7 @@ const App = () => {
     socket.on("USER_AUTHENTICATED", function (userObj) {
       setProgress(progress => "idle");
       setTwitterAuthenticated(() => true)
-      setTwitterAuthenticatedUser(twitterAuthenticatedUser => userObj.screenName)
+      setTwitterAuthenticatedUser(twitterAuthenticatedUser => userObj)
       console.log("RX TWITTER USER_AUTHENTICATED | USER: @" + userObj.screenName);
     });
 
@@ -910,8 +925,11 @@ const App = () => {
     }
   }
 
-  const displayNode = (nodeType) => {
-    if (nodeType === "user"){
+  const displayTab = (tab) => {
+    if (tab === "authUser"){
+      return <AuthUserView authUser={twitterAuthenticatedUser} stats={status}/>
+    }
+    else if (tab === "user"){
       return <UserView user={currentUser} stats={status} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
     }
     else{
@@ -934,8 +952,9 @@ const App = () => {
               value={tabValue} 
               onChange={handleTabChange}
             >
-              <Tab label="User" />
+              <Tab label="User"/>
               <Tab label="Hashtag"/>
+              <Tab label="Account"/>
             </Tabs>
 
             <div className={classes.search}>
@@ -943,7 +962,7 @@ const App = () => {
                 <SearchIcon color="primary"/>
               </div>
               <InputBase
-                placeholder={displayNodeTypeRef.current === "user" ? "user search..." : "hashtag search..."}
+                placeholder={currentTabRef.current === "user" ? "user search..." : "hashtag search..."}
                 classes={{
                   root: classes.inputRoot,
                   input: classes.inputInput,
@@ -963,11 +982,11 @@ const App = () => {
 
             <Link
               className={classes.twitterAuth}
-              href={"http://twitter.com/" + twitterAuthenticatedUser}
+              href={"http://twitter.com/" + twitterAuthenticatedUser.screenName}
               target="_blank"
               rel="noopener"
             >
-              {twitterAuthenticatedUser ? "@" + twitterAuthenticatedUser : ""}
+              {twitterAuthenticatedUser.screenName ? "@" + twitterAuthenticatedUser.screenName : ""}
             </Link>
 
             <Button 
@@ -984,7 +1003,7 @@ const App = () => {
 
           </Toolbar>
         </AppBar>
-        {displayNode(displayNodeType)}
+        {displayTab(currentTab)}
       </Container>
     </div>
   );

@@ -7563,11 +7563,7 @@ async function updateUserCounts() {
     documentType: "users",
     query: { categoryAuto: "none" },
   });
-  console.log(
-    chalkBlue(
-      MODULE_ID + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto
-    )
-  );
+  console.log(chalkBlue(MODULE_ID + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto));
 
   // -----
 
@@ -7575,9 +7571,8 @@ async function updateUserCounts() {
     documentType: "users",
     query: { categoryMismatch: true },
   });
-  console.log(
-    chalkBlue(MODULE_ID + " | MISMATCHED USERS: " + statsObj.user.mismatched)
-  );
+
+  console.log(chalkBlue(MODULE_ID + " | MISMATCHED USERS: " + statsObj.user.mismatched));
 
   // -----
 
@@ -7586,9 +7581,14 @@ async function updateUserCounts() {
     query: { "categorizedBy.users.threecee": {$nin: [null, false]} },
   });
   
-  console.log(
-    chalkBlue(MODULE_ID + " | USERS CATEGORIZED BY @threecee: " + statsObj.user.categorizedBy.threecee.total)
-  );
+  console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED BY @threecee: " + statsObj.user.categorizedBy.threecee.total));
+
+  statsObj.user.categorizedBy.altthreecee00.total = await countDocuments({
+    documentType: "users",
+    query: { "categorizedBy.users.altthreecee00": {$nin: [null, false]} },
+  });
+  
+  console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED BY @altthreecee00: " + statsObj.user.categorizedBy.altthreecee00.total));
 
   return;
 }

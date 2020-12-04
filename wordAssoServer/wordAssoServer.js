@@ -7585,6 +7585,7 @@ async function updateUserCounts() {
     documentType: "users",
     query: { "categorizedBy.users.threecee": {$nin: [null, false]} },
   });
+  
   console.log(
     chalkBlue(MODULE_ID + " | USERS CATEGORIZED BY @threecee: " + statsObj.user.categorizedBy.threecee.total)
   );

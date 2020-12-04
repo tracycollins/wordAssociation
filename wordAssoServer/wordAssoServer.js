@@ -1257,6 +1257,12 @@ statsObj.traffic.users.percentBots = 0;
 statsObj.traffic.users.total = 0;
 
 statsObj.user = {};
+statsObj.user.categorizedBy = {};
+statsObj.user.categorizedBy.threecee = {};
+statsObj.user.categorizedBy.threecee.total = {};
+statsObj.user.categorizedBy.altthreecee00 = {};
+statsObj.user.categorizedBy.altthreecee00.total = {};
+
 statsObj.user.total = 0;
 statsObj.user.dbUncat = 0;
 statsObj.user.added = 0;
@@ -7405,11 +7411,7 @@ async function updateUserCounts() {
     documentType: "users",
     query: { following: false },
   });
-  console.log(
-    chalkBlue(
-      MODULE_ID + " | NOT FOLLOWING USERS: " + statsObj.user.notFollowing
-    )
-  );
+  console.log(chalkBlue(MODULE_ID + " | NOT FOLLOWING USERS: " + statsObj.user.notFollowing));
 
   statsObj.user.ignored = await countDocuments({
     documentType: "users",
@@ -7575,6 +7577,16 @@ async function updateUserCounts() {
   });
   console.log(
     chalkBlue(MODULE_ID + " | MISMATCHED USERS: " + statsObj.user.mismatched)
+  );
+
+  // -----
+
+  statsObj.user.categorizedBy.threecee.total = await countDocuments({
+    documentType: "users",
+    query: { "categorizedBy.users.threecee": {$nin: [null, false]} },
+  });
+  console.log(
+    chalkBlue(MODULE_ID + " | USERS CATEGORIZED BY @threecee: " + statsObj.user.categorizedBy.threecee.total)
   );
 
   return;

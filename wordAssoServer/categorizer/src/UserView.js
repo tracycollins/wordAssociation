@@ -377,7 +377,7 @@ const User = (props) => {
                 <Table size="small">
                   <TableHead>
                     <StyledTableRow className={classes.tableHead}>
-                      <StyledTableCell>@{props.user.screenName}</StyledTableCell><StyledTableCell align="right"></StyledTableCell>
+                      <StyledTableCell  colSpan={2}>@{props.user.screenName}</StyledTableCell>
                     </StyledTableRow>
                   </TableHead>
                   <TableBody>

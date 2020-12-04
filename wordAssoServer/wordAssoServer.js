@@ -7393,6 +7393,12 @@ async function countDocuments(params) {
 }
 
 async function updateUserCounts() {
+
+  const startToday = moment().startOf('day').valueOf();
+  const endToday = moment().endOf('day').valueOf();
+
+  const startPeriod = moment().startOf('week').valueOf();
+  const endPeriod = moment().endOf('week').valueOf();
   
   statsObj.user.total = await countDocuments({ documentType: "users" });
   console.log(
@@ -7583,12 +7589,48 @@ async function updateUserCounts() {
   
   console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED BY @threecee: " + statsObj.user.categorizedBy.threecee.total));
 
+  statsObj.user.categorizedBy.threecee.today = await countDocuments({
+    documentType: "users",
+    query: { 
+      "categorizedBy.users.threecee.timeStamp": { $gte: startToday, $lte: endToday },
+    },
+  });
+  
+  console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED TODAY BY @threecee: " + statsObj.user.categorizedBy.threecee.today));
+  
+  statsObj.user.categorizedBy.threecee.periodCurrent = await countDocuments({
+    documentType: "users",
+    query: { 
+      "categorizedBy.users.threecee.timeStamp": { $gte: startPeriod, $lte: endPeriod },
+    },
+  });
+  
+  console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED THIS WEEK BY @threecee: " + statsObj.user.categorizedBy.threecee.periodCurrent));
+
   statsObj.user.categorizedBy.altthreecee00.total = await countDocuments({
     documentType: "users",
     query: { "categorizedBy.users.altthreecee00": {$nin: [null, false]} },
   });
   
   console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED BY @altthreecee00: " + statsObj.user.categorizedBy.altthreecee00.total));
+  
+  statsObj.user.categorizedBy.altthreecee00.today = await countDocuments({
+    documentType: "users",
+    query: { 
+      "categorizedBy.users.altthreecee00.timeStamp": { $gte: startToday, $lte: endToday },
+    },
+  });
+  
+  console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED TODAY BY @altthreecee00: " + statsObj.user.categorizedBy.altthreecee00.today));
+  
+  statsObj.user.categorizedBy.altthreecee00.periodCurrent = await countDocuments({
+    documentType: "users",
+    query: { 
+      "categorizedBy.users.altthreecee00.timeStamp": { $gte: startPeriod, $lte: endPeriod },
+    },
+  });
+  
+  console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED THIS WEEK BY @altthreecee00: " + statsObj.user.categorizedBy.altthreecee00.periodCurrent));
 
   return;
 }

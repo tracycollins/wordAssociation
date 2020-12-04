@@ -1,6 +1,6 @@
 // import React, { useState } from 'react';
 import React from 'react';
-import { green } from '@material-ui/core/colors';
+import { green, grey } from '@material-ui/core/colors';
 import clsx from 'clsx';
 
 import { Timeline } from 'react-twitter-widgets'
@@ -26,10 +26,10 @@ import FormGroup from '@material-ui/core/FormGroup';
 import Grid from '@material-ui/core/Grid';
 // import IconButton from '@material-ui/core/IconButton';
 // import InputBase from '@material-ui/core/InputBase';
-import InputLabel from '@material-ui/core/InputLabel';
+// import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 // import MenuIcon from '@material-ui/icons/Menu';
-// import Paper from '@material-ui/core/Paper';
+import Paper from '@material-ui/core/Paper';
 // import Radio from '@material-ui/core/Radio';
 // import RadioGroup from '@material-ui/core/RadioGroup';
 // import SearchIcon from '@material-ui/icons/Search';
@@ -44,12 +44,8 @@ import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 
-const fontSizeCategory = '0.9rem';
-
 const StyledTableCell = withStyles((theme) => ({
   head: {
-    // backgroundColor: theme.palette.common.black,
-    // color: theme.palette.common.white,
   },
   body: {
     fontSize: 11,
@@ -58,30 +54,40 @@ const StyledTableCell = withStyles((theme) => ({
 
 const StyledTableRow = withStyles((theme) => ({
   root: {
-    // '&:nth-of-type(odd)': {
-    //   backgroundColor: theme.palette.action.hover,
-    // },
+    backgroundColor: grey,
   },
 }))(TableRow);
 
 
 const useStyles = makeStyles((theme) => ({
   root: {
+    border: 0,
     flexGrow: 2,
   },
   appBar: {
+    border: 0,
     backgroundColor: 'white',
     marginBottom: theme.spacing(1),
   },
   grid: {
+    border: 0,
     display: 'flex',
     alignItems: 'stretch',
   },
   gridItem: {
+    border: 0,
     margin: theme.spacing(1),
-  },  
+  },
+  gridHeader: {
+    padding: theme.spacing(1),
+    border: 0,
+    marginBottom: theme.spacing(1),
+  },
+  paper: {
+    outlined: true,
+    variant: 'outlined',
+  },
   card: {
-    // maxWidth: "90%",
     alignSelf: "center",
   },
   profileImage: {
@@ -123,18 +129,15 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: '#106ba3',
     },
   },
-  
   selectCategory: {
-    fontSize: '0.5rem',
-    backgroundColor: '#ddeeee',
+    fontSize: '0.9rem',
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
     marginBottom: theme.spacing(1),
   },
   radioGroupCategory: {
+    maxWidth: "90%",
     fontSize: '0.5rem',
-    backgroundColor: '#ddeeee',
-    borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(2),
     marginBottom: theme.spacing(1),
   },
@@ -151,7 +154,8 @@ const useStyles = makeStyles((theme) => ({
   radioButton: {
   },
   table: {
-    borderRadius: theme.shape.borderRadius,
+    maxWidth: "90%",
+    padding: theme.spacing(1),
   },
   tableHead: {
     backgroundColor: '#ddeeee',
@@ -159,8 +163,6 @@ const useStyles = makeStyles((theme) => ({
   tableCell: {
   },
   tableCategorized: {
-    borderRadius: theme.shape.borderRadius,
-    // borderColor: 'red',
     backgroundColor: '#ddeeee',
   },
   tableRowGreen: {
@@ -175,11 +177,9 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
   },
   title: {
-    // flexGrow: 1,
     color: 'blue',
   },
   search: {
-    // flexGrow: 1,
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
     backgroundColor: "white",
@@ -187,10 +187,8 @@ const useStyles = makeStyles((theme) => ({
       backgroundColor: "#ddeeee",
     },
     marginRight: theme.spacing(1),
-    // marginLeft: 0,
     width: '100%',
     [theme.breakpoints.up('sm')]: {
-      // marginLeft: theme.spacing(3),
       width: 'auto',
     },
   },
@@ -235,15 +233,13 @@ const useStyles = makeStyles((theme) => ({
   buttonMismatch: {
     margin: 5
   },
-
   autoCategory:{
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
     color: 'white',
+    marginBottom: theme.spacing(1),
   },
-
   category: {
-    // fontSize: fontSizeCategory,
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
     marginBottom: theme.spacing(1),
@@ -359,165 +355,165 @@ const User = (props) => {
               />
             </Card>
           </Grid>
+          <Grid item className={classes.gridItem} xs={3} >
+            <Paper className={classes.paper} elevation={0} variant="outlined" >
+              <Timeline
+                dataSource={{
+                  sourceType: 'profile',
+                  screenName: props.user.screenName
+                }}
+                options={{width: '100%', height: '800'}}
+              />
+            </Paper>
+          </Grid>
           <Grid item className={classes.gridItem} xs={3}>
-            <Timeline
-              dataSource={{
-                sourceType: 'profile',
-                screenName: props.user.screenName
-              }}
-              options={{width: '100%', height: '800'}}
-            />
-          </Grid>
-          <Grid item className={classes.gridItem} xs={2}>
-            <TableContainer>
-              <Table className={classes.table} size="small">
-                <TableHead>
-                  <StyledTableRow className={classes.tableHead}>
-                    <StyledTableCell>@{props.user.screenName}</StyledTableCell><StyledTableCell align="right"></StyledTableCell>
-                  </StyledTableRow>
-                </TableHead>
-                <TableBody>
-                  <StyledTableRow>
-                    <StyledTableCell>Twitter ID</StyledTableCell><StyledTableCell align="right">{props.user.nodeId}</StyledTableCell>
-                  </StyledTableRow>
-                  <StyledTableRow>
-                    <StyledTableCell>Location</StyledTableCell><StyledTableCell align="right">{props.user.location}</StyledTableCell>
-                  </StyledTableRow>
-                  <StyledTableRow>
-                    <StyledTableCell>Created</StyledTableCell><StyledTableCell align="right">{createdAt}</StyledTableCell>
-                  </StyledTableRow>
-                  <StyledTableRow>
-                    <StyledTableCell>Twitter age</StyledTableCell><StyledTableCell align="right">{twitterAgeString}</StyledTableCell>
-                  </StyledTableRow>
-                  <StyledTableRow className={props.user.followersCount > 5000 ? classes.tableRowGreen : null}>
-                    <StyledTableCell>Followers</StyledTableCell><StyledTableCell align="right">{props.user.followersCount}</StyledTableCell>
-                  </StyledTableRow>
-                  <StyledTableRow>
-                    <StyledTableCell>Friends</StyledTableCell><StyledTableCell align="right">{props.user.friendsCount}</StyledTableCell>
-                  </StyledTableRow>
-                  <StyledTableRow>
-                    <StyledTableCell>Tweets</StyledTableCell><StyledTableCell align="right">{props.user.statusesCount}</StyledTableCell>
-                  </StyledTableRow>
-                  <StyledTableRow>
-                    <StyledTableCell>Tweets/day</StyledTableCell><StyledTableCell align="right">{tweetRate}</StyledTableCell>
-                  </StyledTableRow>
-                  <StyledTableRow>
-                    <StyledTableCell>Active</StyledTableCell><StyledTableCell align="right">{lastSeen} ({lastSeenDuration} ago)</StyledTableCell>
-                  </StyledTableRow>
-                  {/* <StyledTableRow>
-                    <StyledTableCell>Last Active</StyledTableCell><StyledTableCell align="right">{lastSeenDuration} ago</StyledTableCell>
-                  </StyledTableRow> */}
-                  <StyledTableRow>
-                    <StyledTableCell>Mentions</StyledTableCell><StyledTableCell align="right">{props.user.mentions}</StyledTableCell>
-                  </StyledTableRow>
-                  <StyledTableRow>
-                    <StyledTableCell>Mentions/hour</StyledTableCell><StyledTableCell align="right">{props.user.rate ? 60*props.user.rate.toFixed(2) : 0}</StyledTableCell>
-                  </StyledTableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Grid>
-          <Grid item className={classes.gridItem} xs={2}>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <StyledTableRow className={classes.tableHead}>
-                    <StyledTableCell colSpan={3}>ALL USERS</StyledTableCell>
-                  </StyledTableRow>
-                  <StyledTableRow>
-                    <StyledTableCell>CAT</StyledTableCell>
-                    <StyledTableCell align="right">MAN</StyledTableCell>
-                    <StyledTableCell align="right">AUTO</StyledTableCell>
-                  </StyledTableRow>
-                </TableHead>
-                <TableBody>
-                  <StyledTableRow > 
-                    <StyledTableCell>LEFT</StyledTableCell>
-                    <StyledTableCell align="right">{props.stats.user.manual.left}</StyledTableCell>
-                    <StyledTableCell align="right">{props.stats.user.auto.left}</StyledTableCell>
-                  </StyledTableRow>
-                  <StyledTableRow>
-                    <StyledTableCell >RIGHT</StyledTableCell>
-                    <StyledTableCell align="right">{props.stats.user.manual.right}</StyledTableCell>
-                    <StyledTableCell align="right">{props.stats.user.auto.right}</StyledTableCell>
-                  </StyledTableRow>
-                  <StyledTableRow>
-                    <StyledTableCell >NEUTRAL</StyledTableCell>
-                    <StyledTableCell align="right">{props.stats.user.manual.neutral}</StyledTableCell>
-                    <StyledTableCell align="right">{props.stats.user.auto.neutral}</StyledTableCell>
-                  </StyledTableRow>
-                  <StyledTableRow>
-                    <StyledTableCell >POSITIVE</StyledTableCell>
-                    <StyledTableCell align="right">{props.stats.user.manual.positive}</StyledTableCell>
-                    <StyledTableCell align="right">{props.stats.user.auto.positive}</StyledTableCell>
-                  </StyledTableRow>
-                  <StyledTableRow>
-                    <StyledTableCell >NEGATIVE</StyledTableCell>
-                    <StyledTableCell align="right">{props.stats.user.manual.negative}</StyledTableCell>
-                    <StyledTableCell align="right">{props.stats.user.auto.negative}</StyledTableCell>
-                  </StyledTableRow>
-                  <StyledTableRow>
-                    <StyledTableCell >NONE</StyledTableCell>
-                    <StyledTableCell align="right">{props.stats.user.manual.none}</StyledTableCell>
-                    <StyledTableCell align="right">{props.stats.user.auto.none}</StyledTableCell>
-                  </StyledTableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Grid>
-          <Grid item className={classes.gridItem} xs={1}>
-            <FormGroup>
-              <FormControl >
-                <InputLabel id="category-manual">CATEGORY</InputLabel>
-                <Select
-                  labelId="category-manual-label"
-                  id="category-manual"
-                  name="category"
-                  className={clsx(classes.category, getCategoryClass(props.user.category))} 
-                  align="center"
-                  value={props.user.category || "none"}
-                  onChange={(event) => props.handleNodeChange(event, props.user)}
-                >
-                  <MenuItem dense={true} value={"none"} >NONE</MenuItem>
-                  <MenuItem dense={true} value={"left"} >LEFT</MenuItem>
-                  <MenuItem dense={true} value={"neutral"}>NEUTRAL</MenuItem>
-                  <MenuItem dense={true} value={"right"}>RIGHT</MenuItem>
-                  <MenuItem dense={true} value={"positive"}>POSITIVE</MenuItem>
-                  <MenuItem dense={true} value={"negative"}>NEGATIVE</MenuItem>
-
-                </Select>
-              </FormControl>
-
+            <Paper className={classes.paper} elevation={0} variant="outlined" >
               <Typography
-                className={clsx(classes.autoCategory, getCategoryClass(props.user.categoryAuto))} 
-                align="center"
+                className={classes.gridHeader} 
               >
-                AUTO: {props.user.categoryAuto ? props.user.categoryAuto.toUpperCase() : "NONE"}
+                STATS
               </Typography>
-
-              <FormControl 
-                component="fieldset"
-                className={classes.radioGroupCategory}
-                size="small"
+              <TableContainer className={classes.table} >
+                <Table size="small">
+                  <TableHead>
+                    <StyledTableRow className={classes.tableHead}>
+                      <StyledTableCell>@{props.user.screenName}</StyledTableCell><StyledTableCell align="right"></StyledTableCell>
+                    </StyledTableRow>
+                  </TableHead>
+                  <TableBody>
+                    <StyledTableRow>
+                      <StyledTableCell>Twitter ID</StyledTableCell><StyledTableCell align="right">{props.user.nodeId}</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow>
+                      <StyledTableCell>Location</StyledTableCell><StyledTableCell align="right">{props.user.location}</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow>
+                      <StyledTableCell>Created</StyledTableCell><StyledTableCell align="right">{createdAt}</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow>
+                      <StyledTableCell>Twitter age</StyledTableCell><StyledTableCell align="right">{twitterAgeString}</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow className={props.user.followersCount > 5000 ? classes.tableRowGreen : null}>
+                      <StyledTableCell>Followers</StyledTableCell><StyledTableCell align="right">{props.user.followersCount}</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow>
+                      <StyledTableCell>Friends</StyledTableCell><StyledTableCell align="right">{props.user.friendsCount}</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow>
+                      <StyledTableCell>Tweets</StyledTableCell><StyledTableCell align="right">{props.user.statusesCount}</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow>
+                      <StyledTableCell>Tweets/day</StyledTableCell><StyledTableCell align="right">{tweetRate}</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow>
+                      <StyledTableCell>Active</StyledTableCell><StyledTableCell align="right">{lastSeen} ({lastSeenDuration} ago)</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow>
+                      <StyledTableCell>Mentions</StyledTableCell><StyledTableCell align="right">{props.user.mentions}</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow>
+                      <StyledTableCell>Mentions/hour</StyledTableCell><StyledTableCell align="right">{props.user.rate ? 60*props.user.rate.toFixed(2) : 0}</StyledTableCell>
+                    </StyledTableRow>
+                  </TableBody>
+                </Table>
+                <Table size="small">
+                  <TableHead>
+                    <StyledTableRow className={classes.tableHead}>
+                      <StyledTableCell colSpan={3}>ALL USERS</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow>
+                      <StyledTableCell>CAT</StyledTableCell>
+                      <StyledTableCell align="right">MAN</StyledTableCell>
+                      <StyledTableCell align="right">AUTO</StyledTableCell>
+                    </StyledTableRow>
+                  </TableHead>
+                  <TableBody>
+                    <StyledTableRow > 
+                      <StyledTableCell>LEFT</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.manual.left}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.auto.left}</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow>
+                      <StyledTableCell >RIGHT</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.manual.right}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.auto.right}</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow>
+                      <StyledTableCell >NEUTRAL</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.manual.neutral}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.auto.neutral}</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow>
+                      <StyledTableCell >POSITIVE</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.manual.positive}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.auto.positive}</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow>
+                      <StyledTableCell >NEGATIVE</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.manual.negative}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.auto.negative}</StyledTableCell>
+                    </StyledTableRow>
+                    <StyledTableRow>
+                      <StyledTableCell >NONE</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.manual.none}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.auto.none}</StyledTableCell>
+                    </StyledTableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>          
+            </Paper>
+          </Grid>
+          <Grid item className={classes.gridItem} xs={2}>
+            <Paper className={classes.paper}  elevation={0} variant="outlined">
+              <Typography
+                className={classes.gridHeader} 
               >
-                <FormControlLabel
-                  control={<Checkbox className={classes.checkbox} size="small" checked={props.user.following || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="following" />}
-                  label={<Typography className={classes.radioButtonLabel}>FOLLOWING</Typography>}
-                />
-                <FormControlLabel
-                  control={<Checkbox className={classes.checkbox} size="small" checked={props.user.categoryVerified || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="catVerified" />}
-                  label={<Typography className={classes.radioButtonLabel}>VERIFIED</Typography>}
-                />
-                <FormControlLabel
-                  control={<Checkbox className={classes.checkbox} size="small" checked={props.user.ignored || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="ignored" />}
-                  label={<Typography className={classes.radioButtonLabel}>IGNORED</Typography>}
-                />
-                <FormControlLabel
-                  control={<Checkbox className={classes.checkbox} size="small" checked={props.user.isBot || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="isBot" />}
-                  label={<Typography className={classes.radioButtonLabel}>BOT</Typography>}
-                />
-              </FormControl>
-            </FormGroup>
+                SETTINGS
+              </Typography>
+              <FormGroup align="center">
+                <FormControl align="center">
+                  <Select
+                    labelId="category-manual-label"
+                    id="category-manual"
+                    name="category"
+                    className={clsx(classes.selectCategory, getCategoryClass(props.user.category))} 
+                    value={props.user.category || "none"}
+                    onChange={(event) => props.handleNodeChange(event, props.user)}
+                  >
+                    <MenuItem dense={true} value={"none"} >NONE</MenuItem>
+                    <MenuItem dense={true} value={"left"} >LEFT</MenuItem>
+                    <MenuItem dense={true} value={"neutral"}>NEUTRAL</MenuItem>
+                    <MenuItem dense={true} value={"right"}>RIGHT</MenuItem>
+                    <MenuItem dense={true} value={"positive"}>POSITIVE</MenuItem>
+                    <MenuItem dense={true} value={"negative"}>NEGATIVE</MenuItem>
+
+                  </Select>
+                </FormControl>
+                <Typography
+                  className={clsx(classes.selectCategory, getCategoryClass(props.user.categoryAuto))} 
+                >
+                  AUTO: {props.user.categoryAuto ? props.user.categoryAuto.toUpperCase() : "NONE"}
+                </Typography>
+                <FormControl component="fieldset" className={classes.radioGroupCategory} size="small">
+                  <FormControlLabel
+                    control={<Checkbox className={classes.checkbox} size="small" checked={props.user.following || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="following" />}
+                    label={<Typography className={classes.radioButtonLabel}>FOLLOWING</Typography>}
+                  />
+                  <FormControlLabel
+                    control={<Checkbox className={classes.checkbox} size="small" checked={props.user.categoryVerified || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="catVerified" />}
+                    label={<Typography className={classes.radioButtonLabel}>VERIFIED</Typography>}
+                  />
+                  <FormControlLabel
+                    control={<Checkbox className={classes.checkbox} size="small" checked={props.user.ignored || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="ignored" />}
+                    label={<Typography className={classes.radioButtonLabel}>IGNORED</Typography>}
+                  />
+                  <FormControlLabel
+                    control={<Checkbox className={classes.checkbox} size="small" checked={props.user.isBot || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="isBot" />}
+                    label={<Typography className={classes.radioButtonLabel}>BOT</Typography>}
+                  />
+                </FormControl>
+              </FormGroup>
+            </Paper>
           </Grid>
         </Grid>
     </>

@@ -612,7 +612,7 @@ const App = () => {
       case "category":
         if (twitterAuthenticatedRef.current){
           socket.emit("TWITTER_CATEGORIZE_NODE", {
-            categorizedBy: twitterAuthenticatedUserRef.current,
+            categorizedBy: twitterAuthenticatedUserRef.current.screenName,
             category: eventValue,
             following: true,
             node: node,
@@ -962,7 +962,8 @@ const App = () => {
                 <SearchIcon color="primary"/>
               </div>
               <InputBase
-                placeholder={currentTabRef.current === "user" ? "user search..." : "hashtag search..."}
+                // placeholder={currentTabRef.current === "user" ? "user search..." : "hashtag search..."}
+                placeholder={currentTab === "user" ? "user search..." : "hashtag search..."}
                 classes={{
                   root: classes.inputRoot,
                   input: classes.inputInput,

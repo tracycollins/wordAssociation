@@ -6208,8 +6208,11 @@ async function initSocketHandler(socketObj) {
           autoCategorizeFlag: true,
         });
 
-        await updateUserCounts();
-        await updateHashtagCounts();
+        // await updateUserCounts();
+        // await updateHashtagCounts();
+        
+        updateUserCounts();
+        updateHashtagCounts();
 
         if (node) {
           if (node.nodeType === "user") {

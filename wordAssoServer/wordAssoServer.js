@@ -1316,8 +1316,6 @@ let hostConfiguration = {}; // host-specific configuration
 
 let configuration = {};
 
-configuration.updateHashtagSetsInterval = DEFAULT_UPDATE_HASHTAG_SETS_INTERVAL;
-
 configuration.minMentionsHashtags = DEFAULT_MIN_MENTIONS_HASHTAGS;
 configuration.maxLastSeenDaysHashtags = DEFAULT_MAX_LAST_SEEN_DAYS_HASHTAGS;
 
@@ -1404,6 +1402,7 @@ configuration.rateQueueInterval = DEFAULT_RATE_QUEUE_INTERVAL;
 configuration.rateQueueIntervalModulo = DEFAULT_RATE_QUEUE_INTERVAL_MODULO;
 configuration.statsUpdateIntervalTime = DEFAULT_STATS_UPDATE_INTERVAL;
 configuration.updateUserSetsInterval = DEFAULT_UPDATE_USER_SETS_INTERVAL;
+configuration.updateHashtagSetsInterval = DEFAULT_UPDATE_HASHTAG_SETS_INTERVAL;
 
 // configuration.DROPBOX = {};
 // configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE = process.env.DROPBOX_CONFIG_FILE || "wordAssoServerConfig.json";
@@ -11148,31 +11147,21 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.UPDATE_USER_SETS_INTERVAL !== undefined) {
-      console.log(
-        MODULE_ID +
-          " | LOADED UPDATE_USER_SETS_INTERVAL: " +
-          loadedConfigObj.UPDATE_USER_SETS_INTERVAL
-      );
-      newConfiguration.updateUserSetsInterval =
-        loadedConfigObj.UPDATE_USER_SETS_INTERVAL;
+      console.log(MODULE_ID + " | LOADED UPDATE_USER_SETS_INTERVAL: " + loadedConfigObj.UPDATE_USER_SETS_INTERVAL);
+      newConfiguration.updateUserSetsInterval = loadedConfigObj.UPDATE_USER_SETS_INTERVAL;
+    }
+
+    if (loadedConfigObj.UPDATE_HASHTAG_SETS_INTERVAL !== undefined) {
+      console.log(MODULE_ID + " | LOADED UPDATE_HASHTAG_SETS_INTERVAL: " + loadedConfigObj.UPDATE_HASHTAG_SETS_INTERVAL);
+      newConfiguration.updateHashtagSetsInterval = loadedConfigObj.UPDATE_HASHTAG_SETS_INTERVAL;
     }
 
     if (loadedConfigObj.ENABLE_GEOCODE !== undefined) {
-      console.log(
-        MODULE_ID +
-          " | LOADED ENABLE_GEOCODE: " +
-          loadedConfigObj.ENABLE_GEOCODE
-      );
+      console.log(MODULE_ID + " | LOADED ENABLE_GEOCODE: " + loadedConfigObj.ENABLE_GEOCODE);
 
-      if (
-        loadedConfigObj.ENABLE_GEOCODE == false ||
-        loadedConfigObj.ENABLE_GEOCODE == "false"
-      ) {
+      if (loadedConfigObj.ENABLE_GEOCODE == false || loadedConfigObj.ENABLE_GEOCODE == "false") {
         newConfiguration.enableGeoCode = false;
-      } else if (
-        loadedConfigObj.ENABLE_GEOCODE == true ||
-        loadedConfigObj.ENABLE_GEOCODE == "true"
-      ) {
+      } else if (loadedConfigObj.ENABLE_GEOCODE == true || loadedConfigObj.ENABLE_GEOCODE == "true") {
         newConfiguration.enableGeoCode = true;
       } else {
         newConfiguration.enableGeoCode = false;
@@ -12724,7 +12713,7 @@ setTimeout(async function () {
     await initAllowLocations();
     await initIgnoreLocations();
     await initIgnoredProfileWords();
-    await updateUserSets();
+    // await updateUserSets();
     await initUpdateUserSetsInterval();
     // await updateHashtagSets();
     await initUpdateHashtagSetsInterval();

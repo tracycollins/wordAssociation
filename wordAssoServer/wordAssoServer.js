@@ -2137,8 +2137,7 @@ function initPassport() {
     app.use(passport.initialize());
 
     passport.use(
-      new TwitterStrategy(
-        {
+      new TwitterStrategy({
           consumerKey: threeceeConfig.consumer_key,
           consumerSecret: threeceeConfig.consumer_secret,
           callbackURL: TWITTER_AUTH_CALLBACK_URL,
@@ -2163,23 +2162,16 @@ function initPassport() {
             return cb(new Error("userServerController not ready"), null);
           }
 
-          userServerController.convertRawUser({ user: rawUser }, function (
-            err,
-            user
-          ) {
+          userServerController.convertRawUser({ user: rawUser }, function (err, user) {
             if (err) {
-              console.log(chalkError(MODULE_ID
-                + " | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser))
-              );
+              console.log(chalkError(MODULE_ID + " | *** UNCATEGORIZED USER | convertRawUser ERROR: " + err + "\nrawUser\n" + jsonPrint(rawUser)));
               return cb("RAW USER", rawUser);
             }
 
             printUserObj(MODULE_ID + " | MONGO DB | TWITTER AUTH USER", user);
 
-            userServerController.findOneUser(
-              user,
-              { noInc: true, fields: fieldsExclude },
-              async function (err, updatedUser) {
+            userServerController.findOneUser(user,{ noInc: true, fields: fieldsExclude }, async function (err, updatedUser) {
+
                 if (err) {
                   console.log(chalkError(MODULE_ID + " | ***findOneUser ERROR: " + err));
                   return cb(err);
@@ -2187,24 +2179,14 @@ function initPassport() {
 
                 if (configuration.verbose) {
                   console.log(chalk.blue(MODULE_ID +
-                        " | UPDATED updatedUser" +
-                        " | PREV CR: " +
-                        previousUserUncategorizedCreated.format(
-                          compactDateTimeFormat
-                        ) +
-                        " | USER CR: " +
-                        getTimeStamp(updatedUser.createdAt) +
-                        "\nWAS | " +
-                        printUser({ user: updatedUser })
-                    )
-                  );
+                    " | UPDATED updatedUser" +
+                    " | PREV CR: " + previousUserUncategorizedCreated.format(compactDateTimeFormat) +
+                    " | USER CR: " + getTimeStamp(updatedUser.createdAt) +
+                    "\nWAS | " + printUser({ user: updatedUser })
+                  ));
                 }
 
-                if (
-                  configuration.threeceeInfoUsersArray.includes(
-                    updatedUser.screenName
-                  )
-                ) {
+                if (configuration.threeceeInfoUsersArray.includes(updatedUser.screenName)) {
                   threeceeInfoTwitter.twitterAuthorizationErrorFlag = false;
                   threeceeInfoTwitter.twitterCredentialErrorFlag = false;
                   threeceeInfoTwitter.twitterErrorFlag = false;
@@ -2230,8 +2212,7 @@ function initPassport() {
                 adminNameSpace.emit("USER_AUTHENTICATED", updatedUser);
                 viewNameSpace.emit("USER_AUTHENTICATED", updatedUser);
 
-                slackText =
-                  "*USER_AUTHENTICATED | @" + updatedUser.screenName + "*";
+                slackText = "*USER_AUTHENTICATED | @" + updatedUser.screenName + "*";
 
                 await slackSendWebMessage({
                   channel: slackChannelUserAuth,
@@ -5171,8 +5152,8 @@ async function twitterSearchNode(params) {
       " | " + searchNode
     ));
 
-    await updateUserCounts();
-    await updateHashtagCounts();
+    updateUserCounts();
+    updateHashtagCounts();
 
     if (searchNode.startsWith("#")) {
       
@@ -6151,29 +6132,23 @@ async function initSocketHandler(socketObj) {
       user.isBot = false;
 
       try {
-        console.log(
-          chalkSocket(
-            MODULE_ID +
-              " | R< TWITTER_UNBOT" +
-              " | " +
-              getTimeStamp() +
-              " | " +
-              ipAddress +
-              " | " +
-              socket.id +
-              " | NID: " +
-              user.nodeId +
-              " | @" +
-              user.screenName
-          )
-        );
+        console.log(chalkSocket(MODULE_ID +
+          " | R< TWITTER_UNBOT" +
+          " | " + getTimeStamp() +
+          " | " + ipAddress +
+          " | " + socket.id +
+          " | NID: " + user.nodeId +
+          " | @" + user.screenName
+        ));
 
         tssChild.send({
           op: "UNBOT",
           user: { nodeId: user.nodeId, screenName: user.screenName },
         });
-        await nodeSetProps({ node: user, props: { isBot: false } });
+
+        nodeSetProps({ node: user, props: { isBot: false } });
         socket.emit("SET_TWITTER_USER", { node: user, stats: statsObj });
+
       } catch (err) {
         console.log(chalkError(MODULE_ID + " | TWITTER_UNBOT ERROR: " + err));
       }
@@ -6189,7 +6164,7 @@ async function initSocketHandler(socketObj) {
         " | " + sn
       ));
 
-      await twitterSearchNode({ searchNode: sn });
+      twitterSearchNode({ searchNode: sn });
 
     });
 
@@ -6374,25 +6349,19 @@ async function initSocketHandler(socketObj) {
       }
     });
 
-    socket.on("login", async function socketLogin(viewerObj) {
+    socket.on("TWITTER_AUTHENTICATE", async function socketLogin(viewerObj) {
+
       viewerObj.timeStamp = moment().valueOf();
 
-      console.log(
-        chalkAlert(
-          MODULE_ID +
-            " | LOGIN" +
-            " | " +
-            socket.id +
-            " | IP: " +
-            ipAddress +
-            " | DOMAIN: " +
-            domainName +
-            "\n" +
-            jsonPrint(viewerObj)
-        )
-      );
+      console.log(chalkAlert(MODULE_ID +
+        " | TWITTER_AUTHENTICATE" +
+        " | " + socket.id +
+        " | IP: " + ipAddress +
+        " | DOMAIN: " + domainName +
+        "\n" + jsonPrint(viewerObj)
+      ));
 
-      slackText = "*LOADING PAGE | TWITTER LOGIN*";
+      slackText = "*LOADING PAGE | TWITTER TWITTER_AUTHENTICATE*";
       slackText = slackText + "\nIP: " + ipAddress;
       slackText = slackText + "\nDOMAIN: " + domainName;
       slackText = slackText + "\n@" + viewerObj.screenName;
@@ -7599,14 +7568,14 @@ async function updateUserCounts() {
   
   statsObj.user.categorizedBy.altthreecee00.today = await countDocuments({
     documentType: "users",
-    query: { "categorizedBy.users.altthreecee00.timeStamp": { $gte: startToday, $lte: endToday },},
+    query: { "categorizedBy.users.altthreecee00.timeStamp": { $gte: startToday, $lte: endToday }},
   });
   
   console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED TODAY BY @altthreecee00: " + statsObj.user.categorizedBy.altthreecee00.today));
   
   statsObj.user.categorizedBy.altthreecee00.periodCurrent = await countDocuments({
     documentType: "users",
-    query: { "categorizedBy.users.altthreecee00.timeStamp": { $gte: startPeriod, $lte: endPeriod },},
+    query: { "categorizedBy.users.altthreecee00.timeStamp": { $gte: startPeriod, $lte: endPeriod }},
   });
   
   console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED THIS WEEK BY @altthreecee00: " + statsObj.user.categorizedBy.altthreecee00.periodCurrent));
@@ -8757,7 +8726,7 @@ function initAppRouting(callback) {
 
     try{
       res.sendFile(categorizerHtml);
-      await twitterSearchNode({ searchNode: req.params.query });
+      twitterSearchNode({ searchNode: req.params.query });
     }
     catch(e){
       console.log(chalkError(MODULE_ID + " | R< SEARCH | *** USER ERROR | QUERY: " + req.params.query));
@@ -8773,7 +8742,7 @@ function initAppRouting(callback) {
 
     try{
       res.sendFile(categorizerHtml);
-      await twitterSearchNode({ searchNode: req.params.query });
+      twitterSearchNode({ searchNode: req.params.query });
     }
     catch(e){
       console.log(chalkError(MODULE_ID + " | R< SEARCH | *** HASHTAG ERROR | QUERY: " + req.params.query));

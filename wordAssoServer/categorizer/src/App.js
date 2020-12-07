@@ -781,7 +781,7 @@ const App = () => {
           }
         }
         console.debug("TOTAL USERS: " + tempUsers.length)
-        socket.emit()
+        socket.emit("TWITTER_SEARCH_NODE", response.searchNode)
         setUsers(users => [...tempUsers])
       }
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 // import useSocket from 'use-socket.io-client';
 // import { useImmer } from 'use-immer';
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory, useLocation, useParams } from "react-router-dom";
 import { useHotkeys } from 'react-hotkeys-hook';
 import socketClient from "socket.io-client";
 import { makeStyles } from '@material-ui/core/styles';
@@ -33,10 +33,10 @@ const ENDPOINT = "https://word.threeceelabs.com/view";
 const DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
 
 const randomIntFromInterval = (min, max) => {
-  return Math.floor(Math.random() * (max - min + 1) + min);
+  return Math.floor(Math.random() * (max - min + 1) + min)
 };
 
-const randomId = randomIntFromInterval(1000000000, 9999999999);
+const randomId = randomIntFromInterval(1000000000, 9999999999)
 const VIEWER_ID = "viewer_" + randomId;
 
 const DEFAULT_VIEWER_OBJ = {
@@ -57,9 +57,9 @@ DEFAULT_VIEWER_OBJ.tags.entity = VIEWER_ID;
 
 const viewerObj = DEFAULT_VIEWER_OBJ;
 
-console.log({viewerObj});
+console.log({viewerObj})
 
-let socket = socketClient(ENDPOINT);
+let socket = socketClient(ENDPOINT)
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -152,21 +152,21 @@ const useStyles = makeStyles((theme) => ({
     },
   },
 
-}));
+}))
 
 const formatDateTime = (dateInput) => {
-  return new Date(dateInput).toLocaleString();
+  return new Date(dateInput).toLocaleString()
 }
 
 const App = () => {
 
-  const history = useHistory();
+  const history = useHistory()
   let location = useLocation()
-  // let { slug } = useParams();
+  let { slug } = useParams()
 
-  // // console.log({slug})
+  console.log({slug})
 
-  const classes = useStyles();
+  const classes = useStyles()
 
   const defaultStatus = {
     nodesPerMin: 0, 
@@ -269,12 +269,14 @@ const App = () => {
     rateMax: 0,
   }
 
+  const defaultAccount = {}
+
   const defaultTweets = {
     search_metadata: {},
     statuses: []
   }
 
-  const [tabValue, setTabValue] = useState(0);
+  const [tabValue, setTabValue] = useState(0)
   // const tabValueRef = useRef(tabValue)
 
   const [historyArray, setHistoryArray] = useState([location.pathname])
@@ -283,44 +285,47 @@ const App = () => {
   const [historyArrayIndex, setHistoryArrayIndex] = useState(0)
   const historyArrayIndexRef = useRef(historyArrayIndex)
 
-  const [twitterAuthenticated, setTwitterAuthenticated] = useState(false);
+  const [twitterAuthenticated, setTwitterAuthenticated] = useState(false)
   const twitterAuthenticatedRef = useRef(twitterAuthenticated)
 
-  const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState({});
+  const [twitterAuthenticatedUser, setTwitterAuthenticatedUser  ] = useState({})
   const twitterAuthenticatedUserRef = useRef(twitterAuthenticatedUser)
 
-  const [userSearch, setUserSearch] = useState("");
+  const [userSearch, setUserSearch] = useState("")
   // const userSearchRef = useRef(userSearch)
 
-  const [status, setStatus] = useState(defaultStatus);
+  const [status, setStatus] = useState(defaultStatus)
   const statusRef = useRef(status)
 
-  const [statusHashtag, setStatusHashtag] = useState(false);
+  const [statusHashtag, setStatusHashtag] = useState(false)
   const statusHashtagRef = useRef(statusHashtag)
 
-  const [tweets, setTweets] = useState(defaultTweets);
+  const [tweets, setTweets] = useState(defaultTweets)
   const tweetsRef = useRef(tweets)
 
-  const [progress, setProgress] = useState("loading ...");
+  const [progress, setProgress] = useState("loading ...")
 
-  const [currentTab, setCurrentTab] = useState("user");
+  const [currentTab, setCurrentTab] = useState("user")
   const currentTabRef = useRef(currentTab)
 
-  const [currentUsers, setUsers] = useState([]);
+  const [currentUsers, setUsers] = useState([])
   const currentUsersRef = useRef(currentUsers)
 
-  const [currentUser, setCurrentUser] = useState(defaultUser);
+  const [currentUser, setCurrentUser] = useState(defaultUser)
   const currentUserRef = useRef(currentUser)
 
-  const [currentHashtag, setCurrentHashtag] = useState(defaultHashtag);
+  const [currentHashtag, setCurrentHashtag] = useState(defaultHashtag)
   const currentHashtagRef = useRef(currentHashtag)
+  
+  const [currentAccount, setCurrentAccount] = useState(defaultAccount)
+  const currentAccountRef = useRef(currentAccount)
   
   useEffect(() => {
     const tempHistoryArray = [...historyArrayRef.current]
     if (tempHistoryArray.length > 0 && location.pathname !== tempHistoryArray[0]){
       tempHistoryArray.push(location.pathname)
       setHistoryArray(() => [...tempHistoryArray])
-      setHistoryArrayIndex(tempHistoryArray.length-1);
+      setHistoryArrayIndex(tempHistoryArray.length-1)
       historyArrayRef.current = tempHistoryArray
     }
   }, [location.pathname])
@@ -382,11 +387,11 @@ const App = () => {
         setCurrentTab("user")
     }
 
-    setTabValue(newValue);
+    setTabValue(newValue)
   }
 
   const handleSearchNode = (searchString) => {
-    setProgress(progress => "searchNode");
+    setProgress(progress => "searchNode")
     const searchTerm = currentTab === "user" ? "@" + searchString : "#" + searchString
     console.log("SEARCH TERM: " + searchTerm)
     socket.emit("TWITTER_SEARCH_NODE", searchTerm)
@@ -395,26 +400,22 @@ const App = () => {
   const handleLoginLogout = useCallback((event) => {
 
     event.preventDefault()
-    setProgress(progress => "loginLogout");
+    setProgress(progress => "loginLogout")
 
     if (twitterAuthenticatedRef.current){
-      console.warn("LOGGING OUT");
-      socket.emit("logout", viewerObj);
+      console.warn("LOGGING OUT")
+      socket.emit("logout", viewerObj)
       setTwitterAuthenticated(false)
       setTwitterAuthenticatedUser({})
-      setProgress(progress => "idle");
+      setCurrentAccount(defaultAccount)
+      setProgress(progress => "idle")
     }
     else{
-      console.warn(
-        "LOGIN: AUTH: " +
-          twitterAuthenticatedRef.current +
-          " | URL: " +
-          DEFAULT_AUTH_URL
-      );
-      window.open(DEFAULT_AUTH_URL, "LOGIN", "_new");
-      socket.emit("login", viewerObj);
+      console.warn("TWITTER_AUTHENTICATE: " +twitterAuthenticatedRef.current + " | URL: " + DEFAULT_AUTH_URL)
+      window.open(DEFAULT_AUTH_URL, "TWITTER_AUTHENTICATE", "_new")
+      socket.emit("TWITTER_AUTHENTICATE", viewerObj)
     }
-  }, []);
+  }, [])
 
   const currentUsersAvailable = (eventName) => {
     if (currentUsersRef.current && currentUsersRef.current.length > 0){
@@ -422,9 +423,9 @@ const App = () => {
       const user = tempUsers.shift()
       setUsers(tempUsers)
       console.log("USING CURRENT USERS | CURRENT USERS: " + tempUsers.length + " | @" + user.screenName)
-      setCurrentUser(user);
-      setProgress("idle");
-      return tempUsers.length;
+      setCurrentUser(user)
+      setProgress("idle")
+      return tempUsers.length
     }
     return 0;
   }
@@ -461,12 +462,18 @@ const App = () => {
           console.log({historyArrayIndexRef})
           eventName = "history"
           if (event.code === "ArrrowRight"){
+            // if (historyArrayRef.current.length > 0){
+              // historyArrayRef.current.pop()
+              // const nextRoute = historyArrayRef.current.pop()
+              // history.goForward()
+              eventValue = location.pathname.split("/").pop()
+            // }
           }
           if (event.code === "ArrowLeft"){ 
             if (historyArrayRef.current.length > 0){
-              historyArrayRef.current.pop();
-              const nextRoute = historyArrayRef.current.pop();
-              history.push(nextRoute)
+              historyArrayRef.current.pop()
+              const nextRoute = historyArrayRef.current.pop()
+              // history.push(nextRoute)
               eventValue = nextRoute.split("/").pop()
             }
           }
@@ -564,7 +571,7 @@ const App = () => {
       console.log("handleNodeChange | #" + node.nodeId + " | name: " + eventName + " | value: " + eventValue)
     }
 
-    setProgress(eventName);
+    setProgress(eventName)
 
     let usersAvailable = 0;
 
@@ -576,11 +583,11 @@ const App = () => {
       case "history":
         if (node.nodeType === "user"){
           console.log("handleNodeChange | history | @" + node.screenName + " | name: " + eventName + " | value: " + eventValue)
-          socket.emit("TWITTER_SEARCH_NODE", "@" + eventValue);
+          socket.emit("TWITTER_SEARCH_NODE", "@" + eventValue)
         }
         else{
           console.log("handleNodeChange | history | #" + node.nodeId + " | name: " + eventName + " | value: " + eventValue)
-          socket.emit("TWITTER_SEARCH_NODE", "#" + eventValue);
+          socket.emit("TWITTER_SEARCH_NODE", "#" + eventValue)
         }
         break;
 
@@ -598,14 +605,14 @@ const App = () => {
         // if (eventName !== "all" || usersAvailable < 3){
         if (usersAvailable < 5){
           console.log("GET MORE USERS | usersAvailable: " + usersAvailable)
-          socket.emit("TWITTER_SEARCH_NODE", searchFilter);
+          socket.emit("TWITTER_SEARCH_NODE", searchFilter)
         }
 
         break
 
       case "mismatch":
         if (node.nodeType === "user"){
-          socket.emit("TWITTER_SEARCH_NODE", "@?mm");
+          socket.emit("TWITTER_SEARCH_NODE", "@?mm")
         }
         break
 
@@ -616,7 +623,7 @@ const App = () => {
             category: eventValue,
             following: true,
             node: node,
-          });
+          })
         }
         else{
           alert("NOT AUTHENTICATED")
@@ -638,10 +645,10 @@ const App = () => {
 
         if (eventName === "ignored"){
           if (eventChecked){
-            socket.emit("TWITTER_IGNORE", node);
+            socket.emit("TWITTER_IGNORE", node)
           }
           else{
-            socket.emit("TWITTER_UNIGNORE", node);
+            socket.emit("TWITTER_UNIGNORE", node)
           }
           break
         }
@@ -650,28 +657,28 @@ const App = () => {
 
           if (eventName === "bot"){
             if (eventChecked){
-              socket.emit("TWITTER_BOT", node);
+              socket.emit("TWITTER_BOT", node)
             }
             else{
-              socket.emit("TWITTER_UNBOT", node);
+              socket.emit("TWITTER_UNBOT", node)
             }
           }
 
           if (eventName === "following"){
             if (eventChecked){
-              socket.emit("TWITTER_FOLLOW", node);
+              socket.emit("TWITTER_FOLLOW", node)
             }
             else{
-              socket.emit("TWITTER_UNFOLLOW", node);
+              socket.emit("TWITTER_UNFOLLOW", node)
             }
           }
 
           if (eventName === "catVerified"){
             if (eventChecked){
-              socket.emit("TWITTER_CATEGORY_VERIFIED", node);
+              socket.emit("TWITTER_CATEGORY_VERIFIED", node)
             }
             else{
-              socket.emit("TWITTER_CATEGORY_UNVERIFIED", node);
+              socket.emit("TWITTER_CATEGORY_UNVERIFIED", node)
             }
           }
 
@@ -684,7 +691,7 @@ const App = () => {
         console.log({event})
     }
     
-  }, [history, location])
+  }, [location])
 
   const nodeValid = (node) => {
 
@@ -707,7 +714,7 @@ const App = () => {
         history.push("/categorize/user/" + currentUserRef.current.screenName)
       }
     }
-  }, [history, currentUser, location.pathname])
+  }, [history, currentUser, location.pathname, tabValue])
 
   useEffect(() => {
     if (currentTabRef.current === "hashtag"){
@@ -717,7 +724,23 @@ const App = () => {
         history.push("/categorize/hashtag/" + currentHashtagRef.current.nodeId)
       }
     }
-  }, [history, currentHashtag, location.pathname])
+  }, [history, currentHashtag, location.pathname, tabValue])
+
+  useEffect(() => {
+    if (currentTabRef.current === "authUser"){
+      console.log("history loc:  " + history.location.pathname)
+      if (!history.location.pathname.endsWith("/account/" + currentAccountRef.current.nodeId)){
+        if (twitterAuthenticated){
+          console.log("history push: /categorize/account/" + currentAccountRef.current.nodeId)
+          history.push("/categorize/account/" + currentAccountRef.current.nodeId)
+        }
+        else{
+          console.log("NOT AUTHENTICATED: history push: /categorize/account/")
+          history.push("/categorize/account/")
+        }
+      }
+    }
+  }, [history, currentAccount, location.pathname, tabValue, twitterAuthenticated])
 
   useEffect(() => {
 
@@ -725,22 +748,22 @@ const App = () => {
 
       console.log("CONNECTED: " + socket.id)
 
-      setProgress(progress => "authentication");
+      setProgress(progress => "authentication")
 
       socket.emit("authentication", {
         namespace: "view",
         userId: "test",
         password: "0123456789",
-      });
+      })
     })
 
     socket.on("TWITTER_USERS", (response) => {
 
-      console.debug("RX TWITTER_USERS");
+      console.debug("RX TWITTER_USERS")
 
       if (response.nodes && response.nodes.length > 0) {
 
-        console.debug("RX USERS: " + response.nodes.length);
+        console.debug("RX USERS: " + response.nodes.length)
 
         const tempUsers = [...currentUsersRef.current];
 
@@ -749,81 +772,81 @@ const App = () => {
             tempUsers.push(user)
           }
         }
-        console.debug("TOTAL USERS: " + tempUsers.length);
+        console.debug("TOTAL USERS: " + tempUsers.length)
         setUsers(users => [...tempUsers])
       }
 
-      setProgress(progress => "idle");
+      setProgress(progress => "idle")
       setStatus(status => response.stats)
-    });
+    })
 
     socket.on("SET_TWITTER_USER", (response) => {
 
-      console.debug("RX SET_TWITTER_USER");
+      console.debug("RX SET_TWITTER_USER")
 
       if (response.nodes) {
         setUsers(users => [...users, ...response.nodes])
-        console.debug("RX nodes: " + response.nodes.length);
+        console.debug("RX nodes: " + response.nodes.length)
       }
       
       if (nodeValid(response.node)) {
         setCurrentUser(currentUser => response.node)
-        console.debug("new: @" + response.node.screenName);
+        console.debug("new: @" + response.node.screenName)
       }
       else{
 
       }
 
-      setProgress(progress => "idle");
+      setProgress(progress => "idle")
       setStatus(status => response.stats)
-    });
+    })
 
     socket.on("TWITTER_SEARCH_NODE_UNKNOWN_MODE", (response) => {
-      console.debug("RX TWITTER_SEARCH_NODE_UNKNOWN_MODE");
+      console.debug("RX TWITTER_SEARCH_NODE_UNKNOWN_MODE")
       console.debug({response})
-      setProgress(progress => "idle");
+      setProgress(progress => "idle")
       setStatus(status => response.stats)
     })
 
     socket.on("TWITTER_HASHTAG_NOT_FOUND", (response) => {
-      console.debug("RX TWITTER_HASHTAG_NOT_FOUND");
+      console.debug("RX TWITTER_HASHTAG_NOT_FOUND")
       console.debug({response})
       setStatusHashtag(statusHashtag => "notFound")
       setCurrentHashtag(currentHashtag => {
         return {nodeId: response.searchNode.slice(1)}
       }) 
       setTweets({ search_metadata: {}, statuses: [] })
-      setProgress(progress => "idle");
+      setProgress(progress => "idle")
       setStatus(status => response.stats)
     })
 
     socket.on("SET_TWITTER_HASHTAG", (response) => {
 
-      console.debug("RX SET_TWITTER_HASHTAG");
+      console.debug("RX SET_TWITTER_HASHTAG")
 
       if (nodeValid(response.node)) { 
         setStatusHashtag(statusHashtag => "found")
         setCurrentHashtag(currentHashtag => response.node) 
-        console.debug("new: #" + response.node.nodeId);
+        console.debug("new: #" + response.node.nodeId)
         if (response.tweets) {
-          console.debug("RX SET_TWITTER_HASHTAG | SET TWEETS: " + response.tweets.statuses.length);
+          console.debug("RX SET_TWITTER_HASHTAG | SET TWEETS: " + response.tweets.statuses.length)
           setTweets(tweets => response.tweets)
         }
       }
       else{
         setStatusHashtag(statusHashtag => "invalid")
-        console.debug("INVALID HT NODE | RESULTS");
+        console.debug("INVALID HT NODE | RESULTS")
         console.debug({response})
       }
 
-      setProgress(progress => "idle");
+      setProgress(progress => "idle")
       setStatus(status => response.stats)
-    });
+    })
 
     socket.on("action", (action) => {
       
-      console.debug("RX ACTION | socket: " + socket.id + " | TYPE: " + action.type);
-      console.debug("RX ACTION | ", action.data);
+      console.debug("RX ACTION | socket: " + socket.id + " | TYPE: " + action.type)
+      console.debug("RX ACTION | ", action.data)
 
       switch (action.type){
 
@@ -843,41 +866,43 @@ const App = () => {
         default:
       }
 
-    });   
+    })   
 
     socket.on("authenticated", function () {
-      setProgress(progress => "idle");
-      console.debug("AUTHENTICATED | " + socket.id);
+      setProgress(progress => "idle")
+      console.debug("AUTHENTICATED | " + socket.id)
       socket.emit("TWITTER_SEARCH_NODE", "@?all")
       socket.emit("TWITTER_SEARCH_NODE", "@threecee")
       socket.emit("TWITTER_SEARCH_NODE", "#blacklivesmatter")
-    });
+    })
 
     socket.on("USER_AUTHENTICATED", function (userObj) {
-      setProgress(progress => "idle");
+      setProgress(progress => "idle")
       setTwitterAuthenticated(() => true)
       setTwitterAuthenticatedUser(twitterAuthenticatedUser => userObj)
-      console.log("RX TWITTER USER_AUTHENTICATED | USER: @" + userObj.screenName);
-    });
+      setCurrentAccount(userObj)
+      console.log("RX TWITTER USER_AUTHENTICATED | USER: @" + userObj.screenName)
+    })
 
     socket.on("TWITTER_USER_NOT_FOUND", (response) => {
 
-      console.debug("RX TWITTER_USER_NOT_FOUND");
-      console.debug(response);
+      console.debug("RX TWITTER_USER_NOT_FOUND")
+      console.debug(response)
 
-      setStatus(status => response.stats);
+      setStatus(status => response.stats)
+
       if (response.searchNode.startsWith("@?") && response.results && !response.results.endCursor){
-        console.debug("RETRY NEXT UNCAT: " + response.searchNode);
-        socket.emit("TWITTER_SEARCH_NODE", response.searchNode);
+        console.debug("RETRY NEXT UNCAT: " + response.searchNode)
+        socket.emit("TWITTER_SEARCH_NODE", response.searchNode)
       }
       else{
-        setProgress(progress => "idle");
+        setProgress(progress => "idle")
       }
-    });
+    })
     
     setProgress("idle")
 
-    return () => socket.disconnect();
+    return () => socket.disconnect()
 
   }, [])
 
@@ -915,7 +940,7 @@ const App = () => {
   
   const handleChangeSearch = (event) => {
     console.log("handleChangeSearch: " + event.target.value)
-    setUserSearch(event.target.value);
+    setUserSearch(event.target.value)
   }
 
   const handleKeyPress = (event) => {
@@ -927,7 +952,7 @@ const App = () => {
 
   const displayTab = (tab) => {
     if (tab === "authUser"){
-      return <AuthUserView authUser={twitterAuthenticatedUser} stats={status}/>
+      return <AuthUserView authenticated={twitterAuthenticated} authUser={twitterAuthenticatedUser} stats={status}/>
     }
     else if (tab === "user"){
       return <UserView user={currentUser} stats={status} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
@@ -1007,7 +1032,7 @@ const App = () => {
         {displayTab(currentTab)}
       </Container>
     </div>
-  );
+  )
 }
 
 export default App;

@@ -11,6 +11,7 @@ console.log(envConfig.parsed)
 const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
 
+
 const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
 const DEFAULT_PRIMARY_HOST = "google";
@@ -23,6 +24,7 @@ const ONE_DAY = 24 * ONE_HOUR;
 
 const twitterDateFormat = "ddd MMM DD HH:mm:ss Z YYYY"; // Wed Aug 27 13:08:45 +0000 2008
 
+const DEFAULT_UPDATE_HASHTAG_SETS_INTERVAL = ONE_HOUR;
 const DEFAULT_MIN_MENTIONS_HASHTAGS = 100;
 const DEFAULT_MAX_LAST_SEEN_DAYS_HASHTAGS = 2;
 const DEFAULT_TWEET_SEARCH_COUNT = 5;
@@ -1313,6 +1315,8 @@ let defaultConfiguration = {}; // general configuration
 let hostConfiguration = {}; // host-specific configuration
 
 let configuration = {};
+
+configuration.updateHashtagSetsInterval = DEFAULT_UPDATE_HASHTAG_SETS_INTERVAL;
 
 configuration.minMentionsHashtags = DEFAULT_MIN_MENTIONS_HASHTAGS;
 configuration.maxLastSeenDaysHashtags = DEFAULT_MAX_LAST_SEEN_DAYS_HASHTAGS;
@@ -7848,6 +7852,27 @@ async function updateUserSets(p) {
   return;
 }
 
+let updateUserSetsInterval;
+
+async function initUpdateUserSetsInterval(p){
+
+  console.log(chalkInfo(MODULE_ID + " | INIT UPDATE USER SETS INTERVAL ..."));
+
+  const params = p || {};
+
+  const interval = params.interval || configuration.updateUserSetsInterval
+
+  await updateUserSets();
+
+  clearInterval(updateUserSetsInterval)
+
+  updateUserSetsInterval = setInterval(() => {
+    updateUserSets()
+  }, interval);
+
+  return;
+}
+
 let updateHashtagSetsRunning = false;
 
 async function updateHashtagSets(p) {
@@ -7857,15 +7882,12 @@ async function updateHashtagSets(p) {
   console.log(chalkInfo(MODULE_ID + " | UPDATING HASHTAG SETS..."));
 
   if (!statsObj.dbConnectionReady) {
-    console.log(
-      chalkAlert(
-        MODULE_ID + " | ABORT updateHashtagSets: DB CONNECTION NOT READY"
-      )
-    );
+    console.log(chalkAlert(MODULE_ID + " | ABORT updateHashtagSets: DB CONNECTION NOT READY"));
     throw new Error("DB CONNECTION NOT READY");
   }
 
   if (updateHashtagSetsRunning) {
+    console.log(chalkAlert(MODULE_ID + " | SKIP updateHashtagSets: RUNNING..."));
     return;
   }
 
@@ -7918,16 +7940,6 @@ async function updateHashtagSets(p) {
   const hashtagSearchQuery = {};
 
   hashtagSearchCursor = global.wordAssoDb.Hashtag.find(hashtagSearchQuery)
-    // .select({
-    //   nodeId: 1,
-    //   text: 1,
-    //   category: 1,
-    //   categoryAuto: 1,
-    //   rate: 1,
-    //   mentions: 1,
-    //   lastSeen: 1,
-    //   createdAt: 1
-    // })
     .lean()
     .cursor({ batchSize: configuration.cursorBatchSize });
 
@@ -7964,6 +7976,27 @@ async function updateHashtagSets(p) {
   );
 
   updateHashtagSetsRunning = false;
+  return;
+}
+
+let updateHashtagSetsInterval;
+
+async function initUpdateHashtagSetsInterval(p){
+
+  console.log(chalkInfo(MODULE_ID + " | INIT UPDATE HASHTAG SETS INTERVAL ..."));
+
+  const params = p || {};
+
+  const interval = params.interval || configuration.updateHashtagSetsInterval
+
+  await updateHashtagSets();
+
+  clearInterval(updateHashtagSetsInterval)
+
+  updateHashtagSetsInterval = setInterval(() => {
+    updateHashtagSets()
+  }, interval);
+
   return;
 }
 
@@ -12692,7 +12725,9 @@ setTimeout(async function () {
     await initIgnoreLocations();
     await initIgnoredProfileWords();
     await updateUserSets();
-    await updateHashtagSets();
+    await initUpdateUserSetsInterval();
+    // await updateHashtagSets();
+    await initUpdateHashtagSetsInterval();
     await loadBestRuntimeNetwork();
     await initNodeSetPropsQueueInterval(
       configuration.nodeSetPropsQueueInterval

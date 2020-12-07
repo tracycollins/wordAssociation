@@ -194,7 +194,6 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
-
 const formatDate = (dateInput) => {
   return new Date(dateInput).toLocaleDateString(
     'en-gb',
@@ -209,6 +208,8 @@ const defaultProfileImage = "logo192.png"
 const defaultBannerImage = "logo192.png"
 
 const AuthUserView = (props) => {
+
+  const authenticated = props.authenticated || false;
 
   const classes = useStyles();
 
@@ -248,6 +249,7 @@ const AuthUserView = (props) => {
     }
   }
   return (
+    authenticated ?
     <>
       <Grid className={classes.grid}>
         <Grid item className={classes.gridItem} xs={3}>
@@ -365,9 +367,12 @@ const AuthUserView = (props) => {
             </TableContainer>              
           </Paper>
         </Grid>
-        
       </Grid>
     </>
+    :
+    <h3>
+      NOT AUTHENTICATED
+    </h3>
   );
 }
 

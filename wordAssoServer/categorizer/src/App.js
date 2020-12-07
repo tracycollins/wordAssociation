@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 // import useSocket from 'use-socket.io-client';
 // import { useImmer } from 'use-immer';
-import { useHistory, useLocation, useParams } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { useHotkeys } from 'react-hotkeys-hook';
 import socketClient from "socket.io-client";
 import { makeStyles } from '@material-ui/core/styles';
@@ -410,7 +410,7 @@ const App = () => {
       socket.emit("logout", viewerObj)
       setTwitterAuthenticated(false)
       setTwitterAuthenticatedUser({})
-      setCurrentAccount(defaultAccount)
+      setCurrentAccount({})
       setProgress(progress => "idle")
     }
     else{
@@ -764,11 +764,13 @@ const App = () => {
 
       console.debug("RX TWITTER_USERS")
 
+      let tempUsers = []
+
       if (response.nodes && response.nodes.length > 0) {
 
         console.debug("RX USERS: " + response.nodes.length)
 
-        const tempUsers = [...currentUsersRef.current];
+        tempUsers = [...currentUsersRef.current];
 
         for(const user of response.nodes){
           if (user.screenName && user.screenName !== ""){
@@ -776,13 +778,17 @@ const App = () => {
               console.log("LESS THAN MIN FOLLOWERS ... SKIPPING | @" + user.screenName + " | FOLLOWERS: " + user.followersCount)
             }
             else {
+              console.log("+++ USER | @" + user.screenName + " | FOLLOWERS: " + user.followersCount)
               tempUsers.push(user)
             }
           }
         }
         console.debug("TOTAL USERS: " + tempUsers.length)
-        socket.emit("TWITTER_SEARCH_NODE", response.searchNode)
         setUsers(users => [...tempUsers])
+      }
+
+      if (tempUsers.length < MIN_USERS_AVAILABLE){
+        socket.emit("TWITTER_SEARCH_NODE", response.searchNode)
       }
 
       setProgress(progress => "idle")

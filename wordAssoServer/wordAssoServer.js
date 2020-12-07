@@ -5213,7 +5213,7 @@ async function twitterSearchNode(params) {
         ));
 
         viewNameSpace.emit("TWITTER_USERS", {
-          searchNod: searchNode,
+          searchNode: searchNode,
           nodes: response.nodes,
           results: response.results,
           stats: statsObj,

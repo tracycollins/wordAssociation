@@ -7765,21 +7765,9 @@ let updateUserSetsRunning = false;
 
 async function updateUserSets(p) {
 
-  const params = p || {};
-
-  params.query = params.query || {
-    $or: [{ categorized: true }, { categorizedAuto: true }],
-  };
-
   statsObj.status = "UPDATE USER SETS";
 
   console.log(chalkInfo(MODULE_ID + " | UPDATING USER SETS..."));
-
-  if (updateUserSetsRunning) {
-    return;
-  }
-
-  updateUserSetsRunning = true;
 
   if (!statsObj.dbConnectionReady) {
     console.log(
@@ -7789,8 +7777,19 @@ async function updateUserSets(p) {
     throw new Error("DB CONNECTION NOT READY");
   }
 
+  if (updateUserSetsRunning) {
+    return;
+  }
+
+  updateUserSetsRunning = true;
+
+  const params = p || {};
+
+  params.query = params.query || {
+    $or: [{ categorized: true }, { categorizedAuto: true }],
+  };
+
   await updateUserCounts();
-  await updateHashtagCounts();
 
   userSearchCursor = global.wordAssoDb.User.find(params.query)
     .select({
@@ -7898,47 +7897,9 @@ async function updateHashtagSets(p) {
     $or: [{ categorized: true }, { categorizedAuto: true }],
   };
 
-  statsObj.hashtag.total = await countDocuments({ documentType: "hashtags" });
-  console.log(chalkBlue(MODULE_ID + " | GRAND TOTAL HASHTAGS: " + statsObj.hashtag.total));
+  await updateHashtagCounts();
 
-  statsObj.hashtag.ignored = await countDocuments({
-    documentType: "hashtags",
-    query: { ignored: true },
-  });
-
-  console.log(chalkBlue(MODULE_ID + " | IGNORED HASHTAGS: " + statsObj.hashtag.ignored));
-
-  statsObj.hashtag.categorizedManual = await countDocuments({
-    documentType: "hashtags",
-    query: { category: { $nin: ["none", false, "false", null] } },
-  });
-
-  console.log(chalkBlue(MODULE_ID + " | CAT MANUAL HASHTAGS: " + statsObj.hashtag.categorizedManual));
-
-  statsObj.hashtag.uncategorizedManual = await countDocuments({
-    documentType: "hashtags",
-    query: { category: { $in: ["none", false, "false", null] } },
-  });
-
-  console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL HASHTAGS: " + statsObj.hashtag.uncategorizedManual));
-
-  statsObj.hashtag.categorizedAuto = await countDocuments({
-    documentType: "hashtags",
-    query: { categoryAuto: { $nin: ["none", false, "false", null] } },
-  });
-
-  console.log(chalkBlue(MODULE_ID + " | CAT AUTO HASHTAGS: " + statsObj.hashtag.categorizedAuto));
-
-  statsObj.hashtag.uncategorizedAuto = await countDocuments({
-    documentType: "hashtags",
-    query: { categoryAuto: { $in: ["none", false, "false", null] } },
-  });
-
-  console.log(chalkBlue(MODULE_ID + " | UNCAT AUTO HASHTAGS: " + statsObj.hashtag.uncategorizedAuto));
-
-  const hashtagSearchQuery = {};
-
-  hashtagSearchCursor = global.wordAssoDb.Hashtag.find(hashtagSearchQuery)
+  hashtagSearchCursor = global.wordAssoDb.Hashtag.find(params.query)
     .lean()
     .cursor({ batchSize: configuration.cursorBatchSize });
 

@@ -282,6 +282,9 @@ const App = () => {
   const [tabValue, setTabValue] = useState(0)
   // const tabValueRef = useRef(tabValue)
 
+  const [filterLowFollowersCount, setFilterLowFollowersCount] = useState(true)
+  const filterLowFollowersCountRef = useRef(filterLowFollowersCount)
+  
   const [historyArray, setHistoryArray] = useState([location.pathname])
   const historyArrayRef = useRef(historyArray)
 
@@ -332,6 +335,10 @@ const App = () => {
       historyArrayRef.current = tempHistoryArray
     }
   }, [location.pathname])
+  
+  useEffect(() => { 
+    filterLowFollowersCountRef.current = filterLowFollowersCount
+  }, [filterLowFollowersCount])
   
   useEffect(() => { 
     twitterAuthenticatedUserRef.current = twitterAuthenticatedUser
@@ -774,7 +781,7 @@ const App = () => {
 
         for(const user of response.nodes){
           if (user.screenName && user.screenName !== ""){
-            if (user.followersCount < MIN_FOLLOWERS_COUNT){
+            if (filterLowFollowersCountRef.current && user.followersCount < MIN_FOLLOWERS_COUNT){
               console.log("LESS THAN MIN FOLLOWERS ... SKIPPING | @" + user.screenName + " | FOLLOWERS: " + user.followersCount)
             }
             else {
@@ -965,12 +972,25 @@ const App = () => {
     }
   }
 
+  const handleFilterChange = (event) => {
+    event.persist()
+    setFilterLowFollowersCount(filterLowFollowersCountRef.current ? false : true)
+    console.log(`NAME: ${event.target.name} | CHECKED: ${event.target.checked} | filterLowFollowersCount: ${filterLowFollowersCount}`)
+  }
+
   const displayTab = (tab) => {
     if (tab === "authUser"){
       return <AuthUserView authenticated={twitterAuthenticated} authUser={twitterAuthenticatedUser} stats={status}/>
     }
     else if (tab === "user"){
-      return <UserView user={currentUser} stats={status} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>
+      return <UserView 
+        user={currentUser} 
+        stats={status}
+        filterLowFollowersCount={filterLowFollowersCount}
+        handleNodeChange={handleNodeChange} 
+        handleSearchNode={handleSearchNode}
+        handleFilterChange={handleFilterChange}
+      />
     }
     else{
       return <HashtagView hashtag={currentHashtagRef.current} statusHashtag={statusHashtagRef.current} stats={statusRef.current} tweets={tweetsRef.current} handleNodeChange={handleNodeChange} handleSearchNode={handleSearchNode}/>

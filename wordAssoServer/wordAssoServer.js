@@ -2529,31 +2529,17 @@ const authenticatedSocketCache = new NodeCache({
 });
 
 function authenticatedSocketCacheExpired(socketId, authSocketObj) {
-  console.log(
-    chalkInfo(
-      MODULE_ID +
-        " | XXX AUTH g CACHE EXPIRED" +
-        " [" +
-        authenticatedSocketCache.getStats().keys +
-        " KEYS]" +
-        " | TTL: " +
-        msToTime(authenticatedSocketCacheTtl * 1000) +
-        " | NSP: " +
-        authSocketObj.namespace.toUpperCase() +
-        " | " +
-        socketId +
-        " | " +
-        authSocketObj.ipAddress +
-        " | USER ID: " +
-        authSocketObj.userId +
-        " | NOW: " +
-        getTimeStamp() +
-        " | TS: " +
-        getTimeStamp(authSocketObj.timeStamp) +
-        " | AGO: " +
-        msToTime(moment().valueOf() - authSocketObj.timeStamp)
-    )
-  );
+  console.log(chalkInfo(MODULE_ID +
+    " | XXX AUTH SOCKET CACHE EXPIRED" + " [" + authenticatedSocketCache.getStats().keys + " KEYS]" +
+    " | TTL: " + msToTime(authenticatedSocketCacheTtl * 1000) +
+    " | NSP: " + authSocketObj.namespace.toUpperCase() +
+    " | " + socketId +
+    " | " + authSocketObj.ipAddress +
+    " | USER ID: " + authSocketObj.userId +
+    " | NOW: " + getTimeStamp() +
+    " | TS: " + getTimeStamp(authSocketObj.timeStamp) +
+    " | AGO: " + msToTime(moment().valueOf() - authSocketObj.timeStamp)
+  ));
 
   authenticatedSocketCache.keys(function (err, socketIds) {
     if (!err) {
@@ -2561,42 +2547,22 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
         const authSocketObjCache = authenticatedSocketCache.get(socketId);
 
         if (authSocketObjCache !== undefined) {
-          console.log(
-            chalkInfo(
-              MODULE_ID +
-                " | AUTH SOCKET CACHE ENTRIES" +
-                " | NSP: " +
-                authSocketObjCache.namespace.toUpperCase() +
-                " | " +
-                socketId +
-                " | " +
-                authSocketObjCache.ipAddress +
-                " | USER ID: " +
-                authSocketObjCache.userId +
-                " | NOW: " +
-                getTimeStamp() +
-                " | TS: " +
-                getTimeStamp(authSocketObjCache.timeStamp) +
-                " | AGO: " +
-                msToTime(
-                  moment().valueOf() - authSocketObjCache.timeStamp
-                )
-            )
-          );
+          console.log(chalkInfo(MODULE_ID +
+            " | AUTH SOCKET CACHE ENTRIES" +
+            " | NSP: " + authSocketObjCache.namespace.toUpperCase() +
+            " | " + socketId +
+            " | " + authSocketObjCache.ipAddress +
+            " | USER ID: " + authSocketObjCache.userId +
+            " | NOW: " + getTimeStamp() +
+            " | TS: " + getTimeStamp(authSocketObjCache.timeStamp) +
+            " | AGO: " + msToTime(moment().valueOf() - authSocketObjCache.timeStamp)
+          ));
         } else {
-          console.log(
-            chalkAlert(
-              MODULE_ID +
-                " | ??? AUTH SOCKET CACHE NO ENTRY? | SOCKET ID: " +
-                socketId
-            )
-          );
+          console.log(chalkAlert(MODULE_ID + " | ??? AUTH SOCKET CACHE NO ENTRY? | SOCKET ID: " + socketId));
         }
       });
     } else {
-      console.log(
-        chalkError(MODULE_ID + " | *** AUTH CACHE GET KEYS ERROR: " + err)
-      );
+      console.log(chalkError(MODULE_ID + " | *** AUTH CACHE GET KEYS ERROR: " + err));
     }
   });
 

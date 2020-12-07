@@ -28,6 +28,9 @@ import HashtagView from './HashtagView.js';
 import AuthUserView from './AuthUserView.js';
 // import { ButtonGroup } from '@material-ui/core';
 
+const MIN_USERS_AVAILABLE = 5;
+const MIN_FOLLOWERS_COUNT = 5000;
+
 // const ENDPOINT = "http://mbp3:9997/view";
 const ENDPOINT = "https://word.threeceelabs.com/view";
 const DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
@@ -162,9 +165,9 @@ const App = () => {
 
   const history = useHistory()
   let location = useLocation()
-  let { slug } = useParams()
+  // let { slug } = useParams()
 
-  console.log({slug})
+  // console.log({slug})
 
   const classes = useStyles()
 
@@ -603,7 +606,7 @@ const App = () => {
         usersAvailable = currentUsersAvailable(eventName)
 
         // if (eventName !== "all" || usersAvailable < 3){
-        if (usersAvailable < 5){
+        if (usersAvailable < MIN_USERS_AVAILABLE){
           console.log("GET MORE USERS | usersAvailable: " + usersAvailable)
           socket.emit("TWITTER_SEARCH_NODE", searchFilter)
         }
@@ -769,10 +772,16 @@ const App = () => {
 
         for(const user of response.nodes){
           if (user.screenName && user.screenName !== ""){
-            tempUsers.push(user)
+            if (user.followersCount < MIN_FOLLOWERS_COUNT){
+              console.log("LESS THAN MIN FOLLOWERS ... SKIPPING | @" + user.screenName + " | FOLLOWERS: " + user.followersCount)
+            }
+            else {
+              tempUsers.push(user)
+            }
           }
         }
         console.debug("TOTAL USERS: " + tempUsers.length)
+        socket.emit()
         setUsers(users => [...tempUsers])
       }
 

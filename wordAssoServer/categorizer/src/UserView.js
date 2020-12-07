@@ -1,5 +1,4 @@
-// import React, { useState } from 'react';
-import React from 'react';
+import React, { useState } from 'react';
 import { green, grey } from '@material-ui/core/colors';
 import clsx from 'clsx';
 
@@ -57,7 +56,6 @@ const StyledTableRow = withStyles((theme) => ({
     backgroundColor: grey,
   },
 }))(TableRow);
-
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -292,6 +290,8 @@ const defaultBannerImage = "logo192.png"
 
 const User = (props) => {
 
+  // const [filterLowFollowersCount, setFilterLowFollowersCount] = useState(true)
+  
   const classes = useStyles();
 
   const createdAt = formatDate(props.user.createdAt)
@@ -489,11 +489,13 @@ const User = (props) => {
 
                   </Select>
                 </FormControl>
+
                 <Typography
                   className={clsx(classes.selectCategory, getCategoryClass(props.user.categoryAuto))} 
                 >
                   AUTO: {props.user.categoryAuto ? props.user.categoryAuto.toUpperCase() : "NONE"}
                 </Typography>
+
                 <FormControl component="fieldset" className={classes.radioGroupCategory} size="small">
                   <FormControlLabel
                     control={<Checkbox className={classes.checkbox} size="small" checked={props.user.following || false} onChange={(event) => props.handleNodeChange(event, props.user)} name="following" />}
@@ -512,6 +514,14 @@ const User = (props) => {
                     label={<Typography className={classes.radioButtonLabel}>BOT</Typography>}
                   />
                 </FormControl>
+
+                <FormControl component="fieldset" className={classes.radioGroupCategory} size="small">
+                  <FormControlLabel
+                    control={<Checkbox className={classes.checkbox} size="small" checked={props.filterLowFollowersCount || false} onChange={(event) => props.handleFilterChange(event)} name="filterLowFollowersCount" />}
+                    label={<Typography className={classes.radioButtonLabel}>FILTER LOW FOLLOWERS</Typography>}
+                  />
+                </FormControl>
+
               </FormGroup>
             </Paper>
           </Grid>

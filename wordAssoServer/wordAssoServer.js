@@ -7320,15 +7320,14 @@ async function countDocuments(params) {
   
   try {
 
-    if (countDocumentsRunning[params.documentType]) {
+    if (countDocumentsRunning[params.documentType] && countDocumentsRunning[params.documentType] === params.query) {
       console.log(chalkAlert(MODULE_ID 
         + " | SKIP COUNTING DOCUMENTS | RUNNING: TYPE: " + params.documentType
-        + " | QUERY: " + countDocumentsRunning[params.documentType]
+        + " | QUERY\n" + jsonPrint(countDocumentsRunning[params.documentType])
       ));
       return;
     }
 
-    
     const query = params.query || false;
     
     countDocumentsRunning[params.documentType] = query;

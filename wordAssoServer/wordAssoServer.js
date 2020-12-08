@@ -286,6 +286,8 @@ const expressSession = require("express-session");
 const MongoStore = require("connect-mongo")(expressSession);
 const passport = require("passport");
 const TwitterStrategy = require("passport-twitter").Strategy;
+const { Autohook } = require("twitter-autohook");
+const webhook = new Autohook();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -3905,31 +3907,22 @@ async function updateTwitterWebhook() {
 async function getTwitterWebhooks() {
   statsObj.status = "GET ACCOUNT ACTIVITY SUBSCRIPTION";
 
-  const fullWebhookUrl = encodeURI(
-    "https://word.threeceelabs.com" + TWITTER_WEBHOOK_URL
-  );
+  const fullWebhookUrl = encodeURI("https://word.threeceelabs.com" + TWITTER_WEBHOOK_URL);
 
   const options = {
     url: "https://api.twitter.com/1.1/account_activity/all/dev/webhooks.json",
     method: "GET",
-    headers: {
-      authorization: "Bearer " + configuration.twitterBearerToken,
-    },
+    headers: { authorization: "Bearer " + configuration.twitterBearerToken }
   };
 
-  console.log(
-    chalkLog(
-      MODULE_ID +
-        " | GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION" +
-        " | fullWebhookUrl: " +
-        fullWebhookUrl
-    )
-  );
+  console.log(chalkLog(MODULE_ID +
+    " | GET TWITTER ACCOUNT ACTIVITY SUBSCRIPTION" +
+    " | fullWebhookUrl: " + fullWebhookUrl
+  ));
 
   try {
     statsObj.twitterSubs = {};
 
-    // const body = await request(options);
     const body = await axios.get(options);
 
     const bodyJson = JSON.parse(body);
@@ -3941,42 +3934,27 @@ async function getTwitterWebhooks() {
         statsObj.twitterSubs[sub.id.toString()] = {};
         statsObj.twitterSubs[sub.id.toString()] = sub;
 
-        console.log(
-          chalkLog(
-            MODULE_ID +
-              " | TWITTER WEBHOOK" +
-              " | ID: " +
-              sub.id +
-              " | URL: " +
-              sub.url +
-              " | VALID: " +
-              sub.valid +
-              " | CREATED: " +
-              sub.created_timestamp
-          )
-        );
+        console.log(chalkLog(MODULE_ID +
+          " | TWITTER WEBHOOK" +
+          " | ID: " + sub.id +
+          " | URL: " + sub.url +
+          " | VALID: " + sub.valid +
+          " | CREATED: " + sub.created_timestamp
+        ));
 
         if (!sub.valid) {
-          console.log(
-            chalkAlert(
-              MODULE_ID +
-                " | TWITTER WEBHOOK INVALID ... UPDATING ..." +
-                " | ID: " +
-                sub.id +
-                " | URL: " +
-                sub.url +
-                " | VALID: " +
-                sub.valid +
-                " | CREATED: " +
-                sub.created_timestamp
-            )
-          );
+          console.log(chalkAlert(MODULE_ID +
+            " | TWITTER WEBHOOK INVALID ... UPDATING ..." +
+            " | ID: " + sub.id +
+            " | URL: " + sub.url +
+            " | VALID: " + sub.valid +
+            " | CREATED: " + sub.created_timestamp
+          ));
 
           await updateTwitterWebhook();
         }
 
-        const url =
-          "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions/list.json";
+        const url = "https://api.twitter.com/1.1/account_activity/all/dev/subscriptions/list.json";
 
         const optionsSub = {
           url: url,
@@ -4008,32 +3986,25 @@ async function getTwitterWebhooks() {
         ) {
           statsObj.twitter.aaSubs = {};
           statsObj.twitter.aaSubs = aaSubs;
-          console.log(
-            chalkTwitter(
-              MODULE_ID +
-                " | +++ TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS" +
-                "\n" +
-                jsonPrint(statsObj.twitter.aaSubs)
-            )
-          );
-        } else {
-          console.log(
-            chalkInfo(
-              MODULE_ID + " | --- NO TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"
-            )
-          );
+          console.log(chalkTwitter(MODULE_ID +
+            " | +++ TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS" +
+            "\n" + jsonPrint(statsObj.twitter.aaSubs)
+          ));
+        } 
+        else {
+          console.log(chalkInfo(MODULE_ID + " | --- NO TWITTER ACCOUNT ACTIVITY SUBSCRIPTIONS"));
         }
       }
 
       return;
-    } else {
+    } 
+    else {
       console.log(chalkAlert(MODULE_ID + " | ??? NO TWITTER WEBHOOKS"));
       return;
     }
-  } catch (err) {
-    console.log(
-      chalkError(MODULE_ID + " | *** GET TWITTER WEBHOOKS ERROR: " + err)
-    );
+  } 
+  catch (err) {
+    console.log(chalkError(MODULE_ID + " | *** GET TWITTER WEBHOOKS ERROR: " + err));
     throw err;
   }
 }
@@ -12595,21 +12566,13 @@ setTimeout(async function () {
       ? "-primary"
       : "";
 
-    console.log(
-      chalkBlueBold(
-        MODULE_ID +
-          " | PROCESS: " +
-          configuration.processName +
-          " | HOST: " +
-          hostname +
-          " | PRIMARY HOST: " +
-          configuration.primaryHost +
-          " | DATABASE HOST: " +
-          configuration.databaseHost +
-          " | STARTED " +
-          getTimeStamp()
-      )
-    );
+    console.log(chalkBlueBold(MODULE_ID +
+      " | PROCESS: " + configuration.processName +
+      " | HOST: " + hostname +
+      " | PRIMARY HOST: " + configuration.primaryHost +
+      " | DATABASE HOST: " + configuration.databaseHost +
+      " | STARTED " + getTimeStamp()
+    ));
 
     statsObj.status = "START";
 
@@ -12627,24 +12590,30 @@ setTimeout(async function () {
     await initThreeceeTwitterUser("altthreecee00");
 
     if (hostname == "google") {
+
       try {
+
+        await webhook.removeWebhooks();
+
+        webhook.on("event", (event) => {
+          console.log("TWITTER WEBHOOK EVENT", event)
+        });
+
+        const token = threeceeTwitter.twitterConfig.token;
+        const tokenSecret = threeceeTwitter.twitterConfig.token_secret;
+
+        await webhook.subscribe({token, tokenSecret});
         await getTwitterWebhooks();
+
         if (statsObj.twitter.aaSubs) {
-          console.log(
-            chalkLog(
-              MODULE_ID + " | TWITTER AA SUBSCRIPTIONS ... SKIP ADD SUBS"
-            )
-          );
+          console.log(chalkLog(MODULE_ID + " | TWITTER AA SUBSCRIPTIONS ... SKIP ADD SUBS"));
         }
         if (!statsObj.twitter.aaSubs) {
-          await addTwitterAccountActivitySubscription({
-            threeceeUser: "altthreecee00",
-          });
+          await addTwitterAccountActivitySubscription({ threeceeUser: "altthreecee00" });
         }
-      } catch (err) {
-        console.log(
-          chalkError(MODULE_ID + " | **** TWITTER WEBHOOK ERROR: " + err)
-        );
+      } 
+      catch (err) {
+        console.log(chalkError(MODULE_ID + " | **** TWITTER WEBHOOK ERROR: " + err));
       }
     }
 
@@ -12669,9 +12638,7 @@ setTimeout(async function () {
     );
     await initRateQinterval(configuration.rateQueueInterval);
     await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);
-    await initTweetParserMessageRxQueueInterval(
-      configuration.tweetParserMessageRxQueueInterval
-    );
+    await initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
     await initSorterMessageRxQueueInterval(
       configuration.sorterMessageRxQueueInterval
     );

@@ -272,7 +272,9 @@ const App = () => {
     rateMax: 0,
   }
 
-  const defaultAccount = {}
+  const defaultAccount = {
+    screenName: ""
+  }
 
   const defaultTweets = {
     search_metadata: {},
@@ -324,7 +326,7 @@ const App = () => {
   const currentHashtagRef = useRef(currentHashtag)
   
   const [currentAccount, setCurrentAccount] = useState(defaultAccount)
-  const currentAccountRef = useRef(currentAccount)
+  // const currentAccountRef = useRef(currentAccount)
   
   useEffect(() => {
     const tempHistoryArray = [...historyArrayRef.current]
@@ -739,10 +741,10 @@ const App = () => {
   useEffect(() => {
     if (currentTabRef.current === "authUser"){
       console.log("history loc:  " + history.location.pathname)
-      if (!history.location.pathname.endsWith("/account/" + currentAccountRef.current.nodeId)){
+      if (!history.location.pathname.endsWith("/account/" + currentAccount.nodeId)){
         if (twitterAuthenticated){
-          console.log("history push: /categorize/account/" + currentAccountRef.current.nodeId)
-          history.push("/categorize/account/" + currentAccountRef.current.nodeId)
+          console.log("history push: /categorize/account/" + currentAccount.nodeId)
+          history.push("/categorize/account/" + currentAccount.nodeId)
         }
         else{
           console.log("NOT AUTHENTICATED: history push: /categorize/account/")

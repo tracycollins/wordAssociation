@@ -4014,36 +4014,18 @@ async function addTwitterAccountActivitySubscription(p) {
 
   const params = p || {};
 
-  console.log(
-    chalkTwitter(
-      MODULE_ID +
-        " | ... ADD ACCOUNT ACTIVITY SUBSCRIPTION | " +
-        params.threeceeUser
-    )
-  );
+  console.log(chalkTwitter(MODULE_ID + " | ... ADD ACCOUNT ACTIVITY SUBSCRIPTION | " + params.threeceeUser));
 
   params.threeceeUser = params.threeceeUser || "altthreecee00";
 
   if (!threeceeTwitter) {
-    console.log(
-      chalkError(
-        MODULE_ID +
-          " | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED threeceeTwitter | " +
-          params.threeceeUser
-      )
-    );
+    console.log(chalkError(MODULE_ID + " | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED threeceeTwitter | " +params.threeceeUser));
     console.log("threeceeTwitter\n" + jsonPrint(threeceeTwitter));
     throw new Error("threeceeUser twitter configuration undefined");
   }
 
   if (!threeceeTwitter.twitterConfig) {
-    console.log(
-      chalkError(
-        MODULE_ID +
-          " | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED threeceeTwitter.twitterConfig | " +
-          params.threeceeUser
-      )
-    );
+    console.log(chalkError(MODULE_ID + " | *** ADD ACCOUNT ACTIVITY SUBSCRIPTION ERROR | UNDEFINED threeceeTwitter.twitterConfig | " + params.threeceeUser));
     throw new Error("threeceeUser twitter configuration undefined");
   }
 
@@ -4060,44 +4042,27 @@ async function addTwitterAccountActivitySubscription(p) {
     },
   };
 
-  console.log(
-    chalkInfo(MODULE_ID + " | ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION")
-  );
+  console.log(chalkInfo(MODULE_ID + " | ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"));
   console.log(chalkLog("REQ OPTIONS\n" + jsonPrint(options)));
 
   try {
     // const body = await request(options);
     const body = await axios.get(options);
 
-    console.log(
-      chalk.green(
-        MODULE_ID + " | +++ ADDED TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"
-      )
-    );
+    console.log(chalk.green(MODULE_ID + " | +++ ADDED TWITTER ACCOUNT ACTIVITY SUBSCRIPTION"));
     console.log(body);
-
     return;
-  } catch (e) {
+  } 
+  catch (e) {
     const err = JSON.parse(e);
 
     console.log();
 
     if (err.errors && (err.errors.code == 355 || err.StatusCodeError == 409)) {
-      console.log(
-        chalkInfo(
-          MODULE_ID +
-            " | ... TWITTER ACCOUNT ACTIVITY SUBSCRIPTION ALREADY EXISTS"
-        )
-      );
+      console.log(chalkInfo(MODULE_ID + " | ... TWITTER ACCOUNT ACTIVITY SUBSCRIPTION ALREADY EXISTS"));
       return;
     }
-    console.log(
-      chalkError(
-        MODULE_ID + " | *** ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION ERROR: ",
-        err
-      )
-    );
-
+    console.log(chalkError(MODULE_ID + " | *** ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION ERROR: ", err));
     throw err;
   }
 }
@@ -8371,59 +8336,35 @@ function initAppRouting(callback) {
       }
       res.sendStatus(404);
     } else if (req.path == "callbacks/addsub") {
-      console.log(
-        chalkAlert(MODULE_ID + " | R< TWITTER WEB HOOK | callbacks/addsub")
-      );
+      console.log(chalkAlert(MODULE_ID + " | R< TWITTER WEB HOOK | callbacks/addsub"));
 
-      console.log(
-        chalkAlert(
-          MODULE_ID +
-            " | R< callbacks/addsub" +
-            "\nreq.query\n" +
-            jsonPrint(req.query) +
-            "\nreq.params\n" +
-            jsonPrint(req.params) +
-            "\nreq.body\n" +
-            jsonPrint(req.body)
-        )
-      );
-    } else if (req.path == "callbacks/removesub") {
-      console.log(
-        chalkAlert(MODULE_ID + " | R< TWITTER WEB HOOK | callbacks/removesub")
-      );
+      console.log(chalkAlert(MODULE_ID +
+        " | R< callbacks/addsub" + 
+        "\nreq.query\n" + jsonPrint(req.query) +
+        "\nreq.params\n" + jsonPrint(req.params) +
+        "\nreq.body\n" + jsonPrint(req.body)
+      ));
+    } 
+    else if (req.path == "callbacks/removesub") {
+      console.log(chalkAlert(MODULE_ID + " | R< TWITTER WEB HOOK | callbacks/removesub"));
 
-      console.log(
-        chalkAlert(
-          MODULE_ID +
-            " | R< callbacks/removesub" +
-            "\nreq.query\n" +
-            jsonPrint(req.query) +
-            "\nreq.params\n" +
-            jsonPrint(req.params) +
-            "\nreq.body\n" +
-            jsonPrint(req.body)
-        )
-      );
-    } else if (req.path == TWITTER_WEBHOOK_URL) {
-      console.log(
-        chalkAlert(
-          MODULE_ID +
-            " | R< TWITTER WEB HOOK | " +
-            TWITTER_WEBHOOK_URL +
-            " | " +
-            getTimeStamp() +
-            " | IP: " +
-            req.ip +
-            " | HOST: " +
-            req.hostname +
-            " | METHOD: " +
-            req.method +
-            " | PATH: " +
-            req.path +
-            " | ERROR: " +
-            req.error
-        )
-      );
+      console.log(chalkAlert(MODULE_ID +
+        " | R< callbacks/removesub" +
+        "\nreq.query\n" + jsonPrint(req.query) +
+        "\nreq.params\n" + jsonPrint(req.params) +
+        "\nreq.body\n" + jsonPrint(req.body)
+      ));
+    } 
+    else if (req.path == TWITTER_WEBHOOK_URL) {
+      console.log(chalkAlert(MODULE_ID +
+        " | R< TWITTER WEB HOOK | " + TWITTER_WEBHOOK_URL +
+        " | " + getTimeStamp() +
+        " | IP: " + req.ip +
+        " | HOST: " + req.hostname +
+        " | METHOD: " + req.method +
+        " | PATH: " + req.path +
+        " | ERROR: " + req.error
+      ));
 
       if (req.method == "GET") {
         const crc_token = req.query.crc_token;
@@ -8437,11 +8378,10 @@ function initAppRouting(callback) {
             .digest("base64");
 
           console.log(chalkAlert(MODULE_ID + " | T> TWITTER WEB HOOK | CRC TOKEN > HASH: " + hmac));
-
           res.status(200);
-
           res.send({response_token: "sha256=" + hmac});
-        } else {
+        } 
+        else {
           res.status(400);
           res.send("Error: crc_token missing from request.");
         }

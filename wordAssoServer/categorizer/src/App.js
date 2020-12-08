@@ -76,8 +76,11 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: 0,
   },
   tabs: {
-    // flexGrow: 1,
     color: 'white',
+  },
+  tab: {
+    minWidth: 100,
+    width: 100,
   },
   toolBar: {
     shadows: 0,
@@ -1014,9 +1017,9 @@ const App = () => {
               value={tabValue} 
               onChange={handleTabChange}
             >
-              <Tab label="User"/>
-              <Tab label="Hashtag"/>
-              <Tab label="Account"/>
+              <Tab className={classes.tab} label="User"/>
+              <Tab className={classes.tab} label="Hashtag"/>
+              <Tab className={classes.tab} label="Account"/>
             </Tabs>
 
             <div className={classes.search}>

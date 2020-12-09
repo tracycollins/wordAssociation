@@ -7,10 +7,6 @@
     "restart_delay": 300000,
     "node_args"   : "--max-old-space-size=10240",
     "env": {
-      "TWITTER_CONSUMER_KEY": "ex0jSXayxMOjNm4DZIiic9Nc0",
-      "TWITTER_CONSUMER_SECRET": "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
-      "TWITTER_ACCESS_TOKEN": "848591649575927810-2SRfY4U1Dpw4WxhSFHsIsgF6UMSMQiB",
-      "TWITTER_ACCESS_TOKEN_SECRET": "2KfthrX3bSRZ35blYmjVscSLQnEe1eJWtqDHMxUDr7c4Y",
       "TWITTER_WEBHOOK_ENV": "dev",
       "PRIMARY_HOST": "google",
       "DATABASE_HOST": "macpro2",

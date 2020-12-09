@@ -1029,12 +1029,14 @@ let slackText = "";
 const channelsHashMap = new HashMap();
 
 const slackOAuthAccessToken = process.env.SLACK_OAUTH_ACCESS_TOKEN;
-const slackRtmToken = process.env.SLACK_RTM_TOKEN;
+// const slackRtmToken = process.env.SLACK_RTM_TOKEN;
+const slackRtmToken = process.env.SLACK_APP_TOKEN;
 
 let slackRtmClient;
 let slackWebClient;
 
 async function slackSendWebMessage(msgObj) {
+
   try {
     const token = msgObj.token || slackOAuthAccessToken;
     const channel = msgObj.channel || configuration.slackChannel.id;
@@ -1050,22 +1052,19 @@ async function slackSendWebMessage(msgObj) {
       message.attachments = msgObj.attachments;
     }
 
-    if (slackWebClient && slackWebClient !== undefined) {
+    // if (slackWebClient && slackWebClient !== undefined) {
+    if (statsObj.slack.webClient.ready) {
       const sendResponse = await slackWebClient.chat.postMessage(message);
       return sendResponse;
-    } else {
-      console.log(chalkAlert(MODULE_ID + " | SLACK WEB NOT CONFIGURED | SKIPPING SEND SLACK MESSAGE\n" + jsonPrint(message)));
+    } 
+    else {
+      console.log(chalkAlert(MODULE_ID + " | SLACK WEB NOT READY | SKIPPING SEND SLACK MESSAGE\n" + jsonPrint(message)));
       return;
     }
-  } catch (err) {
-    console.log(
-      chalkAlert(MODULE_ID + " | *** slackSendWebMessage ERROR: " + err)
-    );
-    console.log(
-      chalkAlert(
-        MODULE_ID + " | *** slackSendWebMessage msgObj\n" + jsonPrint(msgObj)
-      )
-    );
+  } 
+  catch (err) {
+    console.log(chalkAlert(MODULE_ID + " | *** slackSendWebMessage ERROR: " + err));
+    console.log(chalkAlert(MODULE_ID + " | *** slackSendWebMessage msgObj\n" + jsonPrint(msgObj)));
     throw err;
   }
 }
@@ -1106,46 +1105,59 @@ async function initSlackWebClient() {
       channelsHashMap.set(channel.id, channel);
     });
 
+    statsObj.slack.webClient.ready = true;
+    statsObj.slack.webClient.error = false;
     return;
-  } catch (err) {
+  } 
+  catch (err) {
     console.log(chalkError(MODULE_ID + " | *** INIT SLACK WEB CLIENT ERROR: " + err));
-    throw err;
+    statsObj.slack.webClient.ready = false;
+    statsObj.slack.webClient.error = err;
+    return;
+    // throw err;
   }
 }
 
 async function initSlackRtmClient() {
-  const { RTMClient } = require("@slack/client");
-  slackRtmClient = new RTMClient(slackRtmToken);
 
-  await slackRtmClient.start();
+  try{
+    const { RTMClient } = require("@slack/client");
+    slackRtmClient = new RTMClient(slackRtmToken);
 
-  slackRtmClient.on("slack_event", async function (eventType, event) {
-    switch (eventType) {
-      case "pong":
-        debug(
-          chalkLog(
-            MODULE_ID +
-              " | SLACK RTM PONG | " +
-              getTimeStamp() +
-              " | " +
-              event.reply_to
-          )
-        );
-        break;
-      default:
-        debug(
-          chalkInfo(
-            MODULE_ID +
-              " | SLACK RTM EVENT | " +
-              getTimeStamp() +
-              " | " +
-              eventType +
-              "\n" +
-              jsonPrint(event)
-          )
-        );
-    }
-  });
+    await slackRtmClient.start();
+
+    slackRtmClient.on("slack_event", async function (eventType, event) {
+      switch (eventType) {
+        case "pong":
+          debug(
+            chalkLog(
+              MODULE_ID +
+                " | SLACK RTM PONG | " +
+                getTimeStamp() +
+                " | " +
+                event.reply_to
+            )
+          );
+          break;
+        default:
+          debug(chalkInfo(MODULE_ID +
+            " | SLACK RTM EVENT | " + getTimeStamp() +
+            " | " + eventType +
+            "\n" + jsonPrint(event)
+          ));
+      }
+    });
+    statsObj.slack.rtmClient.ready = true;
+    statsObj.slack.rtmClient.error = false;
+    return;
+  }
+  catch(err){
+    statsObj.slack.rtmClient.ready = false;
+    statsObj.slack.rtmClient.error = err;
+    console.log(chalkError(MODULE_ID + " | *** INIT SLACK RTM CLIENT ERROR: " + err));
+  }
+
+
 }
 
 const addedHashtagsSet = new Set();
@@ -1191,6 +1203,16 @@ configEvents.on("newListener", function (data) {
 });
 
 const statsObj = {};
+
+statsObj.slack = {};
+statsObj.slack.webClient = {};
+statsObj.slack.webClient.ready = false;
+statsObj.slack.webClient.error = false;
+
+statsObj.slack.rtmClient = {};
+statsObj.slack.rtmClient.ready = false;
+statsObj.slack.rtmClient.error = false;
+
 
 statsObj.bots = {};
 statsObj.bots.numOfBots = 0;

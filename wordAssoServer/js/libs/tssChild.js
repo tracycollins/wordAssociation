@@ -617,8 +617,8 @@ async function initTwit(){
   const newTwitStream = new Twit({
     consumer_key: threeceeUser.twitterConfig.CONSUMER_KEY,
     consumer_secret: threeceeUser.twitterConfig.CONSUMER_SECRET,
-    access_token: threeceeUser.twitterConfig.TOKEN,
-    access_token_secret: threeceeUser.twitterConfig.TOKEN_SECRET
+    access_token: threeceeUser.twitterConfig.ACCESS_TOKEN,
+    access_token_secret: threeceeUser.twitterConfig.ACCESS_TOKEN_SECRET
   });
 
   threeceeUser.twitStream = {};

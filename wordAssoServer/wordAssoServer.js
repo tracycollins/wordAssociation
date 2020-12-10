@@ -1020,6 +1020,12 @@ async function pubSubPublishMessage(params) {
 //=========================================================================
 // SLACK
 //=========================================================================
+const { WebClient } = require('@slack/web-api');
+
+console.log("process.env.SLACK_BOT_TOKEN: ", process.env.SLACK_BOT_TOKEN)
+const slackBotToken = process.env.SLACK_BOT_TOKEN;
+
+const slackWebClient = new WebClient(slackBotToken);
 
 const slackChannel = MODULE_ID_PREFIX.toLowerCase();
 const slackChannelUserAuth = MODULE_ID_PREFIX.toLowerCase() + "-user-auth";
@@ -1028,137 +1034,203 @@ const slackChannelAdmin = MODULE_ID_PREFIX.toLowerCase() + "-admin";
 let slackText = "";
 const channelsHashMap = new HashMap();
 
-const slackOAuthAccessToken = process.env.SLACK_OAUTH_ACCESS_TOKEN;
+// const slackOAuthAccessToken = process.env.SLACK_OAUTH_ACCESS_TOKEN;
 // const slackRtmToken = process.env.SLACK_RTM_TOKEN;
-const slackRtmToken = process.env.SLACK_APP_TOKEN;
+// const slackRtmToken = process.env.SLACK_APP_TOKEN;
 
-let slackRtmClient;
-let slackWebClient;
+// let slackRtmClient;
+// let slackWebClient;
 
-async function slackSendWebMessage(msgObj) {
+async function slackSendWebMessage(msgObj){
+  try{
 
-  try {
-    const token = msgObj.token || slackOAuthAccessToken;
     const channel = msgObj.channel || configuration.slackChannel.id;
     const text = msgObj.text || msgObj;
 
-    const message = {
-      token: token,
-      channel: channel,
+    await slackWebClient.chat.postMessage({
       text: text,
-    };
+      channel: channel,
+    });
 
-    if (msgObj.attachments !== undefined) {
-      message.attachments = msgObj.attachments;
-    }
-
-    // if (slackWebClient && slackWebClient !== undefined) {
-    if (statsObj.slack.webClient.ready) {
-      const sendResponse = await slackWebClient.chat.postMessage(message);
-      return sendResponse;
-    } 
-    else {
-      console.log(chalkAlert(MODULE_ID + " | SLACK WEB NOT READY | SKIPPING SEND SLACK MESSAGE\n" + jsonPrint(message)));
-      return;
-    }
-  } 
-  catch (err) {
-    console.log(chalkAlert(MODULE_ID + " | *** slackSendWebMessage ERROR: " + err));
-    console.log(chalkAlert(MODULE_ID + " | *** slackSendWebMessage msgObj\n" + jsonPrint(msgObj)));
+  }
+  catch(err){
+    console.log(chalkAlert(MODULE_ID_PREFIX + " | *** slackSendWebMessage ERROR: " + err));
     throw err;
   }
 }
 
-async function initSlackWebClient() {
+// async function slackSendWebMessage(msgObj) {
+
+//   try {
+//     const token = msgObj.token || slackOAuthAccessToken;
+//     const channel = msgObj.channel || configuration.slackChannel.id;
+//     const text = msgObj.text || msgObj;
+
+//     const message = {
+//       token: token,
+//       channel: channel,
+//       text: text,
+//     };
+
+//     if (msgObj.attachments !== undefined) {
+//       message.attachments = msgObj.attachments;
+//     }
+
+//     // if (slackWebClient && slackWebClient !== undefined) {
+//     if (statsObj.slack.webClient.ready) {
+//       const sendResponse = await slackWebClient.chat.postMessage(message);
+//       return sendResponse;
+//     } 
+//     else {
+//       console.log(chalkAlert(MODULE_ID + " | SLACK WEB NOT READY | SKIPPING SEND SLACK MESSAGE\n" + jsonPrint(message)));
+//       return;
+//     }
+//   } 
+//   catch (err) {
+//     console.log(chalkAlert(MODULE_ID + " | *** slackSendWebMessage ERROR: " + err));
+//     console.log(chalkAlert(MODULE_ID + " | *** slackSendWebMessage msgObj\n" + jsonPrint(msgObj)));
+//     throw err;
+//   }
+// }
+
+async function initSlackWebClient(){
   try {
-    const { WebClient } = require("@slack/client");
-    slackWebClient = new WebClient(slackRtmToken);
 
-    const conversationsListResponse = await slackWebClient.conversations.list({
-      token: slackOAuthAccessToken,
-    });
+    console.log(chalkLog(MODULE_ID + " | INIT SLACK WEB CLIENT"))
 
-    conversationsListResponse.channels.forEach(async function (channel) {
+    const authTestResponse = await slackWebClient.auth.test()
+
+    console.log({authTestResponse})
+
+    const conversationsListResponse = await slackWebClient.conversations.list();
+
+    conversationsListResponse.channels.forEach(async function(channel){
+
+      debug(chalkLog("TNN | SLACK CHANNEL | " + channel.id + " | " + channel.name));
 
       if (channel.name === slackChannel) {
         configuration.slackChannel = channel;
 
         const message = {
-          token: slackOAuthAccessToken,
           channel: configuration.slackChannel.id,
-          text: "OP",
+          text: "OP"
         };
 
         message.attachments = [];
         message.attachments.push({
-          text: "INIT",
-          fields: [
-            { title: "SRC", value: hostname + "_" + process.pid },
-            { title: "MOD", value: MODULE_NAME },
-            { title: "DST", value: "ALL" },
-          ],
+          text: "INIT", 
+          fields: [ 
+            { title: "SRC", value: hostname + "_" + process.pid }, 
+            { title: "MOD", value: MODULE_NAME }, 
+            { title: "DST", value: "ALL" } 
+          ]
         });
 
         await slackWebClient.chat.postMessage(message);
       }
 
       channelsHashMap.set(channel.id, channel);
+
     });
 
-    statsObj.slack.webClient.ready = true;
-    statsObj.slack.webClient.error = false;
-    return;
-  } 
-  catch (err) {
-    console.log(chalkError(MODULE_ID + " | *** INIT SLACK WEB CLIENT ERROR: " + err));
-    statsObj.slack.webClient.ready = false;
-    statsObj.slack.webClient.error = err;
-    return;
-    // throw err;
-  }
-}
-
-async function initSlackRtmClient() {
-
-  try{
-    const { RTMClient } = require("@slack/client");
-    slackRtmClient = new RTMClient(slackRtmToken);
-
-    await slackRtmClient.start();
-
-    slackRtmClient.on("slack_event", async function (eventType, event) {
-      switch (eventType) {
-        case "pong":
-          debug(
-            chalkLog(
-              MODULE_ID +
-                " | SLACK RTM PONG | " +
-                getTimeStamp() +
-                " | " +
-                event.reply_to
-            )
-          );
-          break;
-        default:
-          debug(chalkInfo(MODULE_ID +
-            " | SLACK RTM EVENT | " + getTimeStamp() +
-            " | " + eventType +
-            "\n" + jsonPrint(event)
-          ));
-      }
-    });
-    statsObj.slack.rtmClient.ready = true;
-    statsObj.slack.rtmClient.error = false;
     return;
   }
   catch(err){
-    statsObj.slack.rtmClient.ready = false;
-    statsObj.slack.rtmClient.error = err;
-    console.log(chalkError(MODULE_ID + " | *** INIT SLACK RTM CLIENT ERROR: " + err));
+    console.log(chalkError("TNN | *** INIT SLACK WEB CLIENT ERROR: " + err));
+    throw err;
   }
-
-
 }
+
+// async function initSlackWebClient() {
+//   try {
+//     const { WebClient } = require("@slack/client");
+//     slackWebClient = new WebClient(slackRtmToken);
+
+//     const conversationsListResponse = await slackWebClient.conversations.list({
+//       token: slackOAuthAccessToken,
+//     });
+
+//     conversationsListResponse.channels.forEach(async function (channel) {
+
+//       if (channel.name === slackChannel) {
+//         configuration.slackChannel = channel;
+
+//         const message = {
+//           token: slackOAuthAccessToken,
+//           channel: configuration.slackChannel.id,
+//           text: "OP",
+//         };
+
+//         message.attachments = [];
+//         message.attachments.push({
+//           text: "INIT",
+//           fields: [
+//             { title: "SRC", value: hostname + "_" + process.pid },
+//             { title: "MOD", value: MODULE_NAME },
+//             { title: "DST", value: "ALL" },
+//           ],
+//         });
+
+//         await slackWebClient.chat.postMessage(message);
+//       }
+
+//       channelsHashMap.set(channel.id, channel);
+//     });
+
+//     statsObj.slack.webClient.ready = true;
+//     statsObj.slack.webClient.error = false;
+//     return;
+//   } 
+//   catch (err) {
+//     console.log(chalkError(MODULE_ID + " | *** INIT SLACK WEB CLIENT ERROR: " + err));
+//     statsObj.slack.webClient.ready = false;
+//     statsObj.slack.webClient.error = err;
+//     return;
+//     // throw err;
+//   }
+// }
+
+// async function initSlackRtmClient() {
+
+//   try{
+//     const { RTMClient } = require("@slack/client");
+//     slackRtmClient = new RTMClient(slackRtmToken);
+
+//     await slackRtmClient.start();
+
+//     slackRtmClient.on("slack_event", async function (eventType, event) {
+//       switch (eventType) {
+//         case "pong":
+//           debug(
+//             chalkLog(
+//               MODULE_ID +
+//                 " | SLACK RTM PONG | " +
+//                 getTimeStamp() +
+//                 " | " +
+//                 event.reply_to
+//             )
+//           );
+//           break;
+//         default:
+//           debug(chalkInfo(MODULE_ID +
+//             " | SLACK RTM EVENT | " + getTimeStamp() +
+//             " | " + eventType +
+//             "\n" + jsonPrint(event)
+//           ));
+//       }
+//     });
+//     statsObj.slack.rtmClient.ready = true;
+//     statsObj.slack.rtmClient.error = false;
+//     return;
+//   }
+//   catch(err){
+//     statsObj.slack.rtmClient.ready = false;
+//     statsObj.slack.rtmClient.error = err;
+//     console.log(chalkError(MODULE_ID + " | *** INIT SLACK RTM CLIENT ERROR: " + err));
+//   }
+
+
+// }
 
 const addedHashtagsSet = new Set();
 const deletedHashtagsSet = new Set();
@@ -12509,7 +12581,7 @@ setTimeout(async function () {
   try {
     global.dbConnection = await connectDb();
 
-    await initSlackRtmClient();
+    // await initSlackRtmClient();
     await initSlackWebClient();
 
     await waitDbConnectionReady();

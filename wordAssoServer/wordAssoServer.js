@@ -1361,11 +1361,13 @@ statsObj.user.categorizedBy.threecee = {};
 statsObj.user.categorizedBy.threecee.total = 0;
 statsObj.user.categorizedBy.threecee.today = 0;
 statsObj.user.categorizedBy.threecee.periodCurrent = 0;
+statsObj.user.categorizedBy.threecee.periodLast = 0;
 
 statsObj.user.categorizedBy.altthreecee00 = {};
 statsObj.user.categorizedBy.altthreecee00.total = 0;
 statsObj.user.categorizedBy.altthreecee00.today = 0;
 statsObj.user.categorizedBy.altthreecee00.periodCurrent = 0;
+statsObj.user.categorizedBy.altthreecee00.periodLast = 0;
 
 statsObj.user.total = 0;
 statsObj.user.dbUncat = 0;
@@ -7393,6 +7395,12 @@ async function updateUserCounts() {
   const startPeriod = moment().startOf('week').valueOf();
   const endPeriod = moment().endOf('week').valueOf();
   
+  const startPeriodLast = moment().startOf('week').valueOf();
+  startPeriodLast.subtract(7, 'days');
+
+  const endPeriodLast = moment().endOf('week').valueOf();
+  endPeriodLast.subtract(7, 'days');
+
   statsObj.user.total = await countDocuments({ documentType: "users" });
   console.log(chalkBlue(MODULE_ID + " | GRAND TOTAL USERS: " + statsObj.user.total));
 
@@ -7558,7 +7566,6 @@ async function updateUserCounts() {
     documentType: "users",
     query: { "categorizedBy.users.threecee.category": {$nin: [null, false]} },
   });
-  
   console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED BY @threecee: " + statsObj.user.categorizedBy.threecee.total));
 
   statsObj.user.categorizedBy.threecee.today = await countDocuments({
@@ -7571,29 +7578,26 @@ async function updateUserCounts() {
     documentType: "users",
     query: { "categorizedBy.users.threecee.timeStamp": { $gte: startPeriod, $lte: endPeriod }},
   });
-  
   console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED THIS WEEK BY @threecee: " + statsObj.user.categorizedBy.threecee.periodCurrent));
+
+  statsObj.user.categorizedBy.threecee.periodLast = await countDocuments({
+    documentType: "users",
+    query: { "categorizedBy.users.threecee.timeStamp": { $gte: startPeriodLast, $lte: endPeriodLast }},
+  });
+  console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED LAST WEEK BY @threecee: " + statsObj.user.categorizedBy.threecee.periodLast));
 
   statsObj.user.categorizedBy.altthreecee00.total = await countDocuments({
     documentType: "users",
     query: { "categorizedBy.users.altthreecee00.category": {$nin: [null, false]} },
   });
-  
   console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED BY @altthreecee00: " + statsObj.user.categorizedBy.altthreecee00.total));
   
   statsObj.user.categorizedBy.altthreecee00.today = await countDocuments({
     documentType: "users",
     query: { "categorizedBy.users.altthreecee00.timeStamp": { $gte: startToday, $lte: endToday }},
   });
-  
   console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED TODAY BY @altthreecee00: " + statsObj.user.categorizedBy.altthreecee00.today));
-  
-  statsObj.user.categorizedBy.altthreecee00.periodCurrent = await countDocuments({
-    documentType: "users",
-    query: { "categorizedBy.users.altthreecee00.timeStamp": { $gte: startPeriod, $lte: endPeriod }},
-  });
-  
-  console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED THIS WEEK BY @altthreecee00: " + statsObj.user.categorizedBy.altthreecee00.periodCurrent));
+
   return;
 }
 
@@ -8671,6 +8675,12 @@ function initAppRouting(callback) {
   app.use(express.static(path.join(__dirname, "/categorizer/static")));
   app.use(express.static(path.join(__dirname, "/categorizer/build")));
 
+  app.use(express.static(path.join(__dirname, "/customizer")));
+  app.use(express.static(path.join(__dirname, "/customizer/static/js")));
+  app.use(express.static(path.join(__dirname, "/customizer/static/css")));
+  app.use(express.static(path.join(__dirname, "/customizer/static")));
+  app.use(express.static(path.join(__dirname, "/customizer/build")));
+
   app.get("/onload.js", function (req, res) {
     console.log(chalkInfo(MODULE_ID + " | R< ONLOAD | /onload"));
 
@@ -8775,6 +8785,31 @@ function initAppRouting(callback) {
     }
 
     res.send(statsObj)
+  });
+
+
+  const customizerHtml = path.join(__dirname, "/customizer/build/index.html");
+  app.get("/customize", async function requestCustomizer(req, res) {
+
+    console.log(chalkLog(MODULE_ID + " | R< CUSTOMIZE"));
+
+    res.sendFile(customizerHtml, function responseCustomizer(err) {
+
+      if (err) {
+        console.log(chalkError(MODULE_ID +
+          " | GET /customize ERROR:" +
+          " | " + getTimeStamp() +
+          " | " + req.url +
+          " | " + customizerHtml +
+          " | " + err
+          ));
+      } 
+      else {
+        console.log(chalkAlert(MODULE_ID + " | SENT:", customizerHtml));
+      }
+
+    });
+
   });
 
   const adminHtml = path.join(__dirname, "/admin/admin.html");

@@ -157,30 +157,6 @@ viewerObj = DEFAULT_VIEWER_OBJ;
 
 console.log("viewerObj\n" + jsonPrint(viewerObj));
 
-var loginCallBack = function () {
-  console.log("LOGIN CALL BACK");
-};
-
-var twitterUserThreecee = {
-  nodeId: "14607119",
-  // userId : "14607119",
-  profileImageUrl:
-    "http://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
-  profileUrl: "http://twitter.com/threecee",
-  url: "http://threeCeeMedia.com",
-  name: "Tracy Collins",
-  screenName: "threecee",
-  nodeType: "user",
-  threeceeFollowing: "altthreecee00",
-  following: true,
-  ignored: false,
-  description: "photography + animation + design",
-  isTwitterUser: true,
-  screenNameLower: "threecee",
-  categoryVerified: true,
-  category: "left",
-};
-
 var PARENT_ID = "0047";
 
 var storedConfigName;
@@ -210,7 +186,6 @@ requirejs(
       PARENT_ID = config.sessionViewType;
 
       // addControlButton();
-      addLoginButton();
       addStatsButton();
       addFullscreenButton();
       addMetricButton();
@@ -913,32 +888,6 @@ function addMetricButton() {
   metricButton.setAttribute("onclick", "toggleMetric()");
   metricButton.innerHTML = config.metricMode.toUpperCase() + " RADIUS";
   controlDivElement.appendChild(metricButton);
-}
-
-function updateLoginButton() {
-  document.getElementById("loginButton").innerHTML = statsObj.isAuthenticated
-    ? "LOG OUT"
-    : "LOG IN";
-}
-
-function login() {
-  console.warn(
-    "LOGIN: AUTH: " +
-      statsObj.isAuthenticated +
-      " | URL: " +
-      config.authenticationUrl
-  );
-  window.open(config.authenticationUrl, "LOGIN", "_new");
-  socket.emit("login", viewerObj);
-}
-
-function addLoginButton() {
-  var loginButton = document.createElement("BUTTON");
-  loginButton.className = "button";
-  loginButton.setAttribute("id", "loginButton");
-  loginButton.setAttribute("onclick", "login()");
-  loginButton.innerHTML = statsObj.isAuthenticated ? "LOG OUT" : "LOG IN";
-  controlDivElement.appendChild(loginButton);
 }
 
 function updateStatsButton() {
@@ -1734,20 +1683,12 @@ socket.on("HEARTBEAT", function (hb) {
 
   statsObj.bestNetwork = hb.bestNetwork;
 
-  statsObj.maxNodes =
-    currentSessionView === undefined ? 0 : currentSessionView.getMaxNodes();
-  statsObj.maxNodeAddQ =
-    currentSessionView === undefined ? 0 : currentSessionView.getMaxNodeAddQ();
+  statsObj.maxNodes = currentSessionView === undefined ? 0 : currentSessionView.getMaxNodes();
+  statsObj.maxNodeAddQ = currentSessionView === undefined ? 0 : currentSessionView.getMaxNodeAddQ();
 
-  // heartBeatsReceived += 1;
   statsObj.serverConnected = true;
   statsObj.socket.connected = true;
-  // lastHeartbeatReceived = Date.now();
 
-  // sSmall.bestNetwork = hb.bestNetwork;
-  // sSmall.user = hb.user;
-
-  // if (currentSessionView) { currentSessionView.setStats(sSmall); }
 });
 
 socket.on("STATS", function (stats) {
@@ -1822,150 +1763,6 @@ socket.on("CONFIG_CHANGE", function (rxConfig) {
   }
 });
 
-socket.on("TWITTER_SEARCH_NODE_EMPTY_QUEUE", function (message) {
-  // message = { searchNode: searchNode, stats: statsObj.user.uncategorized }
-
-  message.result = "TWITTER_SEARCH_NODE_EMPTY_QUEUE";
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-
-  console.log(
-    "<R TWITTER_SEARCH_NODE_EMPTY_QUEUE" +
-      " | SEARCH NODE: " +
-      message.searchNode
-  );
-
-  console.log("<R STATS\n" + jsonPrint(message.stats));
-
-  currentSessionView.setTwitterUser(message);
-});
-
-socket.on("TWITTER_SEARCH_NODE_NOT_FOUND", function (message) {
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-
-  console.log("<R TWITTER_SEARCH_NODE_NOT_FOUND" + "|  SEARCH NODE: " + message.searchNode);
-  console.log("TWITTER_SEARCH_NODE_NOT_FOUND STATS\n" + jsonPrint(message.stats));
-
-  currentSessionView.twitterUserNotFound(message);
-});
-
-socket.on("SET_TWITTER_USER", function (message) {
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-
-  message.node.ageDays = message.node.ageDays ? message.node.ageDays : 0;
-  message.node.tweetsPerDay = message.node.tweetsPerDay
-    ? message.node.tweetsPerDay
-    : 0;
-
-  console.log(
-    "<R SET_TWITTER_USER" +
-      " | BOT: " +
-      message.node.isBot +
-      " | IG: " +
-      message.node.ignored +
-      " | FLWG: " +
-      message.node.following +
-      " | 3CFLWG: " +
-      message.node.threeceeFollowing +
-      " | " +
-      message.node.nodeId +
-      " | @" +
-      message.node.screenName +
-      " | TPD: " +
-      message.node.tweetsPerDay.toFixed(3) +
-      " | AGE: " +
-      message.node.ageDays.toFixed(3) +
-      " | CR: " +
-      message.node.createdAt +
-      " | FLWRs: " +
-      message.node.followersCount +
-      " | FRNDs: " +
-      message.node.friendsCount +
-      " | Ts: " +
-      message.node.statusesCount +
-      " | Ms: " +
-      message.node.mentions +
-      " | C: " +
-      message.node.category +
-      " | CA: " +
-      message.node.categoryAuto +
-      "\n profileUrl: " +
-      message.node.profileUrl
-  );
-
-  console.log("SET_TWITTER_USER STATS\n" + jsonPrint(message.stats));
-
-  if (message.node.nodeId === twitterUserThreecee.nodeId) {
-    twitterUserThreecee = message.node;
-    config.twitterUser = message.node;
-  }
-
-  currentSessionView.setTwitterUser(message);
-});
-
-socket.on("TWITTER_USERS", function (message) {
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-
-  console.log("<R TWITTER_USERS | NODES: " + message.nodes.length);
-
-  console.log("TWITTER_USERS STATS\n" + jsonPrint(message.stats));
-
-  if (message.node.nodeId === twitterUserThreecee.nodeId) {
-    twitterUserThreecee = message.node;
-    config.twitterUser = message.node;
-  }
-
-  currentSessionView.setTwitterUser(message);
-});
-
-socket.on("TWITTER_USER_NOT_FOUND", function (message) {
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-
-
-  console.log("<R TWITTER_USER_NOT_FOUND | SEARCH NODE: " + message.searchNode);
-
-  console.log("SET_TWITTER_USER STATS\n" + jsonPrint(message.stats));
-
-  if (message.node.nodeId === twitterUserThreecee.nodeId) {
-    twitterUserThreecee = message.node;
-    config.twitterUser = message.node;
-  }
-
-  currentSessionView.twitterUserNotFound(message);
-});
-
-socket.on("SET_TWITTER_HASHTAG", function (message) {
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-
-  console.log(
-    "<R SET_TWITTER_HASHTAG" +
-      " | #" +
-      message.node.nodeId +
-      " | CR: " +
-      message.node.createdAt +
-      " | Ms: " +
-      message.node.mentions +
-      " | C: " +
-      message.node.category +
-      " | CA: " +
-      message.node.categoryAuto
-  );
-
-  console.log("SET_TWITTER_HASHTAG STATS\n" + jsonPrint(message.stats));
-
-  currentSessionView.setTwitterHashtag(message);
-});
-
-socket.on("TWITTER_TOPTERM_1MIN", function (top10obj) {
-  statsObj.socket.connected = true;
-  statsObj.serverConnected = true;
-  console.debug("TWITTER_TOPTERM_1MIN\n" + jsonPrint(top10obj));
-});
 
 var rxNodeQueueReady = false;
 var rxNodeQueue = [];

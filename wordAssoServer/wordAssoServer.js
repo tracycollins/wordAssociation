@@ -7431,7 +7431,6 @@ async function updateUserCounts() {
     documentType: "users",
     query: { categorized: true },
   });
-
   console.log(chalkBlue(MODULE_ID + " | CAT MANUAL USERS: " + statsObj.user.categorizedManual));
 
   statsObj.user.manual.left = await countDocuments({
@@ -7450,11 +7449,7 @@ async function updateUserCounts() {
     documentType: "users",
     query: { category: "neutral" },
   });
-  console.log(
-    chalkBlue(
-      MODULE_ID + " | CAT MANUAL USERS NEUTRAL: " + statsObj.user.manual.neutral
-    )
-  );
+  console.log(chalkBlue(MODULE_ID + " | CAT MANUAL USERS NEUTRAL: " + statsObj.user.manual.neutral));
 
   // -----
 
@@ -7462,47 +7457,25 @@ async function updateUserCounts() {
     documentType: "users",
     query: { category: "none" },
   });
-  console.log(
-    chalkBlue(
-      MODULE_ID + " | UNCAT MANUAL USERS: " + statsObj.user.uncategorized.all
-    )
-  );
+  console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL USERS: " + statsObj.user.uncategorized.all));
 
   statsObj.user.uncategorized.left = await countDocuments({
     documentType: "users",
     query: { category: "none", categoryAuto: "left" },
   });
-  console.log(
-    chalkBlue(
-      MODULE_ID +
-        " | UNCAT MANUAL LEFT USERS: " +
-        statsObj.user.uncategorized.left
-    )
-  );
+  console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL LEFT USERS: " + statsObj.user.uncategorized.left));
 
   statsObj.user.uncategorized.right = await countDocuments({
     documentType: "users",
     query: { category: "none", categoryAuto: "right" },
   });
-  console.log(
-    chalkBlue(
-      MODULE_ID +
-        " | UNCAT MANUAL RIGHT USERS: " +
-        statsObj.user.uncategorized.right
-    )
-  );
+  console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL RIGHT USERS: " + statsObj.user.uncategorized.right));
 
   statsObj.user.uncategorized.neutral = await countDocuments({
     documentType: "users",
     query: { category: "none", categoryAuto: "neutral" },
   });
-  console.log(
-    chalkBlue(
-      MODULE_ID +
-        " | UNCAT MANUAL NEUTRAL USERS: " +
-        statsObj.user.uncategorized.neutral
-    )
-  );
+  console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL NEUTRAL USERS: " + statsObj.user.uncategorized.neutral));
 
   // -----
 
@@ -7510,37 +7483,25 @@ async function updateUserCounts() {
     documentType: "users",
     query: { categorizedAuto: true },
   });
-  console.log(
-    chalkBlue(MODULE_ID + " | CAT AUTO USERS: " + statsObj.user.categorizedAuto)
-  );
+  console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS: " + statsObj.user.categorizedAuto));
 
   statsObj.user.auto.left = await countDocuments({
     documentType: "users",
     query: { categoryAuto: "left" },
   });
-  console.log(
-    chalkBlue(MODULE_ID + " | CAT AUTO USERS LEFT: " + statsObj.user.auto.left)
-  );
+  console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS LEFT: " + statsObj.user.auto.left));
 
   statsObj.user.auto.right = await countDocuments({
     documentType: "users",
     query: { categoryAuto: "right" },
   });
-  console.log(
-    chalkBlue(
-      MODULE_ID + " | CAT AUTO USERS RIGHT: " + statsObj.user.auto.right
-    )
-  );
+  console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS RIGHT: " + statsObj.user.auto.right));
 
   statsObj.user.auto.neutral = await countDocuments({
     documentType: "users",
     query: { categoryAuto: "neutral" },
   });
-  console.log(
-    chalkBlue(
-      MODULE_ID + " | CAT AUTO USERS NEUTRAL: " + statsObj.user.auto.neutral
-    )
-  );
+  console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS NEUTRAL: " + statsObj.user.auto.neutral));
 
   statsObj.user.uncategorizedAuto = await countDocuments({
     documentType: "users",
@@ -7554,46 +7515,61 @@ async function updateUserCounts() {
     documentType: "users",
     query: { categoryMismatch: true },
   });
-
   console.log(chalkBlue(MODULE_ID + " | MISMATCHED USERS: " + statsObj.user.mismatched));
 
   // -----
 
-  statsObj.user.categorizedBy.threecee.total = await countDocuments({
-    documentType: "users",
-    query: { "categorizedBy.users.threecee.category": {$nin: [null, false]} },
-  });
-  console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED BY @threecee: " + statsObj.user.categorizedBy.threecee.total));
+  for(const user of ["threecee", "altthreecee00"]){
 
-  statsObj.user.categorizedBy.threecee.today = await countDocuments({
-    documentType: "users",
-    query: { "categorizedBy.users.threecee.timeStamp": { $gte: startToday, $lte: endToday }}
-  });
-  console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED TODAY BY @threecee: " + statsObj.user.categorizedBy.threecee.today));
-  
-  statsObj.user.categorizedBy.threecee.periodCurrent = await countDocuments({
-    documentType: "users",
-    query: { "categorizedBy.users.threecee.timeStamp": { $gte: startPeriod, $lte: endPeriod }},
-  });
-  console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED THIS WEEK BY @threecee: " + statsObj.user.categorizedBy.threecee.periodCurrent));
+    let queryPath = `categorizedBy.users.${user}.category`;
+    let query = {};
+    query[queryPath] = {$nin: [null, false]};
 
-  statsObj.user.categorizedBy.threecee.periodLast = await countDocuments({
-    documentType: "users",
-    query: { "categorizedBy.users.threecee.timeStamp": { $gte: startPeriodLast, $lte: endPeriodLast }},
-  });
-  console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED LAST WEEK BY @threecee: " + statsObj.user.categorizedBy.threecee.periodLast));
+    statsObj.user.categorizedBy[user].total = await countDocuments({
+      documentType: "users",
+      query: query,
+    });
 
-  statsObj.user.categorizedBy.altthreecee00.total = await countDocuments({
-    documentType: "users",
-    query: { "categorizedBy.users.altthreecee00.category": {$nin: [null, false]} },
-  });
-  console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED BY @altthreecee00: " + statsObj.user.categorizedBy.altthreecee00.total));
-  
-  statsObj.user.categorizedBy.altthreecee00.today = await countDocuments({
-    documentType: "users",
-    query: { "categorizedBy.users.altthreecee00.timeStamp": { $gte: startToday, $lte: endToday }},
-  });
-  console.log(chalkBlue(MODULE_ID + " | USERS CATEGORIZED TODAY BY @altthreecee00: " + statsObj.user.categorizedBy.altthreecee00.today));
+    console.log(chalkBlue(`${MODULE_ID} | USERS CATEGORIZED BY @${user}: ${statsObj.user.categorizedBy[user].total}`));
+
+    // ---
+
+    queryPath = `categorizedBy.users.${user}.timeStamp`;
+    query = {};
+    query[queryPath] = { $gte: startToday, $lte: endToday };
+
+    statsObj.user.categorizedBy[user].today = await countDocuments({
+      documentType: "users",
+      query: query
+    });
+    console.log(chalkBlue(`${MODULE_ID} | USERS CATEGORIZED TODAY BY @${user}: ${statsObj.user.categorizedBy[user].today}`));
+
+    // ---
+
+    query = {};
+    query[queryPath] = { $gte: startPeriod, $lte: endPeriod };
+
+    statsObj.user.categorizedBy[user].periodCurrent = await countDocuments({
+      documentType: "users",
+      query: query
+    });
+
+    console.log(chalkBlue(`${MODULE_ID} | USERS CATEGORIZED THIS WEEK BY @${user}: ${statsObj.user.categorizedBy[user].periodCurrent}`));
+
+    // ---
+
+    query = {};
+    query[queryPath] = { $gte: startPeriodLast, $lte: endPeriodLast };
+
+
+    statsObj.user.categorizedBy[user].periodLast = await countDocuments({
+      documentType: "users",
+      query: query
+    });
+
+    console.log(chalkBlue(`${MODULE_ID} | USERS CATEGORIZED LAST WEEK BY @${user}: ${statsObj.user.categorizedBy[user].periodLast}`));
+
+  }
 
   return;
 }

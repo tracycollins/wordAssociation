@@ -71,8 +71,6 @@ const ONE_MINUTE = 60 * ONE_SECOND;
 
 const DEFAULT_KEEPALIVE_INTERVAL = ONE_MINUTE;
 
-// var serverHeartbeatTimeoutFlag = false;
-// var serverHeartbeatTimeoutPeriod = 5*ONE_MINUTE;
 var serverCheckInterval = 5 * ONE_MINUTE;
 
 var MAX_RX_QUEUE = 250;
@@ -171,11 +169,7 @@ var useStoredConfig = DEFAULT_USE_STORED_CONFIG;
 var globalStoredConfigName = "config_" + DEFAULT_SESSION_VIEW;
 
 var d3;
-// var controlPanel;
-// var controlPanelWindow;
 var customizerWindow;
-
-// var controlPanelFlag = false;
 
 requirejs(
   ["https://d3js.org/d3.v6.min.js"],
@@ -185,8 +179,6 @@ requirejs(
     initialize(function () {
       PARENT_ID = config.sessionViewType;
 
-      // addControlButton();
-      addStatsButton();
       addFullscreenButton();
       addMetricButton();
       addCategoryButton();
@@ -201,7 +193,6 @@ requirejs(
             }
             mouseMovingFlag = true;
             currentSessionView.mouseMoving(true);
-            // displayStats(true, palette.white);
             displayControl(true);
             resetMouseMoveTimer();
           }
@@ -890,21 +881,6 @@ function addMetricButton() {
   controlDivElement.appendChild(metricButton);
 }
 
-function updateStatsButton() {
-  document.getElementById("statsButton").innerHTML = config.showStatsFlag
-    ? "HIDE STATS"
-    : "STATS";
-}
-
-function addStatsButton() {
-  var statsButton = document.createElement("BUTTON");
-  statsButton.className = "button";
-  statsButton.setAttribute("id", "statsButton");
-  statsButton.setAttribute("onclick", "toggleStats()");
-  statsButton.innerHTML = config.showStatsFlag ? "HIDE STATS" : "STATS";
-  controlDivElement.appendChild(statsButton);
-}
-
 function updateFullscreenButton() {
   document.getElementById("fullscreenButton").innerHTML = config.fullscreenMode
     ? "EXIT FULLSCREEN"
@@ -1279,21 +1255,6 @@ function toggleAutoCategory() {
   updateCategoryButton();
   // if (controlPanelFlag) {
     // controlPanel.updateControlPanel(config);
-  // }
-}
-
-function toggleStats() {
-  config.showStatsFlag = !config.showStatsFlag;
-  console.warn("TOGGLE STATS: " + config.showStatsFlag);
-
-  // if (config.showStatsFlag) {
-  //   displayStats(config.showStatsFlag);
-  // } else {
-  //   displayStats(false, palette.white);
-  // }
-
-  // if (controlPanelFlag) {
-  //   controlPanel.updateControlPanel(config);
   // }
 }
 

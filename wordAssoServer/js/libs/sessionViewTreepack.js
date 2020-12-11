@@ -540,15 +540,15 @@ function ViewTreepack() {
   this.setStats = function (stats) {
     console.log("setStats" + "\nSTATS\n" + jsonPrint(stats));
 
-    if (controlPanelReadyFlag) {
-      controlPanelWindow.postMessage(
-        {
-          op: "STATS",
-          stats: stats,
-        },
-        DEFAULT_SOURCE
-      );
-    }
+    // if (controlPanelReadyFlag) {
+    //   controlPanelWindow.postMessage(
+    //     {
+    //       op: "STATS",
+    //       stats: stats,
+    //     },
+    //     DEFAULT_SOURCE
+    //   );
+    // }
   };
 
   self.setEnableAgeNodes = function (enabled) {
@@ -625,17 +625,18 @@ function ViewTreepack() {
       );
     }
 
-    if (controlPanelReadyFlag) {
-      controlPanelWindow.postMessage(
-        {
-          op: "SET_TWITTER_USER",
-          node: message.node,
-          searchNode: message.searchNode,
-          stats: message.stats,
-        },
-        DEFAULT_SOURCE
-      );
-    }
+    // if (controlPanelReadyFlag) {
+    //   controlPanelWindow.postMessage(
+    //     {
+    //       op: "SET_TWITTER_USER",
+    //       node: message.node,
+    //       searchNode: message.searchNode,
+    //       stats: message.stats,
+    //     },
+    //     DEFAULT_SOURCE
+    //   );
+    // }
+
   };
 
   this.twitterUserNotFound = function (message) {
@@ -647,17 +648,17 @@ function ViewTreepack() {
         message.searchNode
     );
 
-    if (controlPanelReadyFlag) {
-      controlPanelWindow.postMessage(
-        {
-          op: "TWITTER_USER_NOT_FOUND",
-          searchMode: message.searchMode,
-          searchNode: message.searchNode,
-          stats: stats,
-        },
-        DEFAULT_SOURCE
-      );
-    }
+    // if (controlPanelReadyFlag) {
+    //   controlPanelWindow.postMessage(
+    //     {
+    //       op: "TWITTER_USER_NOT_FOUND",
+    //       searchMode: message.searchMode,
+    //       searchNode: message.searchNode,
+    //       stats: stats,
+    //     },
+    //     DEFAULT_SOURCE
+    //   );
+    // }
   };
 
   this.setTwitterHashtag = function (message) {
@@ -679,17 +680,17 @@ function ViewTreepack() {
       );
     }
 
-    if (controlPanelReadyFlag) {
-      controlPanelWindow.postMessage(
-        {
-          op: "SET_TWITTER_HASHTAG",
-          node: message.node,
-          searchNode: message.searchNode,
-          stats: message.stats,
-        },
-        DEFAULT_SOURCE
-      );
-    }
+    // if (controlPanelReadyFlag) {
+    //   controlPanelWindow.postMessage(
+    //     {
+    //       op: "SET_TWITTER_HASHTAG",
+    //       node: message.node,
+    //       searchNode: message.searchNode,
+    //       stats: message.stats,
+    //     },
+    //     DEFAULT_SOURCE
+    //   );
+    // }
   };
 
   this.setMetricMode = function (mode) {
@@ -1113,13 +1114,13 @@ function ViewTreepack() {
       case "user":
         // currentTwitterUser = d;
 
-        if (
-          mouseMovingFlag &&
-          controlPanelReadyFlag &&
-          (!previousTwitterUserId || previousTwitterUserId !== d.nodeId)
-        ) {
-          previousTwitterUserId = d.nodeId;
-        }
+        // if (
+        //   mouseMovingFlag &&
+        //   controlPanelReadyFlag &&
+        //   (!previousTwitterUserId || previousTwitterUserId !== d.nodeId)
+        // ) {
+        //   previousTwitterUserId = d.nodeId;
+        // }
 
         tooltipString =
           "@" +
@@ -1152,13 +1153,13 @@ function ViewTreepack() {
       case "hashtag":
         // currentTwitterHashtag = d;
 
-        if (
-          mouseMovingFlag &&
-          controlPanelReadyFlag &&
-          (!previousTwitterHashtag || previousTwitterHashtag !== d.nodeId)
-        ) {
-          previousTwitterHashtag = d.nodeId;
-        }
+        // if (
+        //   mouseMovingFlag &&
+        //   controlPanelReadyFlag &&
+        //   (!previousTwitterHashtag || previousTwitterHashtag !== d.nodeId)
+        // ) {
+        //   previousTwitterHashtag = d.nodeId;
+        // }
 
         tooltipString =
           "#" +
@@ -1202,13 +1203,13 @@ function ViewTreepack() {
       case "user":
         // currentTwitterUser = d;
 
-        if (
-          mouseMovingFlag &&
-          controlPanelReadyFlag &&
-          (!previousTwitterUserId || previousTwitterUserId !== d.nodeId)
-        ) {
-          previousTwitterUserId = d.nodeId;
-        }
+        // if (
+        //   mouseMovingFlag &&
+        //   controlPanelReadyFlag &&
+        //   (!previousTwitterUserId || previousTwitterUserId !== d.nodeId)
+        // ) {
+        //   previousTwitterUserId = d.nodeId;
+        // }
 
         tooltipString =
           "@" +
@@ -1241,13 +1242,13 @@ function ViewTreepack() {
       case "hashtag":
         // currentTwitterHashtag = d;
 
-        if (
-          mouseMovingFlag &&
-          controlPanelReadyFlag &&
-          (!previousTwitterHashtag || previousTwitterHashtag !== d.nodeId)
-        ) {
-          previousTwitterHashtag = d.nodeId;
-        }
+        // if (
+        //   mouseMovingFlag &&
+        //   controlPanelReadyFlag &&
+        //   (!previousTwitterHashtag || previousTwitterHashtag !== d.nodeId)
+        // ) {
+        //   previousTwitterHashtag = d.nodeId;
+        // }
 
         tooltipString =
           "#" +
@@ -1427,13 +1428,13 @@ function ViewTreepack() {
       case "user":
 
 
-        if (controlPanelReadyFlag) {
-          controlPanelWindow.postMessage({ op: "SET_TWITTER_USER", node: d, nodeSearch: true }, DEFAULT_SOURCE);
-        }
+        // if (controlPanelReadyFlag) {
+        //   controlPanelWindow.postMessage({ op: "SET_TWITTER_USER", node: d, nodeSearch: true }, DEFAULT_SOURCE);
+        // }
 
-        if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterUserId || previousTwitterUserId !== d.nodeId)) {
-          previousTwitterUserId = d.nodeId;
-        }
+        // if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterUserId || previousTwitterUserId !== d.nodeId)) {
+        //   previousTwitterUserId = d.nodeId;
+        // }
 
         if (d.lastTweetId && d.lastTweetId !== undefined) {
           console.debug("LOADING TWITTER USER: https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId);
@@ -1447,13 +1448,13 @@ function ViewTreepack() {
 
       case "hashtag":
 
-        if (controlPanelReadyFlag) {
-          controlPanelWindow.postMessage({ op: "SET_TWITTER_HASHTAG", node: d, nodeSearch: true }, DEFAULT_SOURCE);
-        }
+        // if (controlPanelReadyFlag) {
+        //   controlPanelWindow.postMessage({ op: "SET_TWITTER_HASHTAG", node: d, nodeSearch: true }, DEFAULT_SOURCE);
+        // }
 
-        if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterHashtag || previousTwitterHashtag !== d.nodeId)) {
-          previousTwitterHashtag = d.nodeId;
-        }
+        // if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterHashtag || previousTwitterHashtag !== d.nodeId)) {
+        //   previousTwitterHashtag = d.nodeId;
+        // }
 
         window.open("https://twitter.com/search?f=tweets&q=%23" + d.nodeId, "_blank");
         break;

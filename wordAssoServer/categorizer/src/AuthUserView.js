@@ -213,13 +213,38 @@ const AuthUserView = (props) => {
 
   const classes = useStyles();
 
-  const earned = {};
-  earned.total = props.earned ? earned.total : 0;
+  const defaultCategorizedRate = {
+    total: 0.05,
+    today: 0.05,
+    periodCurrent: 0.05,
+    periodLast: 0.05,
+  }
+
+  const categorizedRate = props.categorizedRate || defaultCategorizedRate;
 
   const categorized = {};
-  categorized.total = props.authUser.screenName? props.stats.user.categorizedBy[props.authUser.screenName].total : "---"
-  categorized.today = props.authUser.screenName? props.stats.user.categorizedBy[props.authUser.screenName].today : "---"
-  categorized.periodCurrent = props.authUser.screenName? props.stats.user.categorizedBy[props.authUser.screenName].periodCurrent : "---"
+  categorized.total = props.authUser.screenName ? props.stats.user.categorizedBy[props.authUser.screenName].total : 0
+  categorized.today = props.authUser.screenName ? props.stats.user.categorizedBy[props.authUser.screenName].today : 0
+  categorized.periodCurrent = props.authUser.screenName ? props.stats.user.categorizedBy[props.authUser.screenName].periodCurrent : 0
+  categorized.periodLast = props.authUser.screenName ? props.stats.user.categorizedBy[props.authUser.screenName].periodLast || 0 : 0
+
+  const defaultEarned = {
+    total: 0,
+    today: 0,
+    periodCurrent: 0,
+    periodLast: 0,
+  };
+
+  let earned = props.earned || defaultEarned;
+
+  const defaultPaid = {
+    total: 0,
+    today: 0,
+    periodCurrent: 0,
+    periodLast: 0,
+  };
+
+  let paid = props.paid || defaultPaid;
 
   const createdAt = formatDate(props.authUser.createdAt)
   const lastSeen = formatDate(props.authUser.lastSeen)
@@ -329,7 +354,7 @@ const AuthUserView = (props) => {
             </TableContainer>              
           </Paper>
         </Grid>
-        <Grid item className={classes.gridItem} xs={3}>
+        <Grid item className={classes.gridItem} xs={5}>
 
           <Paper className={classes.paper}  elevation={0} variant="outlined">
 
@@ -341,7 +366,9 @@ const AuthUserView = (props) => {
                   <TableRow>
                     <TableCell>CATEGORIZED</TableCell>
                     <TableCell align="right">USERS</TableCell>
-                    <TableCell align="right">EARNED</TableCell>
+                    <TableCell align="right">RATE ($)</TableCell>
+                    <TableCell align="right">EARNED ($)</TableCell>
+                    <TableCell align="right">PAID ($)</TableCell>
                   </TableRow>
                 </TableHead>
 
@@ -349,17 +376,30 @@ const AuthUserView = (props) => {
                   <TableRow>
                     <TableCell >TOTAL</TableCell>
                     <TableCell align="right">{categorized.total || "---"}</TableCell>
-                    <TableCell align="right">{earned.total || "---"}</TableCell>
+                    <TableCell align="right">{categorizedRate.total || "---"}</TableCell>
+                    <TableCell align="right">{earned.total || (categorized.total * categorizedRate.total).toFixed(2)}</TableCell>
+                    <TableCell align="right">{paid.total || "---"}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell >Today</TableCell>
                     <TableCell align="right">{categorized.today || "---"}</TableCell>
-                    <TableCell align="right">{earned.today || "---"}</TableCell>
+                    <TableCell align="right">{categorizedRate.today || "---"}</TableCell>
+                    <TableCell align="right">{earned.today || (categorized.today * categorizedRate.today).toFixed(2)}</TableCell>
+                    <TableCell align="right">{paid.today || "---"}</TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell >Current Period</TableCell>
                     <TableCell align="right">{categorized.periodCurrent || "---"}</TableCell>
-                    <TableCell align="right">{earned.periodCurrent || "---"}</TableCell>
+                    <TableCell align="right">{categorizedRate.periodCurrent || "---"}</TableCell>
+                    <TableCell align="right">{earned.periodCurrent || (categorized.periodCurrent * categorizedRate.periodCurrent).toFixed(2)}</TableCell>
+                    <TableCell align="right">{paid.periodCurrent || "---"}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell >Last Period</TableCell>
+                    <TableCell align="right">{categorized.periodLast || "---"}</TableCell>
+                    <TableCell align="right">{categorizedRate.periodLast || "---"}</TableCell>
+                    <TableCell align="right">{earned.periodLast || (categorized.periodLast * categorizedRate.periodLast).toFixed(2)}</TableCell>
+                    <TableCell align="right">{paid.periodLast || "---"}</TableCell>
                   </TableRow>
                 </TableBody>
 

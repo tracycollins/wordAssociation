@@ -195,9 +195,11 @@ var useStoredConfig = DEFAULT_USE_STORED_CONFIG;
 var globalStoredConfigName = "config_" + DEFAULT_SESSION_VIEW;
 
 var d3;
-var controlPanel;
-var controlPanelWindow;
-var controlPanelFlag = false;
+// var controlPanel;
+// var controlPanelWindow;
+var customizerWindow;
+
+// var controlPanelFlag = false;
 
 requirejs(
   ["https://d3js.org/d3.v6.min.js"],
@@ -744,106 +746,140 @@ function resetServerActiveTimer() {
 }
 
 window.onbeforeunload = function () {
-  if (controlPanelFlag) {
-    controlPanelWindow.close();
-    clearInterval(controlPanelInitWaitInterval);
-  }
-  controlPanelFlag = false;
+  // if (controlPanelFlag) {
+  //   // controlPanelWindow.close();
+  //   clearInterval(controlPanelInitWaitInterval);
+  // }
+  // controlPanelFlag = false;
 };
 
-var controlPanelReadyFlag = false;
+// var controlPanelReadyFlag = false;
 
-function createPopUpControlPanel(cnf, callback) {
-  console.debug("createPopUpControlPanel");
+function openCustomizer(cnf, callback) {
+  
+  console.debug("openCustomizer");
 
-  controlPanelWindow = window.open(
-    DEFAULT_SOURCE + "/controlPanel.html",
-    "CONTROL",
+  customizerWindow = window.open(
+    DEFAULT_SOURCE + "/customize",
+    "CUSTOMIZE",
     "width=1200,height=800"
   );
 
-  window.addEventListener("message", controlPanelComm, false);
+  // window.addEventListener("message", controlPanelComm, false);
 
-  controlPanelWindow.addEventListener(
-    "beforeunload",
-    function () {
-      console.log("CONTROL POP UP CLOSING...");
-      controlPanelFlag = false;
-      updateControlButton(controlPanelFlag);
-    },
-    false
-  );
+  // controlPanelWindow.addEventListener(
+  //   "beforeunload",
+  //   function () {
+  //     console.log("CONTROL POP UP CLOSING...");
+  //     controlPanelFlag = false;
+  //     updateControlButton(controlPanelFlag);
+  //   },
+  //   false
+  // );
 
-  controlPanelWindow.addEventListener(
-    "load",
-    function (cnf) {
-      controlPanel = new controlPanelWindow.ControlPanel(cnf);
-      controlPanelFlag = true;
-      callback();
-    },
-    false
-  );
+  // controlPanelWindow.addEventListener(
+  //   "load",
+  //   function (cnf) {
+  //     controlPanel = new controlPanelWindow.ControlPanel(cnf);
+  //     controlPanelFlag = true;
+  //     callback();
+  //   },
+  //   false
+  // );
 }
 
-var controlPanelInitWaitInterval;
+// function createPopUpControlPanel(cnf, callback) {
+  
+//   console.debug("createPopUpControlPanel");
 
-function toggleControlPanel() {
-  console.warn("toggleControlPanel config");
+//   controlPanelWindow = window.open(
+//     DEFAULT_SOURCE + "/controlPanel.html",
+//     "CONTROL",
+//     "width=1200,height=800"
+//   );
 
-  if (controlPanelFlag) {
-    clearInterval(controlPanelInitWaitInterval);
-    controlPanelWindow.close();
-    controlPanelFlag = false;
-    controlPanelReadyFlag = false;
-    updateControlButton(controlPanelFlag);
-    console.debug("toggleControlPanel: " + controlPanelFlag);
-  } else {
-    createPopUpControlPanel(config, function () {
-      clearInterval(controlPanelInitWaitInterval);
+//   window.addEventListener("message", controlPanelComm, false);
 
-      console.warn(
-        "createPopUpControlPanel toggleControlPanel: " + controlPanelFlag
-      );
+//   controlPanelWindow.addEventListener(
+//     "beforeunload",
+//     function () {
+//       console.log("CONTROL POP UP CLOSING...");
+//       controlPanelFlag = false;
+//       updateControlButton(controlPanelFlag);
+//     },
+//     false
+//   );
 
-      controlPanelInitWaitInterval = setInterval(function () {
-        if (controlPanelReadyFlag) {
-          clearInterval(controlPanelInitWaitInterval);
+//   controlPanelWindow.addEventListener(
+//     "load",
+//     function (cnf) {
+//       controlPanel = new controlPanelWindow.ControlPanel(cnf);
+//       controlPanelFlag = true;
+//       callback();
+//     },
+//     false
+//   );
+// }
 
-          updateControlButton(controlPanelFlag);
+// var controlPanelInitWaitInterval;
 
-          console.debug("TX> CONTROL PANEL INIT | SOURCE: " + DEFAULT_SOURCE);
+// function toggleControlPanel() {
+//   console.warn("toggleControlPanel config");
 
-          // doesn't like momment in config.VIEWER_OBJ in postMessage
-          var cf = config;
-          delete cf.VIEWER_OBJ;
+//   if (controlPanelFlag) {
+//     clearInterval(controlPanelInitWaitInterval);
+//     controlPanelWindow.close();
+//     controlPanelFlag = false;
+//     controlPanelReadyFlag = false;
+//     updateControlButton(controlPanelFlag);
+//     console.debug("toggleControlPanel: " + controlPanelFlag);
+//   } else {
+//     createPopUpControlPanel(config, function () {
+//       clearInterval(controlPanelInitWaitInterval);
 
-          controlPanelWindow.postMessage(
-            { op: "INIT", config: cf },
-            DEFAULT_SOURCE
-          );
-        }
-      }, 1000);
-    });
-  }
-}
+//       console.warn(
+//         "createPopUpControlPanel toggleControlPanel: " + controlPanelFlag
+//       );
 
-function updateControlButton(controlPanelFlag) {
-  document.getElementById("controlPanelButton").innerHTML = controlPanelFlag
-    ? "HIDE CONTROL"
-    : "SHOW CONTROL";
-}
+//       controlPanelInitWaitInterval = setInterval(function () {
+//         if (controlPanelReadyFlag) {
+//           clearInterval(controlPanelInitWaitInterval);
 
-function addControlButton() {
-  controlDivElement.style.visibility = "hidden";
-  var controlPanelButton = document.createElement("BUTTON");
-  controlPanelButton.className = "button";
-  controlPanelButton.setAttribute("id", "controlPanelButton");
-  controlPanelButton.setAttribute("onclick", "toggleControlPanel()");
-  controlPanelButton.innerHTML = controlPanelFlag
-    ? "HIDE CONTROL"
-    : "SHOW CONTROL";
-  controlDivElement.appendChild(controlPanelButton);
-}
+//           updateControlButton(controlPanelFlag);
+
+//           console.debug("TX> CONTROL PANEL INIT | SOURCE: " + DEFAULT_SOURCE);
+
+//           // doesn't like momment in config.VIEWER_OBJ in postMessage
+//           var cf = config;
+//           delete cf.VIEWER_OBJ;
+
+//           controlPanelWindow.postMessage(
+//             { op: "INIT", config: cf },
+//             DEFAULT_SOURCE
+//           );
+//         }
+//       }, 1000);
+//     });
+//   }
+// }
+
+// function updateControlButton(controlPanelFlag) {
+//   document.getElementById("controlPanelButton").innerHTML = controlPanelFlag
+//     ? "HIDE CONTROL"
+//     : "SHOW CONTROL";
+// }
+
+// function addControlButton() {
+//   controlDivElement.style.visibility = "hidden";
+//   var controlPanelButton = document.createElement("BUTTON");
+//   controlPanelButton.className = "button";
+//   controlPanelButton.setAttribute("id", "controlPanelButton");
+//   controlPanelButton.setAttribute("onclick", "toggleControlPanel()");
+//   controlPanelButton.innerHTML = controlPanelFlag
+//     ? "HIDE CONTROL"
+//     : "SHOW CONTROL";
+//   controlDivElement.appendChild(controlPanelButton);
+// }
 
 function addCategoryButton() {
   var categoryButton = document.createElement("BUTTON");
@@ -951,297 +987,298 @@ function resetConfigUpdateTimeOut() {
   }, configUpdateTimeOutInverval);
 }
 
-function controlPanelComm(event) {
-  console.debug("CONTROL PANEL: " + event.origin); // prints: { message: "Hello world!"}
+// function controlPanelComm(event) {
 
-  if (event.data === "DisableHTML5Autoplay_Initialize") {
-    console.info(
-      "RX> CONTROL PANEL | DisableHTML5Autoplay_Initialize ... IGNORING ..."
-    );
-    return;
-  }
+//   console.debug("CONTROL PANEL: " + event.origin); // prints: { message: "Hello world!"}
 
-  switch (event.data.op) {
-    case "READY":
-      console.warn("R< CONTROL PANEL READY");
-      controlPanelReadyFlag = true;
-      break;
+//   if (event.data === "DisableHTML5Autoplay_Initialize") {
+//     console.info(
+//       "RX> CONTROL PANEL | DisableHTML5Autoplay_Initialize ... IGNORING ..."
+//     );
+//     return;
+//   }
 
-    case "FOLLOW":
-      console.warn(
-        "R< CONTROL FOLLOW" +
-          " | NID: " +
-          event.data.user.nodeId +
-          " | @" +
-          event.data.user.screenName
-      );
-      socket.emit("TWITTER_FOLLOW", event.data.user);
-      break;
+//   switch (event.data.op) {
+//     case "READY":
+//       console.warn("R< CONTROL PANEL READY");
+//       controlPanelReadyFlag = true;
+//       break;
 
-    case "UNFOLLOW":
-      console.warn(
-        "R< CONTROL UNFOLLOW" +
-          " | UID: " +
-          event.data.user.nodeId +
-          " | @" +
-          event.data.user.screenName
-      );
-      socket.emit("TWITTER_UNFOLLOW", event.data.user);
-      break;
+//     case "FOLLOW":
+//       console.warn(
+//         "R< CONTROL FOLLOW" +
+//           " | NID: " +
+//           event.data.user.nodeId +
+//           " | @" +
+//           event.data.user.screenName
+//       );
+//       socket.emit("TWITTER_FOLLOW", event.data.user);
+//       break;
 
-    case "CAT VERIFIED":
-      console.warn(
-        "R< CONTROL CATEGORY_VERIFIED" +
-          " | UID: " +
-          event.data.user.nodeId +
-          " | @" +
-          event.data.user.screenName
-      );
-      socket.emit("TWITTER_CATEGORY_VERIFIED", event.data.user);
-      break;
+//     case "UNFOLLOW":
+//       console.warn(
+//         "R< CONTROL UNFOLLOW" +
+//           " | UID: " +
+//           event.data.user.nodeId +
+//           " | @" +
+//           event.data.user.screenName
+//       );
+//       socket.emit("TWITTER_UNFOLLOW", event.data.user);
+//       break;
 
-    case "CAT UNVERIFIED":
-      console.warn(
-        "R< CONTROL CATEGORY_UNVERIFIED" +
-          " | UID: " +
-          event.data.user.nodeId +
-          " | @" +
-          event.data.user.screenName
-      );
-      socket.emit("TWITTER_CATEGORY_UNVERIFIED", event.data.user);
-      break;
+//     case "CAT VERIFIED":
+//       console.warn(
+//         "R< CONTROL CATEGORY_VERIFIED" +
+//           " | UID: " +
+//           event.data.user.nodeId +
+//           " | @" +
+//           event.data.user.screenName
+//       );
+//       socket.emit("TWITTER_CATEGORY_VERIFIED", event.data.user);
+//       break;
 
-    case "BOT":
-      console.warn(
-        "R< CONTROL BOT" +
-          " | UID: " +
-          event.data.user.nodeId +
-          " | @" +
-          event.data.user.screenName
-      );
-      socket.emit("TWITTER_BOT", event.data.user);
-      break;
+//     case "CAT UNVERIFIED":
+//       console.warn(
+//         "R< CONTROL CATEGORY_UNVERIFIED" +
+//           " | UID: " +
+//           event.data.user.nodeId +
+//           " | @" +
+//           event.data.user.screenName
+//       );
+//       socket.emit("TWITTER_CATEGORY_UNVERIFIED", event.data.user);
+//       break;
 
-    case "UNBOT":
-      console.warn(
-        "R< CONTROL UNBOT" +
-          " | UID: " +
-          event.data.user.nodeId +
-          " | @" +
-          event.data.user.screenName
-      );
-      socket.emit("TWITTER_UNBOT", event.data.user);
-      break;
+//     case "BOT":
+//       console.warn(
+//         "R< CONTROL BOT" +
+//           " | UID: " +
+//           event.data.user.nodeId +
+//           " | @" +
+//           event.data.user.screenName
+//       );
+//       socket.emit("TWITTER_BOT", event.data.user);
+//       break;
 
-    case "IGNORE":
-      console.warn(
-        "R< CONTROL IGNORE" +
-          " | UID: " +
-          event.data.user.nodeId +
-          " | @" +
-          event.data.user.screenName
-      );
-      socket.emit("TWITTER_IGNORE", event.data.user);
-      break;
+//     case "UNBOT":
+//       console.warn(
+//         "R< CONTROL UNBOT" +
+//           " | UID: " +
+//           event.data.user.nodeId +
+//           " | @" +
+//           event.data.user.screenName
+//       );
+//       socket.emit("TWITTER_UNBOT", event.data.user);
+//       break;
 
-    case "UNIGNORE":
-      console.warn(
-        "R< CONTROL UNIGNORE" +
-          " | UID: " +
-          event.data.user.nodeId +
-          " | @" +
-          event.data.user.screenName
-      );
-      socket.emit("TWITTER_UNIGNORE", event.data.user);
-      break;
+//     case "IGNORE":
+//       console.warn(
+//         "R< CONTROL IGNORE" +
+//           " | UID: " +
+//           event.data.user.nodeId +
+//           " | @" +
+//           event.data.user.screenName
+//       );
+//       socket.emit("TWITTER_IGNORE", event.data.user);
+//       break;
 
-    case "NODE_SEARCH":
-      console.warn("R< CONTROL NODE_SEARCH\n" + jsonPrint(event.data.input));
-      socket.emit("TWITTER_SEARCH_NODE", event.data.input);
-      break;
+//     case "UNIGNORE":
+//       console.warn(
+//         "R< CONTROL UNIGNORE" +
+//           " | UID: " +
+//           event.data.user.nodeId +
+//           " | @" +
+//           event.data.user.screenName
+//       );
+//       socket.emit("TWITTER_UNIGNORE", event.data.user);
+//       break;
 
-    case "CLOSE":
-      console.warn("R< CONTROL PANEL CLOSING...");
-      resetConfigUpdateTimeOut();
-      break;
+//     case "NODE_SEARCH":
+//       console.warn("R< CONTROL NODE_SEARCH\n" + jsonPrint(event.data.input));
+//       socket.emit("TWITTER_SEARCH_NODE", event.data.input);
+//       break;
 
-    case "MOMENT":
-      console.warn("R< CONTROL PANEL MOMENT...");
-      switch (event.data.id) {
-        case "resetButton":
-          reset();
-          break;
-        default:
-          console.error("CONTROL PANEL UNKNOWN MOMENT BUTTON");
-      }
-      break;
+//     case "CLOSE":
+//       console.warn("R< CONTROL PANEL CLOSING...");
+//       resetConfigUpdateTimeOut();
+//       break;
 
-    case "TOGGLE":
-      console.warn("R< CONTROL PANEL TOGGLE");
-      switch (event.data.id) {
-        case "categoryAutoButton":
-          toggleAutoCategory();
-          break;
-        case "metricToggleButton":
-          toggleMetric();
-          break;
-        case "fullscreenToggleButton":
-          toggleFullScreen();
-          break;
-        case "pauseToggleButton":
-          togglePause();
-          break;
-        case "statsToggleButton":
-          toggleStats();
-          break;
-        case "testModeToggleButton":
-          toggleTestMode();
-          break;
-        case "removeDeadNodeToogleButton":
-          toggleRemoveDeadNode();
-          break;
-        default:
-          console.error(
-            "CONTROL PANEL UNKNOWN TOGGLE BUTTON | ID: " + event.data.id
-          );
-      }
-      resetConfigUpdateTimeOut();
-      break;
+//     case "MOMENT":
+//       console.warn("R< CONTROL PANEL MOMENT...");
+//       switch (event.data.id) {
+//         case "resetButton":
+//           reset();
+//           break;
+//         default:
+//           console.error("CONTROL PANEL UNKNOWN MOMENT BUTTON");
+//       }
+//       break;
 
-    case "UPDATE":
-      console.warn("R< CONTROL PANEL UPDATE");
-      switch (event.data.id) {
-        case "transitionDuration":
-          currentSessionView.setTransitionDuration(event.data.value);
-          config.defaultTransitionDuration = event.data.value;
-          break;
-        case "velocityDecay":
-          currentSessionView.setVelocityDecay(event.data.value);
-          break;
-        case "gravity":
-          currentSessionView.setGravity(event.data.value);
-          break;
-        case "charge":
-          currentSessionView.setCharge(event.data.value);
-          break;
-        case "maxAge":
-          currentSessionView.setNodeMaxAge(event.data.value);
-          break;
-        case "maxNodes":
-          currentSessionView.setMaxNodesLimit(event.data.value);
-          break;
-        case "fontSizeRatioMin":
-          currentSessionView.setFontSizeRatioMin(event.data.value);
-          break;
-        case "fontSizeRatioMax":
-          currentSessionView.setFontSizeRatioMax(event.data.value);
-          break;
-        case "nodeRadiusRatioMin":
-          currentSessionView.setNodeRadiusRatioMin(event.data.value);
-          break;
-        case "nodeRadiusRatioMax":
-          currentSessionView.setNodeRadiusRatioMax(event.data.value);
-          break;
-        default:
-          console.error(
-            "UNKNOWN CONTROL PANEL ID: " +
-              event.data.id +
-              "\n" +
-              jsonPrint(event.data)
-          );
-      }
-      resetConfigUpdateTimeOut();
-      break;
+//     case "TOGGLE":
+//       console.warn("R< CONTROL PANEL TOGGLE");
+//       switch (event.data.id) {
+//         case "categoryAutoButton":
+//           toggleAutoCategory();
+//           break;
+//         case "metricToggleButton":
+//           toggleMetric();
+//           break;
+//         case "fullscreenToggleButton":
+//           toggleFullScreen();
+//           break;
+//         case "pauseToggleButton":
+//           togglePause();
+//           break;
+//         case "statsToggleButton":
+//           toggleStats();
+//           break;
+//         case "testModeToggleButton":
+//           toggleTestMode();
+//           break;
+//         case "removeDeadNodeToogleButton":
+//           toggleRemoveDeadNode();
+//           break;
+//         default:
+//           console.error(
+//             "CONTROL PANEL UNKNOWN TOGGLE BUTTON | ID: " + event.data.id
+//           );
+//       }
+//       resetConfigUpdateTimeOut();
+//       break;
 
-    case "INIT":
-      console.info("R< CONTROL PANEL LOOPBACK? | INIT ... IGNORING ...");
-      break;
+//     case "UPDATE":
+//       console.warn("R< CONTROL PANEL UPDATE");
+//       switch (event.data.id) {
+//         case "transitionDuration":
+//           currentSessionView.setTransitionDuration(event.data.value);
+//           config.defaultTransitionDuration = event.data.value;
+//           break;
+//         case "velocityDecay":
+//           currentSessionView.setVelocityDecay(event.data.value);
+//           break;
+//         case "gravity":
+//           currentSessionView.setGravity(event.data.value);
+//           break;
+//         case "charge":
+//           currentSessionView.setCharge(event.data.value);
+//           break;
+//         case "maxAge":
+//           currentSessionView.setNodeMaxAge(event.data.value);
+//           break;
+//         case "maxNodes":
+//           currentSessionView.setMaxNodesLimit(event.data.value);
+//           break;
+//         case "fontSizeRatioMin":
+//           currentSessionView.setFontSizeRatioMin(event.data.value);
+//           break;
+//         case "fontSizeRatioMax":
+//           currentSessionView.setFontSizeRatioMax(event.data.value);
+//           break;
+//         case "nodeRadiusRatioMin":
+//           currentSessionView.setNodeRadiusRatioMin(event.data.value);
+//           break;
+//         case "nodeRadiusRatioMax":
+//           currentSessionView.setNodeRadiusRatioMax(event.data.value);
+//           break;
+//         default:
+//           console.error(
+//             "UNKNOWN CONTROL PANEL ID: " +
+//               event.data.id +
+//               "\n" +
+//               jsonPrint(event.data)
+//           );
+//       }
+//       resetConfigUpdateTimeOut();
+//       break;
 
-    case "CATEGORIZE":
-      if (statsObj.isAuthenticated) {
-        if (event.data.node.nodeType === "user") {
-          console.info(
-            "R< CONTROL PANEL CATEGORIZE" +
-              " | " +
-              event.data.node.nodeId +
-              " | @" +
-              event.data.node.screenName +
-              " | C: " +
-              event.data.category
-          );
-          socket.emit("TWITTER_CATEGORIZE_NODE", {
-            twitterUser: config.twitterUser,
-            category: event.data.category,
-            following: true,
-            node: event.data.node,
-          });
-        } else if (event.data.node.nodeType === "hashtag") {
-          console.info(
-            "R< CONTROL PANEL CATEGORIZE" +
-              " | #" +
-              event.data.node.nodeId +
-              " | C: " +
-              event.data.category
-          );
-          socket.emit("TWITTER_CATEGORIZE_NODE", {
-            twitterUser: config.twitterUser,
-            category: event.data.category,
-            node: event.data.node,
-          });
-        }
-      } else {
-        console.debug(
-          "R< CONTROL PANEL CATEGORIZE | NOT AUTHENTICATED !" +
-            " | " +
-            event.data.node.nodeId +
-            " | @" +
-            event.data.node.screenName +
-            " | C: " +
-            event.data.category
-        );
-        console.debug("... AUTHENTICATING ...");
-        window.open(config.authenticationUrl, "_blank");
-      }
-      break;
+//     case "INIT":
+//       console.info("R< CONTROL PANEL LOOPBACK? | INIT ... IGNORING ...");
+//       break;
 
-    case "SET_TWITTER_USER":
-      // console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_USER ... IGNORING ...");
-      break;
+//     case "CATEGORIZE":
+//       if (statsObj.isAuthenticated) {
+//         if (event.data.node.nodeType === "user") {
+//           console.info(
+//             "R< CONTROL PANEL CATEGORIZE" +
+//               " | " +
+//               event.data.node.nodeId +
+//               " | @" +
+//               event.data.node.screenName +
+//               " | C: " +
+//               event.data.category
+//           );
+//           socket.emit("TWITTER_CATEGORIZE_NODE", {
+//             twitterUser: config.twitterUser,
+//             category: event.data.category,
+//             following: true,
+//             node: event.data.node,
+//           });
+//         } else if (event.data.node.nodeType === "hashtag") {
+//           console.info(
+//             "R< CONTROL PANEL CATEGORIZE" +
+//               " | #" +
+//               event.data.node.nodeId +
+//               " | C: " +
+//               event.data.category
+//           );
+//           socket.emit("TWITTER_CATEGORIZE_NODE", {
+//             twitterUser: config.twitterUser,
+//             category: event.data.category,
+//             node: event.data.node,
+//           });
+//         }
+//       } else {
+//         console.debug(
+//           "R< CONTROL PANEL CATEGORIZE | NOT AUTHENTICATED !" +
+//             " | " +
+//             event.data.node.nodeId +
+//             " | @" +
+//             event.data.node.screenName +
+//             " | C: " +
+//             event.data.category
+//         );
+//         console.debug("... AUTHENTICATING ...");
+//         window.open(config.authenticationUrl, "_blank");
+//       }
+//       break;
 
-    case "SET_TWITTER_HASHTAG":
-      // console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_HASHTAG ... IGNORING ...");
-      break;
+//     case "SET_TWITTER_USER":
+//       // console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_USER ... IGNORING ...");
+//       break;
 
-    case "DISPLAY_NODE_TYPE":
-      config.displayNodeHashMap[event.data.displayNodeType] = event.data.value;
-      console.warn(
-        "R<DISPLAY_NODE_TYPE | " +
-          event.data.displayNodeType +
-          " | " +
-          event.data.value
-      );
-      console.warn(
-        "config.displayNodeHashMap\n" + jsonPrint(config.displayNodeHashMap)
-      );
-      resetConfigUpdateTimeOut();
-      break;
+//     case "SET_TWITTER_HASHTAG":
+//       // console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_HASHTAG ... IGNORING ...");
+//       break;
 
-    default:
-      if (event.data["twttr.button"] !== undefined) {
-        console.log(
-          "R< CONTROL PANEL TWITTER" + " | " + event.data["twttr.button"].method
-        );
-      } else if (event.data.settings !== undefined) {
-        console.log(
-          "R< CONTROL PANEL SETTINGS" + "\n" + jsonPrint(event.data.settings)
-        );
-      } else {
-        console.warn(
-          "R< ??? CONTROL PANEL OP UNDEFINED\n" + jsonPrint(event.data)
-        );
-      }
-  }
-}
+//     case "DISPLAY_NODE_TYPE":
+//       config.displayNodeHashMap[event.data.displayNodeType] = event.data.value;
+//       console.warn(
+//         "R<DISPLAY_NODE_TYPE | " +
+//           event.data.displayNodeType +
+//           " | " +
+//           event.data.value
+//       );
+//       console.warn(
+//         "config.displayNodeHashMap\n" + jsonPrint(config.displayNodeHashMap)
+//       );
+//       resetConfigUpdateTimeOut();
+//       break;
+
+//     default:
+//       if (event.data["twttr.button"] !== undefined) {
+//         console.log(
+//           "R< CONTROL PANEL TWITTER" + " | " + event.data["twttr.button"].method
+//         );
+//       } else if (event.data.settings !== undefined) {
+//         console.log(
+//           "R< CONTROL PANEL SETTINGS" + "\n" + jsonPrint(event.data.settings)
+//         );
+//       } else {
+//         console.warn(
+//           "R< ??? CONTROL PANEL OP UNDEFINED\n" + jsonPrint(event.data)
+//         );
+//       }
+//   }
+// }
 
 function toggleShowNodeType(displayNodeType) {
   if (config.displayNodeHashMap[displayNodeType] === "show") {
@@ -1252,9 +1289,9 @@ function toggleShowNodeType(displayNodeType) {
   currentSessionView.setMetricMode(config.metricMode);
   console.warn("SET RADIUS MODE: " + config.metricMode);
   updateMetricButton();
-  if (controlPanelFlag) {
-    controlPanel.updateControlPanel(config);
-  }
+  // if (controlPanelFlag) {
+  //   controlPanel.updateControlPanel(config);
+  // }
 }
 
 function toggleMetric() {
@@ -1266,23 +1303,23 @@ function toggleMetric() {
   currentSessionView.setMetricMode(config.metricMode);
   console.warn("SET RADIUS MODE: " + config.metricMode);
   updateMetricButton();
-  if (controlPanelFlag) {
-    controlPanel.updateControlPanel(config);
-  }
+  // if (controlPanelFlag) {
+  //   controlPanel.updateControlPanel(config);
+  // }
 }
 
 function togglePause() {
   config.pauseFlag = !config.pauseFlag;
   currentSessionView.setPause(config.pauseFlag);
   console.warn("TOGGLE PAUSE: " + config.pauseFlag);
-  controlPanel.updateControlPanel(config);
+  // controlPanel.updateControlPanel(config);
 }
 
 function toggleRemoveDeadNode() {
   config.removeDeadNodesFlag = !config.removeDeadNodesFlag;
   currentSessionView.setRemoveDeadNodesFlag(config.removeDeadNodesFlag);
   console.warn("TOGGLE REMOVE DEAD NODES: " + config.removeDeadNodesFlag);
-  controlPanel.updateControlPanel(config);
+  // controlPanel.updateControlPanel(config);
 }
 
 function toggleAutoCategory() {
@@ -1291,9 +1328,9 @@ function toggleAutoCategory() {
   console.warn("AUTO CATEGORY: " + config.autoCategoryFlag);
 
   updateCategoryButton();
-  if (controlPanelFlag) {
-    controlPanel.updateControlPanel(config);
-  }
+  // if (controlPanelFlag) {
+    // controlPanel.updateControlPanel(config);
+  // }
 }
 
 function toggleStats() {
@@ -1306,9 +1343,9 @@ function toggleStats() {
   //   displayStats(false, palette.white);
   // }
 
-  if (controlPanelFlag) {
-    controlPanel.updateControlPanel(config);
-  }
+  // if (controlPanelFlag) {
+  //   controlPanel.updateControlPanel(config);
+  // }
 }
 
 function toggleTestMode() {
@@ -1316,7 +1353,7 @@ function toggleTestMode() {
   config.testModeEnabled = config.testMode;
   console.warn("TEST MODE: " + config.testModeEnabled);
   currentSessionView.setTestMode(config.testModeEnabled);
-  controlPanel.updateControlPanel(config);
+  // controlPanel.updateControlPanel(config);
 }
 
 var keysForSortedKeys = [];

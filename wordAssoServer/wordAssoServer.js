@@ -7395,11 +7395,8 @@ async function updateUserCounts() {
   const startPeriod = moment().startOf('week').valueOf();
   const endPeriod = moment().endOf('week').valueOf();
   
-  const startPeriodLast = moment().startOf('week').valueOf();
-  startPeriodLast.subtract(7, 'days');
-
-  const endPeriodLast = moment().endOf('week').valueOf();
-  endPeriodLast.subtract(7, 'days');
+  const startPeriodLast = moment().startOf('week').subtract(7, 'days').valueOf();
+  const endPeriodLast = moment().endOf('week').subtract(7, 'days').valueOf();
 
   statsObj.user.total = await countDocuments({ documentType: "users" });
   console.log(chalkBlue(MODULE_ID + " | GRAND TOTAL USERS: " + statsObj.user.total));

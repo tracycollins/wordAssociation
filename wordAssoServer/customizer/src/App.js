@@ -26,134 +26,73 @@ import StatsView from './StatsView.js';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    border: 0,
-    flexGrow: 2,
+    width: "100%",
+    flexGrow: 1,
+    boxShadow: 0,
   },
   appBar: {
-    border: 0,
-    backgroundColor: 'white',
-    marginBottom: theme.spacing(1),
+    backgroundColor: 'black',
+    marginBottom: theme.spacing(2),
+    boxShadow: 0,
   },
-  grid: {
-    border: 0,
-    display: 'flex',
-    alignItems: 'stretch',
+  tabs: {
+    color: 'white',
   },
-  gridItem: {
-    border: 0,
-    margin: theme.spacing(1),
+  tab: {
+    minWidth: 100,
+    width: 100,
   },
-  gridHeader: {
-    padding: theme.spacing(1),
-    border: 0,
-    marginBottom: theme.spacing(1),
+  toolBar: {
+    shadows: 0,
   },
-  paper: {
-    outlined: true,
-    variant: 'outlined',
+  title: {
+    // flexGrow: 1,
+    color: 'white',
+    marginRight: theme.spacing(2),
   },
-  card: {
-    alignSelf: "center",
+  progress: {
+    // flexGrow: 1,
+    color: 'white',
+    marginRight: theme.spacing(2),
   },
-  profileImage: {
-    marginBottom: theme.spacing(1),
-  },
-  bannerImage: {
-    marginBottom: theme.spacing(1),
-  },
-  icon: {
-    borderRadius: '50%',
-    width: 16,
-    height: 16,
-    boxShadow: 'inset 0 0 0 1px rgba(16,22,26,.2), inset 0 -1px 0 rgba(16,22,26,.1)',
-    backgroundColor: '#f5f8fa',
-    backgroundImage: 'linear-gradient(180deg,hsla(0,0%,100%,.8),hsla(0,0%,100%,0))',
-    '$root.Mui-focusVisible &': {
-      outline: '2px auto rgba(19,124,189,.6)',
-      outlineOffset: 2,
-    },
-    'input:hover ~ &': {
-      backgroundColor: '#ebf1f5',
-    },
-    'input:disabled ~ &': {
-      boxShadow: 'none',
-      background: 'rgba(206,217,224,.5)',
-    },
-  },
-  checkedIcon: {
-    backgroundColor: '#137cbd',
-    backgroundImage: 'linear-gradient(180deg,hsla(0,0%,100%,.1),hsla(0,0%,100%,0))',
-    '&:before': {
-      display: 'block',
-      width: 16,
-      height: 16,
-      backgroundImage: 'radial-gradient(#fff,#fff 28%,transparent 32%)',
-      content: '""',
-    },
-    'input:hover ~ &': {
-      backgroundColor: '#106ba3',
-    },
-  },
-  selectCategory: {
-    fontSize: '0.9rem',
-    borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(1),
-    marginBottom: theme.spacing(1),
-  },
-  radioGroupCategory: {
-    maxWidth: "90%",
-    fontSize: '0.5rem',
-    padding: theme.spacing(2),
-    marginBottom: theme.spacing(1),
-  },
-  checkbox: {
-    color: green[400],
-    '&$checked': {
-      color: green[600],
-    },
-  },
-  checked: {},
-  radioButtonLabel: {
-    fontSize: '0.9rem'
-  },
-  radioButton: {
-  },
-  table: {
-    maxWidth: "90%",
+  serverStatus: {
+    fontSize: "0.85rem",
+    flexGrow: 1,
+    color: 'lightgray',
     padding: theme.spacing(1),
   },
-  tableHead: {
-    backgroundColor: '#ddeeee',
-  },
-  tableCell: {
-  },
-  tableCategorized: {
-    backgroundColor: '#ddeeee',
-  },
-  tableRowGreen: {
-    backgroundColor: 'lightgreen',
+  twitterAuth: {
+    // backgroundColor: 'black',
+    fontSize: "1.2rem",
+    fontWeight: 600,
+    color: "green",
+    padding: theme.spacing(1),
+    marginRight: theme.spacing(2),
+  },  
+  buttonLogin: {
+    // backgroundColor: "green",
+    marginRight: theme.spacing(2),
   },
   statusBar: {
-    raised: false,
     backgroundColor: 'white',
     margin: 2,
   },
   menuButton: {
     marginRight: theme.spacing(2),
   },
-  title: {
-    color: 'blue',
-  },
   search: {
+    // flexGrow: 1,
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
     backgroundColor: "white",
     '&:hover': {
-      backgroundColor: "#ddeeee",
+      backgroundColor: "lightgray",
     },
-    marginRight: theme.spacing(1),
-    width: '100%',
+    marginRight: theme.spacing(2),
+    marginLeft: 0,
+    width: '20%',
     [theme.breakpoints.up('sm')]: {
+      marginLeft: theme.spacing(3),
       width: 'auto',
     },
   },
@@ -179,67 +118,7 @@ const useStyles = makeStyles((theme) => ({
     },
   },
 
-  buttonGroupLabel: {
-    color: 'blue',
-    marginRight: theme.spacing(1),
-  },
-  buttonAll: {
-    color: 'black',
-  },
-  buttonLeft: {
-    color: 'blue',
-  },
-  buttonNeutral: {
-    color: 'gray',
-  },
-  buttonRight: {
-    color: 'red',
-  },
-  buttonMismatch: {
-    margin: 5
-  },
-  autoCategory:{
-    borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(1),
-    color: 'white',
-    marginBottom: theme.spacing(1),
-  },
-  category: {
-    borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(1),
-    marginBottom: theme.spacing(1),
-  },
-
-  left: {
-    backgroundColor: 'blue',
-    color: 'white',
-  },
-  neutral: {
-    backgroundColor: 'darkgray',
-    color: 'white',
-  },
-  right: {
-    backgroundColor: 'red',
-    color: 'white',
-  },
-  positive: {
-    backgroundColor: 'green',
-    color: 'white',
-  },
-  negative: {
-    backgroundColor: 'yellow',
-    color: 'black',
-  },
-  none: {
-    backgroundColor: 'lightgray',
-    color: 'black',
-  },
-  ignored: {
-    backgroundColor: 'yellow',
-    color: 'black',
-  },
-
-}));
+}))
 
 const App = () => {
 

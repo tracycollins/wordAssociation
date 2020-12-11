@@ -209,7 +209,7 @@ requirejs(
     initialize(function () {
       PARENT_ID = config.sessionViewType;
 
-      addControlButton();
+      // addControlButton();
       addLoginButton();
       addStatsButton();
       addFullscreenButton();

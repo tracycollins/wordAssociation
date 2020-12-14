@@ -8,9 +8,17 @@ if (envConfig.error) {
 console.log("WAS | ENV CONFIG")
 console.log(envConfig.parsed)
 
+const threeceeAuthorizedUsers = ["threecee", "altthreecee00", "ninjathreecee"];
+const threeceeUser = "altthreecee00"; // for TSS
+// const DEFAULT_THREECEE_USERS = ["altthreecee00"];
+const DEFAULT_THREECEE_INFO_USERS = [
+  "threecee",
+  "threeceeinfo",
+  "ninjathreecee",
+];
+
 const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
-
 
 const DEFAULT_CURSOR_BATCH_SIZE = 100;
 
@@ -145,12 +153,6 @@ const DEFAULT_ENABLE_GEOCODE = true;
 const DEFAULT_ENABLE_TWITTER_FOLLOW = false;
 const DEFAULT_TEST_INTERNET_CONNECTION_URL = "www.google.com";
 
-const DEFAULT_THREECEE_USERS = ["altthreecee00"];
-const DEFAULT_THREECEE_INFO_USERS = [
-  "threecee",
-  "threeceeinfo",
-  "ninjathreecee",
-];
 
 const DEFAULT_CHILD_ID_PREFIX = "wa_node_child_";
 
@@ -1298,8 +1300,8 @@ statsObj.pubSub.messagesSent = 0;
 statsObj.pubSub.messagesReceived = 0;
 
 statsObj.commandLineArgsLoaded = false;
-statsObj.currentThreeceeUserIndex = 0;
-statsObj.currentThreeceeUser = "altthreecee00";
+// statsObj.currentThreeceeUserIndex = 0;
+// statsObj.currentThreeceeUser = "altthreecee00";
 statsObj.threeceeUsersConfiguredFlag = false;
 statsObj.twitNotReadyWarning = false;
 statsObj.initSetsComplete = false;
@@ -1357,17 +1359,14 @@ statsObj.traffic.users.total = 0;
 statsObj.user = {};
 
 statsObj.user.categorizedBy = {};
-statsObj.user.categorizedBy.threecee = {};
-statsObj.user.categorizedBy.threecee.total = 0;
-statsObj.user.categorizedBy.threecee.today = 0;
-statsObj.user.categorizedBy.threecee.periodCurrent = 0;
-statsObj.user.categorizedBy.threecee.periodLast = 0;
 
-statsObj.user.categorizedBy.altthreecee00 = {};
-statsObj.user.categorizedBy.altthreecee00.total = 0;
-statsObj.user.categorizedBy.altthreecee00.today = 0;
-statsObj.user.categorizedBy.altthreecee00.periodCurrent = 0;
-statsObj.user.categorizedBy.altthreecee00.periodLast = 0;
+for (const user of threeceeAuthorizedUsers){
+  statsObj.user.categorizedBy[user] = {};
+  statsObj.user.categorizedBy[user].total = 0;
+  statsObj.user.categorizedBy[user].today = 0;
+  statsObj.user.categorizedBy[user].periodCurrent = 0;
+  statsObj.user.categorizedBy[user].periodLast = 0;
+}
 
 statsObj.user.total = 0;
 statsObj.user.dbUncat = 0;
@@ -1531,11 +1530,10 @@ configuration.metrics.nodeMeterEnabled = DEFAULT_METRICS_NODE_METER_ENABLED;
 configuration.minFollowersAutoCategorize = DEFAULT_MIN_FOLLOWERS_AUTO_CATEGORIZE;
 configuration.minFollowersAutoFollow = DEFAULT_MIN_FOLLOWERS_AUTO_FOLLOW;
 
-configuration.threeceeUsers = [];
-configuration.threeceeUsers = DEFAULT_THREECEE_USERS;
-statsObj.currentThreeceeUser = configuration.threeceeUsers[0];
+// configuration.threeceeUsers = [];
+// configuration.threeceeUsers = DEFAULT_THREECEE_USERS;
 
-const threeceeUser = "altthreecee00";
+// statsObj.currentThreeceeUser = "altthreecee00";
 
 const threeceeTwitter = {};
 const threeceeInfoTwitter = {};
@@ -2602,24 +2600,14 @@ let authenticatedSocketCacheTtl = process.env.AUTH_SOCKET_CACHE_DEFAULT_TTL;
 if (empty(authenticatedSocketCacheTtl)) {
   authenticatedSocketCacheTtl = AUTH_SOCKET_CACHE_DEFAULT_TTL;
 }
-console.log(
-  MODULE_ID +
-    " | AUTHENTICATED SOCKET CACHE TTL: " +
-    authenticatedSocketCacheTtl +
-    " SECONDS"
-);
+console.log(MODULE_ID + " | AUTHENTICATED SOCKET CACHE TTL: " + authenticatedSocketCacheTtl + " SECONDS");
 
 let authenticatedSocketCacheCheckPeriod =
   process.env.AUTH_SOCKET_CACHE_CHECK_PERIOD;
 if (empty(authenticatedSocketCacheCheckPeriod)) {
   authenticatedSocketCacheCheckPeriod = AUTH_SOCKET_CACHE_CHECK_PERIOD;
 }
-console.log(
-  MODULE_ID +
-    " | AUTHENTICATED SOCKET CACHE CHECK PERIOD: " +
-    authenticatedSocketCacheCheckPeriod +
-    " SECONDS"
-);
+console.log(MODULE_ID + " | AUTHENTICATED SOCKET CACHE CHECK PERIOD: " + authenticatedSocketCacheCheckPeriod + " SECONDS");
 
 const authenticatedSocketCache = new NodeCache({
   stdTTL: authenticatedSocketCacheTtl,
@@ -4106,6 +4094,7 @@ async function getTwitterWebhooks() {
 }
 
 async function addTwitterAccountActivitySubscription(p) {
+
   statsObj.status = "ADD TWITTER ACCOUNT ACTIVITY SUBSCRIPTION";
 
   const params = p || {};
@@ -7307,11 +7296,8 @@ async function initIgnoreLocations() {
 }
 
 async function initIgnoredProfileWords() {
-  console.log(
-    chalkInfo(
-      MODULE_ID + " | INIT IGNORED PROFILE WORDS | @" + threeceeUser.screenName
-    )
-  );
+
+  console.log(chalkInfo(MODULE_ID + " | INIT IGNORED PROFILE WORDS"));
 
   try {
     const result = await tcUtils.initSetFromFile({
@@ -7519,7 +7505,7 @@ async function updateUserCounts() {
 
   // -----
 
-  for(const user of ["threecee", "altthreecee00"]){
+  for(const user of threeceeAuthorizedUsers){
 
     let queryPath = `categorizedBy.users.${user}.category`;
     let query = {};
@@ -9815,7 +9801,7 @@ function initTssChild(params) {
                 MODULE_ID +
                   " | <TSS | ERROR | TWITTER_UNFOLLOW" +
                   " | AUTUO FOLLOW USER: @" +
-                  threeceeUser +
+                  m.threeceeUser +
                   " | ERROR TYPE: " +
                   m.errorType +
                   " | ERROR MESSAGE: " +
@@ -9835,7 +9821,7 @@ function initTssChild(params) {
                 MODULE_ID +
                   " | <TSS | ERROR | TWITTER_FOLLOW_LIMIT" +
                   " | AUTUO FOLLOW USER: @" +
-                  threeceeUser +
+                  m.threeceeUser +
                   " | ERROR TYPE: " +
                   m.errorType +
                   " | ERROR MESSAGE: " +
@@ -10963,7 +10949,7 @@ async function loadConfigFile(params) {
 
     newConfiguration.pubSub = {};
     newConfiguration.metrics = {};
-    newConfiguration.threeceeUsers = [];
+    // newConfiguration.threeceeUsers = [];
 
     if (loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG !== undefined) {
       console.log(
@@ -11326,14 +11312,14 @@ async function loadConfigFile(params) {
         loadedConfigObj.MAX_TRANSMIT_NODE_QUEUE;
     }
 
-    if (loadedConfigObj.THREECEE_USERS !== undefined) {
-      console.log(
-        MODULE_ID +
-          " | LOADED THREECEE_USERS: " +
-          loadedConfigObj.THREECEE_USERS
-      );
-      newConfiguration.threeceeUsers = loadedConfigObj.THREECEE_USERS;
-    }
+    // if (loadedConfigObj.THREECEE_USERS !== undefined) {
+    //   console.log(
+    //     MODULE_ID +
+    //       " | LOADED THREECEE_USERS: " +
+    //       loadedConfigObj.THREECEE_USERS
+    //   );
+    //   newConfiguration.threeceeUsers = loadedConfigObj.THREECEE_USERS;
+    // }
 
     if (loadedConfigObj.TWITTER_THREECEE_INFO_USERS !== undefined) {
       console.log(
@@ -11341,8 +11327,7 @@ async function loadConfigFile(params) {
           " | LOADED TWITTER_THREECEE_INFO_USERS: " +
           loadedConfigObj.TWITTER_THREECEE_INFO_USERS
       );
-      newConfiguration.threeceeInfoUsersArray =
-        loadedConfigObj.TWITTER_THREECEE_INFO_USERS;
+      newConfiguration.threeceeInfoUsersArray = loadedConfigObj.TWITTER_THREECEE_INFO_USERS;
     }
 
     if (loadedConfigObj.TWITTER_THREECEE_USER !== undefined) {
@@ -11641,7 +11626,7 @@ async function loadAllConfigFiles() {
   ){
     await initBotSet();
   }
-  configuration.threeceeUsers = _.uniq(configuration.threeceeUsers); // merge concats arrays!
+  // configuration.threeceeUsers = _.uniq(configuration.threeceeUsers); // merge concats arrays!
 
   filterDuplicateTweets = configuration.filterDuplicateTweets;
   filterRetweets = configuration.filterRetweets;
@@ -11772,11 +11757,11 @@ async function initConfig() {
   configuration.enableStdin = process.env.ENABLE_STDIN || true;
   // configuration.statsUpdateIntervalTime = process.env.WAS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
 
-  console.log(
-    chalkTwitter(
-      MODULE_ID + " | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)
-    )
-  );
+  // console.log(
+  //   chalkTwitter(
+  //     MODULE_ID + " | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)
+  //   )
+  // );
 
   threeceeTwitter.twit = {};
   threeceeTwitter.twitterConfig = {};
@@ -12286,11 +12271,7 @@ function initIgnoreWordsHashMap() {
 let memStatsInterval;
 
 async function initThreeceeTwitterUser(threeceeUser) {
-  console.log(
-    chalkTwitter(
-      MODULE_ID + " | ... INIT THREECEE TWITTER USER: " + threeceeUser
-    )
-  );
+  console.log(chalkTwitter(MODULE_ID + " | ... INIT THREECEE TWITTER USER: " + threeceeUser));
 
   console.log(
     chalkTwitter(MODULE_ID + " | ... LOADING TWITTER CONFIG | @" + threeceeUser)

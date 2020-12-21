@@ -6172,9 +6172,6 @@ async function initSocketHandler(socketObj) {
           },
           autoCategorizeFlag: true,
         });
-
-        // await updateUserCounts();
-        // await updateHashtagCounts();
         
         updateUserCounts();
         updateHashtagCounts();
@@ -7769,7 +7766,7 @@ async function updateUserSets(p) {
     $or: [{ categorized: true }, { categorizedAuto: true }],
   };
 
-  await updateUserCounts();
+  updateUserCounts();
 
   userSearchCursor = global.wordAssoDb.User.find(params.query)
     .select({
@@ -7877,7 +7874,7 @@ async function updateHashtagSets(p) {
     $or: [{ categorized: true }, { categorizedAuto: true }],
   };
 
-  await updateHashtagCounts();
+  updateHashtagCounts();
 
   hashtagSearchCursor = global.wordAssoDb.Hashtag.find(params.query)
     .lean()

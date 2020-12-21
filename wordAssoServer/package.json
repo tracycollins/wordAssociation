@@ -1,6 +1,6 @@
 {
   "name": "@threeceelabs/wordassoserver",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "",
   "main": "wordAssoServer.js",
   "directories": {
@@ -9,7 +9,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "tracy collins",
   "license": "ISC",
   "dependencies": {
     "@google-cloud/pubsub": "^2.7.0",

@@ -7338,33 +7338,41 @@ async function countDocuments(params) {
   
   try {
 
-    if (countDocumentsRunning[params.documentType] && countDocumentsRunning[params.documentType] === params.query) {
+    const queryValue = params.query ? Object.keys(params.query).join("-") : "noquery";
+
+    if (
+        params.query 
+        && countDocumentsRunning[params.documentType] 
+        && countDocumentsRunning[params.documentType] === queryValue
+      ) {
+        
       console.log(chalkAlert(MODULE_ID 
         + " | SKIP COUNTING DOCUMENTS | RUNNING: TYPE: " + params.documentType
-        + " | QUERY\n" + jsonPrint(countDocumentsRunning[params.documentType])
+        + " | QUERY VALUE:" + queryValue
       ));
+      
       return;
     }
-
-    const query = params.query || false;
     
-    countDocumentsRunning[params.documentType] = query;
+    countDocumentsRunning[params.documentType] = queryValue;
 
     const documentCollection = global.dbConnection.collection(params.documentType);
 
     console.log(chalkLog(MODULE_ID + " | ... COUNTING DOCUMENTS: TYPE: " + params.documentType));
 
-    if (query) {
-      const count = await documentCollection.countDocuments(query);
+    if (params.query) {
+      const count = await documentCollection.countDocuments(params.query);
       countDocumentsRunning[params.documentType] = false;
       return count;
-    } else {
+    } 
+    else {
       // estimatedDocumentCount doesn't take query; always returns all docs in collection
       const count = await documentCollection.estimatedDocumentCount();
       countDocumentsRunning[params.documentType] = false;
       return count;
     }
-  } catch (err) {
+  } 
+  catch (err) {
     countDocumentsRunning[params.documentType] = false;
     console.log(
       chalkError(MODULE_ID + " | *** DB COUNT DOCUMENTS ERROR\n" + err)

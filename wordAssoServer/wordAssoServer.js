@@ -7384,7 +7384,7 @@ const setUpdateUserCountsTimeout = () => {
 
   setTimeout(() => {
     updateUserCountsRunning = false;
-  }, 1000)
+  }, 10000)
 
   return;
 }
@@ -7397,7 +7397,7 @@ const setUpdateHashtagCountsTimeout = () => {
 
   setTimeout(() => {
     updateHashtagCountsRunning = false;
-  }, 1000)
+  }, 10000)
 
   return;
 }

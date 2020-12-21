@@ -30,6 +30,7 @@
     "method-override": "^3.0.0",
     "node-cache": "^5.1.2",
     "object.omit": "^3.0.0",
+    "panzoom": "^9.4.1",
     "passport": "^0.4.1",
     "passport-twitter": "^1.0.4",
     "shelljs": "^0.8.4",

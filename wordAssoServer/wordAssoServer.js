@@ -7340,14 +7340,14 @@ async function countDocuments(params) {
 
     const queryValue = params.query ? Object.keys(params.query).join("-") : "noquery";
 
-    console.log(chalkLog(`${MODULE_ID} | ... COUNTING DOCUMENTS: TYPE: " ${params.documentType} | QUERY VALUE: ${queryValue}`));
+    console.log(chalkLog(`${MODULE_ID} | ... COUNTING DOCUMENTS: TYPE: ${params.documentType} | QUERY VALUE: ${queryValue}`));
 
     if (
         params.query 
         && countDocumentsRunning[params.documentType] 
         && countDocumentsRunning[params.documentType] === queryValue
       ) {
-      console.log(chalkAlert(`${MODULE_ID} | SKIP COUNTING DOCUMENTS: TYPE: " ${params.documentType} | QUERY VALUE: ${queryValue}`));
+      console.log(chalkAlert(`${MODULE_ID} | SKIP COUNTING DOCUMENTS: TYPE: ${params.documentType} | QUERY VALUE: ${queryValue}`));
       return;
     }
     
@@ -7355,7 +7355,7 @@ async function countDocuments(params) {
 
     const documentCollection = global.dbConnection.collection(params.documentType);
 
-    console.log(chalkLog(MODULE_ID + " | ... COUNTING DOCUMENTS: TYPE: " + params.documentType));
+    // console.log(chalkLog(MODULE_ID + " | ... COUNTING DOCUMENTS: TYPE: " + params.documentType));
 
     if (params.query) {
       const count = await documentCollection.countDocuments(params.query);

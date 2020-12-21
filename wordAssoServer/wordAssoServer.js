@@ -5142,11 +5142,11 @@ async function twitterSearchNode(params) {
       " | " + searchNode
     ));
 
-    updateUserCounts();
-    updateHashtagCounts();
 
     if (searchNode.startsWith("#")) {
       
+      updateHashtagCounts();
+
       const response = await twitterSearchHashtag({
         node: {
           nodeType: "hashtag",
@@ -5219,6 +5219,8 @@ async function twitterSearchNode(params) {
     }
 
     if (searchNode.startsWith("@")) {
+
+      updateUserCounts();
 
       const response = await twitterSearchUser({
         node: { nodeType: "user", screenName: searchNode.slice(1) },
@@ -6173,9 +6175,6 @@ async function initSocketHandler(socketObj) {
           autoCategorizeFlag: true,
         });
         
-        updateUserCounts();
-        updateHashtagCounts();
-
         if (node) {
           if (node.nodeType === "user") {
             console.log(chalkSocket(MODULE_ID +
@@ -6197,6 +6196,7 @@ async function initSocketHandler(socketObj) {
             }
 
             viewNameSpace.emit("SET_TWITTER_USER", { node: node, stats: statsObj });
+            updateUserCounts();
           }
 
           if (node.nodeType === "hashtag") {
@@ -6204,6 +6204,7 @@ async function initSocketHandler(socketObj) {
               node: node,
               stats: statsObj,
             });
+            updateHashtagCounts();
           }
         }
       } catch (err) {
@@ -7766,8 +7767,6 @@ async function updateUserSets(p) {
     $or: [{ categorized: true }, { categorizedAuto: true }],
   };
 
-  updateUserCounts();
-
   userSearchCursor = global.wordAssoDb.User.find(params.query)
     .select({
       categorizeNetwork: 1,
@@ -7824,6 +7823,7 @@ async function updateUserSets(p) {
   );
 
   updateUserSetsRunning = false;
+  updateUserCounts();
   return;
 }
 

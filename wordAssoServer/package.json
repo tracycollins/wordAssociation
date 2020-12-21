@@ -1,7 +1,7 @@
 {
   "name": "@threeceelabs/wordassoserver",
   "version": "2.0.0",
-  "description": "",
+  "description": "word",
   "main": "wordAssoServer.js",
   "directories": {
     "test": "test"
@@ -38,5 +38,14 @@
     "twitter-autohook": "^1.7.2",
     "watch": "^1.0.2",
     "whois-json": "^2.0.4"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tracycollins/wordAssociation.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tracycollins/wordAssociation/issues"
+  },
+  "homepage": "https://github.com/tracycollins/wordAssociation#readme"
 }

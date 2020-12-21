@@ -409,7 +409,7 @@ const App = () => {
     setProgress(progress => "searchNode")
     const searchTerm = currentTab === "user" ? "@" + searchString : "#" + searchString
     console.log("SEARCH TERM: " + searchTerm)
-    socket.emit("TWITTER_SEARCH_NODE", searchTerm)
+    socket.emit("TWITTER_SEARCH_NODE", {searchNode: searchTerm})
   }
 
   const handleLoginLogout = useCallback((event) => {
@@ -598,11 +598,11 @@ const App = () => {
       case "history":
         if (node.nodeType === "user"){
           console.log("handleNodeChange | history | @" + node.screenName + " | name: " + eventName + " | value: " + eventValue)
-          socket.emit("TWITTER_SEARCH_NODE", "@" + eventValue)
+          socket.emit("TWITTER_SEARCH_NODE", {searchNode: "@" + eventValue})
         }
         else{
           console.log("handleNodeChange | history | #" + node.nodeId + " | name: " + eventName + " | value: " + eventValue)
-          socket.emit("TWITTER_SEARCH_NODE", "#" + eventValue)
+          socket.emit("TWITTER_SEARCH_NODE", {searchNode: "#" + eventValue})
         }
         break;
 
@@ -620,14 +620,14 @@ const App = () => {
         // if (eventName !== "all" || usersAvailable < 3){
         if (usersAvailable < MIN_USERS_AVAILABLE){
           console.log("GET MORE USERS | usersAvailable: " + usersAvailable)
-          socket.emit("TWITTER_SEARCH_NODE", searchFilter)
+          socket.emit("TWITTER_SEARCH_NODE", {searchNode: searchFilter})
         }
 
         break
 
       case "mismatch":
         if (node.nodeType === "user"){
-          socket.emit("TWITTER_SEARCH_NODE", "@?mm")
+          socket.emit("TWITTER_SEARCH_NODE", {searchNode: "@?mm"})
         }
         break
 
@@ -777,6 +777,7 @@ const App = () => {
       console.debug("RX TWITTER_USERS")
 
       let tempUsers = []
+      let minFollowers = filterLowFollowersCountRef.current ? 5000 : 0;
 
       if (response.nodes && response.nodes.length > 0) {
 
@@ -800,7 +801,7 @@ const App = () => {
       }
 
       if (tempUsers.length < MIN_USERS_AVAILABLE){
-        socket.emit("TWITTER_SEARCH_NODE", response.searchNode)
+        socket.emit("TWITTER_SEARCH_NODE", {searchNode: response.searchNode, minFollowers: minFollowers})
       }
 
       setProgress(progress => "idle")
@@ -898,9 +899,9 @@ const App = () => {
     socket.on("authenticated", function () {
       setProgress(progress => "idle")
       console.debug("AUTHENTICATED | " + socket.id)
-      socket.emit("TWITTER_SEARCH_NODE", "@?all")
-      socket.emit("TWITTER_SEARCH_NODE", "@threecee")
-      socket.emit("TWITTER_SEARCH_NODE", "#blacklivesmatter")
+      socket.emit("TWITTER_SEARCH_NODE", {searchNode: "@?all"})
+      socket.emit("TWITTER_SEARCH_NODE", {searchNode: "@threecee"})
+      socket.emit("TWITTER_SEARCH_NODE", {searchNode: "#blacklivesmatter"})
     })
 
     socket.on("USER_AUTHENTICATED", function (userObj) {
@@ -920,7 +921,7 @@ const App = () => {
 
       if (response.searchNode.startsWith("@?") && response.results && !response.results.endCursor){
         console.debug("RETRY NEXT UNCAT: " + response.searchNode)
-        socket.emit("TWITTER_SEARCH_NODE", response.searchNode)
+        socket.emit("TWITTER_SEARCH_NODE", {searchNode: response.searchNode})
       }
       else{
         setProgress(progress => "idle")

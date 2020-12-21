@@ -4765,6 +4765,7 @@ async function pubSubSearchNode(params) {
       " | TYPE: " + params.node.nodeType +
       " | " + params.requestId +
       " | TOPIC: node-search | SEARCH CAT AUTO: " + params.categoryAuto +
+      " | minFollowers: " + params.node.minFollowers +
       " | NID: " + params.node.nodeId +
       " | " + nodeName
     ));
@@ -4995,6 +4996,7 @@ async function twitterSearchUser(params) {
     console.log(chalkInfo(
       MODULE_ID +
       " | -?- USER SEARCH | NID: " + params.node.nodeId +
+      " | minFollowers: " + params.node.minFollowers + 
       " | @" + params.node.screenName
     ));
   }
@@ -5004,6 +5006,7 @@ async function twitterSearchUser(params) {
     message.requestId = "rId_" + hostname + "_" + moment().valueOf();
     message.node = {};
     message.node.nodeType = "user";
+    message.node.minFollowers = params.node.minFollowers || 0;
     message.newCategory = params.newCategory || false;
     message.newCategoryVerified = params.newCategoryVerified || false;
 
@@ -5135,10 +5138,12 @@ async function twitterSearchNode(params) {
 
   try {
     const searchNode = params.searchNode.toLowerCase().trim();
+    const minFollowers = params.minFollowers || 0;
 
     console.log(chalkSocket(MODULE_ID +
       " | twitterSearchNode" +
       " | " + getTimeStamp() +
+      " | minFollowers: " + minFollowers +
       " | " + searchNode
     ));
 
@@ -5223,7 +5228,7 @@ async function twitterSearchNode(params) {
       updateUserCounts();
 
       const response = await twitterSearchUser({
-        node: { nodeType: "user", screenName: searchNode.slice(1) },
+        node: { nodeType: "user", screenName: searchNode.slice(1), minFollowers: minFollowers },
       });
 
       
@@ -6146,17 +6151,19 @@ async function initSocketHandler(socketObj) {
       }
     });
 
-    socket.on("TWITTER_SEARCH_NODE", async function (sn) {
+    // socket.on("TWITTER_SEARCH_NODE", async function (sn) {
+    socket.on("TWITTER_SEARCH_NODE", async function (searchObj) {
 
       console.log(chalkSocket(MODULE_ID +
         " | R< TWITTER_SEARCH_NODE" +
         " | " + getTimeStamp() +
         " | " + ipAddress +
         " | " + socket.id +
-        " | " + sn
+        " | minFollowers: " + searchObj.minFollowers +
+        " | searchNode: " + searchObj.searchNode
       ));
 
-      twitterSearchNode({ searchNode: sn });
+      twitterSearchNode(searchObj);
 
     });
 

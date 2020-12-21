@@ -7389,6 +7389,19 @@ const setUpdateUserCountsTimeout = () => {
   return;
 }
 
+let updateHashtagCountsRunning = false;
+
+const setUpdateHashtagCountsTimeout = () => {
+
+  updateHashtagCountsRunning = true;
+
+  setTimeout(() => {
+    updateHashtagCountsRunning = false;
+  }, 1000)
+
+  return;
+}
+
 
 async function updateUserCounts() {
 
@@ -7584,6 +7597,12 @@ async function updateUserCounts() {
 }
 
 async function updateHashtagCounts() {
+
+  if (updateHashtagCountsRunning) {
+    return;
+  }
+
+  setUpdateHashtagCountsTimeout();
   
   statsObj.hashtag.total = await countDocuments({ documentType: "hashtags" });
 

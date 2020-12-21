@@ -7376,7 +7376,27 @@ async function countDocuments(params) {
   }
 }
 
+let updateUserCountsRunning = false;
+
+const setUpdateUserCountsTimeout = () => {
+
+  updateUserCountsRunning = true;
+
+  setTimeout(() => {
+    updateUserCountsRunning = false;
+  }, 1000)
+
+  return;
+}
+
+
 async function updateUserCounts() {
+
+  if (updateUserCountsRunning) {
+    return;
+  }
+
+  setUpdateUserCountsTimeout();
 
   const startToday = moment().startOf('day').valueOf();
   const endToday = moment().endOf('day').valueOf();

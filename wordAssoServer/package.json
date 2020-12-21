@@ -24,6 +24,7 @@
     "eventemitter2": "^6.4.3",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
+    "hashmap": "^2.4.0",
     "is-plain-object": "^5.0.0",
     "languagedetect": "^2.0.0",
     "measured-core": "^2.0.0",

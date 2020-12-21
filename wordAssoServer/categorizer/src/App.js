@@ -28,7 +28,7 @@ import HashtagView from './HashtagView.js';
 import AuthUserView from './AuthUserView.js';
 // import { ButtonGroup } from '@material-ui/core';
 
-const MIN_USERS_AVAILABLE = 5;
+const MIN_USERS_AVAILABLE = 10;
 const MIN_FOLLOWERS_COUNT = 5000;
 
 // const ENDPOINT = "http://mbp3:9997/view";

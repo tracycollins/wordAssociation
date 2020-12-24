@@ -174,7 +174,7 @@ var customizerWindow;
 requirejs(
   ["https://d3js.org/d3.v6.min.js"],
   function (d3Loaded) {
-    
+
     console.log("d3 LOADED");
     d3 = d3Loaded;
 
@@ -1898,39 +1898,39 @@ var negativeNodesRatio = 0;
 var noneNodesRatio = 0;
 var statsUpdateInterval;
 
-//  STATS UPDATE
-function initStatsUpdate(interval) {
-  clearInterval(statsUpdateInterval);
+// //  STATS UPDATE
+// function initStatsUpdate(interval) {
+//   clearInterval(statsUpdateInterval);
 
-  statsLeftBar.path.setAttribute("stroke", palette.blue);
-  statsRightBar.path.setAttribute("stroke", palette.yellow);
-  statsNeutralBar.path.setAttribute("stroke", palette.gray);
-  statsPositiveBar.path.setAttribute("stroke", palette.green);
-  statsNegativeBar.path.setAttribute("stroke", palette.red);
-  statsNoneBar.path.setAttribute("stroke", palette.white);
+//   statsLeftBar.path.setAttribute("stroke", palette.blue);
+//   statsRightBar.path.setAttribute("stroke", palette.yellow);
+//   statsNeutralBar.path.setAttribute("stroke", palette.gray);
+//   statsPositiveBar.path.setAttribute("stroke", palette.green);
+//   statsNegativeBar.path.setAttribute("stroke", palette.red);
+//   statsNoneBar.path.setAttribute("stroke", palette.white);
 
-  statsUpdateInterval = setInterval(function () {
-    if (config.showStatsFlag) {
-      totalHashMap = currentSessionView.getTotalHashMap();
+//   statsUpdateInterval = setInterval(function () {
+//     if (config.showStatsFlag) {
+//       totalHashMap = currentSessionView.getTotalHashMap();
 
-      if (totalHashMap.total > 0) {
-        leftNodesRatio = totalHashMap.left / totalHashMap.total;
-        rightNodesRatio = totalHashMap.right / totalHashMap.total;
-        neutralNodesRatio = totalHashMap.neutral / totalHashMap.total;
-        positiveNodesRatio = totalHashMap.positive / totalHashMap.total;
-        negativeNodesRatio = totalHashMap.negative / totalHashMap.total;
-        noneNodesRatio = totalHashMap.none / totalHashMap.total;
-      }
+//       if (totalHashMap.total > 0) {
+//         leftNodesRatio = totalHashMap.left / totalHashMap.total;
+//         rightNodesRatio = totalHashMap.right / totalHashMap.total;
+//         neutralNodesRatio = totalHashMap.neutral / totalHashMap.total;
+//         positiveNodesRatio = totalHashMap.positive / totalHashMap.total;
+//         negativeNodesRatio = totalHashMap.negative / totalHashMap.total;
+//         noneNodesRatio = totalHashMap.none / totalHashMap.total;
+//       }
 
-      statsLeftBar.animate(leftNodesRatio);
-      statsRightBar.animate(rightNodesRatio);
-      statsNeutralBar.animate(neutralNodesRatio);
-      statsPositiveBar.animate(positiveNodesRatio);
-      statsNegativeBar.animate(negativeNodesRatio);
-      statsNoneBar.animate(noneNodesRatio);
-    }
-  }, interval);
-}
+//       statsLeftBar.animate(leftNodesRatio);
+//       statsRightBar.animate(rightNodesRatio);
+//       statsNeutralBar.animate(neutralNodesRatio);
+//       statsPositiveBar.animate(positiveNodesRatio);
+//       statsNegativeBar.animate(negativeNodesRatio);
+//       statsNoneBar.animate(noneNodesRatio);
+//     }
+//   }, interval);
+// }
 
 var socketSessionUpdateInterval;
 
@@ -2168,7 +2168,7 @@ function initialize(callback) {
 
               console.log("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
-              initStatsUpdate(STATS_UPDATE_INTERVAL);
+              // initStatsUpdate(STATS_UPDATE_INTERVAL);
 
               // if (!config.showStatsFlag) {
               //   displayStats(false, palette.white);
@@ -2199,7 +2199,7 @@ function initialize(callback) {
 
             setTimeout(function () {
               console.log("END PAGE LOAD TIMEOUT");
-              initStatsUpdate(STATS_UPDATE_INTERVAL);
+              // initStatsUpdate(STATS_UPDATE_INTERVAL);
               pageLoadedTimeIntervalFlag = false;
 
               // if (!config.showStatsFlag) {
@@ -2234,7 +2234,7 @@ function initialize(callback) {
 
             console.log("END PAGE LOAD TIMEOUT");
 
-            initStatsUpdate(STATS_UPDATE_INTERVAL);
+            // initStatsUpdate(STATS_UPDATE_INTERVAL);
             pageLoadedTimeIntervalFlag = false;
 
             // if (!config.showStatsFlag) {

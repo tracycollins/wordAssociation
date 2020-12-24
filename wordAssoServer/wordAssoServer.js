@@ -284,7 +284,7 @@ const express = require("express");
 const RateLimit = require('express-rate-limit');
 const limiter = new RateLimit({
   windowMs: 1*60*1000, // 1 minute
-  max: 500
+  max: 5000
 });
 
 const app = express();

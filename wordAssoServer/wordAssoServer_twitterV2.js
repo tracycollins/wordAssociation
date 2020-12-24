@@ -1,3 +1,13 @@
+const dotenv = require("dotenv");
+const envConfig = dotenv.config()
+
+if (envConfig.error) {
+  throw envConfig.error
+}
+ 
+console.log("WAS | ENV CONFIG")
+console.log(envConfig.parsed)
+
 const MODULE_NAME = "wordAssoServer";
 const MODULE_ID_PREFIX = "WAS";
 
@@ -290,11 +300,12 @@ app.use(express.json());
 app.use(require("serve-static")(path.join(__dirname, "public")));
 
 const threeceeConfig = {
-  consumer_key: "ex0jSXayxMOjNm4DZIiic9Nc0",
-  consumer_secret: "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa",
-  token: "14607119-S5EIEw89NSC462IkX4GWT67K1zWzoLzuZF7wiurku",
-  token_secret: "3NI3s4sTILiqBilgEDBSlC6oSJYXcdLQP7lXp58TQMk0A",
+  consumer_key: process.env.TWITTER_CONSUMER_KEY,
+  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+  token: process.env.TWITTER_TOKEN,
+  token_secret: process.env.TWITTER_TOKEN_SECRET
 };
+
 
 function dnsReverse(params) {
   return new Promise(function (resolve, reject) {

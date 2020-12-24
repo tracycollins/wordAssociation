@@ -289,7 +289,7 @@ const limiter = new RateLimit({
 
 const app = express();
 // apply rate limiter to all requests
-app.use(limiter);
+// app.use(limiter);
 
 app.use(cors())
 app.set("trust proxy", 1); // trust first proxy

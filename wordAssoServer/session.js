@@ -16,7 +16,6 @@ clearInterval,
 HashMap,
 Element,
 async, 
-ProgressBar 
 */
 
 "use strict";

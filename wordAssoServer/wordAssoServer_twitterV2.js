@@ -306,7 +306,6 @@ const threeceeConfig = {
   token_secret: process.env.TWITTER_TOKEN_SECRET
 };
 
-
 function dnsReverse(params) {
   return new Promise(function (resolve, reject) {
     let ipCacheObj = ipCache.get(params.ipAddress);
@@ -2124,7 +2123,7 @@ function initPassport() {
     app.use(
       expressSession({
         sessionId: sessionId,
-        secret: "three cee labs 47",
+        secret: process.env.THREECEE_LABS_SECRET,
         resave: false,
         saveUninitialized: false,
         store: new MongoStore({ mongooseConnection: global.dbConnection }),

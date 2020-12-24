@@ -54,6 +54,7 @@ const DEFAULT_BINARY_MODE = true;
 
 let saveSampleTweetFlag = true;
 
+const escape = require("escape-html");
 const cors = require("cors")
 const os = require("os");
 const https = require("https");
@@ -8553,7 +8554,7 @@ function initAppRouting(callback) {
         console.log(chalkInfo(MODULE_ID + " | R< DROPBOX WEB HOOK | /dropbox_webhook"));
       }
 
-      res.send(req.query.challenge);
+      res.send(escape(req.query.challenge));
 
       next();
     } else if (req.path == "/googleccd19766bea2dfd2.html") {

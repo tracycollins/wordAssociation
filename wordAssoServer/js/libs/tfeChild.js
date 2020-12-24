@@ -409,6 +409,7 @@ async function connectDb(){
     formatCategory = tcUtils.formatCategory;
 
     nnTools = new NeuralNetworkTools("WA_TFE_NNT");
+    nnTools.enableTensorflow();
 
     const UserServerController = require("@threeceelabs/user-server-controller");
     

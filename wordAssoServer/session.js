@@ -541,8 +541,8 @@ function saveConfig() {
 }
 
 var controlDivElement = document.getElementById("controlDiv");
-var statsDivElement = document.getElementById("statsDiv");
-statsDivElement.style.visibility = "hidden";
+// var statsDivElement = document.getElementById("statsDiv");
+// statsDivElement.style.visibility = "hidden";
 
 document.addEventListener("nodeSearch",function (event) {
   console.log("nodeSearch event", event.detail);
@@ -550,45 +550,45 @@ document.addEventListener("nodeSearch",function (event) {
   socket.emit("TWITTER_SEARCH_NODE", searchTerm);
 });
       
-var statsText = document.getElementById("stats-text");
+// var statsText = document.getElementById("stats-text");
 
-var statsLeftBarDiv = document.getElementById("left-bar");
-var statsRightBarDiv = document.getElementById("right-bar");
-var statsNeutralBarDiv = document.getElementById("neutral-bar");
-var statsPositiveBarDiv = document.getElementById("positive-bar");
-var statsNegativeBarDiv = document.getElementById("negative-bar");
-var statsNoneBarDiv = document.getElementById("none-bar");
+// var statsLeftBarDiv = document.getElementById("left-bar");
+// var statsRightBarDiv = document.getElementById("right-bar");
+// var statsNeutralBarDiv = document.getElementById("neutral-bar");
+// var statsPositiveBarDiv = document.getElementById("positive-bar");
+// var statsNegativeBarDiv = document.getElementById("negative-bar");
+// var statsNoneBarDiv = document.getElementById("none-bar");
 
-var statsLeftBar = new ProgressBar.Line(statsLeftBarDiv, { duration: 100 });
-var statsRightBar = new ProgressBar.Line(statsRightBarDiv, { duration: 100 });
-var statsNeutralBar = new ProgressBar.Line(statsNeutralBarDiv, {
-  duration: 100,
-});
-var statsPositiveBar = new ProgressBar.Line(statsPositiveBarDiv, {
-  duration: 100,
-});
-var statsNegativeBar = new ProgressBar.Line(statsNegativeBarDiv, {
-  duration: 100,
-});
-var statsNoneBar = new ProgressBar.Line(statsNoneBarDiv, { duration: 100 });
+// var statsLeftBar = new ProgressBar.Line(statsLeftBarDiv, { duration: 100 });
+// var statsRightBar = new ProgressBar.Line(statsRightBarDiv, { duration: 100 });
+// var statsNeutralBar = new ProgressBar.Line(statsNeutralBarDiv, {
+//   duration: 100,
+// });
+// var statsPositiveBar = new ProgressBar.Line(statsPositiveBarDiv, {
+//   duration: 100,
+// });
+// var statsNegativeBar = new ProgressBar.Line(statsNegativeBarDiv, {
+//   duration: 100,
+// });
+// var statsNoneBar = new ProgressBar.Line(statsNoneBarDiv, { duration: 100 });
 
-statsLeftBar.animate(0);
-statsLeftBar.path.setAttribute("stroke", palette.blue);
+// statsLeftBar.animate(0);
+// statsLeftBar.path.setAttribute("stroke", palette.blue);
 
-statsRightBar.animate(0);
-statsRightBar.path.setAttribute("stroke", palette.yellow);
+// statsRightBar.animate(0);
+// statsRightBar.path.setAttribute("stroke", palette.yellow);
 
-statsNeutralBar.animate(0);
-statsNeutralBar.path.setAttribute("stroke", palette.gray);
+// statsNeutralBar.animate(0);
+// statsNeutralBar.path.setAttribute("stroke", palette.gray);
 
-statsPositiveBar.animate(0);
-statsPositiveBar.path.setAttribute("stroke", palette.green);
+// statsPositiveBar.animate(0);
+// statsPositiveBar.path.setAttribute("stroke", palette.green);
 
-statsNegativeBar.animate(0);
-statsNegativeBar.path.setAttribute("stroke", palette.red);
+// statsNegativeBar.animate(0);
+// statsNegativeBar.path.setAttribute("stroke", palette.red);
 
-statsNoneBar.animate(0);
-statsNoneBar.path.setAttribute("stroke", palette.white);
+// statsNoneBar.animate(0);
+// statsNoneBar.path.setAttribute("stroke", palette.white);
 
 function displayControl(isVisible) {
   controlDivElement.style.visibility = isVisible ? "visible" : "hidden";
@@ -604,64 +604,64 @@ var showPropArray = [
   "inputsId",
 ];
 
-function updateStatsText() {
-  statsText.innerHTML = getTimeStamp() + "<br><hr><br>";
+// function updateStatsText() {
+//   statsText.innerHTML = getTimeStamp() + "<br><hr><br>";
 
-  Object.keys(statsObj.bestNetwork).forEach(function (key) {
-    if (showPropArray.includes(key)) {
-      switch (key) {
-        case "networkId":
-          statsText.innerHTML += statsObj.bestNetwork[key] + "<br><br><br>";
-          break;
-        case "successRate":
-          if (typeof statsObj.bestNetwork[key] !== "number") {
-            break;
-          }
-          statsText.innerHTML +=
-            "SR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
-          break;
-        case "matchRate":
-          if (typeof statsObj.bestNetwork[key] !== "number") {
-            break;
-          }
-          statsText.innerHTML +=
-            "MR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
-          break;
-        case "overallMatchRate":
-          if (typeof statsObj.bestNetwork[key] !== "number") {
-            break;
-          }
-          statsText.innerHTML +=
-            "OAMR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
-          break;
+//   Object.keys(statsObj.bestNetwork).forEach(function (key) {
+//     if (showPropArray.includes(key)) {
+//       switch (key) {
+//         case "networkId":
+//           statsText.innerHTML += statsObj.bestNetwork[key] + "<br><br><br>";
+//           break;
+//         case "successRate":
+//           if (typeof statsObj.bestNetwork[key] !== "number") {
+//             break;
+//           }
+//           statsText.innerHTML +=
+//             "SR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
+//           break;
+//         case "matchRate":
+//           if (typeof statsObj.bestNetwork[key] !== "number") {
+//             break;
+//           }
+//           statsText.innerHTML +=
+//             "MR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
+//           break;
+//         case "overallMatchRate":
+//           if (typeof statsObj.bestNetwork[key] !== "number") {
+//             break;
+//           }
+//           statsText.innerHTML +=
+//             "OAMR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
+//           break;
 
-        case "seedNetworkRes":
-          if (typeof statsObj.bestNetwork[key] !== "number") {
-            break;
-          }
-          statsText.innerHTML +=
-            "SN SR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
-          break;
+//         case "seedNetworkRes":
+//           if (typeof statsObj.bestNetwork[key] !== "number") {
+//             break;
+//           }
+//           statsText.innerHTML +=
+//             "SN SR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
+//           break;
 
-        default:
-          statsText.innerHTML +=
-            key.toUpperCase() + ": " + statsObj.bestNetwork[key] + "<br><br>";
-      }
-    }
-  });
-}
+//         default:
+//           statsText.innerHTML +=
+//             key.toUpperCase() + ": " + statsObj.bestNetwork[key] + "<br><br>";
+//       }
+//     }
+//   });
+// }
 
-function displayStats(isVisible, dColor) {
-  if (isVisible) {
-    updateStatsText();
-  }
+// function displayStats(isVisible, dColor) {
+//   if (isVisible) {
+//     updateStatsText();
+//   }
 
-  statsDivElement.style.visibility = isVisible ? "visible" : "hidden";
+//   statsDivElement.style.visibility = isVisible ? "visible" : "hidden";
 
-  if (dColor !== undefined) {
-    statsDivElement.style.color = dColor;
-  }
-}
+//   if (dColor !== undefined) {
+//     statsDivElement.style.color = dColor;
+//   }
+// }
 
 var mouseMoveTimeoutEventObj = new CustomEvent("mouseMoveTimeoutEvent");
 var mouseMoveTimeout;

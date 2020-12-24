@@ -65,6 +65,7 @@ const DEFAULT_BINARY_MODE = true;
 let saveSampleTweetFlag = true;
 
 const os = require("os");
+const escape = require("escape-html");
 const defaults = require("object.defaults");
 const kill = require("tree-kill");
 const empty = require("is-empty");
@@ -8314,7 +8315,7 @@ function initAppRouting(callback) {
         );
       }
 
-      res.send(req.query.challenge);
+      res.send(escape(req.query.challenge));
 
       next();
     } else if (req.path == "/googleccd19766bea2dfd2.html") {

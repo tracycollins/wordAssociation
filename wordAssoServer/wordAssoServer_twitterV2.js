@@ -287,7 +287,16 @@ const debug = require("debug")("wa");
 const moment = require("moment");
 
 const express = require("express");
+const RateLimit = require('express-rate-limit');
+const limiter = new RateLimit({
+  windowMs: 1*60*1000, // 1 minute
+  max: 5
+});
+
+// apply rate limiter to all requests
+app.use(limiter);
 const app = express();
+
 app.set("trust proxy", 1); // trust first proxy
 
 const expressSession = require("express-session");

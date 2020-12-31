@@ -24,11 +24,11 @@ import './App.css';
 import SettingsView from './SettingsView.js';
 import StatsView from './StatsView.js';
 
-// const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
+const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
 // const LOCAL_SOURCE = "http://mbp3:3000";
 
-const DEFAULT_SOURCE = LOCAL_SOURCE;
+const DEFAULT_SOURCE = PRODUCTION_SOURCE;
 
 const parentWindow = window.opener;
 

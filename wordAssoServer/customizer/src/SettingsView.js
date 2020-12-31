@@ -70,7 +70,7 @@ const Settings = (props) => {
   const handleChangeNodeSize = (event, newNodeRadiusRatio) => {
     console.log({newNodeRadiusRatio})
     setNodeRadiusRatio(newNodeRadiusRatio);
-    props.handleChange({name: "newNodeRadiusRatio", value: newNodeRadiusRatio})
+    props.handleChange({name: "nodeRadiusRatio", value: newNodeRadiusRatio})
   };
 
   // const [nodeRadiusRatioRange, setNodeRadiusRatioRange] = React.useState(

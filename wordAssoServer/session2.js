@@ -8,6 +8,11 @@ console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
 console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`)
 
+const STORED_CONFIG_VERSION = "2.0";
+const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
+const DEFAULT_USE_STORED_CONFIG = true;
+let globalStoredSettingsName = STORED_CONFIG_NAME;
+
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 
 // const DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
@@ -250,7 +255,7 @@ const resetConfigUpdateTimeOut = () => {
 }
 
 const saveConfig = () => {
-  config.defaults.storedConfigName = "config_" + config.settings.sessionViewType;
+  config.defaults.storedConfigName = globalStoredSettingsName
   store.set(config.defaults.storedConfigName, config);
   console.debug("STORED CONFIG" + " | " + config.defaults.storedConfigName);
   return;
@@ -389,7 +394,7 @@ const openCustomizer = (cnf) => {
   customizerWindow = window.open(
     DEFAULT_SOURCE + "/customize",
     "CUSTOMIZE",
-    "width=1200,height=800"
+    "width=800,height=600"
   );
 
   window.addEventListener("message", customizerComm, false);
@@ -409,7 +414,7 @@ const openCustomizer = (cnf) => {
     function () {
       customizePanelFlag = true;
       updateCustomizeButton(customizePanelFlag);
-      customizerWindow.postMessage({ op: "INIT", config: cnf }, DEFAULT_SOURCE);
+      customizerWindow.postMessage({ op: "INIT", config: cnf, status: status }, DEFAULT_SOURCE);
       return;
     },
     false
@@ -456,8 +461,8 @@ function toggleFullScreen() {
 const toggleCustomize = () => {
 
   console.warn("toggleCustomize");
-  customizePanelFlag = !customizePanelFlag;
-  if (customizePanelFlag) {
+  if (!customizePanelFlag) {
+    customizePanelFlag = !customizePanelFlag;
     openCustomizer(config)
   }
   else{
@@ -1086,10 +1091,38 @@ document.addEventListener("panzoomEvent", function () {
   true
 );
 
+const loadStoredSettings = () => {
+  console.log("LOADING STORED SETTINGS: " + globalStoredSettingsName);
+  return store.get(globalStoredSettingsName);
+}
+
+window.addEventListener(
+  "beforeunload",
+  function () {
+    console.log("CLOSING...");
+    if (customizerWindow){
+      customizerWindow.close()
+    }
+    customizePanelFlag = false;
+  },
+  false
+);
+
 setTimeout(function(){
 
   try{
-    
+
+    const storedSettings = loadStoredSettings();
+
+    if (storedSettings) {
+      console.log(`LOADED STORED SETTINGS`)
+      console.log({storedSettings}) 
+      config.settings = Object.assign(config.settings, storedSettings)
+    }
+    else{
+      console.log(`*** LOAD STORED SETTINGS FAILED: ${globalStoredSettingsName}`)
+    }
+
     socket = io("/view");
 
     addCustomizeButton();

@@ -1,6 +1,6 @@
 {
   "name": "customizer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "proxy": "https://word.threeceelabs.com/",
   "homepage": "https://word.threeceelabs.com/customizer/build",
   "private": true,

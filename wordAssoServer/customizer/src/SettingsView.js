@@ -1,6 +1,6 @@
 // import React, { useState } from 'react';
 import React from 'react';
-import { green } from '@material-ui/core/colors';
+// import { green } from '@material-ui/core/colors';
 // import clsx from 'clsx';
 
 // import Duration from 'duration';
@@ -61,36 +61,64 @@ const Settings = (props) => {
   
   const classes = useStyles();
 
-  const [nodeRadiusRatioRange, setNodeRadiusRatioRange] = React.useState(
+  const [nodeRadiusRatio, setNodeRadiusRatio] = React.useState(
     [
-      props.settings.nodeRadiusRatioRange.min, 
-      props.settings.nodeRadiusRatioRange.max
+      props.settings.nodeRadiusRatio.min, 
+      props.settings.nodeRadiusRatio.max
     ]
   );
+  const handleChangeNodeSize = (event, newNodeRadiusRatio) => {
+    console.log({newNodeRadiusRatio})
+    setNodeRadiusRatio(newNodeRadiusRatio);
+    props.handleChange({name: "newNodeRadiusRatio", value: newNodeRadiusRatio})
+  };
 
-  const handleChangeNodeSize = (event, newNodeRadiusRatioRange) => {
-    console.log({newNodeRadiusRatioRange})
-    setNodeRadiusRatioRange(newNodeRadiusRatioRange);
-    props.handleChange({name: "nodeRadiusRatioRange", value: newNodeRadiusRatioRange})
+  // const [nodeRadiusRatioRange, setNodeRadiusRatioRange] = React.useState(
+  //   [
+  //     props.settings.nodeRadiusRatioRange.min, 
+  //     props.settings.nodeRadiusRatioRange.max
+  //   ]
+  // );
+
+  const [velocityDecay, setVelocityDecay] = React.useState(props.settings.velocityDecay);
+  const handleChangeVelocityDecay = (event, newVelocityDecay) => {
+    console.log({newVelocityDecay})
+    setVelocityDecay(newVelocityDecay);
+    props.handleChange({name: "velocityDecay", value: newVelocityDecay})
   };
 
   return (
     <>
       <Grid className={classes.grid}>
           <Grid item className={classes.gridItem} xs={3}>
-            <Typography className={classes.range} id="nodeRadiusRatioRange" gutterBottom>
-              NODE RADIUS RATIO RANGE
+            <Typography className={classes.range} id="nodeRadiusRatio" gutterBottom>
+              NODE RADIUS RATIO min/max
             </Typography>
             <Slider
-              id="nodeRadiusRatioRange"
-              name="nodeRadiusRatioRange"
-              value={nodeRadiusRatioRange}
+              id="nodeRadiusRatio"
+              name="nodeRadiusRatio"
+              value={nodeRadiusRatio}
               min={props.defaults.nodeRadiusRatioRange.min}
               max={props.defaults.nodeRadiusRatioRange.max}
               step={props.defaults.nodeRadiusRatioRange.step}
               onChange={handleChangeNodeSize}
               valueLabelDisplay="auto"
               aria-labelledby="range-slider"
+              getAriaValueText={valuetext}
+            />          
+            <Typography className={classes.range} id="velocityDecay" gutterBottom>
+              VELOCITY DECAY
+            </Typography>
+            <Slider
+              id="velocityDecay"
+              name="velocityDecay"
+              value={velocityDecay}
+              min={0.0}
+              max={1.0}
+              step={0.01}
+              onChange={handleChangeVelocityDecay}
+              valueLabelDisplay="auto"
+              aria-labelledby="slider"
               getAriaValueText={valuetext}
             />          
           </Grid>

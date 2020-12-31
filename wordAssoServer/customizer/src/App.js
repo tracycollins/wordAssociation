@@ -1,19 +1,19 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { green, grey } from '@material-ui/core/colors';
+import React, { useState, useEffect, useRef } from 'react';
+// import { green, grey } from '@material-ui/core/colors';
 
-import { useHistory, useLocation } from "react-router-dom";
-import { useHotkeys } from 'react-hotkeys-hook';
-import socketClient from "socket.io-client";
+// import { useHistory, useLocation } from "react-router-dom";
+// import { useHotkeys } from 'react-hotkeys-hook';
+// import socketClient from "socket.io-client";
 import { makeStyles } from '@material-ui/core/styles';
 
 import Container from '@material-ui/core/Container';
 import AppBar from '@material-ui/core/AppBar';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Button from '@material-ui/core/Button';
+// import CircularProgress from '@material-ui/core/CircularProgress';
+// import Button from '@material-ui/core/Button';
 
-import InputBase from '@material-ui/core/InputBase';
-import Link from '@material-ui/core/Link';
-import SearchIcon from '@material-ui/icons/Search';
+// import InputBase from '@material-ui/core/InputBase';
+// import Link from '@material-ui/core/Link';
+// import SearchIcon from '@material-ui/icons/Search';
 
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
@@ -24,10 +24,20 @@ import './App.css';
 import SettingsView from './SettingsView.js';
 import StatsView from './StatsView.js';
 
+// const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
+const LOCAL_SOURCE = "http://localhost:9997";
+
+const DEFAULT_SOURCE = LOCAL_SOURCE;
+
+const parentWindow = window.opener;
+
+console.log({parentWindow})
+
 const useStyles = makeStyles((theme) => ({
   root: {
     width: "100%",
     flexGrow: 1,
+    background: 'black',
     boxShadow: 0,
   },
   appBar: {
@@ -50,28 +60,11 @@ const useStyles = makeStyles((theme) => ({
     color: 'white',
     marginRight: theme.spacing(2),
   },
-  progress: {
-    // flexGrow: 1,
-    color: 'white',
-    marginRight: theme.spacing(2),
-  },
   serverStatus: {
     fontSize: "0.85rem",
     flexGrow: 1,
     color: 'lightgray',
     padding: theme.spacing(1),
-  },
-  twitterAuth: {
-    // backgroundColor: 'black',
-    fontSize: "1.2rem",
-    fontWeight: 600,
-    color: "green",
-    padding: theme.spacing(1),
-    marginRight: theme.spacing(2),
-  },  
-  buttonLogin: {
-    // backgroundColor: "green",
-    marginRight: theme.spacing(2),
   },
   statusBar: {
     backgroundColor: 'white',
@@ -79,31 +72,6 @@ const useStyles = makeStyles((theme) => ({
   },
   menuButton: {
     marginRight: theme.spacing(2),
-  },
-  search: {
-    // flexGrow: 1,
-    position: 'relative',
-    borderRadius: theme.shape.borderRadius,
-    backgroundColor: "white",
-    '&:hover': {
-      backgroundColor: "lightgray",
-    },
-    marginRight: theme.spacing(2),
-    marginLeft: 0,
-    width: '20%',
-    [theme.breakpoints.up('sm')]: {
-      marginLeft: theme.spacing(3),
-      width: 'auto',
-    },
-  },
-  searchIcon: {
-    padding: theme.spacing(0, 2),
-    height: '100%',
-    position: 'absolute',
-    pointerEvents: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   inputRoot: {
     color: 'primary',
@@ -120,27 +88,32 @@ const useStyles = makeStyles((theme) => ({
 
 }))
 
-const App = () => {
+const App = (props) => {
 
   const classes = useStyles()
 
   const [tabValue, setTabValue] = useState(0)
-
-  const [settings, setSettings] = useState({})
-  const settingsRef = useRef(settings)
-
-  const [status, setStatus] = useState({})
-  const statusRef = useRef(status)
-
-  const [progress, setProgress] = useState("loading ...")
-
+ 
   const [currentTab, setCurrentTab] = useState("settings")
   const currentTabRef = useRef(currentTab)
-  
   useEffect(() => { 
     currentTabRef.current = currentTab 
   }, [currentTab])
-  
+
+  const [defaults, setDefaults] = useState(props.defaults)
+  const defaultsRef = useRef(defaults)
+  useEffect(() => { 
+    defaultsRef.current = defaults 
+  }, [defaults])
+
+  const [settings, setSettings] = useState(props.settings)
+  const settingsRef = useRef(settings)
+  useEffect(() => { 
+    settingsRef.current = settings 
+  }, [settings])
+
+  const [status, setStatus] = useState({})
+  const statusRef = useRef(status)
   useEffect(() => { 
     statusRef.current = status 
   }, [status])
@@ -164,14 +137,92 @@ const App = () => {
     setTabValue(newValue)
   }
 
+  const handleChange = (changeObj) => {
+    console.log({changeObj})
+
+    switch (changeObj.name){
+      case "nodeRadiusRatioRange":
+        if (parentWindow){
+          parentWindow.postMessage(
+            {
+              op: "UPDATE", 
+              id: "nodeRadiusRatioRange",
+              min: changeObj.value[0],
+              max: changeObj.value[1]
+            }, 
+            DEFAULT_SOURCE
+          );
+        }
+        break
+      default:
+        console.error(`UNKNOWN CHANGE NAME: ${changeObj.name}`)
+    }    
+  }
+
   const displayTab = (tab) => {
     if (tab === "settings"){
-      return <SettingsView settings={settings} stats={status}/>
+      return (
+        <SettingsView 
+          defaults={defaultsRef.current} 
+          settings={settingsRef.current} 
+          stats={statusRef.current} 
+          handleChange={handleChange}
+        >
+        </SettingsView>
+      )
     }
     else{
       return <StatsView settings={settings} stats={status} />
     }
   }
+
+  const receiveMessage = (event) => {
+
+    // Do we trust the sender of this message?
+
+    if (event.origin !== DEFAULT_SOURCE){
+      console.error("RX MESSAGE | NOT TRUSTED SOURCE"
+        + " | ORIGIN: " + event.origin 
+        + " | DEFAULT_SOURCE: " + DEFAULT_SOURCE
+      );
+      return;
+    }
+
+    if (event.data.op === undefined){
+      return;
+    }
+
+    console.debug("RX MESSAGE | SOURCE"
+      + " | ORIGIN: " + event.origin 
+      + " | PARENT WINDOW: " + parentWindow.PARENT_ID
+      + " | DEFAULT_SOURCE: " + DEFAULT_SOURCE
+    );
+
+    switch (event.data.op) {
+
+      case "INIT":
+
+        if (event.data.defaults && event.data.defaults !== undefined){
+          setDefaults(event.data.defaults)
+          console.debug("CUSTOMIRZER INIT");
+          console.log(`defaultsRef.current \n ${(defaultsRef.current)}`)
+        }
+
+
+      break;
+
+      case "STATS":
+        if (event.data.stats && event.data.stats !== undefined) {
+          setStatus(event.data.stats);
+        }
+      break;
+
+      default:
+        console.error(`*** ERROR | UNKNOWN MESSAGE | OP: ${event.data.op}`);
+    }
+  }
+
+  window.addEventListener("message", receiveMessage, false);
 
   return (
     <div className={classes.root}>

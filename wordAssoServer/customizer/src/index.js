@@ -7,44 +7,33 @@ import {
 } from "react-router-dom";
 import './index.css';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
 
-// ReactDOM.render(
-//   <Router>
-//     <div>
-//       <Switch>
-//         <Route path="/categorize/user/:slug">
-//           <App />
-//         </Route>
-//       </Switch>
-//     </div>
-//   </Router>,
-//   document.getElementById('root')
-// );
+const defaultDefaults = {};
+defaultDefaults.nodeRadiusRatioRange = {};
+defaultDefaults.nodeRadiusRatioRange.min = 0.0;
+defaultDefaults.nodeRadiusRatioRange.max = 0.5;
+defaultDefaults.nodeRadiusRatioRange.step = 0.01;
+
+const defaultSettings = {};
+defaultSettings.nodeRadiusRatioRange = {};
+defaultSettings.nodeRadiusRatioRange.min = 0.01;
+defaultSettings.nodeRadiusRatioRange.max = 0.05;
 
 ReactDOM.render(
   <Router>
     <div>
       <Switch>
-        <Route path="/categorize/user/:slug">
-          <App />
+        <Route path="/customize/settings">
+          <App defaults={defaultDefaults} settings={defaultSettings}/>
         </Route>
-        <Route path="/categorize/hashtag/:slug">
-          <App />
-        </Route>
-        <Route path="/categorize/account/:slug">
-          <App />
+        <Route path="/customize/stats">
+          <App defaults={defaultDefaults} settings={defaultSettings}/>
         </Route>
         <Route >
-          <App />
+          <App defaults={defaultDefaults} settings={defaultSettings}/>
         </Route>
       </Switch>
     </div>
   </Router>,
   document.getElementById('root')
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();

@@ -20,77 +20,115 @@ async,
 
 "use strict";
 
-const STORED_CONFIG_VERSION = 0.01;
-const DEFAULT_USE_STORED_CONFIG = true;
+const STORED_SETTINGS_VERSION = 0.01;
+const DEFAULT_USE_STORED_SETTINGS = false;
+
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
-
-var DEFAULT_ZOOM_FACTOR = 0.75;
-
-var DEFAULT_METRIC_MODE = "rate";
-var DEFAULT_MAX_NODES = 50;
-var DEFAULT_MAX_AGE = 15000;
-
-var TREEMAP_MAX_NODES = 50;
-var TREEMAP_MAX_AGE = 15000;
-
-var TREEPACK_MAX_NODES = 50;
-var TREEPACK_MAX_AGE = 15000;
-
-var DEFAULT_AGE_RATE = 1.0;
-
-var DEFAULT_TRANSITION_DURATION = 40;
-var DEFAULT_CHARGE = -50;
-var DEFAULT_GRAVITY = 0.001;
-var DEFAULT_FORCEX_MULTIPLIER = 25.0;
-var DEFAULT_FORCEX_SESSION_MULTIPLIER = 50.0;
-var DEFAULT_FORCEY_MULTIPLIER = 25.0;
-var DEFAULT_NODE_RADIUS_MIN_RATIO = 0.01;
-var DEFAULT_NODE_RADIUS_MAX_RATIO = 0.15;
-var DEFAULT_VELOCITY_DECAY = 0.35;
-var DEFAULT_LINK_DISTANCE = 100.0;
-var DEFAULT_LINK_STRENGTH = 0.5;
-var DEFAULT_COLLISION_RADIUS_MULTIPLIER = 1.0;
-var DEFAULT_COLLISION_ITERATIONS = 1;
-var DEFAULT_FONT_SIZE_MIN = 16;
-var DEFAULT_FONT_SIZE_MAX = 60;
-
-var DEFAULT_FONT_SIZE_MIN_RATIO = 0.02;
-var DEFAULT_FONT_SIZE_MAX_RATIO = 0.05;
-var DEFAULT_FONT_SIZE_TOPTERM_RATIO = 0.026;
-
-var DEFAULT_NODE_RADIUS = 20.0;
-
 const DEFAULT_SOURCE = REPLACE_SOURCE;
 
-var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
+const DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
+
+let customizePanelFlag = false;
+let customizePanelWindow;
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 
 const DEFAULT_KEEPALIVE_INTERVAL = ONE_MINUTE;
+const DEFAULT_STATS_UPDATE_INTERVAL = ONE_SECOND;
 
-var serverCheckInterval = 5 * ONE_MINUTE;
+const DEFAULT_PAGE_LOAD_TIMEOUT = ONE_SECOND;
 
-var MAX_RX_QUEUE = 250;
+const DEFAULT_FORCEVIEW_MODE = "web";
+const DEFAULT_SESSION_VIEW = "treepack";
 
-var MAX_READY_ACK_WAIT_COUNT = 10;
+const DEFAULT_RX_NODE_QUEUE_INTERVAL = 5;
+const DEFAULT_RX_NODE_QUEUE_MAX = 100;
 
-var config = {};
-var previousConfig = {};
+const DEFAULT_ZOOM_FACTOR = 0.75;
 
-config.keepaliveInterval = DEFAULT_KEEPALIVE_INTERVAL;
+const DEFAULT_METRIC_MODE = "rate";
+const DEFAULT_MAX_NODES = 50;
+const DEFAULT_MAX_AGE = 15000;
+const DEFAULT_AGE_RATE = 1.0;
 
-config.displayNodeHashMap = {};
-config.displayNodeHashMap.emoji = "hide";
-config.displayNodeHashMap.hashtag = "show";
-config.displayNodeHashMap.place = "hide";
-config.displayNodeHashMap.url = "hide";
-config.displayNodeHashMap.user = "show";
-config.displayNodeHashMap.word = "hide";
-config.viewerReadyInterval = 10000;
+const DEFAULT_TRANSITION_DURATION = 40;
+const DEFAULT_CHARGE = -50;
+const DEFAULT_GRAVITY = 0.001;
+const DEFAULT_FORCEX_MULTIPLIER = 25.0;
+const DEFAULT_FORCEX_SESSION_MULTIPLIER = 50.0;
+const DEFAULT_FORCEY_MULTIPLIER = 25.0;
 
-var statsObj = {};
+const DEFAULT_NODE_RADIUS_RATIO_MIN = 0.01;
+const DEFAULT_NODE_RADIUS_RATIO_MAX = 0.15;
+const DEFAULT_NODE_RADIUS_MIN = 5.0;
+const DEFAULT_NODE_RADIUS_MAX = 100.0;
+
+const DEFAULT_VELOCITY_DECAY = 0.35;
+const DEFAULT_LINK_DISTANCE = 100.0;
+const DEFAULT_LINK_STRENGTH = 0.5;
+const DEFAULT_COLLISION_RADIUS_MULTIPLIER = 1.0;
+const DEFAULT_COLLISION_ITERATIONS = 1;
+
+const DEFAULT_FONT_SIZE_MIN = 16;
+const DEFAULT_FONT_SIZE_MAX = 60;
+const DEFAULT_FONT_SIZE_MIN_RATIO = 0.02;
+const DEFAULT_FONT_SIZE_MAX_RATIO = 0.05;
+
+const DEFAULT_FONT_SIZE_TOPTERM_RATIO = 0.026;
+
+
+const DEFAULT_MAX_RX_QUEUE = 250;
+const DEFAULT_MAX_READY_ACK_WAIT_COUNT = 10;
+
+// TREEMAP
+const TREEMAP_MAX_NODES = DEFAULT_MAX_NODES;
+const TREEMAP_MAX_AGE = DEFAULT_MAX_AGE;
+// TREEPACK
+const TREEPACK_MAX_NODES = DEFAULT_MAX_NODES;
+const TREEPACK_MAX_AGE = DEFAULT_MAX_AGE;
+
+let serverCheckInterval = 5 * ONE_MINUTE;
+
+let config = {};
+
+config.defaults = {}
+config.defaults.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
+config.defaults.pauseOnMouseMove = true;
+config.defaults.keepaliveInterval = DEFAULT_KEEPALIVE_INTERVAL;
+config.defaults.viewerReadyInterval = 10000;
+config.defaults.panzoomTransform = {};
+
+config.defaults.displayNodeHashMap = {};
+
+config.defaults.displayNodeHashMap = {};
+config.defaults.displayNodeHashMap.emoji = "hide";
+config.defaults.displayNodeHashMap.hashtag = "show";
+config.defaults.displayNodeHashMap.place = "hide";
+config.defaults.displayNodeHashMap.url = "hide";
+config.defaults.displayNodeHashMap.user = "show";
+config.defaults.displayNodeHashMap.word = "hide";
+
+config.defaults.nodeRadiusRatioRange = {};
+config.defaults.nodeRadiusRatioRange.min = 0.0;
+config.defaults.nodeRadiusRatioRange.max = 0.5;
+config.defaults.nodeRadiusRatioRange.step = 0.01;
+
+
+let previousConfig = {};
+
+let statsObj = {};
+
+statsObj.serverConnected = false;
+statsObj.isAuthenticated = false || LOCAL_SOURCE === DEFAULT_SOURCE;
+
+statsObj.socket = {};
+statsObj.socket.errors = 0;
+statsObj.socket.error = false;
+statsObj.socket.connected = true;
+statsObj.socket.connects = 0;
+statsObj.socket.reconnects = 0;
 
 statsObj.bestNetwork = {};
 statsObj.bestNetwork.networkId = "";
@@ -100,24 +138,8 @@ statsObj.bestNetwork.overallMatchRate = 0;
 statsObj.bestNetwork.inputsId = "";
 statsObj.bestNetwork.numInputs = 0;
 
-statsObj.isAuthenticated = false || LOCAL_SOURCE === DEFAULT_SOURCE;
 statsObj.maxNodes = 0;
 statsObj.maxNodeAddQ = 0;
-statsObj.serverConnected = false;
-
-statsObj.socket = {};
-
-statsObj.socket.errors = 0;
-statsObj.socket.error = false;
-
-statsObj.socket.connected = true;
-statsObj.socket.connects = 0;
-statsObj.socket.reconnects = 0;
-
-var RX_NODE_QUEUE_INTERVAL = 5;
-var RX_NODE_QUEUE_MAX = 100;
-
-var STATS_UPDATE_INTERVAL = 1000;
 
 function jsonPrint(obj) {
   if (obj || obj === 0) {
@@ -127,14 +149,13 @@ function jsonPrint(obj) {
   }
 }
 
-var randomIntFromInterval = function (min, max) {
+let randomIntFromInterval = function (min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 };
 
-var randomId = randomIntFromInterval(1000000000, 9999999999);
-var VIEWER_ID = "viewer_" + randomId;
+const VIEWER_ID = "viewer_" + randomIntFromInterval(1000000000, 9999999999);
 
-var DEFAULT_VIEWER_OBJ = {
+const DEFAULT_VIEWER_OBJ = {
   nodeId: VIEWER_ID,
   userId: VIEWER_ID,
   viewerId: VIEWER_ID,
@@ -142,91 +163,32 @@ var DEFAULT_VIEWER_OBJ = {
   type: "viewer",
   namespace: "view",
   timeStamp: Date.now(),
-  tags: {},
+  tags: {
+    entity: VIEWER_ID,
+    type: "viewer",
+    mode: "stream"
+  },
 };
 
-DEFAULT_VIEWER_OBJ.tags.type = "viewer";
-DEFAULT_VIEWER_OBJ.tags.mode = "stream";
-DEFAULT_VIEWER_OBJ.tags.entity = VIEWER_ID;
-
-var viewerObj = {};
-viewerObj = DEFAULT_VIEWER_OBJ;
+let viewerObj = DEFAULT_VIEWER_OBJ;
 
 console.log("viewerObj\n" + jsonPrint(viewerObj));
 
-var PARENT_ID = "0047";
+let storedConfigName;
+let storedSettings;
 
-var storedConfigName;
-var storedConfig;
+let useStoredConfig = DEFAULT_USE_STORED_SETTINGS;
+let globalStoredSettingsName = "config_" + DEFAULT_SESSION_VIEW;
 
-var PAGE_LOAD_TIMEOUT = 1000;
+let d3;
+let customizerWindow;
+let currentSessionView;
 
-var DEFAULT_FORCEVIEW_MODE = "web";
-var DEFAULT_SESSION_VIEW = "treepack";
+let defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 
-var useStoredConfig = DEFAULT_USE_STORED_CONFIG;
-var globalStoredConfigName = "config_" + DEFAULT_SESSION_VIEW;
+let pageLoadedTimeIntervalFlag = true;
 
-var d3;
-var customizerWindow;
-
-requirejs(
-  ["https://d3js.org/d3.v6.min.js"],
-  function (d3Loaded) {
-
-    console.log("d3 LOADED");
-    d3 = d3Loaded;
-
-    initialize(function () {
-      PARENT_ID = config.sessionViewType;
-
-      addFullscreenButton();
-      addMetricButton();
-      addCategoryButton();
-      resetMouseMoveTimer();
-
-      document.addEventListener(
-        "mousemove",
-        function () {
-          if (currentSessionView) {
-            if (config.pauseOnMouseMove) {
-              currentSessionView.simulationControl("PAUSE");
-            }
-            mouseMovingFlag = true;
-            currentSessionView.mouseMoving(true);
-            displayControl(true);
-            resetMouseMoveTimer();
-          }
-        },
-        true
-      );
-
-      document.addEventListener(
-        "panzoomEvent",
-        function () {
-          if (currentSessionView) {
-            config.panzoomTransform = currentSessionView.getPanzoomTransform();
-            saveConfig();
-          }
-        },
-        true
-      );
-    });
-  },
-  function (error) {
-    console.log("REQUIREJS ERROR handler", error);
-    console.log(error.requireModules && error.requireModules[0]);
-    console.log(error.message);
-  }
-);
-
-var currentSessionView;
-
-var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
-
-var pageLoadedTimeIntervalFlag = true;
-
-var TREEPACK_DEFAULT = {};
+const TREEPACK_DEFAULT = {};
 TREEPACK_DEFAULT.ZOOOM_FACTOR = DEFAULT_ZOOM_FACTOR;
 TREEPACK_DEFAULT.TRANSITION_DURATION = DEFAULT_TRANSITION_DURATION;
 TREEPACK_DEFAULT.MAX_NODES = TREEPACK_MAX_NODES;
@@ -240,103 +202,19 @@ TREEPACK_DEFAULT.COLLISION_RADIUS_MULTIPLIER = DEFAULT_COLLISION_RADIUS_MULTIPLI
 TREEPACK_DEFAULT.COLLISION_ITERATIONS = DEFAULT_COLLISION_ITERATIONS;
 TREEPACK_DEFAULT.FONT_SIZE_MIN_RATIO = DEFAULT_FONT_SIZE_MIN_RATIO;
 TREEPACK_DEFAULT.FONT_SIZE_MAX_RATIO = DEFAULT_FONT_SIZE_MAX_RATIO;
-TREEPACK_DEFAULT.NODE_RADIUS_MIN_RATIO = DEFAULT_NODE_RADIUS_MIN_RATIO;
-TREEPACK_DEFAULT.NODE_RADIUS_MAX_RATIO = DEFAULT_NODE_RADIUS_MAX_RATIO;
+TREEPACK_DEFAULT.NODE_RADIUS_RATIO_MIN = DEFAULT_NODE_RADIUS_RATIO_MIN;
+TREEPACK_DEFAULT.NODE_RADIUS_RATIO_MAX = DEFAULT_NODE_RADIUS_RATIO_MAX;
 
-config.twitterUser = {};
-config.twitterUser.userId = "";
-config.fullscreenMode = false;
+config.defaults.twitterUser = {};
+config.defaults.twitterUser.userId = "";
+config.defaults.fullscreenMode = false;
 
-console.debug("LOADING STORED CONFIG: " + globalStoredConfigName);
-
-storedConfig = store.get(globalStoredConfigName);
-
-if (
-  useStoredConfig &&
-  storedConfig &&
-  storedConfig.version === STORED_CONFIG_VERSION
-) {
-  config = storedConfig;
-  config.fullscreenMode = false;
-  config.pauseFlag = false;
-  config.pauseOnMouseMove = true;
-  if (config.authenticationUrl === undefined) {
-    config.authenticationUrl = DEFAULT_AUTH_URL;
-    config.twitterUser = {};
-    config.twitterUser.userId = "";
-  }
-  if (config.twitterUser === undefined) {
-    config.twitterUser = {};
-    config.twitterUser.userId = "";
-  }
-  if (config.defaultNodeRadiusMinRatio === undefined) {
-    config.defaultNodeRadiusMinRatio = DEFAULT_NODE_RADIUS_MIN_RATIO;
-  }
-  if (config.defaultNodeRadiusMaxRatio === undefined) {
-    config.defaultNodeRadiusMaxRatio = DEFAULT_NODE_RADIUS_MAX_RATIO;
-  }
-} else {
-  config.version = STORED_CONFIG_VERSION;
-  config.authenticationUrl = DEFAULT_AUTH_URL;
-  config.twitterUser = {};
-  config.twitterUser.userId = "";
-  config.autoCategoryFlag = false;
-  config.metricMode = DEFAULT_METRIC_MODE;
-  config.enableAgeNodes = true;
-  config.defaultAgeRate = 1.0;
-  config.forceViewMode = DEFAULT_FORCEVIEW_MODE;
-  config.fullscreenMode = false;
-  config.pauseOnMouseMove = true;
-  config.showStatsFlag = false;
-  config.pauseFlag = false;
-  config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
-  config.maxWords = 100;
-  config.testMode = false;
-  config.removeDeadNodesFlag = true;
-
-  config.defaultZoomFactor = DEFAULT_ZOOM_FACTOR;
-  config.defaultZoomInitialX = 100;
-  config.defaultZoomInitialY = 100;
-
-  config.defaultMaxNodes = DEFAULT_MAX_NODES;
-  config.defaultTransitionDuration = DEFAULT_TRANSITION_DURATION;
-  config.defaultMaxAge = DEFAULT_MAX_AGE;
-  config.defaultMultiplier = 1000.0;
-  config.defaultMetricMode = DEFAULT_METRIC_MODE;
-  config.defaultCharge = DEFAULT_CHARGE;
-  config.defaultGravity = DEFAULT_GRAVITY;
-  config.defaultForceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
-  config.defaultForceXsessionMultiplier = DEFAULT_FORCEX_SESSION_MULTIPLIER;
-  config.defaultForceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
-  config.defaultCollisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
-  config.defaultCollisionIterations = DEFAULT_COLLISION_ITERATIONS;
-  config.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
-  config.defaultLinkDistance = DEFAULT_LINK_DISTANCE;
-
-  config.defaultNodeRadiusMinRatio = DEFAULT_NODE_RADIUS_MIN_RATIO;
-  config.defaultNodeRadiusMaxRatio = DEFAULT_NODE_RADIUS_MAX_RATIO;
-  config.defaultNodeRadius = DEFAULT_NODE_RADIUS;
-
-  config.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
-
-  config.defaultFontSizeMinRatio = DEFAULT_FONT_SIZE_MIN_RATIO;
-  config.defaultFontSizeMaxRatio = DEFAULT_FONT_SIZE_MAX_RATIO;
-  config.defaultFontSizeTopTermRatio = DEFAULT_FONT_SIZE_TOPTERM_RATIO;
-
-  if (config.sessionViewType === "ticker") {
-    config.disableLinks = true;
-  } else {
-    config.disableLinks = false;
-  }
-}
-
-var palette = {
+const palette = {
   black: "#000000",
   white: "#FFFFFF",
   lightgray: "#819090",
   gray: "#708284",
   mediumgray: "#536870",
-  // darkgray: "#475B62",
   darkgray: "#364A51",
   darkblue: "#0A2933",
   darkerblue: "#042029",
@@ -353,154 +231,7 @@ var palette = {
   yellowgreen: "#738A05",
 };
 
-var ignoreWordsArray = [
-  "в",
-  "e",
-  "o",
-  "del",
-  "un",
-  "en",
-  "'",
-  "-",
-  "...",
-  "a",
-  "about",
-  "across",
-  "after",
-  "all",
-  "also",
-  "an",
-  "and",
-  "ao",
-  "aos",
-  "applause",
-  "are",
-  "as",
-  "at",
-  "b",
-  "be",
-  "because",
-  "been",
-  "before",
-  "being",
-  "but",
-  "by",
-  "can",
-  "can",
-  "could",
-  "could",
-  "da",
-  "day",
-  "de",
-  "did",
-  "do",
-  "dont",
-  "e",
-  "else",
-  "em",
-  "for",
-  "from",
-  "get",
-  "go",
-  "going",
-  "had",
-  "has",
-  "hasnt",
-  "have",
-  "havent",
-  "he",
-  "her",
-  "here",
-  "him",
-  "his",
-  "how",
-  "htt...",
-  "i",
-  "if",
-  "im",
-  "in",
-  "into",
-  "is",
-  "isnt",
-  "it",
-  "its",
-  "just",
-  "less",
-  "like",
-  "lot",
-  "m",
-  "may",
-  "me",
-  "more",
-  "my",
-  "nas",
-  "new",
-  "no",
-  "nos",
-  "not",
-  "of",
-  "old",
-  "on",
-  "or",
-  "os",
-  "ou",
-  "our",
-  "out",
-  "over",
-  "rt",
-  "s",
-  "said",
-  "say",
-  "saying",
-  "she",
-  "should",
-  "so",
-  "some",
-  "than",
-  "that",
-  "thats",
-  "the",
-  "their",
-  "them",
-  "then",
-  "there",
-  "these",
-  "they",
-  "this",
-  "those",
-  "though",
-  "to",
-  "too",
-  "upon",
-  "us",
-  "ve",
-  "want",
-  "was",
-  "wasnt",
-  "we",
-  "were",
-  "what",
-  "when",
-  "where",
-  "which",
-  "who",
-  "whose",
-  "why",
-  "will",
-  "with",
-  "wont",
-  "would",
-  "you",
-  "your",
-  "|",
-  "é",
-  "–",
-];
-
-ignoreWordsArray.push("'");
-ignoreWordsArray.push("`");
-
-var categoryColorHashMap = new HashMap();
+const categoryColorHashMap = new HashMap();
 
 categoryColorHashMap.set("positive", palette.green);
 categoryColorHashMap.set("negative", palette.red);
@@ -510,14 +241,14 @@ categoryColorHashMap.set("right", palette.yellow);
 categoryColorHashMap.set("none", palette.black);
 categoryColorHashMap.set("auto", palette.white);
 
-var monitorMode = false;
+let monitorMode = false;
 
-var socket = io("/view");
+const socket = io("/view");
 
-var seconds;
-var minutes;
-var hours;
-var days;
+let seconds;
+let minutes;
+let hours;
+let days;
 
 function msToTime(duration) {
   seconds = parseInt((duration / 1000) % 60);
@@ -534,67 +265,24 @@ function msToTime(duration) {
 }
 
 function saveConfig() {
-  storedConfigName = "config_" + config.sessionViewType;
+  storedConfigName = "config_" + config.settings.sessionViewType;
   store.set(storedConfigName, config);
   console.debug("STORED CONFIG" + " | " + storedConfigName);
 }
 
-var controlDivElement = document.getElementById("controlDiv");
-// var statsDivElement = document.getElementById("statsDiv");
-// statsDivElement.style.visibility = "hidden";
+let controlDivElement = document.getElementById("controlDiv");
 
 document.addEventListener("nodeSearch",function (event) {
   console.log("nodeSearch event", event.detail);
   const searchTerm = event.detail.node && event.detail.node.nodeType === "user" ? "@" + event.detail.node.screenName : "#" + event.detail.node.nodeId;
   socket.emit("TWITTER_SEARCH_NODE", searchTerm);
 });
-      
-// var statsText = document.getElementById("stats-text");
-
-// var statsLeftBarDiv = document.getElementById("left-bar");
-// var statsRightBarDiv = document.getElementById("right-bar");
-// var statsNeutralBarDiv = document.getElementById("neutral-bar");
-// var statsPositiveBarDiv = document.getElementById("positive-bar");
-// var statsNegativeBarDiv = document.getElementById("negative-bar");
-// var statsNoneBarDiv = document.getElementById("none-bar");
-
-// var statsLeftBar = new ProgressBar.Line(statsLeftBarDiv, { duration: 100 });
-// var statsRightBar = new ProgressBar.Line(statsRightBarDiv, { duration: 100 });
-// var statsNeutralBar = new ProgressBar.Line(statsNeutralBarDiv, {
-//   duration: 100,
-// });
-// var statsPositiveBar = new ProgressBar.Line(statsPositiveBarDiv, {
-//   duration: 100,
-// });
-// var statsNegativeBar = new ProgressBar.Line(statsNegativeBarDiv, {
-//   duration: 100,
-// });
-// var statsNoneBar = new ProgressBar.Line(statsNoneBarDiv, { duration: 100 });
-
-// statsLeftBar.animate(0);
-// statsLeftBar.path.setAttribute("stroke", palette.blue);
-
-// statsRightBar.animate(0);
-// statsRightBar.path.setAttribute("stroke", palette.yellow);
-
-// statsNeutralBar.animate(0);
-// statsNeutralBar.path.setAttribute("stroke", palette.gray);
-
-// statsPositiveBar.animate(0);
-// statsPositiveBar.path.setAttribute("stroke", palette.green);
-
-// statsNegativeBar.animate(0);
-// statsNegativeBar.path.setAttribute("stroke", palette.red);
-
-// statsNoneBar.animate(0);
-// statsNoneBar.path.setAttribute("stroke", palette.white);
 
 function displayControl(isVisible) {
   controlDivElement.style.visibility = isVisible ? "visible" : "hidden";
-  // topTermsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
 }
 
-var showPropArray = [
+let showPropArray = [
   "networkId",
   "successRate",
   "matchRate",
@@ -603,71 +291,13 @@ var showPropArray = [
   "inputsId",
 ];
 
-// function updateStatsText() {
-//   statsText.innerHTML = getTimeStamp() + "<br><hr><br>";
-
-//   Object.keys(statsObj.bestNetwork).forEach(function (key) {
-//     if (showPropArray.includes(key)) {
-//       switch (key) {
-//         case "networkId":
-//           statsText.innerHTML += statsObj.bestNetwork[key] + "<br><br><br>";
-//           break;
-//         case "successRate":
-//           if (typeof statsObj.bestNetwork[key] !== "number") {
-//             break;
-//           }
-//           statsText.innerHTML +=
-//             "SR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
-//           break;
-//         case "matchRate":
-//           if (typeof statsObj.bestNetwork[key] !== "number") {
-//             break;
-//           }
-//           statsText.innerHTML +=
-//             "MR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
-//           break;
-//         case "overallMatchRate":
-//           if (typeof statsObj.bestNetwork[key] !== "number") {
-//             break;
-//           }
-//           statsText.innerHTML +=
-//             "OAMR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
-//           break;
-
-//         case "seedNetworkRes":
-//           if (typeof statsObj.bestNetwork[key] !== "number") {
-//             break;
-//           }
-//           statsText.innerHTML +=
-//             "SN SR: " + statsObj.bestNetwork[key].toFixed(2) + "%<br><br>";
-//           break;
-
-//         default:
-//           statsText.innerHTML +=
-//             key.toUpperCase() + ": " + statsObj.bestNetwork[key] + "<br><br>";
-//       }
-//     }
-//   });
-// }
-
-// function displayStats(isVisible, dColor) {
-//   if (isVisible) {
-//     updateStatsText();
-//   }
-
-//   statsDivElement.style.visibility = isVisible ? "visible" : "hidden";
-
-//   if (dColor !== undefined) {
-//     statsDivElement.style.color = dColor;
-//   }
-// }
-
-var mouseMoveTimeoutEventObj = new CustomEvent("mouseMoveTimeoutEvent");
-var mouseMoveTimeout;
-var mouseMovingFlag = false;
-var mouseMoveTimeoutInterval = 2000;
+let mouseMoveTimeoutEventObj = new CustomEvent("mouseMoveTimeoutEvent");
+let mouseMoveTimeout;
+let mouseMovingFlag = false;
+let mouseMoveTimeoutInterval = 2000;
 
 function resetMouseMoveTimer() {
+  
   clearTimeout(mouseMoveTimeout);
 
   mouseMoveTimeout = setTimeout(function () {
@@ -679,22 +309,18 @@ function resetMouseMoveTimer() {
     currentSessionView.toolTipVisibility(false);
     currentSessionView.mouseMoving(false);
 
-    if (config.pauseOnMouseMove && !config.pauseFlag) {
+    if (config.settings.pauseOnMouseMove && !config.settings.pauseFlag) {
       currentSessionView.simulationControl("RESUME");
     }
-
-    // if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
-    //   displayStats(false, palette.white);
-    // }
 
     document.dispatchEvent(mouseMoveTimeoutEventObj);
   }, mouseMoveTimeoutInterval);
 }
 
-var serverActiveTimeoutEventObj = new CustomEvent("serverActiveTimeoutEvent");
-var serverActiveTimeout;
-var serverActiveFlag = false;
-var serverActiveTimeoutInterval = 90 * ONE_SECOND;
+let serverActiveTimeoutEventObj = new CustomEvent("serverActiveTimeoutEvent");
+let serverActiveTimeout;
+let serverActiveFlag = false;
+let serverActiveTimeoutInterval = 90 * ONE_SECOND;
 
 function resetServerActiveTimer() {
   serverActiveFlag = true;
@@ -706,23 +332,14 @@ function resetServerActiveTimer() {
 
   serverActiveTimeout = setTimeout(function () {
     serverActiveFlag = false;
-    // if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
-
     document.dispatchEvent(serverActiveTimeoutEventObj);
   }, serverActiveTimeoutInterval);
 }
 
 window.onbeforeunload = function () {
-  // if (controlPanelFlag) {
-  //   // controlPanelWindow.close();
-  //   clearInterval(controlPanelInitWaitInterval);
-  // }
-  // controlPanelFlag = false;
 };
 
-// var controlPanelReadyFlag = false;
-
-function openCustomizer(cnf, callback) {
+const openCustomizer = (cnf) => {
   
   console.debug("openCustomizer");
 
@@ -732,124 +349,38 @@ function openCustomizer(cnf, callback) {
     "width=1200,height=800"
   );
 
-  // window.addEventListener("message", controlPanelComm, false);
+  window.addEventListener("message", customizerComm, false);
 
-  // controlPanelWindow.addEventListener(
-  //   "beforeunload",
-  //   function () {
-  //     console.log("CONTROL POP UP CLOSING...");
-  //     controlPanelFlag = false;
-  //     updateControlButton(controlPanelFlag);
-  //   },
-  //   false
-  // );
+  customizerWindow.addEventListener(
+    "beforeunload",
+    function () {
+      console.log("CUSTOMIZE POP UP CLOSING...");
+      customizePanelFlag = false;
+      updateCustomizeButton(customizePanelFlag);
+    },
+    false
+  );
 
-  // controlPanelWindow.addEventListener(
-  //   "load",
-  //   function (cnf) {
-  //     controlPanel = new controlPanelWindow.ControlPanel(cnf);
-  //     controlPanelFlag = true;
-  //     callback();
-  //   },
-  //   false
-  // );
+  customizerWindow.addEventListener(
+    "load",
+    function () {
+      customizePanelFlag = true;
+      updateCustomizeButton(customizePanelFlag);
+      customizerWindow.postMessage({ op: "INIT", config: cnf }, DEFAULT_SOURCE);
+      return;
+    },
+    false
+  );
 }
 
-// function createPopUpControlPanel(cnf, callback) {
-  
-//   console.debug("createPopUpControlPanel");
-
-//   controlPanelWindow = window.open(
-//     DEFAULT_SOURCE + "/controlPanel.html",
-//     "CONTROL",
-//     "width=1200,height=800"
-//   );
-
-//   window.addEventListener("message", controlPanelComm, false);
-
-//   controlPanelWindow.addEventListener(
-//     "beforeunload",
-//     function () {
-//       console.log("CONTROL POP UP CLOSING...");
-//       controlPanelFlag = false;
-//       updateControlButton(controlPanelFlag);
-//     },
-//     false
-//   );
-
-//   controlPanelWindow.addEventListener(
-//     "load",
-//     function (cnf) {
-//       controlPanel = new controlPanelWindow.ControlPanel(cnf);
-//       controlPanelFlag = true;
-//       callback();
-//     },
-//     false
-//   );
-// }
-
-// var controlPanelInitWaitInterval;
-
-// function toggleControlPanel() {
-//   console.warn("toggleControlPanel config");
-
-//   if (controlPanelFlag) {
-//     clearInterval(controlPanelInitWaitInterval);
-//     controlPanelWindow.close();
-//     controlPanelFlag = false;
-//     controlPanelReadyFlag = false;
-//     updateControlButton(controlPanelFlag);
-//     console.debug("toggleControlPanel: " + controlPanelFlag);
-//   } else {
-//     createPopUpControlPanel(config, function () {
-//       clearInterval(controlPanelInitWaitInterval);
-
-//       console.warn(
-//         "createPopUpControlPanel toggleControlPanel: " + controlPanelFlag
-//       );
-
-//       controlPanelInitWaitInterval = setInterval(function () {
-//         if (controlPanelReadyFlag) {
-//           clearInterval(controlPanelInitWaitInterval);
-
-//           updateControlButton(controlPanelFlag);
-
-//           console.debug("TX> CONTROL PANEL INIT | SOURCE: " + DEFAULT_SOURCE);
-
-//           // doesn't like momment in config.VIEWER_OBJ in postMessage
-//           var cf = config;
-//           delete cf.VIEWER_OBJ;
-
-//           controlPanelWindow.postMessage(
-//             { op: "INIT", config: cf },
-//             DEFAULT_SOURCE
-//           );
-//         }
-//       }, 1000);
-//     });
-//   }
-// }
-
-// function updateControlButton(controlPanelFlag) {
-//   document.getElementById("controlPanelButton").innerHTML = controlPanelFlag
-//     ? "HIDE CONTROL"
-//     : "SHOW CONTROL";
-// }
-
-// function addControlButton() {
-//   controlDivElement.style.visibility = "hidden";
-//   var controlPanelButton = document.createElement("BUTTON");
-//   controlPanelButton.className = "button";
-//   controlPanelButton.setAttribute("id", "controlPanelButton");
-//   controlPanelButton.setAttribute("onclick", "toggleControlPanel()");
-//   controlPanelButton.innerHTML = controlPanelFlag
-//     ? "HIDE CONTROL"
-//     : "SHOW CONTROL";
-//   controlDivElement.appendChild(controlPanelButton);
-// }
+function updateCustomizeButton(customizePanelFlag) {
+  document.getElementById("customizeButton").innerHTML = customizePanelFlag
+    ? "CLOSE CUSTOMIZE"
+    : "CUSTOMIZE";
+}
 
 function addCategoryButton() {
-  var categoryButton = document.createElement("BUTTON");
+  let categoryButton = document.createElement("BUTTON");
   categoryButton.className = "button";
   categoryButton.setAttribute("id", "categoryButton");
   categoryButton.setAttribute("onclick", "toggleAutoCategory()");
@@ -866,30 +397,40 @@ function updateCategoryButton() {
 }
 
 function updateMetricButton() {
-  document.getElementById("metricButton").innerHTML =
-    config.metricMode.toUpperCase() + " RADIUS";
+  document.getElementById("metricButton").innerHTML = config.settings.metricMode.toUpperCase() + " RADIUS";
 }
 
 function addMetricButton() {
-  var metricButton = document.createElement("BUTTON");
-  if (config.metricMode === undefined) {
-    config.metricMode = "rate";
+  let metricButton = document.createElement("BUTTON");
+  if (config.settings.metricMode === undefined) {
+    config.settings.metricMode = "rate";
   }
   metricButton.className = "button";
   metricButton.setAttribute("id", "metricButton");
   metricButton.setAttribute("onclick", "toggleMetric()");
-  metricButton.innerHTML = config.metricMode.toUpperCase() + " RADIUS";
+  metricButton.innerHTML = config.settings.metricMode.toUpperCase() + " RADIUS";
   controlDivElement.appendChild(metricButton);
 }
 
 function updateFullscreenButton() {
-  document.getElementById("fullscreenButton").innerHTML = config.fullscreenMode
+  document.getElementById("fullscreenButton").innerHTML = config.settings.fullscreenMode
     ? "EXIT FULLSCREEN"
     : "FULLSCREEN";
 }
 
+const addCustomizeButton = () => {
+  let customizeButton = document.createElement("BUTTON");
+  customizeButton.className = "button";
+  customizeButton.setAttribute("id", "customizeButton");
+  customizeButton.setAttribute("onclick", "toggleCustomize()");
+  customizeButton.innerHTML = config.settings.customizeMode
+    ? "EXIT CUSTOMIZE"
+    : "CUSTOMIZE";
+  controlDivElement.appendChild(customizeButton);
+}
+
 function addFullscreenButton() {
-  var fullscreenButton = document.createElement("BUTTON");
+  let fullscreenButton = document.createElement("BUTTON");
   fullscreenButton.className = "button";
   fullscreenButton.setAttribute("id", "fullscreenButton");
   fullscreenButton.setAttribute("onclick", "toggleFullScreen()");
@@ -899,11 +440,11 @@ function addFullscreenButton() {
   controlDivElement.appendChild(fullscreenButton);
 }
 
-var configUpdateTimeOut;
-var configUpdateTimeOutInverval = 3000;
+let configUpdateTimeOut;
+let configUpdateTimeOutInverval = 3000;
 
 function resetConfigUpdateTimeOut() {
-  storedConfigName = "config_" + config.sessionViewType;
+  storedConfigName = "config_" + config.settings.sessionViewType;
 
   clearTimeout(configUpdateTimeOut);
 
@@ -913,361 +454,210 @@ function resetConfigUpdateTimeOut() {
   }, configUpdateTimeOutInverval);
 }
 
-// function controlPanelComm(event) {
+const customizerComm = (event) => {
 
-//   console.debug("CONTROL PANEL: " + event.origin); // prints: { message: "Hello world!"}
+  console.debug("CUSTOMIZE PANEL: " + event.origin);
 
-//   if (event.data === "DisableHTML5Autoplay_Initialize") {
-//     console.info(
-//       "RX> CONTROL PANEL | DisableHTML5Autoplay_Initialize ... IGNORING ..."
-//     );
-//     return;
-//   }
+  if (event.data === "DisableHTML5Autoplay_Initialize") {
+    console.info("RX> CONTROL PANEL | DisableHTML5Autoplay_Initialize ... IGNORING ...");
+    return;
+  }
 
-//   switch (event.data.op) {
-//     case "READY":
-//       console.warn("R< CONTROL PANEL READY");
-//       controlPanelReadyFlag = true;
-//       break;
+  switch (event.data.op) {
 
-//     case "FOLLOW":
-//       console.warn(
-//         "R< CONTROL FOLLOW" +
-//           " | NID: " +
-//           event.data.user.nodeId +
-//           " | @" +
-//           event.data.user.screenName
-//       );
-//       socket.emit("TWITTER_FOLLOW", event.data.user);
-//       break;
+    case "READY":
+      console.warn("R< CUSTOMIZE PANEL READY");
+      controlPanelReadyFlag = true;
+      break;
 
-//     case "UNFOLLOW":
-//       console.warn(
-//         "R< CONTROL UNFOLLOW" +
-//           " | UID: " +
-//           event.data.user.nodeId +
-//           " | @" +
-//           event.data.user.screenName
-//       );
-//       socket.emit("TWITTER_UNFOLLOW", event.data.user);
-//       break;
+    case "CLOSE":
+      console.warn("R< CUSTOMIZE PANEL CLOSING...");
+      resetConfigUpdateTimeOut();
+      break;
 
-//     case "CAT VERIFIED":
-//       console.warn(
-//         "R< CONTROL CATEGORY_VERIFIED" +
-//           " | UID: " +
-//           event.data.user.nodeId +
-//           " | @" +
-//           event.data.user.screenName
-//       );
-//       socket.emit("TWITTER_CATEGORY_VERIFIED", event.data.user);
-//       break;
+    case "MOMENT":
+      console.warn("R< CUSTOMIZE PANEL MOMENT...");
+      switch (event.data.id) {
+        case "resetButton":
+          reset();
+          break;
+        default:
+          console.error("CUSTOMIZE PANEL UNKNOWN MOMENT BUTTON");
+      }
+      break;
 
-//     case "CAT UNVERIFIED":
-//       console.warn(
-//         "R< CONTROL CATEGORY_UNVERIFIED" +
-//           " | UID: " +
-//           event.data.user.nodeId +
-//           " | @" +
-//           event.data.user.screenName
-//       );
-//       socket.emit("TWITTER_CATEGORY_UNVERIFIED", event.data.user);
-//       break;
+    case "TOGGLE":
 
-//     case "BOT":
-//       console.warn(
-//         "R< CONTROL BOT" +
-//           " | UID: " +
-//           event.data.user.nodeId +
-//           " | @" +
-//           event.data.user.screenName
-//       );
-//       socket.emit("TWITTER_BOT", event.data.user);
-//       break;
+      console.warn("R< CUSTOMIZE PANEL TOGGLE");
 
-//     case "UNBOT":
-//       console.warn(
-//         "R< CONTROL UNBOT" +
-//           " | UID: " +
-//           event.data.user.nodeId +
-//           " | @" +
-//           event.data.user.screenName
-//       );
-//       socket.emit("TWITTER_UNBOT", event.data.user);
-//       break;
+      switch (event.data.id) {
 
-//     case "IGNORE":
-//       console.warn(
-//         "R< CONTROL IGNORE" +
-//           " | UID: " +
-//           event.data.user.nodeId +
-//           " | @" +
-//           event.data.user.screenName
-//       );
-//       socket.emit("TWITTER_IGNORE", event.data.user);
-//       break;
+        case "categoryAutoButton":
+          toggleAutoCategory();
+          break;
 
-//     case "UNIGNORE":
-//       console.warn(
-//         "R< CONTROL UNIGNORE" +
-//           " | UID: " +
-//           event.data.user.nodeId +
-//           " | @" +
-//           event.data.user.screenName
-//       );
-//       socket.emit("TWITTER_UNIGNORE", event.data.user);
-//       break;
+        case "metricToggleButton":
+          toggleMetric();
+          break;
 
-//     case "NODE_SEARCH":
-//       console.warn("R< CONTROL NODE_SEARCH\n" + jsonPrint(event.data.input));
-//       socket.emit("TWITTER_SEARCH_NODE", event.data.input);
-//       break;
+        case "fullscreenToggleButton":
+          toggleFullScreen();
+          break;
 
-//     case "CLOSE":
-//       console.warn("R< CONTROL PANEL CLOSING...");
-//       resetConfigUpdateTimeOut();
-//       break;
+        case "pauseToggleButton":
+          togglePause();
+          break;
 
-//     case "MOMENT":
-//       console.warn("R< CONTROL PANEL MOMENT...");
-//       switch (event.data.id) {
-//         case "resetButton":
-//           reset();
-//           break;
-//         default:
-//           console.error("CONTROL PANEL UNKNOWN MOMENT BUTTON");
-//       }
-//       break;
+        case "statsToggleButton":
+          toggleStats();
+          break;
 
-//     case "TOGGLE":
-//       console.warn("R< CONTROL PANEL TOGGLE");
-//       switch (event.data.id) {
-//         case "categoryAutoButton":
-//           toggleAutoCategory();
-//           break;
-//         case "metricToggleButton":
-//           toggleMetric();
-//           break;
-//         case "fullscreenToggleButton":
-//           toggleFullScreen();
-//           break;
-//         case "pauseToggleButton":
-//           togglePause();
-//           break;
-//         case "statsToggleButton":
-//           toggleStats();
-//           break;
-//         case "testModeToggleButton":
-//           toggleTestMode();
-//           break;
-//         case "removeDeadNodeToogleButton":
-//           toggleRemoveDeadNode();
-//           break;
-//         default:
-//           console.error(
-//             "CONTROL PANEL UNKNOWN TOGGLE BUTTON | ID: " + event.data.id
-//           );
-//       }
-//       resetConfigUpdateTimeOut();
-//       break;
+        case "testModeToggleButton":
+          toggleTestMode();
+          break;
 
-//     case "UPDATE":
-//       console.warn("R< CONTROL PANEL UPDATE");
-//       switch (event.data.id) {
-//         case "transitionDuration":
-//           currentSessionView.setTransitionDuration(event.data.value);
-//           config.defaultTransitionDuration = event.data.value;
-//           break;
-//         case "velocityDecay":
-//           currentSessionView.setVelocityDecay(event.data.value);
-//           break;
-//         case "gravity":
-//           currentSessionView.setGravity(event.data.value);
-//           break;
-//         case "charge":
-//           currentSessionView.setCharge(event.data.value);
-//           break;
-//         case "maxAge":
-//           currentSessionView.setNodeMaxAge(event.data.value);
-//           break;
-//         case "maxNodes":
-//           currentSessionView.setMaxNodesLimit(event.data.value);
-//           break;
-//         case "fontSizeRatioMin":
-//           currentSessionView.setFontSizeRatioMin(event.data.value);
-//           break;
-//         case "fontSizeRatioMax":
-//           currentSessionView.setFontSizeRatioMax(event.data.value);
-//           break;
-//         case "nodeRadiusRatioMin":
-//           currentSessionView.setNodeRadiusRatioMin(event.data.value);
-//           break;
-//         case "nodeRadiusRatioMax":
-//           currentSessionView.setNodeRadiusRatioMax(event.data.value);
-//           break;
-//         default:
-//           console.error(
-//             "UNKNOWN CONTROL PANEL ID: " +
-//               event.data.id +
-//               "\n" +
-//               jsonPrint(event.data)
-//           );
-//       }
-//       resetConfigUpdateTimeOut();
-//       break;
+        case "removeDeadNodeToogleButton":
+          toggleRemoveDeadNode();
+          break;
+          
+        default:
+          console.error(
+            "CUSTOMIZE PANEL UNKNOWN TOGGLE BUTTON | ID: " + event.data.id
+          );
+      }
 
-//     case "INIT":
-//       console.info("R< CONTROL PANEL LOOPBACK? | INIT ... IGNORING ...");
-//       break;
+      resetConfigUpdateTimeOut();
 
-//     case "CATEGORIZE":
-//       if (statsObj.isAuthenticated) {
-//         if (event.data.node.nodeType === "user") {
-//           console.info(
-//             "R< CONTROL PANEL CATEGORIZE" +
-//               " | " +
-//               event.data.node.nodeId +
-//               " | @" +
-//               event.data.node.screenName +
-//               " | C: " +
-//               event.data.category
-//           );
-//           socket.emit("TWITTER_CATEGORIZE_NODE", {
-//             twitterUser: config.twitterUser,
-//             category: event.data.category,
-//             following: true,
-//             node: event.data.node,
-//           });
-//         } else if (event.data.node.nodeType === "hashtag") {
-//           console.info(
-//             "R< CONTROL PANEL CATEGORIZE" +
-//               " | #" +
-//               event.data.node.nodeId +
-//               " | C: " +
-//               event.data.category
-//           );
-//           socket.emit("TWITTER_CATEGORIZE_NODE", {
-//             twitterUser: config.twitterUser,
-//             category: event.data.category,
-//             node: event.data.node,
-//           });
-//         }
-//       } else {
-//         console.debug(
-//           "R< CONTROL PANEL CATEGORIZE | NOT AUTHENTICATED !" +
-//             " | " +
-//             event.data.node.nodeId +
-//             " | @" +
-//             event.data.node.screenName +
-//             " | C: " +
-//             event.data.category
-//         );
-//         console.debug("... AUTHENTICATING ...");
-//         window.open(config.authenticationUrl, "_blank");
-//       }
-//       break;
+      break;
 
-//     case "SET_TWITTER_USER":
-//       // console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_USER ... IGNORING ...");
-//       break;
+    case "UPDATE":
 
-//     case "SET_TWITTER_HASHTAG":
-//       // console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_HASHTAG ... IGNORING ...");
-//       break;
+      console.warn("R< CONTROL PANEL UPDATE");
 
-//     case "DISPLAY_NODE_TYPE":
-//       config.displayNodeHashMap[event.data.displayNodeType] = event.data.value;
-//       console.warn(
-//         "R<DISPLAY_NODE_TYPE | " +
-//           event.data.displayNodeType +
-//           " | " +
-//           event.data.value
-//       );
-//       console.warn(
-//         "config.displayNodeHashMap\n" + jsonPrint(config.displayNodeHashMap)
-//       );
-//       resetConfigUpdateTimeOut();
-//       break;
+      switch (event.data.id) {
 
-//     default:
-//       if (event.data["twttr.button"] !== undefined) {
-//         console.log(
-//           "R< CONTROL PANEL TWITTER" + " | " + event.data["twttr.button"].method
-//         );
-//       } else if (event.data.settings !== undefined) {
-//         console.log(
-//           "R< CONTROL PANEL SETTINGS" + "\n" + jsonPrint(event.data.settings)
-//         );
-//       } else {
-//         console.warn(
-//           "R< ??? CONTROL PANEL OP UNDEFINED\n" + jsonPrint(event.data)
-//         );
-//       }
-//   }
-// }
+        case "transitionDuration":
+          currentSessionView.setTransitionDuration(event.data.value);
+          config.settings.TransitionDuration = event.data.value;
+          break;
+
+        case "velocityDecay":
+          currentSessionView.setVelocityDecay(event.data.value);
+          break;
+
+        case "gravity":
+          currentSessionView.setGravity(event.data.value);
+          break;
+
+        case "charge":
+          currentSessionView.setCharge(event.data.value);
+          break;
+
+        case "maxAge":
+          currentSessionView.setNodeMaxAge(event.data.value);
+          break;
+
+        case "maxNodes":
+          currentSessionView.setMaxNodesLimit(event.data.value);
+          break;
+
+        case "fontSizeRatioMin":
+          currentSessionView.setFontSizeRatioMin(event.data.value);
+          break;
+
+        case "fontSizeRatioMax":
+          currentSessionView.setFontSizeRatioMax(event.data.value);
+          break;
+
+        case "nodeRadiusRatioRange":
+          currentSessionView.setNodeRadiusRatioMin(event.data.min);
+          currentSessionView.setNodeRadiusRatioMax(event.data.max);
+          console.log(`CUSTOMIZER SET | setNodeRadiusRatio | min: ${event.data.min} max: ${event.data.max}`)
+          break;
+
+        default:
+          console.error("UNKNOWN CUSTOMIZE PANEL ID: " + event.data.id + "\n" + jsonPrint(event.data));
+      }
+      resetConfigUpdateTimeOut();
+
+      break;
+
+    case "INIT":
+      console.info("R< CUSTOMIZE PANEL LOOPBACK? | INIT ... IGNORING ...");
+      break;
+
+    default:
+      if (event.data["twttr.button"] !== undefined) {
+        console.log("R< CUSTOMIZE PANEL TWITTER" + " | " + event.data["twttr.button"].method);
+      } 
+      else if (event.data.settings !== undefined) {
+        console.log("R< CUSTOMIZE PANEL SETTINGS" + "\n" + jsonPrint(event.data.settings));
+      } 
+      else {
+        console.warn("R< ??? CUSTOMIZE PANEL OP UNDEFINED\n" + jsonPrint(event.data));
+      }
+  }
+}
 
 function toggleShowNodeType(displayNodeType) {
-  if (config.displayNodeHashMap[displayNodeType] === "show") {
-    config.displayNodeHashMap[displayNodeType] = "hide";
-  } else {
-    config.displayNodeHashMap[displayNodeType] = "show";
+
+  if (config.settings.displayNodeHashMap[displayNodeType] === "show") {
+    config.settings.displayNodeHashMap[displayNodeType] = "hide";
+  } 
+  else {
+    config.settings.displayNodeHashMap[displayNodeType] = "show";
   }
-  currentSessionView.setMetricMode(config.metricMode);
-  console.warn("SET RADIUS MODE: " + config.metricMode);
+
+  currentSessionView.setMetricMode(config.settings.metricMode);
+
+  console.warn("SET RADIUS MODE: " + config.settings.metricMode);
+
   updateMetricButton();
-  // if (controlPanelFlag) {
-  //   controlPanel.updateControlPanel(config);
-  // }
+
 }
 
 function toggleMetric() {
-  if (config.metricMode === "rate") {
-    config.metricMode = "mentions";
+
+  if (config.settings.metricMode === "rate") {
+    config.settings.metricMode = "mentions";
   } else {
-    config.metricMode = "rate";
+    config.settings.metricMode = "rate";
   }
-  currentSessionView.setMetricMode(config.metricMode);
-  console.warn("SET RADIUS MODE: " + config.metricMode);
+  currentSessionView.setMetricMode(config.settings.metricMode);
+  console.warn("SET RADIUS MODE: " + config.settings.metricMode);
   updateMetricButton();
-  // if (controlPanelFlag) {
-  //   controlPanel.updateControlPanel(config);
-  // }
+
 }
 
 function togglePause() {
-  config.pauseFlag = !config.pauseFlag;
-  currentSessionView.setPause(config.pauseFlag);
-  console.warn("TOGGLE PAUSE: " + config.pauseFlag);
-  // controlPanel.updateControlPanel(config);
+  config.settings.pauseFlag = !config.settings.pauseFlag;
+  currentSessionView.setPause(config.settings.pauseFlag);
+  console.warn("TOGGLE PAUSE: " + config.settings.pauseFlag);
 }
 
 function toggleRemoveDeadNode() {
-  config.removeDeadNodesFlag = !config.removeDeadNodesFlag;
-  currentSessionView.setRemoveDeadNodesFlag(config.removeDeadNodesFlag);
-  console.warn("TOGGLE REMOVE DEAD NODES: " + config.removeDeadNodesFlag);
-  // controlPanel.updateControlPanel(config);
+  config.settings.removeDeadNodesFlag = !config.settings.removeDeadNodesFlag;
+  currentSessionView.setRemoveDeadNodesFlag(config.settings.removeDeadNodesFlag);
+  console.warn("TOGGLE REMOVE DEAD NODES: " + config.settings.removeDeadNodesFlag);
 }
 
 function toggleAutoCategory() {
-  config.autoCategoryFlag = !config.autoCategoryFlag;
-  currentSessionView.setAutoCategoryFlag(config.autoCategoryFlag);
-  console.warn("AUTO CATEGORY: " + config.autoCategoryFlag);
+  config.settings.autoCategoryFlag = !config.settings.autoCategoryFlag;
+  currentSessionView.setAutoCategoryFlag(config.settings.autoCategoryFlag);
+  console.warn("AUTO CATEGORY: " + config.settings.autoCategoryFlag);
 
   updateCategoryButton();
-  // if (controlPanelFlag) {
-    // controlPanel.updateControlPanel(config);
-  // }
+
 }
 
 function toggleTestMode() {
-  config.testMode = !config.testMode;
-  config.testModeEnabled = config.testMode;
-  console.warn("TEST MODE: " + config.testModeEnabled);
-  currentSessionView.setTestMode(config.testModeEnabled);
-  // controlPanel.updateControlPanel(config);
+  config.settings.testMode = !config.settings.testMode;
+  config.settings.testModeEnabled = config.settings.testMode;
+  console.warn("TEST MODE: " + config.settings.testModeEnabled);
+  currentSessionView.setTestMode(config.settings.testModeEnabled);
 }
 
-var keysForSortedKeys = [];
+let keysForSortedKeys = [];
 function getSortedKeys(hmap, sortProperty) {
   hmap.forEach(function (value, key) {
     if (!value.isSessionNode) {
@@ -1279,7 +669,7 @@ function getSortedKeys(hmap, sortProperty) {
   });
 }
 
-var optionsTimeStamp = {
+let optionsTimeStamp = {
   weekday: "long",
   year: "numeric",
   month: "short",
@@ -1289,8 +679,8 @@ var optionsTimeStamp = {
   minute: "2-digit",
 };
 
-var currentDate;
-var currentTime;
+let currentDate;
+let currentTime;
 
 function getTimeStamp(inputTime) {
   if (inputTime === undefined) {
@@ -1310,8 +700,8 @@ function getBrowserPrefix() {
     return null;
   }
   // All the possible prefixes.
-  var browserPrefixes = ["moz", "ms", "o", "webkit"];
-  var prefix;
+  let browserPrefixes = ["moz", "ms", "o", "webkit"];
+  let prefix;
 
   browserPrefixes.forEach(function (p) {
     prefix = p + "Hidden";
@@ -1340,7 +730,7 @@ function getVisibilityEvent(prefix) {
   }
 }
 
-var viewerReadyInterval;
+let viewerReadyInterval;
 
 function initViewerReadyInterval(interval) {
   console.log("INIT VIEWER READY INTERVAL");
@@ -1385,11 +775,11 @@ function initViewerReadyInterval(interval) {
       statsObj.viewerReadyTransmitted &&
       !statsObj.viewerReadyAck
     ) {
-      if (statsObj.userReadyAckWait > MAX_READY_ACK_WAIT_COUNT) {
+      if (statsObj.userReadyAckWait > DEFAULT_MAX_READY_ACK_WAIT_COUNT) {
         statsObj.viewerReadyTransmitted = false;
         console.log(
           "*** RESENDING _READY AFTER " +
-            MAX_READY_ACK_WAIT_COUNT +
+            DEFAULT_MAX_READY_ACK_WAIT_COUNT +
             " WAIT CYCLES"
         );
       } else {
@@ -1397,7 +787,7 @@ function initViewerReadyInterval(interval) {
         console.log(
           "... WAITING FOR VIEWER_READY_ACK" +
             " | " +
-            MAX_READY_ACK_WAIT_COUNT +
+            DEFAULT_MAX_READY_ACK_WAIT_COUNT +
             " WAIT CYCLES"
         );
       }
@@ -1409,7 +799,7 @@ function initViewerReadyInterval(interval) {
 
 function sendKeepAlive(viewerObj, callback) {
   if (statsObj.viewerReadyAck && statsObj.serverConnected) {
-    var statsObjSmall = statsObj;
+    let statsObjSmall = statsObj;
     delete statsObjSmall.heartBeat;
 
     socket.emit("SESSION_KEEPALIVE", {
@@ -1437,10 +827,10 @@ function sendKeepAlive(viewerObj, callback) {
   }
 }
 
-var socketKeepaliveInterval;
+let socketKeepaliveInterval;
 
 function initKeepalive(viewerObj, interval) {
-  var keepaliveIndex = 0;
+  let keepaliveIndex = 0;
 
   clearInterval(socketKeepaliveInterval);
 
@@ -1517,11 +907,11 @@ socket.on("VIEWER_READY_ACK", function (vSesKey) {
   statsObj.viewerSessionKey = vSesKey;
   viewerObj.viewerSessionKey = vSesKey;
 
-  if (config.VIEWER_OBJ === undefined) {
-    config.VIEWER_OBJ = {};
+  if (config.settings.VIEWER_OBJ === undefined) {
+    config.settings.VIEWER_OBJ = {};
   }
 
-  config.VIEWER_OBJ = viewerObj;
+  config.settings.VIEWER_OBJ = viewerObj;
 
   console.debug("STORE CONFIG ON VIEWER_READY_ACK");
   saveConfig();
@@ -1566,7 +956,7 @@ socket.on("disconnect", function () {
   }
 });
 
-var socketErrorTimeout;
+let socketErrorTimeout;
 
 socket.on("error", function (error) {
   statsObj.socket.errors += 1;
@@ -1634,7 +1024,7 @@ socket.on("authenticated", function () {
 
   console.log("CONNECTED TO HOST" + " | ID: " + socket.id);
 
-  initViewerReadyInterval(config.viewerReadyInterval);
+  initViewerReadyInterval(config.settings.viewerReadyInterval);
 });
 
 const sSmall = {};
@@ -1675,62 +1065,62 @@ socket.on("CONFIG_CHANGE", function (rxConfig) {
   );
 
   if (rxConfig.testMode !== undefined) {
-    config.testMode = rxConfig.testMode;
+    config.settings.testMode = rxConfig.testMode;
     console.log(
       "\n*** ENV CHANGE: TEST_MODE:  WAS: " +
         previousConfig.testMode +
         " | NOW: " +
-        config.testMode +
+        config.settings.testMode +
         "\n"
     );
     previousConfig.testMode = config.testMode;
   }
 
   if (rxConfig.testSendInterval !== undefined) {
-    config.testSendInterval = rxConfig.testSendInterval;
+    config.settings.testSendInterval = rxConfig.testSendInterval;
     console.log(
       "\n*** ENV CHANGE: TEST_SEND_INTERVAL: WAS: " +
         previousConfig.testSendInterval +
         " | NOW: " +
-        config.testSendInterval +
+        config.settings.testSendInterval +
         "\n"
     );
-    previousConfig.testSendInterval = config.testSendInterval;
+    previousConfig.testSendInterval = config.settings.testSendInterval;
   }
 
   if (rxConfig.maxNodes !== undefined) {
-    config.maxNodes = rxConfig.maxNodes;
+    config.settings.maxNodes = rxConfig.maxNodes;
     console.log(
       "\n*** ENV CHANGE: NODE_MAX_NODES: WAS: " +
         previousConfig.maxNodes +
         " | NOW: " +
-        config.maxNodes +
+        config.settings.maxNodes +
         "\n"
     );
     currentSessionView.setMaxAge(rxConfig.maxNodes);
-    previousConfig.maxNodes = config.maxNodes;
+    previousConfig.maxNodes = config.settings.maxNodes;
   }
 
   if (rxConfig.nodeMaxAge !== undefined) {
-    config.nodeMaxAge = rxConfig.nodeMaxAge;
+    config.settings.nodeMaxAge = rxConfig.nodeMaxAge;
     console.log(
       "\n*** ENV CHANGE: NODE_MAX_AGE: WAS: " +
         previousConfig.nodeMaxAge +
         " | NOW: " +
-        config.nodeMaxAge +
+        config.settings.nodeMaxAge +
         "\n"
     );
     currentSessionView.setMaxAge(rxConfig.nodeMaxAge);
-    previousConfig.nodeMaxAge = config.nodeMaxAge;
+    previousConfig.nodeMaxAge = config.settings.nodeMaxAge;
   }
 });
 
 
-var rxNodeQueueReady = false;
-var rxNodeQueue = [];
+let rxNodeQueueReady = false;
+let rxNodeQueue = [];
 
-var rxNode = function (node) {
-  if (rxNodeQueue.length >= RX_NODE_QUEUE_MAX) {
+let rxNode = function (node) {
+  if (rxNodeQueue.length >= DEFAULT_RX_NODE_QUEUE_MAX) {
     return;
   }
 
@@ -1743,13 +1133,13 @@ var rxNode = function (node) {
 
 socket.on("node", rxNode);
 
-var windowVisible = true;
+let windowVisible = true;
 
 document.title = "Word Association";
 
-var prefix = getBrowserPrefix();
-var hidden = hiddenProperty(prefix);
-var visibilityEvent = getVisibilityEvent(prefix);
+let prefix = getBrowserPrefix();
+let hidden = hiddenProperty(prefix);
+let visibilityEvent = getVisibilityEvent(prefix);
 
 function reset() {
   windowVisible = true;
@@ -1781,21 +1171,24 @@ document.addEventListener(visibilityEvent, function () {
   }
 });
 
-function getUrlVariables(callbackMain) {
-  var urlSessionId;
-  var urlNamespace;
-  var sessionType;
+const getUrlVariables = () => {
 
-  var searchString = window.location.search.substring(1);
+  let urlSessionId;
+  let urlNamespace;
+  let sessionType;
+
+  let searchString = window.location.search.substring(1);
   console.log("searchString: " + searchString);
 
-  var variableArray = searchString.split("&");
+  let variableArray = searchString.split("&");
 
-  var asyncTasks = [];
+  let asyncTasks = [];
 
   variableArray.forEach(function (variable) {
+
     asyncTasks.push(function (callback2) {
-      var keyValuePair = variable.split("=");
+
+      let keyValuePair = variable.split("=");
 
       if (keyValuePair[0] !== "" && keyValuePair[1] !== undefined) {
         console.log(
@@ -1835,15 +1228,16 @@ function getUrlVariables(callbackMain) {
           });
         }
         if (keyValuePair[0] === "viewtype") {
-          config.sessionViewType = keyValuePair[1];
+          config.settings.sessionViewType = keyValuePair[1];
           console.info(
-            "SESSION VIEW TYPE | sessionViewType: " + config.sessionViewType
+            "SESSION VIEW TYPE | sessionViewType: " + config.settings.sessionViewType
           );
           return callback2(null, {
-            sessionViewType: config.sessionViewType,
+            sessionViewType: config.settings.sessionViewType,
           });
         }
-      } else {
+      } 
+      else {
         console.log("NO URL VARIABLES");
         return callback2(null, []);
       }
@@ -1851,7 +1245,7 @@ function getUrlVariables(callbackMain) {
   });
 
   async.parallel(asyncTasks, function (err, results) {
-    var urlConfig = {};
+    let urlConfig = {};
 
     // results is an array of objs:  results = [ {key0: val0}, ... {keyN: valN} ];
     async.each(
@@ -1859,7 +1253,7 @@ function getUrlVariables(callbackMain) {
       function (urlVarObj, cb1) {
         console.log("urlVarObj\n" + jsonPrint(urlVarObj));
 
-        var urlVarKeys = Object.keys(urlVarObj);
+        let urlVarKeys = Object.keys(urlVarObj);
 
         async.each(
           urlVarKeys,
@@ -1874,28 +1268,28 @@ function getUrlVariables(callbackMain) {
         );
       },
       function (err) {
-        callbackMain(err, urlConfig);
+        return({err: err, urlConfig: urlConfig});
       }
     );
   });
 }
 
-var globalLinkIndex = 0;
+let globalLinkIndex = 0;
 
 function generateLinkId() {
   globalLinkIndex += 1;
   return "LNK" + globalLinkIndex;
 }
 
-var totalHashMap = {};
-var totalNodes = 0;
-var leftNodesRatio = 0;
-var rightNodesRatio = 0;
-var neutralNodesRatio = 0;
-var positiveNodesRatio = 0;
-var negativeNodesRatio = 0;
-var noneNodesRatio = 0;
-var statsUpdateInterval;
+let totalHashMap = {};
+let totalNodes = 0;
+let leftNodesRatio = 0;
+let rightNodesRatio = 0;
+let neutralNodesRatio = 0;
+let positiveNodesRatio = 0;
+let negativeNodesRatio = 0;
+let noneNodesRatio = 0;
+let statsUpdateInterval;
 
 // //  STATS UPDATE
 // function initStatsUpdate(interval) {
@@ -1931,28 +1325,30 @@ var statsUpdateInterval;
 //   }, interval);
 // }
 
-var socketSessionUpdateInterval;
+let socketSessionUpdateInterval;
 
-function initSocketSessionUpdateRx() {
+const initSocketSessionUpdateRx = () => {
+
   rxNodeQueueReady = true;
 
-  var newNode = {};
-  var category;
+  let newNode = {};
+  let category;
 
-  var viewNumNodes = 0;
-  var viewNodeAddQlength = 0;
+  let viewNumNodes = 0;
+  let viewNodeAddQlength = 0;
 
   clearInterval(socketSessionUpdateInterval);
 
   socketSessionUpdateInterval = setInterval(function () {
+
     viewNodeAddQlength = currentSessionView.getNodeAddQlength();
     // viewNumNodes = currentSessionView.getNumNodes();
 
-    // if (rxNodeQueueReady && (rxNodeQueue.length > 0) && (viewNumNodes <= 1.5*DEFAULT_MAX_NODES) && (viewNodeAddQlength <= 1.5*RX_NODE_QUEUE_MAX)) {
+    // if (rxNodeQueueReady && (rxNodeQueue.length > 0) && (viewNumNodes <= 1.5*DEFAULT_MAX_NODES) && (viewNodeAddQlength <= 1.5*DEFAULT_RX_NODE_QUEUE_MAX)) {
     if (
       rxNodeQueueReady &&
       rxNodeQueue.length > 0 &&
-      viewNodeAddQlength <= 1.5 * RX_NODE_QUEUE_MAX
+      viewNodeAddQlength <= 1.5 * DEFAULT_RX_NODE_QUEUE_MAX
     ) {
       rxNodeQueueReady = false;
 
@@ -2000,7 +1396,9 @@ function initSocketSessionUpdateRx() {
       currentSessionView.addNode(newNode);
       rxNodeQueueReady = true;
     }
-  }, RX_NODE_QUEUE_INTERVAL);
+  }, DEFAULT_RX_NODE_QUEUE_INTERVAL);
+
+  return;
 }
 
 //================================
@@ -2008,8 +1406,8 @@ function initSocketSessionUpdateRx() {
 //================================
 
 function sum(obj) {
-  var s = 0;
-  var props = Object.keys(obj);
+  let s = 0;
+  let props = Object.keys(obj);
 
   async.each(
     props,
@@ -2025,7 +1423,7 @@ function sum(obj) {
   );
 }
 
-var randomNumber360 = 180;
+let randomNumber360 = 180;
 
 function toggleFullScreen() {
   console.warn("toggleFullScreen");
@@ -2062,6 +1460,21 @@ function toggleFullScreen() {
   resetConfigUpdateTimeOut();
 }
 
+const toggleCustomize = () => {
+
+  console.warn("toggleCustomize");
+  customizePanelFlag = !customizePanelFlag;
+  if (customizePanelFlag) {
+    openCustomizer(config)
+  }
+  else{
+    if (customizerWindow) {
+      customizerWindow.close();
+    }
+  }
+  return;
+}
+
 requirejs.onError = function (err) {
   console.error("*** REQUIRE ERROR\n" + err);
   if (err.requireType === "timeout") {
@@ -2070,42 +1483,55 @@ requirejs.onError = function (err) {
   throw err;
 };
 
-function loadViewType(svt, callback) {
+const loadViewType = async (svt) => {
 
   console.log("LOADING SESSION VIEW TYPE: " + svt);
 
-  config.sessionViewType = "treepack";
+  config.settings.sessionViewType = "treepack";
 
-  requirejs(["js/libs/sessionViewTreepack"], function () {
+  const ViewTreepack = require "js/libs/sessionViewTreepack"
 
-    console.debug("sessionViewTreepack LOADED");
+  // requirejs(["js/libs/sessionViewTreepack"], function () {
 
-    DEFAULT_TRANSITION_DURATION = TREEPACK_DEFAULT.TRANSITION_DURATION;
-    DEFAULT_MAX_AGE = TREEPACK_DEFAULT.MAX_AGE;
-    DEFAULT_COLLISION_RADIUS_MULTIPLIER = TREEPACK_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
-    DEFAULT_COLLISION_ITERATIONS = TREEPACK_DEFAULT.COLLISION_ITERATIONS;
-    DEFAULT_CHARGE = TREEPACK_DEFAULT.CHARGE;
-    DEFAULT_GRAVITY = TREEPACK_DEFAULT.GRAVITY;
-    DEFAULT_NODE_RADIUS_MIN_RATIO = TREEPACK_DEFAULT.NODE_RADIUS_MIN_RATIO;
-    DEFAULT_NODE_RADIUS_MAX_RATIO = TREEPACK_DEFAULT.NODE_RADIUS_MAX_RATIO;
-    DEFAULT_VELOCITY_DECAY = TREEPACK_DEFAULT.VELOCITY_DECAY;
-    DEFAULT_FORCEX_MULTIPLIER = TREEPACK_DEFAULT.FORCEX_MULTIPLIER;
-    DEFAULT_FORCEY_MULTIPLIER = TREEPACK_DEFAULT.FORCEY_MULTIPLIER;
-    DEFAULT_FONT_SIZE_MIN_RATIO = TREEPACK_DEFAULT.FONT_SIZE_MIN_RATIO;
-    DEFAULT_FONT_SIZE_MAX_RATIO = TREEPACK_DEFAULT.FONT_SIZE_MAX_RATIO;
+  //   console.debug("sessionViewTreepack LOADED");
 
-    currentSessionView = new ViewTreepack();
-    initSocketSessionUpdateRx();
+  //   config.defaults.transitionDuration = TREEPACK_DEFAULT.TRANSITION_DURATION;
+  //   config.defaults.maxAge = TREEPACK_DEFAULT.MAX_AGE;
+  //   config.defaults.collisionRadiusMultiplier = TREEPACK_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
+  //   config.defaults.collisionIterations = TREEPACK_DEFAULT.COLLISION_ITERATIONS;
+  //   config.defaults.charge = TREEPACK_DEFAULT.CHARGE;
+  //   config.defaults.gravity = TREEPACK_DEFAULT.GRAVITY;
+  //   config.defaults.nodeRadiusMinRatio = TREEPACK_DEFAULT.NODE_RADIUS_MIN_RATIO;
+  //   config.defaults.nodeRadiusMaxRatio = TREEPACK_DEFAULT.NODE_RADIUS_MAX_RATIO;
+  //   config.defaults.velocityDecay = TREEPACK_DEFAULT.VELOCITY_DECAY;
+  //   config.defaults.forceXmultiplier = TREEPACK_DEFAULT.FORCEX_MULTIPLIER;
+  //   config.defaults.forceYmultiplier = TREEPACK_DEFAULT.FORCEY_MULTIPLIER;
+  //   config.defaults.fontSizeMinRatio = TREEPACK_DEFAULT.FONT_SIZE_MIN_RATIO;
+  //   config.defaults.fontSizeMaxRatio = TREEPACK_DEFAULT.FONT_SIZE_MAX_RATIO;
 
-    callback();
-  });
+  //   // DEFAULT_TRANSITION_DURATION = TREEPACK_DEFAULT.TRANSITION_DURATION;
+  //   // DEFAULT_MAX_AGE = TREEPACK_DEFAULT.MAX_AGE;
+  //   // DEFAULT_COLLISION_RADIUS_MULTIPLIER = TREEPACK_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
+  //   // DEFAULT_COLLISION_ITERATIONS = TREEPACK_DEFAULT.COLLISION_ITERATIONS;
+  //   // DEFAULT_CHARGE = TREEPACK_DEFAULT.CHARGE;
+  //   // DEFAULT_GRAVITY = TREEPACK_DEFAULT.GRAVITY;
+  //   // DEFAULT_NODE_RADIUS_MIN_RATIO = TREEPACK_DEFAULT.NODE_RADIUS_MIN_RATIO;
+  //   // DEFAULT_NODE_RADIUS_MAX_RATIO = TREEPACK_DEFAULT.NODE_RADIUS_MAX_RATIO;
+  //   // DEFAULT_VELOCITY_DECAY = TREEPACK_DEFAULT.VELOCITY_DECAY;
+  //   // DEFAULT_FORCEX_MULTIPLIER = TREEPACK_DEFAULT.FORCEX_MULTIPLIER;
+  //   // DEFAULT_FORCEY_MULTIPLIER = TREEPACK_DEFAULT.FORCEY_MULTIPLIER;
+  //   // DEFAULT_FONT_SIZE_MIN_RATIO = TREEPACK_DEFAULT.FONT_SIZE_MIN_RATIO;
+  //   // DEFAULT_FONT_SIZE_MAX_RATIO = TREEPACK_DEFAULT.FONT_SIZE_MAX_RATIO;
+
+  //   return new ViewTreepack(config);
+  //   // initSocketSessionUpdateRx();
+  // });
+
 }
 
 function onFullScreenChange() {
-  var fullscreenElement =
-    document.fullscreenElement ||
-    document.mozFullScreenElement ||
-    document.webkitFullscreenElement;
+
+  let fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
   // if in fullscreen mode fullscreenElement wont be null
   currentSessionView.resize();
   config.fullscreenMode = Boolean(fullscreenElement);
@@ -2113,143 +1539,105 @@ function onFullScreenChange() {
   updateFullscreenButton();
 }
 
-function initialize(callback) {
+const loadStoredSettings = async () => {
+  console.log("LOADING STORED SETTINGS: " + globalStoredSettingsName);
+  return store.get(globalStoredSettingsName);
+}
+
+const initialize = async () => {
+
   console.log("INITIALIZE ...");
 
+  config.settings = Object.assign({}, config.defaults);
+
+  if (useStoredConfig){
+
+    const storedSettings = await loadStoredSettings()
+
+    if (storedSettings && storedSettings.version === STORED_SETTINGS_VERSION) {
+      config.settings = Object.assign(config.settings, storedSettings);
+    } 
+
+  }
+
+  console.log({config})
+
   document.addEventListener("fullscreenchange", onFullScreenChange, false);
-  document.addEventListener(
-    "webkitfullscreenchange",
-    onFullScreenChange,
-    false
-  );
+  document.addEventListener("webkitfullscreenchange", onFullScreenChange, false);
   document.addEventListener("mozfullscreenchange", onFullScreenChange, false);
 
-  var sessionId;
-  var namespace;
+  let sessionId;
+  let namespace;
 
-  getUrlVariables(function (err, urlVariablesObj) {
-    console.log("URL VARS\n" + jsonPrint(urlVariablesObj));
+  currentSessionView = await loadViewType(config.settings.sessionViewType)
+  currentSessionView.initD3timer();
+  currentSessionView.resize();
 
-    if (!err) {
-      console.log("ON LOAD getUrlVariables\n" + jsonPrint(urlVariablesObj));
+  console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
-      if (urlVariablesObj !== undefined) {
-        if (urlVariablesObj.sessionId) {
-          sessionId = urlVariablesObj.sessionId;
-        }
+  viewerObj.timeStamp = Date.now();
 
-        if (urlVariablesObj.namespace) {
-          namespace = urlVariablesObj.namespace;
-        }
-
-        if (urlVariablesObj.sessionViewType) {
-          config.sessionViewType = urlVariablesObj.sessionViewType;
-
-          console.log(
-            "ON LOAD getUrlVariables: sessionViewType:" + config.sessionViewType
-          );
-
-          loadViewType(config.sessionViewType, function () {
-            console.warn("SESSION VIEW TYPE: " + config.sessionViewType);
-            currentSessionView.resize();
-
-            currentSessionView.initD3timer();
-
-            console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
-
-            viewerObj.timeStamp = Date.now();
-
-            socket.emit("VIEWER_READY", viewerObj, function () {
-              statsObj.viewerReadyTransmitted = true;
-            });
-
-            setTimeout(function () {
-
-              console.log("END PAGE LOAD TIMEOUT");
-              pageLoadedTimeIntervalFlag = false;
-              // initStatsUpdate(STATS_UPDATE_INTERVAL);
-
-              // if (!config.showStatsFlag) {
-              //   displayStats(false, palette.white);
-              // }
-
-              statsObj.isAuthenticated = LOCAL_SOURCE === DEFAULT_SOURCE;
-              console.log("AUTHENTICATED: " + statsObj.isAuthenticated);
-            }, PAGE_LOAD_TIMEOUT);
-
-            callback();
-          });
-        } else {
-          console.warn("DEFAULT_SESSION_VIEW: " + DEFAULT_SESSION_VIEW);
-
-          config.sessionViewType = DEFAULT_SESSION_VIEW;
-
-          loadViewType(config.sessionViewType, function () {
-            currentSessionView.simulationControl("START");
-            currentSessionView.resize();
-
-            console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
-
-            viewerObj.timeStamp = Date.now();
-
-            socket.emit("VIEWER_READY", viewerObj, function () {
-              statsObj.viewerReadyTransmitted = true;
-            });
-
-            setTimeout(function () {
-              console.log("END PAGE LOAD TIMEOUT");
-              // initStatsUpdate(STATS_UPDATE_INTERVAL);
-              pageLoadedTimeIntervalFlag = false;
-
-              // if (!config.showStatsFlag) {
-              //   displayStats(false, palette.white);
-              // }
-
-              statsObj.isAuthenticated = LOCAL_SOURCE === DEFAULT_SOURCE;
-              console.log("AUTHENTICATED: " + statsObj.isAuthenticated);
-            }, PAGE_LOAD_TIMEOUT);
-
-            callback();
-          });
-        }
-      } else {
-        console.warn("DEFAULT_SESSION_VIEW *");
-
-        config.sessionViewType = DEFAULT_SESSION_VIEW;
-
-        loadViewType(config.sessionViewType, function () {
-          currentSessionView.initD3timer();
-          currentSessionView.resize();
-
-          console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
-
-          viewerObj.timeStamp = Date.now();
-
-          socket.emit("VIEWER_READY", viewerObj, function () {
-            statsObj.viewerReadyTransmitted = true;
-          });
-
-          setTimeout(function () {
-
-            console.log("END PAGE LOAD TIMEOUT");
-
-            // initStatsUpdate(STATS_UPDATE_INTERVAL);
-            pageLoadedTimeIntervalFlag = false;
-
-            // if (!config.showStatsFlag) {
-            //   displayStats(false, palette.white);
-            // }
-
-            statsObj.isAuthenticated = LOCAL_SOURCE === DEFAULT_SOURCE;
-            console.log("AUTHENTICATED: " + statsObj.isAuthenticated);
-          }, PAGE_LOAD_TIMEOUT);
-        });
-
-        callback();
-      }
-    } else {
-      console.error("GET URL VARIABLES ERROR\n" + jsonPrint(err));
-      callback(err);
-    }
+  socket.emit("VIEWER_READY", viewerObj, function () {
+    statsObj.viewerReadyTransmitted = true;
   });
+
+  setTimeout(function () {
+    console.log("END PAGE LOAD TIMEOUT");
+    pageLoadedTimeIntervalFlag = false;
+    statsObj.isAuthenticated = LOCAL_SOURCE === DEFAULT_SOURCE;
+    console.log("AUTHENTICATED: " + statsObj.isAuthenticated);
+    initSocketSessionUpdateRx();
+    return;
+  }, PAGE_LOAD_TIMEOUT);
+
 }
+
+requirejs(
+  ["https://d3js.org/d3.v6.min.js"],
+
+  function (d3Loaded) {
+
+    console.log("d3 LOADED");
+    d3 = d3Loaded;
+
+    initialize(config)
+    addCustomizeButton();
+    addFullscreenButton();
+    addMetricButton();
+    addCategoryButton();
+    resetMouseMoveTimer();
+
+    document.addEventListener(
+      "mousemove",
+      function () {
+        if (currentSessionView) {
+          if (config.settings.pauseOnMouseMove) {
+            currentSessionView.simulationControl("PAUSE");
+          }
+          mouseMovingFlag = true;
+          currentSessionView.mouseMoving(true);
+          displayControl(true);
+          resetMouseMoveTimer();
+        }
+      },
+      true
+    );
+
+    document.addEventListener(
+      "panzoomEvent",
+      function () {
+        if (currentSessionView) {
+          config.settings.panzoomTransform = currentSessionView.getPanzoomTransform();
+          saveConfig();
+        }
+      },
+      true
+    );
+  },
+
+  function (error) {
+    console.log("REQUIREJS ERROR handler", error);
+    console.log(error.requireModules && error.requireModules[0]);
+    console.log(error.message);
+  }
+);

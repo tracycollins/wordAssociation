@@ -1,18 +1,20 @@
-/*jslint node: false */
-"use strict";
+/* global d3, deePool, HashMap, panzoom*/
 
-function ViewTreepack() {
+function ViewTreepack (config) {
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
+  console.log({config})
 
-  let initialXposition = 0.5;
-  let initialYposition = 0.9;
-  let defaultInitialZoom = 1.0;
+  let nodeArray = [];
 
-  let DEFAULT_ZOOM_FACTOR = 0.5;
-  let minRateMetricChange = 0.5;
+  const initialXposition = 0.5;
+  const initialYposition = 0.9;
+  // const defaultInitialZoom = 1.0;
 
-  const getWindowDimensions = function () {
+  // const DEFAULT_ZOOM_FACTOR = 0.5;
+  const minRateMetricChange = 0.5;
+
+  function getWindowDimensions () {
     if (window.innerWidth !== "undefined") {
       return { width: window.innerWidth, height: window.innerHeight };
     }
@@ -33,7 +35,7 @@ function ViewTreepack() {
       width: document.getElementsByTagName("body")[0].clientWidth,
       height: document.getElementsByTagName("body")[0].clientHeight,
     };
-  };
+  }
 
   let width = getWindowDimensions().width;
   let height = getWindowDimensions().height;
@@ -75,21 +77,21 @@ function ViewTreepack() {
   };
 
   const DEFAULT_MIN_RATE = 0.1;
-  let minRate = DEFAULT_MIN_RATE;
+  const minRate = DEFAULT_MIN_RATE;
 
   const DEFAULT_MIN_FOLLOWERS = 5000;
-  let minFollowers = DEFAULT_MIN_FOLLOWERS;
+  const minFollowers = DEFAULT_MIN_FOLLOWERS;
 
   const DEFAULT_MIN_MENTIONS = 1000;
 
-  let minMentionsUsers = DEFAULT_MIN_MENTIONS;
-  let minMentionsHashtags = 100;
+  const minMentionsUsers = DEFAULT_MIN_MENTIONS;
+  const minMentionsHashtags = 100;
 
   const DEFAULT_MIN_FOLLOWERS_AGE_RATE_RATIO = 0.9; // age users with many followers at a slower rate
 
   let mouseMovingFlag = false;
 
-  let self = this;
+  // let self = self;
   let simulation;
 
   let enableAgeNodes = true;
@@ -98,63 +100,63 @@ function ViewTreepack() {
 
   let resumeTimeStamp = 0;
 
-  let sliderPercision = 5;
+  const sliderPercision = 5;
 
   // FORCE X & Y
-  let xFocusLeftRatio = 0.2;
-  let yFocusLeftRatio = 0.5;
+  const xFocusLeftRatio = 0.2;
+  const yFocusLeftRatio = 0.5;
 
-  let xFocusRightRatio = 0.8;
-  let yFocusRightRatio = 0.5;
+  const xFocusRightRatio = 0.8;
+  const yFocusRightRatio = 0.5;
 
-  let xFocusPositiveRatio = 0.5;
-  let yFocusPositiveRatio = 0.2;
+  const xFocusPositiveRatio = 0.5;
+  const yFocusPositiveRatio = 0.2;
 
-  let xFocusNegativeRatio = 0.5;
-  let yFocusNegativeRatio = 0.7;
+  const xFocusNegativeRatio = 0.5;
+  const yFocusNegativeRatio = 0.7;
 
-  let xFocusNeutralRatio = 0.5;
-  let yFocusNeutralRatio = 0.5;
+  const xFocusNeutralRatio = 0.5;
+  const yFocusNeutralRatio = 0.5;
 
-  let xFocusDefaultRatio = 0.5;
-  let yFocusDefaultRatio = 0.6;
+  const xFocusDefaultRatio = 0.5;
+  const yFocusDefaultRatio = 0.6;
 
   // INITIAL POSITION
-  let xMinRatioLeft = 0.25;
-  let xMaxRatioLeft = 0.3;
+  const xMinRatioLeft = 0.25;
+  const xMaxRatioLeft = 0.3;
 
-  let yMinRatioLeft = 0.75;
-  let yMaxRatioLeft = 0.85;
+  const yMinRatioLeft = 0.75;
+  const yMaxRatioLeft = 0.85;
 
-  let xMinRatioRight = 0.7;
-  let xMaxRatioRight = 0.75;
+  const xMinRatioRight = 0.7;
+  const xMaxRatioRight = 0.75;
 
-  let yMinRatioRight = 0.75;
-  let yMaxRatioRight = 0.85;
+  const yMinRatioRight = 0.75;
+  const yMaxRatioRight = 0.85;
 
-  let xMinRatioPositive = 0.45;
-  let xMaxRatioPositive = 0.55;
+  const xMinRatioPositive = 0.45;
+  const xMaxRatioPositive = 0.55;
 
-  let yMinRatioPositive = 0.3;
-  let yMaxRatioPositive = 0.4;
+  const yMinRatioPositive = 0.3;
+  const yMaxRatioPositive = 0.4;
 
-  let xMinRatioNegative = 0.45;
-  let xMaxRatioNegative = 0.55;
+  const xMinRatioNegative = 0.45;
+  const xMaxRatioNegative = 0.55;
 
-  let yMinRatioNegative = 0.85;
-  let yMaxRatioNegative = 0.95;
+  const yMinRatioNegative = 0.85;
+  const yMaxRatioNegative = 0.95;
 
-  let xMinRatioNeutral = 0.45;
-  let xMaxRatioNeutral = 0.55;
+  const xMinRatioNeutral = 0.45;
+  const xMaxRatioNeutral = 0.55;
 
-  let yMinRatioNeutral = 0.75;
-  let yMaxRatioNeutral = 0.85;
+  const yMinRatioNeutral = 0.75;
+  const yMaxRatioNeutral = 0.85;
 
-  let xMinRatioDefault = 0.45;
-  let xMaxRatioDefault = 0.55;
+  const xMinRatioDefault = 0.45;
+  const xMaxRatioDefault = 0.55;
 
-  let yMinRatioDefault = 0.75;
-  let yMaxRatioDefault = 0.85;
+  const yMinRatioDefault = 0.75;
+  const yMaxRatioDefault = 0.85;
 
   let foci = {
     left: { x: xFocusLeftRatio * width, y: yFocusLeftRatio * height },
@@ -172,7 +174,7 @@ function ViewTreepack() {
     default: { x: xFocusDefaultRatio * width, y: yFocusDefaultRatio * height },
   };
 
-  let totalHashmap = {};
+  const totalHashmap = {};
   totalHashmap.total = 0;
   totalHashmap.left = 0;
   totalHashmap.right = 0;
@@ -181,7 +183,6 @@ function ViewTreepack() {
   totalHashmap.negative = 0;
   totalHashmap.none = 0;
 
-  let nodeArray = [];
 
   let currentMaxRateMetric = 2;
 
@@ -273,32 +274,37 @@ function ViewTreepack() {
     return new Node("nodePoolId_" + nodePoolIndex);
   });
 
-  let autoCategoryFlag = config.autoCategoryFlag;
-  let metricMode = config.defaultMetricMode;
-  let blahMode = config.defaultBlahMode;
-  let charge = config.defaultCharge;
-  let gravity = config.defaultGravity;
-  let forceXmultiplier = config.defaultForceXmultiplier;
-  let forceYmultiplier = config.defaultForceYmultiplier;
-  let collisionRadiusMultiplier = 1.1;
-  let collisionIterations = config.defaultCollisionIterations;
-  let velocityDecay = config.defaultVelocityDecay;
-  let fontSizeMinRatio = config.defaultFontSizeMinRatio;
-  let fontSizeMaxRatio = config.defaultFontSizeMaxRatio;
-  let fontSizeMin = config.defaultFontSizeMinRatio * height;
-  let fontSizeMax = config.defaultFontSizeMaxRatio * height;
+  nodePool.grow(2 * config.settings.maxNodes);
 
-  let nodeRadiusMinRatio = config.defaultNodeRadiusMinRatio;
-  let nodeRadiusMaxRatio = config.defaultNodeRadiusMaxRatio;
-  let nodeRadiusMin = config.defaultNodeRadiusMinRatio * width;
-  let nodeRadiusMax = config.defaultNodeRadiusMaxRatio * width;
+  console.log(`POOL INIT | SIZE: ${nodePool.size()}`)
 
-  if (config.panzoomTransform === undefined) {
-    config.panzoomTransform = {};
+  let autoCategoryFlag = config.settings.autoCategoryFlag;
+  let metricMode = config.settings.metricMode;
+  let charge = config.settings.charge;
+  let gravity = config.settings.gravity;
+  const forceXmultiplier = config.settings.forceXmultiplier;
+  const forceYmultiplier = config.settings.forceYmultiplier;
+  const collisionRadiusMultiplier = 1.1;
+  const collisionIterations = config.settings.collisionIterations;
+  let velocityDecay = config.settings.velocityDecay;
+
+  let fontSizeRatioMin = config.settings.fontSizeRatio.min;
+  let fontSizeRatioMax = config.settings.fontSizeRatio.max;
+  let fontSizeMin = fontSizeRatioMin * height;
+  let fontSizeMax = fontSizeRatioMax * height;
+
+  let nodeRadiusRatioMin = config.settings.nodeRadiusRatio.min;
+  let nodeRadiusRatioMax = config.settings.nodeRadiusRatio.max;
+  let nodeRadiusMin = nodeRadiusRatioMin * width;
+  let nodeRadiusMax = nodeRadiusRatioMax * width;
+
+  if (config.settings.panzoomTransform === undefined) {
+    config.settings.panzoomTransform = {};
   }
-  config.panzoomTransform.scale = config.panzoomTransform.scale || config.defaultZoomFactor;
-  config.panzoomTransform.x = config.panzoomTransform.x || 0.5 * width;
-  config.panzoomTransform.y = config.panzoomTransform.y || 0.5 * height;
+  config.settings.panzoomTransform.ratio = 1.0;
+  config.settings.panzoomTransform.scale = config.settings.panzoomTransform.scale || config.settings.zoomFactor;
+  config.settings.panzoomTransform.x = config.settings.panzoomTransform.x || 0.5 * width;
+  config.settings.panzoomTransform.y = config.settings.panzoomTransform.y || 0.5 * height;
 
   const maxRateMentions = {};
   maxRateMentions.rateNodeType = "hashtag";
@@ -324,34 +330,24 @@ function ViewTreepack() {
   maxRateMentions.x = 100;
   maxRateMentions.y = 100;
 
-  console.warn("TREEPACK CONFIG");
+  console.log("TREEPACK CONFIG");
 
   let testMode = false;
   let freezeFlag = false;
 
-  const MAX_NODES_LIMIT = 100;
-
-  let minOpacity = 0.2;
-  let antonymFlag = false;
-  let removeDeadNodesFlag = true;
+  const minOpacity = 0.2;
 
   const DEFAULT_AGE_RATE = 1.0;
-  const MAX_RX_QUEUE = 100;
 
   const localNodeHashMap = new HashMap();
   const nodeIdHashMap = new HashMap();
 
   let maxNodeAddQ = 0;
   let maxNodes = 0;
-  let maxNodesLimit = MAX_NODES_LIMIT;
 
   let runningFlag = false;
 
   const nodeAddQ = [];
-
-  self.sessionKeepalive = function () {
-    return null;
-  };
 
   self.getWidth = function () {
     return width;
@@ -377,32 +373,28 @@ function ViewTreepack() {
   let mouseHoverFlag = false;
 
   let nodeMaxAge = 60000;
-
-  const DEFAULT_TREEMAP_CONFIG = { ageRate: DEFAULT_AGE_RATE };
-
-  let ageRate = DEFAULT_TREEMAP_CONFIG.ageRate;
   let maxAgeRate = 1e-6;
 
   // let defaultStrokeWidth = "1.1px";
-  let defaultStrokeWidth = "0.5em";
+  const defaultStrokeWidth = "0.5em";
   // let topTermStrokeWidth = "2.0px";
-  let topTermStrokeWidth = "0.6em";
+  const topTermStrokeWidth = "0.6em";
 
   // let botStrokeWidth = "4.0px";
-  let botStrokeWidth = "0.6em";
-  let botCircleFillColor = palette.black;
-  let botCircleStrokeColor = palette.lightgray;
-  let botLabelFillColor = palette.white;
+  const botStrokeWidth = "0.6em";
+  const botCircleFillColor = palette.black;
+  // const botCircleStrokeColor = palette.lightgray;
+  const botLabelFillColor = palette.white;
 
-  let categoryMatchColor = palette.green;
+  const categoryMatchColor = palette.green;
   // let categoryMatchStrokeWidth = "4.0px";
-  let categoryMatchStrokeWidth = "0.6em";
+  const categoryMatchStrokeWidth = "0.6em";
   // let categoryMismatchStrokeWidth = "7.0px";
-  let categoryMismatchStrokeWidth = "0.7em";
+  const categoryMismatchStrokeWidth = "0.7em";
   // let categoryAutoStrokeWidth = "2.0px";
-  let categoryAutoStrokeWidth = "0.3em";
+  const categoryAutoStrokeWidth = "0.3em";
 
-  let divTooltip = d3
+  const divTooltip = d3
     .select("body")
     .append("div")
     .attr("id", "divTooltip")
@@ -438,24 +430,24 @@ function ViewTreepack() {
     .range([fontSizeMin, fontSizeMax])
     .clamp(true);
 
-  let nodeLabelOpacityScale = d3
+  const nodeLabelOpacityScale = d3
     .scaleLinear()
     .domain([1e-6, 0.5, 1.0])
     .range([1.0, 0.85, 1.5 * minOpacity])
     .clamp(true);
 
-  let nodeLabelOpacityScaleTopTerm = d3
+  const nodeLabelOpacityScaleTopTerm = d3
     .scaleLinear()
     .domain([1e-6, 0.5, 1.0])
     .range([1.0, 0.95, 0.75])
     .clamp(true);
 
-  let adjustedAgeRateScale = d3
+  const adjustedAgeRateScale = d3
     .scaleLinear()
-    .domain([1, maxNodesLimit])
+    .domain([1, config.settings.maxNodesLimit])
     .range([1.0, 100.0]);
 
-  let d3image = d3.select("#d3group");
+  const d3image = d3.select("#d3group");
 
   const svgMain = d3image
     .append("svg:svg")
@@ -465,6 +457,7 @@ function ViewTreepack() {
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
+
   const svgTreemapLayoutArea = svgMain
     .append("svg:g")
     .attr("id", "svgTreemapLayoutArea")
@@ -473,17 +466,21 @@ function ViewTreepack() {
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
-  let panzoomElement = document.getElementById("svgTreemapLayoutArea");
+  
+  const panzoomElement = document.getElementById("svgTreemapLayoutArea");
 
   const panzoomInstance = panzoom(panzoomElement, {
-    maxZoom: 2,
-    minZoom: 0.1,
-    zoomSpeed: 0.02,
+    autocenter: true,
+    bounds: true,
+    initialZoom: 0.9
+    // maxZoom: 2,
+    // minZoom: 0.1,
+    // zoomSpeed: 0.02,
   });
 
   const panzoomEvent = new CustomEvent("panzoomEvent", {
     bubbles: true,
-    detail: { transform: () => config.panzoomTransform },
+    detail: { transform: () => config.settings.panzoomTransform },
   });
 
   let panzoomCurrentEvent;
@@ -499,24 +496,23 @@ function ViewTreepack() {
     clearTimeout(zoomEndTimeout);
 
     zoomEndTimeout = setTimeout(function () {
-      config.panzoomTransform = panzoomCurrentEvent.getTransform();
+      config.settings.panzoomTransform = panzoomCurrentEvent.getTransform();
       console.log(
         "panzoomTransform transform end\n",
-        jsonPrint(config.panzoomTransform)
+        jsonPrint(config.settings.panzoomTransform)
       );
       document.dispatchEvent(panzoomEvent);
     }, 1000);
   };
 
-  console.log("panzoomInstance zoomAbs\n", jsonPrint(config.panzoomTransform));
+  console.log("panzoomInstance zoomAbs\n", jsonPrint(config.settings.panzoomTransform));
 
-  // panzoomInstance.zoomAbs(config.panzoomTransform.x, config.panzoomTransform.y, config.panzoomTransform.scale);
-  panzoomInstance.zoomAbs(
-    width * 0.5,
-    height * 0.5,
-    config.panzoomTransform.scale
-  );
-
+  // panzoomInstance.zoomAbs(
+  //   width * 0.5,
+  //   height * 0.5,
+  //   config.settings.panzoomTransform.scale
+  // );
+  
   const nodeSvgGroup = svgTreemapLayoutArea
     .append("svg:g")
     .attr("id", "nodeSvgGroup");
@@ -537,165 +533,156 @@ function ViewTreepack() {
 
   d3.select("body").style("cursor", "default");
 
-  this.setStats = function (stats) {
+  self.setStats = function (stats) {
     console.log("setStats" + "\nSTATS\n" + jsonPrint(stats));
-
-    // if (controlPanelReadyFlag) {
-    //   controlPanelWindow.postMessage(
-    //     {
-    //       op: "STATS",
-    //       stats: stats,
-    //     },
-    //     DEFAULT_SOURCE
-    //   );
-    // }
   };
 
   self.setEnableAgeNodes = function (enabled) {
     enableAgeNodes = enabled;
-    config.enableAgeNodes = enabled;
+    config.settings.enableAgeNodes = enabled;
   };
 
-  this.getPanzoomTransform = function () {
-    return config.panzoomTransform;
+  self.getPanzoomTransform = function () {
+    return config.settings.panzoomTransform;
   };
-  this.deleteNode = function () {
+
+  self.deleteNode = function () {
     return null;
   };
-  this.getTotalHashMap = function () {
+  self.getTotalHashMap = function () {
     return totalHashmap;
   };
-  this.getNodesLength = function () {
+  self.getNodesLength = function () {
     return "NODES: " + nodeArray.length + " | POOL: " + nodePool.size();
   };
-  this.getMaxNodes = function () {
+  self.getMaxNodes = function () {
     return maxNodes;
   };
-  this.getNumNodes = function () {
+  self.getNumNodes = function () {
     return nodeArray.length;
   };
-  this.getNodeAddQlength = function () {
+  self.getNodeAddQlength = function () {
     return nodeAddQ.length;
   };
-  this.getMaxNodeAddQ = function () {
+  self.getMaxNodeAddQ = function () {
     return maxNodeAddQ;
   };
-  this.getAgeRate = function () {
-    return ageRate;
-  };
-  this.getMaxAgeRate = function () {
+  // self.getAgeRate = function () {
+  //   return ageRate;
+  // };
+  self.getMaxAgeRate = function () {
     return maxAgeRate;
   };
 
-  this.setMaxNodesLimit = function (mNodesLimit) {
-    maxNodesLimit = mNodesLimit;
-    config.defaultMaxNodesLimit = mNodesLimit;
-    console.debug("SET MAX NODES LIMIT: " + maxNodesLimit);
+  self.setMaxNodesLimit = function (mNodesLimit) {
+    // maxNodesLimit = mNodesLimit;
+    config.settings.maxNodesLimit = mNodesLimit;
+    console.debug("SET MAX NODES LIMIT: " + config.settings.maxNodesLimit);
   };
 
-  this.setNodeMaxAge = function (mAge) {
+  self.setNodeMaxAge = function (mAge) {
     nodeMaxAge = mAge;
-    config.defaultMaxAge = mAge;
+    config.settings.maxAge = mAge;
     console.debug("SET NODE MAX AGE: " + nodeMaxAge);
   };
 
-  this.setAntonym = function (flag) {
-    antonymFlag = flag;
-    console.debug("SET ANTONYM: " + antonymFlag);
-  };
+  // self.setAntonym = function (flag) {
+  //   antonymFlag = flag;
+  //   console.debug("SET ANTONYM: " + antonymFlag);
+  // };
 
-  this.setTwitterUser = function (message) {
-    if (message.node.notFound !== undefined) {
-      console.log(
-        "setTwitterUser" +
-          " | NOT FOUND: SEARCH NODE: " +
-          message.searchNode +
-          "\nSTATS\n" +
-          jsonPrint(message.stats)
-      );
-    } else {
-      console.log(
-        "setTwitterUser" +
-          " | NID: " +
-          message.node.nodeId +
-          " | @" +
-          message.node.screenName +
-          "\nSTATS\n" +
-          jsonPrint(message.stats)
-      );
-    }
+  // self.setTwitterUser = function (message) {
+  //   if (message.node.notFound !== undefined) {
+  //     console.log(
+  //       "setTwitterUser" +
+  //         " | NOT FOUND: SEARCH NODE: " +
+  //         message.searchNode +
+  //         "\nSTATS\n" +
+  //         jsonPrint(message.stats)
+  //     );
+  //   } else {
+  //     console.log(
+  //       "setTwitterUser" +
+  //         " | NID: " +
+  //         message.node.nodeId +
+  //         " | @" +
+  //         message.node.screenName +
+  //         "\nSTATS\n" +
+  //         jsonPrint(message.stats)
+  //     );
+  //   }
 
-    // if (controlPanelReadyFlag) {
-    //   controlPanelWindow.postMessage(
-    //     {
-    //       op: "SET_TWITTER_USER",
-    //       node: message.node,
-    //       searchNode: message.searchNode,
-    //       stats: message.stats,
-    //     },
-    //     DEFAULT_SOURCE
-    //   );
-    // }
+  //   // if (controlPanelReadyFlag) {
+  //   //   controlPanelWindow.postMessage(
+  //   //     {
+  //   //       op: "SET_TWITTER_USER",
+  //   //       node: message.node,
+  //   //       searchNode: message.searchNode,
+  //   //       stats: message.stats,
+  //   //     },
+  //   //     DEFAULT_SOURCE
+  //   //   );
+  //   // }
 
-  };
+  // };
 
-  this.twitterUserNotFound = function (message) {
-    console.log(
-      "TWITTER USER NOT FOUND" +
-        " | SEARCH MODE: " +
-        message.searchMode +
-        " | SEARCH NODE: " +
-        message.searchNode
-    );
+  // self.twitterUserNotFound = function (message) {
+  //   console.log(
+  //     "TWITTER USER NOT FOUND" +
+  //       " | SEARCH MODE: " +
+  //       message.searchMode +
+  //       " | SEARCH NODE: " +
+  //       message.searchNode
+  //   );
 
-    // if (controlPanelReadyFlag) {
-    //   controlPanelWindow.postMessage(
-    //     {
-    //       op: "TWITTER_USER_NOT_FOUND",
-    //       searchMode: message.searchMode,
-    //       searchNode: message.searchNode,
-    //       stats: stats,
-    //     },
-    //     DEFAULT_SOURCE
-    //   );
-    // }
-  };
+  //   // if (controlPanelReadyFlag) {
+  //   //   controlPanelWindow.postMessage(
+  //   //     {
+  //   //       op: "TWITTER_USER_NOT_FOUND",
+  //   //       searchMode: message.searchMode,
+  //   //       searchNode: message.searchNode,
+  //   //       stats: stats,
+  //   //     },
+  //   //     DEFAULT_SOURCE
+  //   //   );
+  //   // }
+  // };
 
-  this.setTwitterHashtag = function (message) {
-    if (message.node.notFound !== undefined) {
-      console.log(
-        "setTwitterHashtag" +
-          " | NOT FOUND: SEARCH NODE: " +
-          message.searchNode +
-          "\nSTATS\n" +
-          jsonPrint(message.stats)
-      );
-    } else {
-      console.log(
-        "setTwitterHashtag" +
-          " | #" +
-          message.node.nodeId +
-          "\nSTATS\n" +
-          jsonPrint(message.stats)
-      );
-    }
+  // self.setTwitterHashtag = function (message) {
+  //   if (message.node.notFound !== undefined) {
+  //     console.log(
+  //       "setTwitterHashtag" +
+  //         " | NOT FOUND: SEARCH NODE: " +
+  //         message.searchNode +
+  //         "\nSTATS\n" +
+  //         jsonPrint(message.stats)
+  //     );
+  //   } else {
+  //     console.log(
+  //       "setTwitterHashtag" +
+  //         " | #" +
+  //         message.node.nodeId +
+  //         "\nSTATS\n" +
+  //         jsonPrint(message.stats)
+  //     );
+  //   }
 
-    // if (controlPanelReadyFlag) {
-    //   controlPanelWindow.postMessage(
-    //     {
-    //       op: "SET_TWITTER_HASHTAG",
-    //       node: message.node,
-    //       searchNode: message.searchNode,
-    //       stats: message.stats,
-    //     },
-    //     DEFAULT_SOURCE
-    //   );
-    // }
-  };
+  //   // if (controlPanelReadyFlag) {
+  //   //   controlPanelWindow.postMessage(
+  //   //     {
+  //   //       op: "SET_TWITTER_HASHTAG",
+  //   //       node: message.node,
+  //   //       searchNode: message.searchNode,
+  //   //       stats: message.stats,
+  //   //     },
+  //   //     DEFAULT_SOURCE
+  //   //   );
+  //   // }
+  // };
 
-  this.setMetricMode = function (mode) {
+  self.setMetricMode = function (mode) {
     metricMode = mode;
-    config.defaultMetricMode = mode;
+    config.settings.metricMode = mode;
 
     nodeLabelSizeScale = d3
       .scaleLinear()
@@ -712,22 +699,17 @@ function ViewTreepack() {
     console.debug("SET METRIC MODE: " + mode);
   };
 
-  this.setBlah = function (flag) {
-    blahMode = flag;
-    console.debug("SET BLAH: " + blahMode);
-  };
-
-  this.setAutoCategoryFlag = function (flag) {
+  self.setAutoCategoryFlag = function (flag) {
     autoCategoryFlag = flag;
     console.debug("SET AUTO CATEGORY: " + autoCategoryFlag);
   };
 
-  this.setRemoveDeadNodesFlag = function (flag) {
-    removeDeadNodesFlag = flag;
-    console.debug("SET REMOVE DEAD NODES: " + removeDeadNodesFlag);
-  };
+  // self.setRemoveDeadNodesFlag = function (flag) {
+  //   removeDeadNodesFlag = flag;
+  //   console.debug("SET REMOVE DEAD NODES: " + removeDeadNodesFlag);
+  // };
 
-  this.setTestMode = function (flag) {
+  self.setTestMode = function (flag) {
     testMode = flag;
     console.debug("SET TEST MODE: " + testMode);
   };
@@ -769,21 +751,18 @@ function ViewTreepack() {
 
   self.setVelocityDecay = function (value) {
     console.debug("UPDATE VEL DECAY: " + value.toFixed(sliderPercision));
-    config.defaultVelocityDecay = value;
+    config.settings.velocityDecay = value;
     velocityDecay = value;
     simulation.velocityDecay(velocityDecay);
   };
 
   self.setGravity = function (value) {
     console.debug("UPDATE GRAVITY: " + value.toFixed(5));
-    config.defaultGravity = value;
+    config.settings.gravity = value;
     gravity = value;
 
     simulation
-      .force(
-        "forceX",
-        d3
-          .forceX()
+      .force("forceX", d3.forceX()
           .x(function (d) {
             if (
               (autoCategoryFlag && isCategorized(d.categoryAuto)) ||
@@ -825,20 +804,20 @@ function ViewTreepack() {
   self.setTransitionDuration = function (value) {
     console.debug("UPDATE TRANSITION DURATION: " + value);
     // transitionDuration = value;
-    config.defaultTransitionDuration = value;
+    config.settings.transitionDuration = value;
   };
 
   self.setCharge = function (value) {
     console.debug("UPDATE CHARGE: " + value);
-    config.defaultCharge = value;
+    config.settings.charge = value;
     charge = value;
     simulation.force("charge", d3.forceManyBody().strength(value));
   };
 
   self.setNodeRadiusRatioMin = function (value) {
     console.debug("UPDATE NODE RADIUS MIN RATIO: " + value);
-    config.defaultNodeRadiusMinRatio = value;
-    nodeRadiusMinRatio = value;
+    config.settings.nodeRadiusRatio.min = value;
+    nodeRadiusRatioMin = value;
     nodeRadiusMin = value * width;
     defaultRadiusScale = d3
       .scaleLinear()
@@ -849,8 +828,8 @@ function ViewTreepack() {
 
   self.setNodeRadiusRatioMax = function (value) {
     console.debug("UPDATE NODE RADIUS MAX RATIO: " + value);
-    config.defaultNodeRadiusMaxRatio = value;
-    nodeRadiusMaxRatio = value;
+    config.settings.nodeRadiusRatio.max = value;
+    nodeRadiusRatioMax = value;
     nodeRadiusMax = value * width;
     defaultRadiusScale = d3
       .scaleLinear()
@@ -861,9 +840,9 @@ function ViewTreepack() {
 
   self.setFontSizeRatioMin = function (value) {
     console.debug("UPDATE FONT MIN SIZE: " + value);
-    config.defaultFontSizeMinRatio = value;
+    config.settings.fontSizeRatio.min = value;
 
-    fontSizeMinRatio = value;
+    fontSizeRatioMin = value;
     fontSizeMin = value * height;
 
     nodeLabelSizeScale = d3
@@ -875,9 +854,9 @@ function ViewTreepack() {
 
   self.setFontSizeRatioMax = function (value) {
     console.debug("UPDATE FONT MAX SIZE: " + value);
-    config.defaultFontSizeMaxRatio = value;
+    config.settings.fontSizeRatio.max = value;
 
-    fontSizeMaxRatio = value;
+    fontSizeRatioMax = value;
     fontSizeMax = value * height;
 
     nodeLabelSizeScale = d3
@@ -889,17 +868,17 @@ function ViewTreepack() {
 
   self.resetDefaultForce = function () {
     console.warn("RESET TREEPACK DEFAULT FORCE");
-    self.setTransitionDuration(config.defaultTransitionDuration);
-    self.setNodeMaxAge(config.defaultMaxAge);
-    self.setCharge(config.defaultCharge);
-    self.setVelocityDecay(config.defaultVelocityDecay);
-    self.setGravity(config.defaultGravity);
+    self.setTransitionDuration(config.settings.transitionDuration);
+    self.setNodeMaxAge(config.settings.maxAge);
+    self.setCharge(config.settings.charge);
+    self.setVelocityDecay(config.settings.velocityDecay);
+    self.setGravity(config.settings.gravity);
   };
 
-  let tempNodeCirle;
-  let tempNodeLabel;
+  function resetNode(n){
 
-  function resetNode(n, callback) {
+    // console.debug(`==> RESET NODE | ID: ${n.nodeId}`)
+
     n.age = 1e-6;
     n.ageMaxRatio = 1e-6;
     n.ageUpdated = Date.now();
@@ -939,25 +918,23 @@ function ViewTreepack() {
     n.x = initialXposition.width;
     n.y = initialYposition.height;
 
-    tempNodeCirle = document.getElementById(n.nodePoolId);
-    tempNodeCirle.setAttribute("display", "none");
+    if (document.getElementById(n.nodePoolId)){
+      document.getElementById(n.nodePoolId).setAttribute("display", "none");
+    }
 
-    tempNodeLabel = document.getElementById(n.nodePoolId + "_label");
-    tempNodeLabel.setAttribute("display", "none");
+    if (document.getElementById(n.nodePoolId + "_label")){
+      document.getElementById(n.nodePoolId + "_label").setAttribute("display", "none");
+    }
 
-    callback(n);
+    return n;
   }
 
-  let tempTotalHashmap = {};
-  let ageNodesLength = 0;
-  let ageMaxRatio = 1e-6;
-  let age = 1e-6;
-  let nodeIdArray = [];
-  let tempNodeArray = [];
-  let nPoolId;
-  let nNode;
+  function ageNodes(){
+      
+    let age = 1e-6;
+    const tempNodeArray = [];
 
-  function ageNodes(callback) {
+    const tempTotalHashmap = {};
     tempTotalHashmap.total = 0;
     tempTotalHashmap.left = 0;
     tempTotalHashmap.right = 0;
@@ -966,128 +943,93 @@ function ViewTreepack() {
     tempTotalHashmap.negative = 0;
     tempTotalHashmap.none = 0;
 
-    tempNodeArray.length = 0;
+    const nodeIdArray = nodeIdHashMap.keys();
+    
+    const ageNodesLength = nodeIdArray.length;
+    let ageRate = DEFAULT_AGE_RATE;
 
-    nodeIdArray = nodeIdHashMap.keys();
-    age = 1e-6;
-    ageMaxRatio = 1e-6;
-    ageNodesLength = nodeIdArray.length;
-    ageRate = DEFAULT_AGE_RATE;
-
-    if (ageNodesLength === 0) {
-      ageRate = DEFAULT_AGE_RATE;
-    } else if (
-      ageNodesLength > maxNodesLimit &&
-      nodeAddQ.length <= MAX_RX_QUEUE
-    ) {
-      ageRate = adjustedAgeRateScale(ageNodesLength - maxNodesLimit);
-    } else if (nodeAddQ.length > MAX_RX_QUEUE) {
-      ageRate = adjustedAgeRateScale(nodeAddQ.length - MAX_RX_QUEUE);
-    } else {
-      ageRate = DEFAULT_AGE_RATE;
-    }
+    if (ageNodesLength > config.settings.maxNodesLimit && nodeAddQ.length <= config.settings.maxNodes) {
+      ageRate = adjustedAgeRateScale(ageNodesLength - config.settings.maxNodesLimit);
+    } 
+    else if (nodeAddQ.length > config.settings.maxNodes) {
+      ageRate = adjustedAgeRateScale(nodeAddQ.length - config.settings.maxNodes);
+    } 
 
     maxAgeRate = Math.max(ageRate, maxAgeRate);
 
-    async.eachSeries(
-      nodeIdArray,
-      function eachNodeIdArray(nodeId, cb) {
-        nPoolId = nodeIdHashMap.get(nodeId);
-        nNode = localNodeHashMap.get(nPoolId);
+    for(const nodeId of nodeIdArray){
 
-        if (!nNode.isValid || nNode.isDead) {
-          return cb();
-        }
+      const nPoolId = nodeIdHashMap.get(nodeId);
+      const nNode = localNodeHashMap.get(nPoolId);
 
-        if (!enableAgeNodes || resumeTimeStamp > 0) {
-          ageRate = 1e-6;
-        }
-
-        if (
-          nNode.nodeType === "user" &&
-          nNode.followersCount &&
-          nNode.followersCount > minFollowers
-        ) {
-          age =
-            nNode.age +
-            ageRate *
-              DEFAULT_MIN_FOLLOWERS_AGE_RATE_RATIO *
-              (Date.now() - nNode.ageUpdated);
-        } else {
-          age = nNode.age + ageRate * (Date.now() - nNode.ageUpdated);
-        }
-
-        ageMaxRatio = age / nodeMaxAge;
-
-        if (removeDeadNodesFlag && (nNode.isDead || age >= nodeMaxAge)) {
-          nNode.isDead = true;
-          nNode.ageUpdated = Date.now();
-          nNode.age = 1e-6;
-          nNode.ageMaxRatio = 1.0;
-
-          nodeIdHashMap.remove(nNode.nodeId);
-          localNodeHashMap.set(nPoolId, nNode);
-
-          if (nNode.isValid) {
-            nNode.isValid = false;
-            localNodeHashMap.remove(nPoolId);
-            resetNode(nNode, function nodeReset(n) {
-              nodePool.recycle(n);
-              localNodeHashMap.set(nPoolId, n);
-              cb();
-            });
-          } else {
-            cb();
-          }
-        } else {
-          nNode.isValid = true;
-          nNode.isDead = false;
-          nNode.ageUpdated = Date.now();
-          nNode.age = Math.max(age, 1e-6);
-          nNode.ageMaxRatio = Math.max(ageMaxRatio, 1e-6);
-
-          localNodeHashMap.set(nPoolId, nNode);
-          nodeIdHashMap.set(nNode.nodeId, nPoolId);
-
-          tempNodeArray.push(nNode);
-
-          if (isCategorized(nNode.category)) {
-            if (metricMode === "rate") {
-              tempTotalHashmap[nNode.category] += nNode.rate;
-              tempTotalHashmap.total += nNode.rate;
-            }
-            if (metricMode === "mentions") {
-              tempTotalHashmap[nNode.category] += nNode.mentions;
-              tempTotalHashmap.total += nNode.mentions;
-            }
-          } else {
-            if (metricMode === "rate") {
-              tempTotalHashmap.none += nNode.rate;
-              tempTotalHashmap.total += nNode.rate;
-            }
-            if (metricMode === "mentions") {
-              tempTotalHashmap.none += nNode.mentions;
-              tempTotalHashmap.total += nNode.mentions;
-            }
-          }
-
-          cb();
-        }
-      },
-      function endAgeNodes(err) {
-        if (err) {
-          console.error("age node err: " + err);
-        }
-        resumeTimeStamp = 0;
-        totalHashmap = tempTotalHashmap;
-        callback(err, tempNodeArray);
+      if (!nPoolId || !nNode){
+        console.debug(`UNDEFINED | nPoolId: ${nPoolId} | nNode: ${nNode}`)
+        continue;
       }
-    );
+
+      if (!enableAgeNodes || resumeTimeStamp > 0) {
+        ageRate = 1e-6;
+      }
+
+      if (nNode.nodeType === "user" && nNode.followersCount && nNode.followersCount > minFollowers) {
+        age = nNode.age + ageRate * DEFAULT_MIN_FOLLOWERS_AGE_RATE_RATIO * (Date.now() - nNode.ageUpdated);
+      } 
+      else {
+        age = nNode.age + ageRate * (Date.now() - nNode.ageUpdated);
+      }
+
+      if (nNode.isDead || (age >= nodeMaxAge)) {
+
+        nodeIdHashMap.remove(nodeId);
+        localNodeHashMap.remove(nPoolId);
+
+        const n = resetNode(nNode)
+        nodePool.recycle(n);
+
+      } 
+      else {
+        
+        nNode.isValid = true;
+        nNode.isDead = (age >= nodeMaxAge);
+        nNode.ageUpdated = Date.now();
+        nNode.age = Math.max(age, 1e-6);
+        nNode.ageMaxRatio = Math.max((age / nodeMaxAge), 1e-6);
+
+        localNodeHashMap.set(nPoolId, nNode);
+        nodeIdHashMap.set(nNode.nodeId, nPoolId);
+
+        tempNodeArray.push(nNode);
+
+        if (isCategorized(nNode.category)) {
+          if (metricMode === "rate") {
+            tempTotalHashmap[nNode.category] += nNode.rate;
+            tempTotalHashmap.total += nNode.rate;
+          }
+          if (metricMode === "mentions") {
+            tempTotalHashmap[nNode.category] += nNode.mentions;
+            tempTotalHashmap.total += nNode.mentions;
+          }
+        } else {
+          if (metricMode === "rate") {
+            tempTotalHashmap.none += nNode.rate;
+            tempTotalHashmap.total += nNode.rate;
+          }
+          if (metricMode === "mentions") {
+            tempTotalHashmap.none += nNode.mentions;
+            tempTotalHashmap.total += nNode.mentions;
+          }
+        }
+
+      }
+
+    }
+
+    resumeTimeStamp = 0;
+    // totalHashmap = tempTotalHashmap;
+    return tempNodeArray;
+
   }
 
-  let previousTwitterUserId;
-  // let previousTwitterEmoji;
-  let previousTwitterHashtag;
   let tooltipString;
 
   const nodeMouseOver = function (event, d) {
@@ -1112,15 +1054,6 @@ function ViewTreepack() {
 
     switch (d.nodeType) {
       case "user":
-        // currentTwitterUser = d;
-
-        // if (
-        //   mouseMovingFlag &&
-        //   controlPanelReadyFlag &&
-        //   (!previousTwitterUserId || previousTwitterUserId !== d.nodeId)
-        // ) {
-        //   previousTwitterUserId = d.nodeId;
-        // }
 
         tooltipString =
           "@" +
@@ -1151,16 +1084,6 @@ function ViewTreepack() {
         break;
 
       case "hashtag":
-        // currentTwitterHashtag = d;
-
-        // if (
-        //   mouseMovingFlag &&
-        //   controlPanelReadyFlag &&
-        //   (!previousTwitterHashtag || previousTwitterHashtag !== d.nodeId)
-        // ) {
-        //   previousTwitterHashtag = d.nodeId;
-        // }
-
         tooltipString =
           "#" +
           d.nodeId +
@@ -1174,6 +1097,8 @@ function ViewTreepack() {
           "<br>CA: " +
           d.categoryAuto;
         break;
+      default:
+        tooltipString = ""
     }
 
     divTooltip.html(tooltipString);
@@ -1201,16 +1126,6 @@ function ViewTreepack() {
 
     switch (d.nodeType) {
       case "user":
-        // currentTwitterUser = d;
-
-        // if (
-        //   mouseMovingFlag &&
-        //   controlPanelReadyFlag &&
-        //   (!previousTwitterUserId || previousTwitterUserId !== d.nodeId)
-        // ) {
-        //   previousTwitterUserId = d.nodeId;
-        // }
-
         tooltipString =
           "@" +
           d.screenName +
@@ -1240,16 +1155,6 @@ function ViewTreepack() {
         break;
 
       case "hashtag":
-        // currentTwitterHashtag = d;
-
-        // if (
-        //   mouseMovingFlag &&
-        //   controlPanelReadyFlag &&
-        //   (!previousTwitterHashtag || previousTwitterHashtag !== d.nodeId)
-        // ) {
-        //   previousTwitterHashtag = d.nodeId;
-        // }
-
         tooltipString =
           "#" +
           d.nodeId +
@@ -1263,6 +1168,9 @@ function ViewTreepack() {
           "<br>CA: " +
           d.categoryAuto;
         break;
+      
+      default:
+        tooltipString = ""
     }
 
     divTooltip.html(tooltipString);
@@ -1417,8 +1325,6 @@ function ViewTreepack() {
     return d.nodeId;
   }
 
-  // const nodeSearchEvent = new CustomEvent("nodeSearch", { detail: elem });
-
   function nodeClick(event, d) {
 
     document.dispatchEvent(new CustomEvent("nodeSearch", { detail: { node: d }}));
@@ -1426,16 +1332,6 @@ function ViewTreepack() {
     switch (d.nodeType) {
 
       case "user":
-
-
-        // if (controlPanelReadyFlag) {
-        //   controlPanelWindow.postMessage({ op: "SET_TWITTER_USER", node: d, nodeSearch: true }, DEFAULT_SOURCE);
-        // }
-
-        // if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterUserId || previousTwitterUserId !== d.nodeId)) {
-        //   previousTwitterUserId = d.nodeId;
-        // }
-
         if (d.lastTweetId && d.lastTweetId !== undefined) {
           console.debug("LOADING TWITTER USER: https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId);
           window.open("https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId, "_blank");
@@ -1447,17 +1343,11 @@ function ViewTreepack() {
         break;
 
       case "hashtag":
-
-        // if (controlPanelReadyFlag) {
-        //   controlPanelWindow.postMessage({ op: "SET_TWITTER_HASHTAG", node: d, nodeSearch: true }, DEFAULT_SOURCE);
-        // }
-
-        // if (mouseMovingFlag && controlPanelReadyFlag && (!previousTwitterHashtag || previousTwitterHashtag !== d.nodeId)) {
-        //   previousTwitterHashtag = d.nodeId;
-        // }
-
         window.open("https://twitter.com/search?f=tweets&q=%23" + d.nodeId, "_blank");
         break;
+
+      default:
+        console.debug(`UNSUPPORTED NODE TYPE: ${d.nodeType}`);
     }
   }
 
@@ -1505,188 +1395,81 @@ function ViewTreepack() {
     return palette.white;
   }
 
-  function updateNodeCircles(callback) {
+  function circleStrokeWidth(d){
+    if (d.nodeType === "hashtag" && d.isTopTerm) { return topTermStrokeWidth; }
+    if (d.nodeType === "hashtag") { return 0.5 * defaultStrokeWidth; }
+    if (d.isBot) { return botStrokeWidth; }
+    if (d.categoryMismatch && d.following) { return categoryMismatchStrokeWidth; }
+    if (d.categoryMismatch && !d.following) { return 0.5 * categoryMismatchStrokeWidth; }
+    if (d.categoryMatch && d.following) { return categoryMatchStrokeWidth; }
+    if (d.categoryMatch && !d.following) { return 0.5 * categoryMatchStrokeWidth; }
+    if (d.isTopTerm && d.following) { return topTermStrokeWidth; }
+    if (d.isTopTerm && !d.following) { return 0.5 * topTermStrokeWidth; }
+    if (isCategorized(d.categoryAuto) && d.following) { return 2.0 * categoryAutoStrokeWidth; }
+    if (isCategorized(d.categoryAuto) && !d.following) { return 2.0 * categoryAutoStrokeWidth; }
+    if (d.following) { return defaultStrokeWidth; }
+    return 0.5 * defaultStrokeWidth;
+  }
+
+  function circleFillOpacity(d){
+    if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
+    if (!isCategorized(d.category) && isCategorized(d.categoryAuto)) { return nodeLabelOpacityScaleTopTerm(0.5*d.ageMaxRatio); }
+    return nodeLabelOpacityScale(d.ageMaxRatio);
+  }
+
+  function circleStrokeOpacity(d) { 
+    if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
+    return nodeLabelOpacityScale(d.ageMaxRatio);
+  }
+
+  function updateNodeCircles() {
+    
     nodeCircles = nodeSvgGroup.selectAll("circle").data(
-      nodeArray.filter(function (d) {
-        return d.isValid && d.nodeType !== "media";
-      }),
-      function (d) {
-        return d.nodeId;
-      }
+      nodeArray.filter(function (d) { return d.isValid; }),
+      function (d) { return d.nodeId; }
     );
 
     // ENTER
     nodeCircles
       .enter()
       .append("circle")
-      .attr("id", function (d) {
-        return d.nodePoolId;
-      })
-      .attr("nodeId", function (d) {
-        return d.nodeId;
-      })
       .style("display", function (d) {
-        if (!d.isValid) {
-          return "none";
-        }
+        if (!d.isValid) { return "none"; }
         return "unset";
       })
       .attr("r", 1e-6)
-      .attr("cx", function (d) {
-        return d.x;
-      })
-      .attr("cy", function (d) {
-        return d.y;
-      })
+      .attr("cx", function (d) { return d.x; })
+      .attr("cy", function (d) { return d.y; })
       .style("fill", circleFill)
+      .style("fill-opacity", circleFillOpacity)
       .style("stroke", circleStroke)
-      .style("stroke-width", function (d) {
-        if (d.nodeType === "hashtag" && d.isTopTerm) {
-          return topTermStrokeWidth;
-        }
-        if (d.nodeType === "hashtag") {
-          return 0.5 * defaultStrokeWidth;
-        }
-        if (d.isBot) {
-          return botStrokeWidth;
-        }
-        if (d.categoryMismatch && d.following) {
-          return categoryMismatchStrokeWidth;
-        }
-        if (d.categoryMismatch && !d.following) {
-          return 0.5 * categoryMismatchStrokeWidth;
-        }
-        if (d.categoryMatch && d.following) {
-          return categoryMatchStrokeWidth;
-        }
-        if (d.categoryMatch && !d.following) {
-          return 0.5 * categoryMatchStrokeWidth;
-        }
-        if (d.isTopTerm && d.following) {
-          return topTermStrokeWidth;
-        }
-        if (d.isTopTerm && !d.following) {
-          return 0.5 * topTermStrokeWidth;
-        }
-        if (isCategorized(d.categoryAuto) && d.following) {
-          return 2.0 * categoryAutoStrokeWidth;
-        }
-        if (isCategorized(d.categoryAuto) && !d.following) {
-          return 2.0 * categoryAutoStrokeWidth;
-        }
-        if (d.following) {
-          return defaultStrokeWidth;
-        }
-        return 0.5 * defaultStrokeWidth;
-      })
-      .style("fill-opacity", function (d) {
-        if (d.isTopTerm) {
-          return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio);
-        }
-        if (!isCategorized(d.category) && isCategorized(d.categoryAuto)) {
-          return nodeLabelOpacityScaleTopTerm(0.5*d.ageMaxRatio);
-        }
-        return nodeLabelOpacityScale(d.ageMaxRatio);
-      })
-      .style("stroke-opacity", function (d) {
-        if (d.isTopTerm) {
-          return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio);
-        }
-        return nodeLabelOpacityScale(d.ageMaxRatio);
-      })
+      .style("stroke-width", circleStrokeWidth)
+      .style("stroke-opacity", circleStrokeOpacity)
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick);
 
     // UPDATE
     nodeCircles
-      .style("display", function nodeCirclesDisplay(d) {
-        if (!d.isValid) {
-          return "none";
-        }
-        return "unset";
+      .style("display", function (d) {
+        if (!d.isValid) { return "none"; }
+        return "unset"; 
       })
-      .attr("r", function nodeCircleRadius(d) {
-        if (metricMode === "rate") {
-          return defaultRadiusScale(Math.sqrt(d.rate));
-        }
-        if (metricMode === "mentions") {
-          return defaultRadiusScale(Math.sqrt(d.mentions));
-        }
+      .attr("r", function (d) {
+        if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate)); }
+        if (metricMode === "mentions") { return defaultRadiusScale(Math.sqrt(d.mentions)); }
       })
-      .attr("cx", function nodeCircleCx(d) {
-        return d.x;
-      })
-      .attr("cy", function nodeCircleCy(d) {
-        return d.y;
-      })
+      .attr("cx", function (d) { return d.x; })
+      .attr("cy", function (d) { return d.y; })
       .style("fill", circleFill)
+      .style("fill-opacity", circleFillOpacity)
       .style("stroke", circleStroke)
-      .style("stroke-width", function nodeCirclesStrokeWidth(d) {
-        if (d.nodeType === "hashtag" && d.isTopTerm) {
-          return topTermStrokeWidth;
-        }
-        if (d.nodeType === "hashtag") {
-          return 0.75 * defaultStrokeWidth;
-        }
-        if (d.isBot) {
-          return botStrokeWidth;
-        }
-        if (d.isTopTerm && d.following) {
-          return topTermStrokeWidth;
-        }
-        if (d.isTopTerm && !d.following) {
-          return 0.75 * topTermStrokeWidth;
-        }        
-        if (d.categoryMismatch && d.following) {
-          return categoryMismatchStrokeWidth;
-        }
-        if (d.categoryMismatch && !d.following) {
-          return 0.75 * categoryMismatchStrokeWidth;
-        }
-        if (d.categoryMatch && d.following) {
-          return categoryMatchStrokeWidth;
-        }
-        if (d.categoryMatch && !d.following) {
-          return 0.75 * categoryMatchStrokeWidth;
-        }
-        if (d.categoryAuto && d.following) {
-          return 2.0 * categoryAutoStrokeWidth;
-        }
-        if (d.categoryAuto && !d.following) {
-          return 2.0 * categoryAutoStrokeWidth;
-        }
-        if (d.following) {
-          return defaultStrokeWidth;
-        }
-        return 0.5 * defaultStrokeWidth;
-      })
-      .style("fill-opacity", function nodeCirclesFillOpacity(d) {
-        if (d.mouseHoverFlag) {
-          return 1.0;
-        }
-        if (d.isTopTerm) {
-          return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio);
-        }
-        if (!isCategorized(d.category) && isCategorized(d.categoryAuto)) {
-          return nodeLabelOpacityScaleTopTerm(0.5*d.ageMaxRatio);
-        }
-        return nodeLabelOpacityScale(d.ageMaxRatio);
-      })
-      .style("stroke-opacity", function nodeCirclesStrokeOpacity(d) {
-        if (d.mouseHoverFlag) {
-          return 1.0;
-        }
-        if (d.isTopTerm) {
-          return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio);
-        }
-        return nodeLabelOpacityScale(d.ageMaxRatio);
-      });
+      .style("stroke-width", circleStrokeWidth)
+      .style("stroke-opacity", circleStrokeOpacity)
 
     // EXIT
     nodeCircles.exit().style("display", "none");
-
-    callback();
+    return;
   }
 
   let nodeLabels;
@@ -1713,177 +1496,89 @@ function ViewTreepack() {
     return palette.lightgray;
   }
 
-  function updateNodeLabels(callback) {
+  function labelFontSize(d) {
+    if (metricMode === "rate") {
+      return nodeLabelSizeScale(d.rate);
+    }
+    if (metricMode === "mentions") {
+      return nodeLabelSizeScale(d.mentions);
+    }
+  }
+
+  function labelFontDisplay(d){
+    if (!d.isValid) { return "none"; }
+    if (isCategorized(d.category)) { return "unset"; }
+    if (isCategorized(d.categoryAuto)) { return "unset"; }
+    if (mouseMovingFlag) { return "unset"; }
+    if (d.rate > minRate) { return "unset"; }
+    if (d.nodeType === "user" &&
+      (d.followersCount > minFollowers ||
+        d.mentions > minMentionsUsers ||
+        d.screenName.toLowerCase().includes("trump") ||
+        (d.name && d.name.toLowerCase().includes("trump")))
+    ) {
+      return "unset";
+    }
+    if (
+      d.nodeType === "hashtag" &&
+      (d.mentions > minMentionsHashtags || d.nodeId.includes("trump"))
+    ) {
+      return "unset";
+    }
+    return "none";
+  }
+
+  function updateNodeLabels() {
+
     nodeLabels = nodeLabelSvgGroup
       .selectAll("text")
-      .data(nodeArray, function (d) {
-        return d.nodeId;
-      });
+      .data(nodeArray, function (d) { return d.nodeId; });
 
     // UPDATE
     nodeLabels
       .text(labelText)
-      .style("display", function (d) {
-        if (!d.isValid) {
-          return "none";
-        }
-        if (d.mouseHoverFlag) {
-          return "unset";
-        }
-        if (isCategorized(d.category)) {
-          return "unset";
-        }
-        if (isCategorized(d.categoryAuto)) {
-          return "unset";
-        }
-        if (d.rate > minRate) {
-          return "unset";
-        }
-        if (
-          d.nodeType === "user" &&
-          (d.followersCount > minFollowers ||
-            d.mentions > minMentionsUsers ||
-            d.screenName.toLowerCase().includes("trump") ||
-            (d.name && d.name.toLowerCase().includes("trump")))
-        ) {
-          return "unset";
-        }
-        if (
-          d.nodeType === "hashtag" &&
-          (d.mentions > minMentionsHashtags || d.nodeId.includes("trump"))
-        ) {
-          return "unset";
-        }
-        return "none";
-      })
-      .attr("x", function (d) {
-        return d.x;
-      })
-      .attr("y", function (d) {
-        return d.y;
-      })
+      .style("display", labelFontDisplay)
+      .attr("x", function (d) { return d.x; })
+      .attr("y", function (d) { return d.y; })
       .style("fill", labelFill)
-      .style("fill-opacity", function updateNodeLabelOpacity(d) {
-        if (d.mouseHoverFlag) {
-          return 1.0;
-        }
-        if (d.isTopTerm) {
-          return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio);
-        }
+      .style("fill-opacity", function (d) {
+        if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio);
       })
-      .style("font-size", function (d) {
-        if (metricMode === "rate") {
-          if (d.isTopTerm) {
-            return nodeLabelSizeScale(1.5 * d.rate);
-          }
-          return nodeLabelSizeScale(d.rate);
-        }
-        if (metricMode === "mentions") {
-          if (d.isTopTerm) {
-            return nodeLabelSizeScale(1.5 * d.mentions);
-          }
-          return nodeLabelSizeScale(d.mentions);
-        }
-      });
+      .style("font-size", labelFontSize);
 
     // ENTER
     nodeLabels
       .enter()
       .append("text")
-      .attr("id", function (d) {
-        return d.nodePoolId + "_label";
-      })
-      .attr("nodeId", function (d) {
-        return d.nodeId;
-      })
+      .attr("id", function (d) { return d.nodePoolId + "_label"; })
+      .attr("nodeId", function (d) { return d.nodeId; })
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
-      .attr("x", function (d) {
-        return d.x;
-      })
-      .attr("y", function (d) {
-        return d.y;
-      })
+      .attr("x", function (d) { return d.x; })
+      .attr("y", function (d) { return d.y; })
       .text(labelText)
       .style("font-weight", function (d) {
-        if (d.followersCount > minFollowers) {
-          return "bold";
-        }
+        if (d.followersCount > minFollowers) { return "bold"; }
         return "normal";
       })
-      .style("display", function (d) {
-        if (!d.isValid) {
-          return "none";
-        }
-        if (isCategorized(d.category)) {
-          return "unset";
-        }
-        if (isCategorized(d.categoryAuto)) {
-          return "unset";
-        }
-        if (mouseMovingFlag) {
-          return "unset";
-        }
-        if (d.rate > minRate) {
-          return "unset";
-        }
-        if (
-          d.nodeType === "user" &&
-          (d.followersCount > minFollowers ||
-            d.mentions > minMentionsUsers ||
-            d.screenName.toLowerCase().includes("trump") ||
-            (d.name && d.name.toLowerCase().includes("trump")))
-        ) {
-          return "unset";
-        }
-        if (
-          d.nodeType === "hashtag" &&
-          (d.mentions > minMentionsHashtags || d.nodeId.includes("trump"))
-        ) {
-          return "unset";
-        }
-        return "none";
-      })
+      .style("display", labelFontDisplay)
       .style("text-decoration", function (d) {
-        if (d.isTopTerm && d.followersCount > minFollowers) {
-          return "overline underline";
-        }
-        if (!d.isTopTerm && d.followersCount > minFollowers) {
-          return "underline";
-        }
-        if (d.isTopTerm) {
-          return "overline";
-        }
+        if (d.isTopTerm && d.followersCount > minFollowers) { return "overline underline"; }
+        if (!d.isTopTerm && d.followersCount > minFollowers) { return "underline"; }
+        if (d.isTopTerm) { return "overline"; }
         return "none";
       })
       .style("text-decoration-style", function (d) {
-        if (d.categoryVerified) {
-          return "double";
-        }
+        if (d.categoryVerified) { return "double"; }
         return "none";
       })
       .style("fill-opacity", function (d) {
-        if (d.isTopTerm) {
-          return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio);
-        }
+        if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio);
       })
       .style("fill", labelFill)
-      .style("font-size", function (d) {
-        if (metricMode === "rate") {
-          if (d.isTopTerm) {
-            return nodeLabelSizeScale(1.5 * d.rate);
-          }
-          return nodeLabelSizeScale(d.rate);
-        }
-        if (metricMode === "mentions") {
-          if (d.isTopTerm) {
-            return nodeLabelSizeScale(1.5 * d.mentions);
-          }
-          return nodeLabelSizeScale(d.mentions);
-        }
-      })
+      .style("font-size", labelFontSize)
       .on("mouseover", labelMouseOver)
       .on("mouseout", labelMouseOut)
       .on("click", nodeClick);
@@ -1891,9 +1586,7 @@ function ViewTreepack() {
     // EXIT
     nodeLabels.exit().style("display", "none");
 
-    if (callback !== undefined) {
-      callback();
-    }
+    return;
   }
 
   self.mouseMoving = function (isMoving) {
@@ -1912,18 +1605,18 @@ function ViewTreepack() {
     return false;
   }
 
-  const categoryFocus = function (d, axis) {
-    if (
-      (autoCategoryFlag && isCategorized(d.categoryAuto)) ||
-      (!isCategorized(d.category) && isCategorized(d.categoryAuto))
-    ) {
-      return foci[d.categoryAuto][axis];
-    }
-    if (isCategorized(d.category)) {
-      return foci[d.category];
-    }
-    return foci.default[axis];
-  };
+  // const categoryFocus = function (d, axis) {
+  //   if (
+  //     (autoCategoryFlag && isCategorized(d.categoryAuto)) ||
+  //     (!isCategorized(d.category) && isCategorized(d.categoryAuto))
+  //   ) {
+  //     return foci[d.categoryAuto][axis];
+  //   }
+  //   if (isCategorized(d.category)) {
+  //     return foci[d.category];
+  //   }
+  //   return foci.default[axis];
+  // };
 
   function focus(focalPoint) {
     switch (focalPoint) {
@@ -2007,13 +1700,11 @@ function ViewTreepack() {
     }
   }
 
-  let newNode = {};
   let nodeAddQReady = true;
-  let currentNode;
-  let nodePoolId;
   let nodePoolIdcircle;
 
-  function processNodeAddQ(callback) {
+  function processNodeAddQ(){
+
     if (nodeIdHashMap.size > maxNodes) {
       maxNodes = nodeIdHashMap.size;
     }
@@ -2021,12 +1712,12 @@ function ViewTreepack() {
     if (nodeAddQReady && nodeAddQ.length > 0) {
       nodeAddQReady = false;
 
-      newNode = nodeAddQ.shift();
+      const newNode = nodeAddQ.shift();
 
       if (nodeIdHashMap.has(newNode.nodeId)) {
-        nodePoolId = nodeIdHashMap.get(newNode.nodeId);
 
-        currentNode = localNodeHashMap.get(nodePoolId);
+        const nodePoolId = nodeIdHashMap.get(newNode.nodeId);
+        const currentNode = localNodeHashMap.get(nodePoolId);
 
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
@@ -2063,15 +1754,14 @@ function ViewTreepack() {
         }
 
         localNodeHashMap.set(currentNode.nodePoolId, currentNode);
-
-        // if (currentNode.isBot) {
-        //   console.debug("BOT: " + currentNode.nodeId + " | @" + currentNode.screenName)
-        // }
         nodeAddQReady = true;
 
-        callback();
-      } else {
-        currentNode = nodePool.use();
+        return;
+
+      } 
+      else {
+
+        const currentNode = nodePool.use();
 
         nodeIdHashMap.set(newNode.nodeId, currentNode.nodePoolId);
 
@@ -2155,90 +1845,139 @@ function ViewTreepack() {
 
         nodeAddQReady = true;
 
-        callback();
+        return;
+
       }
-    } else {
-      callback();
+
     }
+
+    return;
   }
 
   let previousMaxRateMetric = 0;
 
-  function drawSimulation(callback) {
-    async.parallel(
-      {
-        updateNodeCirclesSeries: function (cb) {
-          updateNodeCircles(cb);
-        },
-        updateNodeLabelsSeries: function (cb) {
-          updateNodeLabels(cb);
-        },
-      },
-      function drawSimulationCallback() {
-        if (
-          (metricMode === "rate" &&
-            newCurrentMaxRateMetricFlag &&
-            Math.abs(currentMaxRateMetric - previousMaxRateMetric) /
-              currentMaxRateMetric >
-              minRateMetricChange) ||
-          (metricMode === "mentions" && newCurrentMaxMentionsMetricFlag)
-        ) {
-          if (metricMode === "rate") {
-            newCurrentMaxRateMetricFlag = false;
-            previousMaxRateMetric = currentMax.rate.rate;
-          }
-          if (metricMode === "mentions") {
-            newCurrentMaxMentionsMetricFlag = false;
-          }
+  // function drawSimulation(){
 
-          nodeLabelSizeScale = d3
-            .scaleLinear()
-            .domain([1, currentMetricModeDomainMax])
-            .range([fontSizeMin, fontSizeMax])
-            .clamp(true);
+  //   async.parallel(
+  //     {
+  //       updateNodeCirclesSeries: function (cb) {
+  //         updateNodeCircles(cb);
+  //       },
+  //       updateNodeLabelsSeries: function (cb) {
+  //         updateNodeLabels(cb);
+  //       },
+  //     },
+      
+  //     function drawSimulationCallback() {
 
-          defaultRadiusScale = d3
-            .scaleLinear()
-            .domain([0, currentMetricModeDomainMaxSqrt])
-            .range([nodeRadiusMin, nodeRadiusMax])
-            .clamp(true);
-        }
+  //       if (
+  //         (metricMode === "rate" &&
+  //           newCurrentMaxRateMetricFlag &&
+  //           Math.abs(currentMaxRateMetric - previousMaxRateMetric) /
+  //             currentMaxRateMetric >
+  //             minRateMetricChange) ||
+  //         (metricMode === "mentions" && newCurrentMaxMentionsMetricFlag)
+  //       ) {
+  //         if (metricMode === "rate") {
+  //           newCurrentMaxRateMetricFlag = false;
+  //           previousMaxRateMetric = currentMax.rate.rate;
+  //         }
+  //         if (metricMode === "mentions") {
+  //           newCurrentMaxMentionsMetricFlag = false;
+  //         }
 
-        callback();
+  //         nodeLabelSizeScale = d3
+  //           .scaleLinear()
+  //           .domain([1, currentMetricModeDomainMax])
+  //           .range([fontSizeMin, fontSizeMax])
+  //           .clamp(true);
+
+  //         defaultRadiusScale = d3
+  //           .scaleLinear()
+  //           .domain([0, currentMetricModeDomainMaxSqrt])
+  //           .range([nodeRadiusMin, nodeRadiusMax])
+  //           .clamp(true);
+  //       }
+
+  //       return;
+  //     }
+  //   );
+  // }
+
+  function drawSimulation(){
+
+    updateNodeCircles()
+    updateNodeLabels()
+
+    if ((metricMode === "rate" && newCurrentMaxRateMetricFlag && Math.abs(currentMaxRateMetric - previousMaxRateMetric) / currentMaxRateMetric > minRateMetricChange)
+      || (metricMode === "mentions" && newCurrentMaxMentionsMetricFlag)) {
+
+      if (metricMode === "rate") {
+        newCurrentMaxRateMetricFlag = false;
+        previousMaxRateMetric = currentMax.rate.rate;
       }
-    );
+      
+      if (metricMode === "mentions") {
+        newCurrentMaxMentionsMetricFlag = false;
+      }
+
+      nodeLabelSizeScale = d3
+        .scaleLinear()
+        .domain([1, currentMetricModeDomainMax])
+        .range([fontSizeMin, fontSizeMax])
+        .clamp(true);
+
+      defaultRadiusScale = d3
+        .scaleLinear()
+        .domain([0, currentMetricModeDomainMaxSqrt])
+        .range([nodeRadiusMin, nodeRadiusMax])
+        .clamp(true);
+    }
+
+    return;
+      
   }
 
   let updateSimulationReady = true;
 
-  function updateSimulation() {
+  function updateSimulation(){
     if (updateSimulationReady) {
       updateSimulationReady = false;
-
-      processNodeAddQ(function () {
-        ageNodes(function (err, nArray) {
-          nodeArray = nArray;
-          simulation.nodes(nodeArray);
-          updateSimulationReady = true;
-        });
-      });
+      processNodeAddQ();
+      nodeArray = ageNodes();
+      simulation.nodes(nodeArray);
+      updateSimulationReady = true;
+      return;
+    }
+    else{
+      console.debug(`updateSimulationReady: ${updateSimulationReady} NOT READY`)
+      return;
     }
   }
 
-  function ticked() {
-    drawSimulation(function () {
-      updateSimulation();
-    });
+  function ticked(){
+    updateSimulation();
+    drawSimulation();
+    return;
   }
 
-  this.setChargeSliderValue = function (value) {
+  self.setChargeSliderValue = function (value) {
     console.debug("SET CHARGE: " + value);
-    config.defaultCharge = value;
+    config.settings.charge = value;
     charge = value;
     simulation.force("charge", d3.forceManyBody().strength(value));
   };
 
-  this.addNode = function (n) {
+  self.addNode = function (n) {
+
+    if (nodeAddQ.length >= config.settings.maxNodes) {
+      return;
+    }
+
+    if (nodeAddQ.length > maxNodeAddQ) {
+      maxNodeAddQ = nodeAddQ.length;
+    }
+    
     n.age = 1e-6;
     n.ageUpdated = Date.now();
     n.ageMaxRatio = 1e-6;
@@ -2292,95 +2031,72 @@ function ViewTreepack() {
       currentMetricModeDomainMax = currentMax[metricMode][metricMode];
     }
 
-    if (nodeAddQ.length < MAX_RX_QUEUE) {
-      nodeAddQ.push(n);
-    }
+    nodeAddQ.push(n);
 
-    if (nodeAddQ.length > maxNodeAddQ) {
-      maxNodeAddQ = nodeAddQ.length;
-    }
   };
 
-  this.addGroup = function () {
+  self.addGroup = function () {
     // not used
   };
 
-  this.addSession = function () {
+  self.addSession = function () {
     // not used
   };
 
-  this.initD3timer = function () {
-    simulation = d3
-      .forceSimulation(nodeArray)
+  self.initD3timer = function() {
+
+    console.log(`initD3timer`)
+    console.log({nodeArray})
+    console.log({charge})
+    console.log({velocityDecay})
+    console.log({gravity})
+    console.log({forceXmultiplier})
+    console.log({forceYmultiplier})
+
+    simulation = d3.forceSimulation(nodeArray)
       .force("charge", d3.forceManyBody().strength(charge))
-      // force("forceX", d3.forceX().x(function (d){ return categoryFocus(d, "x"); }).strength(function strengthFunc() { return forceXmultiplier * gravity; })).
-      // force("forceY", d3.forceY().y(function (d){ return categoryFocus(d, "y"); }).strength(function strengthFunc(){ return forceYmultiplier * gravity; })).
-      .force(
-        "forceX",
-        d3
-          .forceX()
-          .x(function forceXfunc(d) {
-            if (
-              (autoCategoryFlag && isCategorized(d.categoryAuto)) ||
-              (!isCategorized(d.category) && isCategorized(d.categoryAuto))
-            ) {
-              return foci[d.categoryAuto].x;
-            }
-            if (isCategorized(d.category)) {
-              return foci[d.category].x;
-            }
-            return foci.default.x;
-          })
-          .strength(function strengthFunc() {
-            return forceXmultiplier * gravity;
-          })
+      .force("forceX", d3.forceX()
+        .x((d) => {
+          if ((autoCategoryFlag && isCategorized(d.categoryAuto)) || (!isCategorized(d.category) && isCategorized(d.categoryAuto))) {
+            return foci[d.categoryAuto].x;
+          }
+          if (isCategorized(d.category)) { return foci[d.category].x; }
+          return foci.default.x;
+        })
+        .strength(() => forceXmultiplier * gravity)
       )
-      .force(
-        "forceY",
-        d3
-          .forceY()
-          .y(function forceYfunc(d) {
-            if (
-              (autoCategoryFlag && isCategorized(d.categoryAuto)) ||
-              (!isCategorized(d.category) && isCategorized(d.categoryAuto))
-            ) {
-              return foci[d.categoryAuto].y;
-            }
-            if (isCategorized(d.category)) {
-              return foci[d.category].y;
-            }
-            return foci.default.y;
-          })
-          .strength(function strengthFunc() {
-            return forceYmultiplier * gravity;
-          })
+      .force("forceY", d3.forceY()
+        .y((d) => {
+          if ((autoCategoryFlag && isCategorized(d.categoryAuto)) || (!isCategorized(d.category) && isCategorized(d.categoryAuto))) {
+            return foci[d.categoryAuto].y;
+          }
+          if (isCategorized(d.category)) { return foci[d.category].y; }
+          return foci.default.y;
+        })
+        .strength(() => forceYmultiplier * gravity)
       )
-      .force(
-        "collide",
-        d3
-          .forceCollide()
-          .radius(function forceCollideFunc(d) {
-            if (metricMode === "rate") {
-              return (
-                collisionRadiusMultiplier *
-                defaultRadiusScale(Math.sqrt(d.rate))
-              );
-            }
-            if (metricMode === "mentions") {
-              return (
-                collisionRadiusMultiplier *
-                defaultRadiusScale(Math.sqrt(d.mentions))
-              );
-            }
-          })
-          .iterations(collisionIterations)
-          .strength(1.0)
+      .force("collide", d3.forceCollide()
+        .radius((d) => {
+          if (metricMode === "rate") { return (collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate))); }
+          if (metricMode === "mentions") { return (collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions))); }
+        })
+        .iterations(collisionIterations)
+        .strength(1.0)
       )
       .velocityDecay(velocityDecay)
       .on("tick", ticked);
+
+    simulation.on("end", console.log("*** END"))
+
+    // *** NEEDED FOR SIM TO RUN FOREVER: alphaTarget > alphaMin (default 0.001)
+    simulation.alphaTarget(0.7).restart();
+
+    return
   };
 
-  this.simulationControl = function (op) {
+  self.simulationControl = function (op) {
+    // console.log(`simulationControl | op: ${op}`)
+
     switch (op) {
       case "RESET":
         self.reset();
@@ -2390,33 +2106,41 @@ function ViewTreepack() {
         self.initD3timer();
         self.resize();
         simulation.alphaTarget(0.7).restart();
+        enableAgeNodes = true
         runningFlag = true;
         break;
       case "RESUME":
         resumeTimeStamp = Date.now();
+        enableAgeNodes = true
         runningFlag = true;
+        // console.log(`simulationControl | op: ${op}  | resumeTimeStamp: ${resumeTimeStamp}`)
         simulation.alphaTarget(0.7).restart();
         break;
       case "FREEZE":
         if (!freezeFlag) {
+          enableAgeNodes = false
           freezeFlag = true;
           simulation.alpha(0);
           simulation.stop();
         }
         break;
       case "PAUSE":
-        resumeTimeStamp = 0;
+        // resumeTimeStamp = 0;
+        enableAgeNodes = false
         runningFlag = false;
         simulation.alpha(0);
         simulation.stop();
+        // console.log(`simulationControl | op: ${op}  | resumeTimeStamp: ${resumeTimeStamp}`)
         break;
       case "STOP":
+        enableAgeNodes = false
         runningFlag = false;
         simulation.alpha(0);
         simulation.stop();
         break;
       case "RESTART":
         simulation.alphaTarget(0.7).restart();
+        enableAgeNodes = true
         runningFlag = true;
 
         break;
@@ -2427,13 +2151,13 @@ function ViewTreepack() {
 
   let resizeTimeOut;
 
-  this.resize = function () {
+  self.resize = function () {
     clearTimeout(resizeTimeOut);
 
     resizeTimeOut = setTimeout(function () {
       resetCurrentMax();
 
-      d3image = d3.select("#d3group");
+      // d3image = d3.select("#d3group");
 
       width = getWindowDimensions().width;
       height = getWindowDimensions().height;
@@ -2467,8 +2191,8 @@ function ViewTreepack() {
 
       console.log("FOCI: " + jsonPrint(foci));
 
-      nodeRadiusMin = nodeRadiusMinRatio * width;
-      nodeRadiusMax = nodeRadiusMaxRatio * width;
+      nodeRadiusMin = nodeRadiusRatioMin * width;
+      nodeRadiusMax = nodeRadiusRatioMax * width;
 
       defaultRadiusScale = d3
         .scaleLinear()
@@ -2476,8 +2200,8 @@ function ViewTreepack() {
         .range([nodeRadiusMin, nodeRadiusMax])
         .clamp(true);
 
-      fontSizeMin = fontSizeMinRatio * height;
-      fontSizeMax = fontSizeMaxRatio * height;
+      fontSizeMin = fontSizeRatioMin * height;
+      fontSizeMax = fontSizeRatioMax * height;
 
       nodeLabelSizeScale = d3
         .scaleLinear()
@@ -2494,10 +2218,7 @@ function ViewTreepack() {
       if (simulation) {
         simulation
           .force("charge", d3.forceManyBody().strength(charge))
-          .force(
-            "forceX",
-            d3
-              .forceX()
+          .force("forceX", d3.forceX()
               .x(function forceXfunc(d) {
                 if (
                   (autoCategoryFlag && isCategorized(d.categoryAuto)) ||
@@ -2514,10 +2235,7 @@ function ViewTreepack() {
                 return forceXmultiplier * gravity;
               })
           )
-          .force(
-            "forceY",
-            d3
-              .forceY()
+          .force("forceY", d3.forceY()
               .y(function forceYfunc(d) {
                 if (
                   (autoCategoryFlag && isCategorized(d.categoryAuto)) ||
@@ -2534,10 +2252,7 @@ function ViewTreepack() {
                 return forceYmultiplier * gravity;
               })
           )
-          .force(
-            "collide",
-            d3
-              .forceCollide()
+          .force("collide", d3.forceCollide()
               .radius(function forceCollideFunc(d) {
                 if (metricMode === "rate") {
                   return (
@@ -2557,15 +2272,6 @@ function ViewTreepack() {
           .velocityDecay(velocityDecay);
       }
 
-      panzoomElement = document.getElementById("svgTreemapLayoutArea");
-
-      if (panzoomElement) {
-        panzoomInstance.zoomAbs(
-          width * 0.5,
-          height * 0.5,
-          config.panzoomTransform.scale
-        );
-      }
     }, 200);
   };
 
@@ -2598,4 +2304,6 @@ function ViewTreepack() {
     self.resize();
     resetCurrentMax();
   };
+
+  return self;
 }

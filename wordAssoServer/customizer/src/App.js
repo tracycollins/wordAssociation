@@ -26,6 +26,7 @@ import StatsView from './StatsView.js';
 
 // const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
+// const LOCAL_SOURCE = "http://mbp3:3000";
 
 const DEFAULT_SOURCE = LOCAL_SOURCE;
 
@@ -112,7 +113,7 @@ const App = (props) => {
     settingsRef.current = settings 
   }, [settings])
 
-  const [status, setStatus] = useState({})
+  const [status, setStatus] = useState(props.status)
   const statusRef = useRef(status)
   useEffect(() => { 
     statusRef.current = status 
@@ -138,22 +139,47 @@ const App = (props) => {
   }
 
   const handleChange = (changeObj) => {
+
     console.log({changeObj})
+    let tempSettings = {}
 
     switch (changeObj.name){
-      case "nodeRadiusRatioRange":
+
+      case "nodeRadiusRatio":
         if (parentWindow){
           parentWindow.postMessage(
             {
               op: "UPDATE", 
-              id: "nodeRadiusRatioRange",
+              id: "nodeRadiusRatio",
               min: changeObj.value[0],
               max: changeObj.value[1]
             }, 
             DEFAULT_SOURCE
           );
         }
+
+        tempSettings = Object.assign({}, settingsRef.current, {nodeRadiusRatio: { min: changeObj.value[0],  max: changeObj.value[1]}})
+        setSettings(tempSettings)
+
         break
+
+      case "velocityDecay":
+        if (parentWindow){
+          parentWindow.postMessage(
+            {
+              op: "UPDATE", 
+              id: "velocityDecay",
+              value: changeObj.value,
+            }, 
+            DEFAULT_SOURCE
+          );
+        }
+
+        tempSettings = Object.assign({}, settingsRef.current, {velocityDecay: changeObj.value})
+        setSettings(tempSettings)
+
+        break
+
       default:
         console.error(`UNKNOWN CHANGE NAME: ${changeObj.name}`)
     }    
@@ -165,7 +191,7 @@ const App = (props) => {
         <SettingsView 
           defaults={defaultsRef.current} 
           settings={settingsRef.current} 
-          stats={statusRef.current} 
+          status={statusRef.current} 
           handleChange={handleChange}
         >
         </SettingsView>
@@ -201,19 +227,40 @@ const App = (props) => {
     switch (event.data.op) {
 
       case "INIT":
+        console.debug("CUSTOMIRZER INIT");
 
-        if (event.data.defaults && event.data.defaults !== undefined){
-          setDefaults(event.data.defaults)
-          console.debug("CUSTOMIRZER INIT");
-          console.log(`defaultsRef.current \n ${(defaultsRef.current)}`)
+        if (event.data.config && event.data.config.defaults){
+          setDefaults(event.data.config.defaults)
+          console.log(`defaultsRef.current \n ${defaultsRef.current}`)
         }
 
+        if (event.data.config && event.data.config.settings){
+          setSettings(event.data.config.settings)
+          console.log(`settingsRef.current \n ${settingsRef.current}`)
+        }
 
+        if (event.data.status){
+          setStatus(event.data.status)
+          console.log(`statusRef.current \n ${statusRef.current}`)
+        }
+      break;
+
+      case "CONFIG":
+        if (event.data.config && event.data.config.defaults){
+          setDefaults(event.data.config.defaults)
+          console.log(`defaultsRef.current \n ${defaultsRef.current}`)
+        }
+
+        if (event.data.config && event.data.config.settings){
+          setSettings(event.data.config.settings)
+          console.log(`settingsRef.current \n ${settingsRef.current}`)
+        }
       break;
 
       case "STATS":
-        if (event.data.stats && event.data.stats !== undefined) {
+        if (event.data.stats) {
           setStatus(event.data.stats);
+          console.log(`statusRef.current \n ${statusRef.current}`)
         }
       break;
 

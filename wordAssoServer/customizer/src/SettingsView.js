@@ -68,7 +68,7 @@ const Settings = (props) => {
     ]
   );
   const handleChangeNodeSize = (event, newNodeRadiusRatio) => {
-    console.log({newNodeRadiusRatio})
+    // console.log({newNodeRadiusRatio})
     setNodeRadiusRatio(newNodeRadiusRatio);
     props.handleChange({name: "nodeRadiusRatio", value: newNodeRadiusRatio})
   };
@@ -82,7 +82,7 @@ const Settings = (props) => {
 
   const [velocityDecay, setVelocityDecay] = React.useState(props.settings.velocityDecay);
   const handleChangeVelocityDecay = (event, newVelocityDecay) => {
-    console.log({newVelocityDecay})
+    // console.log({newVelocityDecay})
     setVelocityDecay(newVelocityDecay);
     props.handleChange({name: "velocityDecay", value: newVelocityDecay})
   };

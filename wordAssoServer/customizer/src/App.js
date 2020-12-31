@@ -140,7 +140,7 @@ const App = (props) => {
 
   const handleChange = (changeObj) => {
 
-    console.log({changeObj})
+    // console.log({changeObj})
     let tempSettings = {}
 
     switch (changeObj.name){

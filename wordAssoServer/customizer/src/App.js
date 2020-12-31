@@ -140,17 +140,17 @@ const App = (props) => {
 
   const handleChange = (changeObj) => {
 
-    // console.log({changeObj})
     let tempSettings = {}
 
     switch (changeObj.name){
 
       case "nodeRadiusRatio":
+      case "fontSizeRatio":
         if (parentWindow){
           parentWindow.postMessage(
             {
               op: "UPDATE", 
-              id: "nodeRadiusRatio",
+              id: changeObj.name,
               min: changeObj.value[0],
               max: changeObj.value[1]
             }, 
@@ -158,24 +158,25 @@ const App = (props) => {
           );
         }
 
-        tempSettings = Object.assign({}, settingsRef.current, {nodeRadiusRatio: { min: changeObj.value[0],  max: changeObj.value[1]}})
+        tempSettings = Object.assign({}, settingsRef.current, {[changeObj.name]: { min: changeObj.value[0],  max: changeObj.value[1]}})
         setSettings(tempSettings)
-
         break
 
+      case "charge":
+      case "gravity":
       case "velocityDecay":
         if (parentWindow){
           parentWindow.postMessage(
             {
               op: "UPDATE", 
-              id: "velocityDecay",
+              id: changeObj.name,
               value: changeObj.value,
             }, 
             DEFAULT_SOURCE
           );
         }
 
-        tempSettings = Object.assign({}, settingsRef.current, {velocityDecay: changeObj.value})
+        tempSettings = Object.assign({}, settingsRef.current, {[changeObj.name]: changeObj.value})
         setSettings(tempSettings)
 
         break

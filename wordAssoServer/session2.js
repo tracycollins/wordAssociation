@@ -8,10 +8,10 @@ console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
 console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`)
 
-const STORED_CONFIG_VERSION = "2.1.2";
+const STORED_CONFIG_VERSION = "2.1.3";
 const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
 const DEFAULT_USE_STORED_CONFIG = true;
-let globalStoredSettingsName = STORED_CONFIG_NAME;
+const globalStoredSettingsName = STORED_CONFIG_NAME;
 
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 
@@ -29,12 +29,24 @@ const DEFAULT_MAX_AGE = 15000;
 const DEFAULT_AGE_RATE = 1.0;
 
 const DEFAULT_TRANSITION_DURATION = 40;
+
 const DEFAULT_CHARGE = -50;
+const DEFAULT_CHARGE_RANGE_MIN = -500;
+const DEFAULT_CHARGE_RANGE_MAX = 500;
+const DEFAULT_CHARGE_RANGE_STEP = 10;
+
 const DEFAULT_GRAVITY = 0.001;
-const DEFAULT_FORCEX_MULTIPLIER = 25.0;
-const DEFAULT_FORCEY_MULTIPLIER = 25.0;
+const DEFAULT_GRAVITY_RANGE_MIN = -0.01;
+const DEFAULT_GRAVITY_RANGE_MAX = 0.01;
+const DEFAULT_GRAVITY_RANGE_STEP = 0.00001;
 
 const DEFAULT_VELOCITY_DECAY = 0.35;
+const DEFAULT_VELOCITY_DECAY_RANGE_MIN = 0.0;
+const DEFAULT_VELOCITY_DECAY_RANGE_MAX = 1.0;
+const DEFAULT_VELOCITY_DECAY_RANGE_STEP = 0.01;
+
+const DEFAULT_FORCEX_MULTIPLIER = 25.0;
+const DEFAULT_FORCEY_MULTIPLIER = 25.0;
 
 const DEFAULT_COLLISION_RADIUS_MULTIPLIER = 1.0;
 const DEFAULT_COLLISION_ITERATIONS = 1;
@@ -44,11 +56,10 @@ const DEFAULT_NODE_RADIUS_RATIO_RANGE_MAX = 0.500;
 const DEFAULT_NODE_RADIUS_RATIO_MIN = 0.02;
 const DEFAULT_NODE_RADIUS_RATIO_MAX = 0.10;
 
-const DEFAULT_FONT_SIZE_RATIO_RANGE_MIN = 0.02;
-const DEFAULT_FONT_SIZE_RATIO_RANGE_MAX = 0.05;
-const DEFAULT_FONT_SIZE_RATIO_MIN = 0.03;
+const DEFAULT_FONT_SIZE_RATIO_RANGE_MIN = 0.0;
+const DEFAULT_FONT_SIZE_RATIO_RANGE_MAX = 0.1;
+const DEFAULT_FONT_SIZE_RATIO_MIN = 0.01;
 const DEFAULT_FONT_SIZE_RATIO_MAX = 0.04;
-
 
 const DEFAULT_MAX_READY_ACK_WAIT_COUNT = 10;
 const DEFAULT_KEEPALIVE_INTERVAL = 60000;
@@ -119,18 +130,35 @@ config.defaults.displayNodeHashMap.word = "hide";
 
 config.defaults.autoCategoryFlag = false;
 config.defaults.metricMode = DEFAULT_METRIC_MODE;
+
 config.defaults.charge = DEFAULT_CHARGE;
+config.defaults.chargeRange = {};
+config.defaults.chargeRange.min = DEFAULT_CHARGE_RANGE_MIN; 
+config.defaults.chargeRange.max = DEFAULT_CHARGE_RANGE_MAX;
+config.defaults.chargeRange.step = DEFAULT_CHARGE_RANGE_STEP;
+
 config.defaults.gravity = DEFAULT_GRAVITY;
+config.defaults.gravityRange = {};
+config.defaults.gravityRange.min = DEFAULT_GRAVITY_RANGE_MIN
+config.defaults.gravityRange.max = DEFAULT_GRAVITY_RANGE_MAX;
+config.defaults.gravityRange.step = DEFAULT_GRAVITY_RANGE_STEP;
+
+config.defaults.velocityDecay = DEFAULT_VELOCITY_DECAY;
+config.defaults.velocityDecayRange = {};
+config.defaults.velocityDecayRange.min = DEFAULT_VELOCITY_DECAY_RANGE_MIN;
+config.defaults.velocityDecayRange.max = DEFAULT_VELOCITY_DECAY_RANGE_MAX;
+config.defaults.velocityDecayRange.step = DEFAULT_VELOCITY_DECAY_RANGE_STEP;
+
 config.defaults.forceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
 config.defaults.forceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
 config.defaults.collisionIterations = DEFAULT_COLLISION_ITERATIONS;
 config.defaults.collisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
-config.defaults.velocityDecay = DEFAULT_VELOCITY_DECAY;
+
 
 config.defaults.fontSizeRatioRange = {};
 config.defaults.fontSizeRatioRange.min = DEFAULT_FONT_SIZE_RATIO_RANGE_MIN; 
 config.defaults.fontSizeRatioRange.max = DEFAULT_FONT_SIZE_RATIO_RANGE_MAX;
-config.defaults.fontSizeRatioRange.step = 0.01;
+config.defaults.fontSizeRatioRange.step = 0.001;
 config.defaults.fontSizeRatio = {};
 config.defaults.fontSizeRatio.min = DEFAULT_FONT_SIZE_RATIO_MIN;
 config.defaults.fontSizeRatio.max = DEFAULT_FONT_SIZE_RATIO_MAX;
@@ -141,7 +169,7 @@ config.defaults.fontSize.max = config.defaults.fontSizeRatioRange.max * DEFAULT_
 config.defaults.nodeRadiusRatioRange = {};
 config.defaults.nodeRadiusRatioRange.min = DEFAULT_NODE_RADIUS_RATIO_RANGE_MIN;
 config.defaults.nodeRadiusRatioRange.max = DEFAULT_NODE_RADIUS_RATIO_RANGE_MAX;
-config.defaults.nodeRadiusRatioRange.step = 0.01;
+config.defaults.nodeRadiusRatioRange.step = 0.001;
 config.defaults.nodeRadiusRatio = {};
 config.defaults.nodeRadiusRatio.min = DEFAULT_NODE_RADIUS_RATIO_MIN;
 config.defaults.nodeRadiusRatio.max = DEFAULT_NODE_RADIUS_RATIO_MAX;

@@ -68,21 +68,35 @@ const Settings = (props) => {
     ]
   );
   const handleChangeNodeSize = (event, newNodeRadiusRatio) => {
-    // console.log({newNodeRadiusRatio})
     setNodeRadiusRatio(newNodeRadiusRatio);
     props.handleChange({name: "nodeRadiusRatio", value: newNodeRadiusRatio})
   };
 
-  // const [nodeRadiusRatioRange, setNodeRadiusRatioRange] = React.useState(
-  //   [
-  //     props.settings.nodeRadiusRatioRange.min, 
-  //     props.settings.nodeRadiusRatioRange.max
-  //   ]
-  // );
+  const [fontSizeRatio, setFontSizeRatio] = React.useState(
+    [
+      props.settings.fontSizeRatio.min, 
+      props.settings.fontSizeRatio.max
+    ]
+  );
+  const handleChangeFontSize = (event, newFontSizeRatio) => {
+    setFontSizeRatio(newFontSizeRatio);
+    props.handleChange({name: "fontSizeRatio", value: newFontSizeRatio})
+  };
+
+  const [charge, setCharge] = React.useState(props.settings.charge);
+  const handleChangeCharge = (event, newCharge) => {
+    setCharge(newCharge);
+    props.handleChange({name: "charge", value: newCharge})
+  };
+
+  const [gravity, setGravity] = React.useState(props.settings.gravity);
+  const handleChangeGravity = (event, newGravity) => {
+    setGravity(newGravity);
+    props.handleChange({name: "gravity", value: newGravity})
+  };
 
   const [velocityDecay, setVelocityDecay] = React.useState(props.settings.velocityDecay);
   const handleChangeVelocityDecay = (event, newVelocityDecay) => {
-    // console.log({newVelocityDecay})
     setVelocityDecay(newVelocityDecay);
     props.handleChange({name: "velocityDecay", value: newVelocityDecay})
   };
@@ -91,6 +105,7 @@ const Settings = (props) => {
     <>
       <Grid className={classes.grid}>
           <Grid item className={classes.gridItem} xs={3}>
+
             <Typography className={classes.range} id="nodeRadiusRatio" gutterBottom>
               NODE RADIUS RATIO min/max
             </Typography>
@@ -105,7 +120,24 @@ const Settings = (props) => {
               valueLabelDisplay="auto"
               aria-labelledby="range-slider"
               getAriaValueText={valuetext}
-            />          
+            />
+
+            <Typography className={classes.range} id="fontSizeRatio" gutterBottom>
+              FONT SIZE RATIO min/max
+            </Typography>
+            <Slider
+              id="fontSizeRatio"
+              name="fontSizeRatio"
+              value={fontSizeRatio}
+              min={props.defaults.fontSizeRatioRange.min}
+              max={props.defaults.fontSizeRatioRange.max}
+              step={props.defaults.fontSizeRatioRange.step}
+              onChange={handleChangeFontSize}
+              valueLabelDisplay="auto"
+              aria-labelledby="range-slider"
+              getAriaValueText={valuetext}
+            />
+
             <Typography className={classes.range} id="velocityDecay" gutterBottom>
               VELOCITY DECAY
             </Typography>
@@ -113,14 +145,47 @@ const Settings = (props) => {
               id="velocityDecay"
               name="velocityDecay"
               value={velocityDecay}
-              min={0.0}
-              max={1.0}
-              step={0.01}
+              min={props.defaults.velocityDecayRange.min}
+              max={props.defaults.velocityDecayRange.max}
+              step={props.defaults.velocityDecayRange.step}
               onChange={handleChangeVelocityDecay}
               valueLabelDisplay="auto"
               aria-labelledby="slider"
               getAriaValueText={valuetext}
-            />          
+            />
+
+            <Typography className={classes.range} id="charge" gutterBottom>
+              CHARGE
+            </Typography>
+            <Slider
+              id="charge"
+              name="charge"
+              value={charge}
+              min={props.defaults.chargeRange.min}
+              max={props.defaults.chargeRange.max}
+              step={props.defaults.chargeRange.step}
+              onChange={handleChangeCharge}
+              valueLabelDisplay="auto"
+              aria-labelledby="slider"
+              getAriaValueText={valuetext}
+            />
+
+            <Typography className={classes.range} id="gravity" gutterBottom>
+              GRAVITY
+            </Typography>
+            <Slider
+              id="gravity"
+              name="gravity"
+              value={gravity}
+              min={props.defaults.gravityRange.min}
+              max={props.defaults.gravityRange.max}
+              step={props.defaults.gravityRange.step}
+              onChange={handleChangeGravity}
+              valueLabelDisplay="auto"
+              aria-labelledby="slider"
+              getAriaValueText={valuetext}
+            />
+
           </Grid>
         </Grid>
     </>

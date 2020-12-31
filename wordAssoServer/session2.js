@@ -146,8 +146,8 @@ config.defaults.nodeRadiusRatio = {};
 config.defaults.nodeRadiusRatio.min = DEFAULT_NODE_RADIUS_RATIO_MIN;
 config.defaults.nodeRadiusRatio.max = DEFAULT_NODE_RADIUS_RATIO_MAX;
 config.defaults.nodeRadius = {};
-config.defaults.nodeRadius.min = config.defaults.nodeRadiusRatioRange.min * DEFAULT_WINDOW_WIDTH;
-config.defaults.nodeRadius.max = config.defaults.nodeRadiusRatioRange.max * DEFAULT_WINDOW_WIDTH;
+config.defaults.nodeRadius.min = config.defaults.nodeRadiusRatio.min * DEFAULT_WINDOW_WIDTH;
+config.defaults.nodeRadius.max = config.defaults.nodeRadiusRatio.max * DEFAULT_WINDOW_WIDTH;
 
 config.settings = Object.assign({}, config.defaults)
 previousConfig = Object.assign({}, config.defaults)
@@ -351,13 +351,13 @@ const customizerComm = (event) => {
           currentSessionView.setMaxNodesLimit(event.data.value);
           break;
 
-        case "nodeRadiusRatioRange":
+        case "nodeRadiusRatio":
           currentSessionView.setNodeRadiusRatioMin(event.data.min);
           currentSessionView.setNodeRadiusRatioMax(event.data.max);
           console.log(`CUSTOMIZER SET | setNodeRadiusRatio | min: ${event.data.min} max: ${event.data.max}`)
           break;
 
-        case "fontSizeRatioRange":
+        case "fontSizeRatio":
           currentSessionView.setFontSizeRatioMin(event.data.min);
           currentSessionView.setFontSizeRatioMax(event.data.max);
           console.log(`CUSTOMIZER SET | setFontSizeRatio | min: ${event.data.min} max: ${event.data.max}`)

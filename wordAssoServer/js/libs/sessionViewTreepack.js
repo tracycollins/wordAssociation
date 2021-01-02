@@ -564,7 +564,7 @@ function ViewTreepack (config) {
   };
   self.setNodeMaxAge = function (mAge) {
     nodeMaxAge = mAge;
-    config.settings.maxAge = mAge;
+    config.settings.nodeMaxAge = mAge;
     console.debug("SET NODE MAX AGE: " + nodeMaxAge);
   };
   self.setMetricMode = function (mode) {
@@ -735,7 +735,7 @@ function ViewTreepack (config) {
   self.resetDefaultForce = function () {
     console.warn("RESET TREEPACK DEFAULT FORCE");
     self.setTransitionDuration(config.settings.transitionDuration);
-    self.setNodeMaxAge(config.settings.maxAge);
+    self.setNodeMaxAge(config.settings.nodeMaxAge);
     self.setCharge(config.settings.charge);
     self.setVelocityDecay(config.settings.velocityDecay);
     self.setGravity(config.settings.gravity);

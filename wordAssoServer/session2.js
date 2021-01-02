@@ -9,7 +9,7 @@ console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
 console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`)
 
-const STORED_CONFIG_VERSION = "2.1.7";
+const STORED_CONFIG_VERSION = "2.1.9";
 const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
 // const DEFAULT_USE_STORED_CONFIG = true;
 const globalStoredSettingsName = STORED_CONFIG_NAME;
@@ -24,7 +24,6 @@ const DEFAULT_WINDOW_WIDTH = 1920;
 const DEFAULT_METRIC_MODE = "rate";
 const DEFAULT_RX_NODE_QUEUE_MAX = 200;
 const DEFAULT_RX_NODE_QUEUE_INTERVAL = 5;
-const DEFAULT_MAX_NODES = 50;
 
 const DEFAULT_AGE_RATE = 1.0;
 
@@ -106,7 +105,7 @@ status.maxNodes = 0;
 status.maxNodeAddQ = 0;
 
 let previousConfig = {}
-const config = {};
+let config = {};
 
 config.defaults = {}
 config.defaults.app_name = "Session View";
@@ -436,6 +435,7 @@ const customizerComm = (event) => {
 const openCustomizer = (cnf) => {
   
   console.debug("openCustomizer");
+  console.debug({cnf})
 
   customizerWindow = window.open(
     DEFAULT_SOURCE + "/customize",
@@ -1138,7 +1138,7 @@ setTimeout(function(){
     if (storedSettings) {
       console.log(`LOADED STORED SETTINGS`)
       console.log({storedSettings}) 
-      config.settings = Object.assign(config.settings, storedSettings.settings)
+      config = Object.assign({}, config, storedSettings)
     }
     else{
       console.log(`*** LOAD STORED SETTINGS FAILED: ${globalStoredSettingsName}`)

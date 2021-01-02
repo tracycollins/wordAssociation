@@ -61,32 +61,32 @@ const Settings = (props) => {
   
   const classes = useStyles();
 
-  const defaultSettingsState = {
-    nodeRadiusRatio : [
-      props.settings.nodeRadiusRatio.min, 
-      props.settings.nodeRadiusRatio.max
-    ],
-    fontSizeRatio : [
-      props.settings.fontSizeRatio.min, 
-      props.settings.fontSizeRatio.max
-    ],
-    metricMode: "rate",
-    ageNodes: true,
-    autoCategoryFlag: false,
-    testMode: false,
-    pause: false,
-    charge: props.settings.charge,
-    gravity: props.settings.gravity,
-    velocityDecay: props.settings.velocityDecay,
-    maxNodesLimit: props.settings.maxNodesLimit,
-    nodeMaxAge: props.settings.nodeMaxAge,
-  }
+  // const defaultSettingsState = {
+  //   nodeRadiusRatio : [
+  //     props.settings.nodeRadiusRatio.min, 
+  //     props.settings.nodeRadiusRatio.max
+  //   ],
+  //   fontSizeRatio : [
+  //     props.settings.fontSizeRatio.min, 
+  //     props.settings.fontSizeRatio.max
+  //   ],
+  //   metricMode: "rate",
+  //   ageNodes: true,
+  //   autoCategoryFlag: false,
+  //   testMode: false,
+  //   pause: false,
+  //   charge: props.settings.charge,
+  //   gravity: props.settings.gravity,
+  //   velocityDecay: props.settings.velocityDecay,
+  //   maxNodesLimit: props.settings.maxNodesLimit,
+  //   nodeMaxAge: props.settings.nodeMaxAge,
+  // }
 
-  const [settings, setSettings] = useState(defaultSettingsState);
+  // const [settings, setSettings] = useState(defaultSettingsState);
 
   const handleChangeSettings = name => (e, value) => {
     e.preventDefault();
-    setSettings(prevState => ({...prevState, [name]: value}));
+    // setSettings(prevState => ({...prevState, [name]: value}));
     props.handleChange({name: name, value: value})
   };
 
@@ -101,7 +101,7 @@ const Settings = (props) => {
             <Slider
               id="nodeRadiusRatio"
               name="nodeRadiusRatio"
-              value={settings.nodeRadiusRatio}
+              value={[props.settings.nodeRadiusRatio.min, props.settings.nodeRadiusRatio.max]}
               min={props.defaults.nodeRadiusRatioRange.min}
               max={props.defaults.nodeRadiusRatioRange.max}
               step={props.defaults.nodeRadiusRatioRange.step}
@@ -117,7 +117,7 @@ const Settings = (props) => {
             <Slider
               id="fontSizeRatio"
               name="fontSizeRatio"
-              value={settings.fontSizeRatio}
+              value={[props.settings.fontSizeRatio.min, props.settings.fontSizeRatio.max]}
               min={props.defaults.fontSizeRatioRange.min}
               max={props.defaults.fontSizeRatioRange.max}
               step={props.defaults.fontSizeRatioRange.step}
@@ -133,7 +133,7 @@ const Settings = (props) => {
             <Slider
               id="maxNodesLimit"
               name="maxNodesLimit"
-              value={settings.maxNodesLimit}
+              value={props.settings.maxNodesLimit}
               min={props.defaults.maxNodesLimitRange.min}
               max={props.defaults.maxNodesLimitRange.max}
               step={props.defaults.maxNodesLimitRange.step}
@@ -149,7 +149,7 @@ const Settings = (props) => {
             <Slider
               id="nodeMaxAge"
               name="nodeMaxAge"
-              value={settings.nodeMaxAge}
+              value={props.settings.nodeMaxAge}
               min={props.defaults.nodeMaxAgeRange.min}
               max={props.defaults.nodeMaxAgeRange.max}
               step={props.defaults.nodeMaxAgeRange.step}
@@ -165,7 +165,7 @@ const Settings = (props) => {
             <Slider
               id="velocityDecay"
               name="velocityDecay"
-              value={settings.velocityDecay}
+              value={props.settings.velocityDecay}
               min={props.defaults.velocityDecayRange.min}
               max={props.defaults.velocityDecayRange.max}
               step={props.defaults.velocityDecayRange.step}
@@ -181,7 +181,7 @@ const Settings = (props) => {
             <Slider
               id="charge"
               name="charge"
-              value={settings.charge}
+              value={props.settings.charge}
               min={props.defaults.chargeRange.min}
               max={props.defaults.chargeRange.max}
               step={props.defaults.chargeRange.step}
@@ -197,7 +197,7 @@ const Settings = (props) => {
             <Slider
               id="gravity"
               name="gravity"
-              value={settings.gravity}
+              value={props.settings.gravity}
               min={props.defaults.gravityRange.min}
               max={props.defaults.gravityRange.max}
               step={props.defaults.gravityRange.step}

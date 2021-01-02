@@ -33,7 +33,7 @@ const Settings = (props) => {
           <Grid item className={classes.gridItem} xs={3}>
 
             <Typography className={classes.range} id="nodeRadiusRatio" name="nodeRadiusRatio" gutterBottom>
-              {`NODE RADIUS RATIO ${props.defaults.nodeRadiusRatio.min} min/ ${props.defaults.nodeRadiusRatio.max} max`}
+              {`NODE RADIUS RATIO ${props.settings.nodeRadiusRatio.min} min/ ${props.settings.nodeRadiusRatio.max} max`}
             </Typography>
             <Slider
               id="nodeRadiusRatio"

@@ -457,7 +457,6 @@ function ViewTreepack (config) {
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
-
   const svgTreemapLayoutArea = svgMain
     .append("svg:g")
     .attr("id", "svgTreemapLayoutArea")
@@ -466,16 +465,12 @@ function ViewTreepack (config) {
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
-  
   const panzoomElement = document.getElementById("svgTreemapLayoutArea");
 
   const panzoomInstance = panzoom(panzoomElement, {
     autocenter: true,
     bounds: true,
     initialZoom: 0.9
-    // maxZoom: 2,
-    // minZoom: 0.1,
-    // zoomSpeed: 0.02,
   });
 
   const panzoomEvent = new CustomEvent("panzoomEvent", {
@@ -507,12 +502,6 @@ function ViewTreepack (config) {
 
   console.log("panzoomInstance zoomAbs\n", jsonPrint(config.settings.panzoomTransform));
 
-  // panzoomInstance.zoomAbs(
-  //   width * 0.5,
-  //   height * 0.5,
-  //   config.settings.panzoomTransform.scale
-  // );
-  
   const nodeSvgGroup = svgTreemapLayoutArea
     .append("svg:g")
     .attr("id", "nodeSvgGroup");
@@ -533,22 +522,10 @@ function ViewTreepack (config) {
 
   d3.select("body").style("cursor", "default");
 
-  self.setStats = function (stats) {
-    console.log("setStats" + "\nSTATS\n" + jsonPrint(stats));
-  };
-
-  self.setEnableAgeNodes = function (enabled) {
-    enableAgeNodes = enabled;
-    config.settings.enableAgeNodes = enabled;
-  };
-
-  self.getPanzoomTransform = function () {
-    return config.settings.panzoomTransform;
-  };
-
   self.deleteNode = function () {
     return null;
   };
+
   self.getTotalHashMap = function () {
     return totalHashmap;
   };
@@ -567,119 +544,29 @@ function ViewTreepack (config) {
   self.getMaxNodeAddQ = function () {
     return maxNodeAddQ;
   };
-  // self.getAgeRate = function () {
-  //   return ageRate;
-  // };
   self.getMaxAgeRate = function () {
     return maxAgeRate;
   };
-
+  self.getPanzoomTransform = function () {
+    return config.settings.panzoomTransform;
+  };
+  
+  self.setStats = function (stats) {
+    console.log("setStats" + "\nSTATS\n" + jsonPrint(stats));
+  };
+  self.setEnableAgeNodes = function (enabled) {
+    enableAgeNodes = enabled;
+    config.settings.enableAgeNodes = enabled;
+  };
   self.setMaxNodesLimit = function (mNodesLimit) {
-    // maxNodesLimit = mNodesLimit;
     config.settings.maxNodesLimit = mNodesLimit;
     console.debug("SET MAX NODES LIMIT: " + config.settings.maxNodesLimit);
   };
-
   self.setNodeMaxAge = function (mAge) {
     nodeMaxAge = mAge;
     config.settings.maxAge = mAge;
     console.debug("SET NODE MAX AGE: " + nodeMaxAge);
   };
-
-  // self.setAntonym = function (flag) {
-  //   antonymFlag = flag;
-  //   console.debug("SET ANTONYM: " + antonymFlag);
-  // };
-
-  // self.setTwitterUser = function (message) {
-  //   if (message.node.notFound !== undefined) {
-  //     console.log(
-  //       "setTwitterUser" +
-  //         " | NOT FOUND: SEARCH NODE: " +
-  //         message.searchNode +
-  //         "\nSTATS\n" +
-  //         jsonPrint(message.stats)
-  //     );
-  //   } else {
-  //     console.log(
-  //       "setTwitterUser" +
-  //         " | NID: " +
-  //         message.node.nodeId +
-  //         " | @" +
-  //         message.node.screenName +
-  //         "\nSTATS\n" +
-  //         jsonPrint(message.stats)
-  //     );
-  //   }
-
-  //   // if (controlPanelReadyFlag) {
-  //   //   controlPanelWindow.postMessage(
-  //   //     {
-  //   //       op: "SET_TWITTER_USER",
-  //   //       node: message.node,
-  //   //       searchNode: message.searchNode,
-  //   //       stats: message.stats,
-  //   //     },
-  //   //     DEFAULT_SOURCE
-  //   //   );
-  //   // }
-
-  // };
-
-  // self.twitterUserNotFound = function (message) {
-  //   console.log(
-  //     "TWITTER USER NOT FOUND" +
-  //       " | SEARCH MODE: " +
-  //       message.searchMode +
-  //       " | SEARCH NODE: " +
-  //       message.searchNode
-  //   );
-
-  //   // if (controlPanelReadyFlag) {
-  //   //   controlPanelWindow.postMessage(
-  //   //     {
-  //   //       op: "TWITTER_USER_NOT_FOUND",
-  //   //       searchMode: message.searchMode,
-  //   //       searchNode: message.searchNode,
-  //   //       stats: stats,
-  //   //     },
-  //   //     DEFAULT_SOURCE
-  //   //   );
-  //   // }
-  // };
-
-  // self.setTwitterHashtag = function (message) {
-  //   if (message.node.notFound !== undefined) {
-  //     console.log(
-  //       "setTwitterHashtag" +
-  //         " | NOT FOUND: SEARCH NODE: " +
-  //         message.searchNode +
-  //         "\nSTATS\n" +
-  //         jsonPrint(message.stats)
-  //     );
-  //   } else {
-  //     console.log(
-  //       "setTwitterHashtag" +
-  //         " | #" +
-  //         message.node.nodeId +
-  //         "\nSTATS\n" +
-  //         jsonPrint(message.stats)
-  //     );
-  //   }
-
-  //   // if (controlPanelReadyFlag) {
-  //   //   controlPanelWindow.postMessage(
-  //   //     {
-  //   //       op: "SET_TWITTER_HASHTAG",
-  //   //       node: message.node,
-  //   //       searchNode: message.searchNode,
-  //   //       stats: message.stats,
-  //   //     },
-  //   //     DEFAULT_SOURCE
-  //   //   );
-  //   // }
-  // };
-
   self.setMetricMode = function (mode) {
     metricMode = mode;
     config.settings.metricMode = mode;
@@ -698,22 +585,14 @@ function ViewTreepack (config) {
 
     console.debug("SET METRIC MODE: " + mode);
   };
-
   self.setAutoCategoryFlag = function (flag) {
     autoCategoryFlag = flag;
     console.debug("SET AUTO CATEGORY: " + autoCategoryFlag);
   };
-
-  // self.setRemoveDeadNodesFlag = function (flag) {
-  //   removeDeadNodesFlag = flag;
-  //   console.debug("SET REMOVE DEAD NODES: " + removeDeadNodesFlag);
-  // };
-
   self.setTestMode = function (flag) {
     testMode = flag;
     console.debug("SET TEST MODE: " + testMode);
   };
-
   self.toolTipVisibility = function (isVisible) {
     if (isVisible) {
       divTooltip.style("display", "unset");
@@ -721,11 +600,9 @@ function ViewTreepack (config) {
       divTooltip.style("display", "none");
     }
   };
-
   self.deleteSessionLinks = function () {
     console.debug("DELETE LINKS");
   };
-
   self.setPause = function (value) {
     console.debug("SET PAUSE: " + value);
     runningFlag = !value;
@@ -735,7 +612,6 @@ function ViewTreepack (config) {
       self.simulationControl("RESUME");
     }
   };
-
   self.togglePause = function () {
     if (runningFlag) {
       self.simulationControl("PAUSE");
@@ -743,19 +619,16 @@ function ViewTreepack (config) {
       self.simulationControl("RESUME");
     }
   };
-
   self.setParam = function (param, value) {
     console.log("updateParam: " + param + " = " + value);
     return;
   };
-
   self.setVelocityDecay = function (value) {
     console.debug("UPDATE VEL DECAY: " + value.toFixed(sliderPercision));
     config.settings.velocityDecay = value;
     velocityDecay = value;
     simulation.velocityDecay(velocityDecay);
   };
-
   self.setGravity = function (value) {
     console.debug("UPDATE GRAVITY: " + value.toFixed(5));
     config.settings.gravity = value;
@@ -800,20 +673,17 @@ function ViewTreepack (config) {
           })
       );
   };
-
   self.setTransitionDuration = function (value) {
     console.debug("UPDATE TRANSITION DURATION: " + value);
     // transitionDuration = value;
     config.settings.transitionDuration = value;
   };
-
   self.setCharge = function (value) {
     console.debug("UPDATE CHARGE: " + value);
     config.settings.charge = value;
     charge = value;
     simulation.force("charge", d3.forceManyBody().strength(value));
   };
-
   self.setNodeRadiusRatioMin = function (value) {
     console.debug("UPDATE NODE RADIUS MIN RATIO: " + value);
     config.settings.nodeRadiusRatio.min = value;
@@ -825,7 +695,6 @@ function ViewTreepack (config) {
       .range([nodeRadiusMin, nodeRadiusMax])
       .clamp(true);
   };
-
   self.setNodeRadiusRatioMax = function (value) {
     console.debug("UPDATE NODE RADIUS MAX RATIO: " + value);
     config.settings.nodeRadiusRatio.max = value;
@@ -837,7 +706,6 @@ function ViewTreepack (config) {
       .range([nodeRadiusMin, nodeRadiusMax])
       .clamp(true);
   };
-
   self.setFontSizeRatioMin = function (value) {
     console.debug("UPDATE FONT MIN SIZE: " + value);
     config.settings.fontSizeRatio.min = value;
@@ -851,7 +719,6 @@ function ViewTreepack (config) {
       .range([fontSizeMin, fontSizeMax])
       .clamp(true);
   };
-
   self.setFontSizeRatioMax = function (value) {
     console.debug("UPDATE FONT MAX SIZE: " + value);
     config.settings.fontSizeRatio.max = value;
@@ -865,7 +732,6 @@ function ViewTreepack (config) {
       .range([fontSizeMin, fontSizeMax])
       .clamp(true);
   };
-
   self.resetDefaultForce = function () {
     console.warn("RESET TREEPACK DEFAULT FORCE");
     self.setTransitionDuration(config.settings.transitionDuration);
@@ -1605,19 +1471,6 @@ function ViewTreepack (config) {
     return false;
   }
 
-  // const categoryFocus = function (d, axis) {
-  //   if (
-  //     (autoCategoryFlag && isCategorized(d.categoryAuto)) ||
-  //     (!isCategorized(d.category) && isCategorized(d.categoryAuto))
-  //   ) {
-  //     return foci[d.categoryAuto][axis];
-  //   }
-  //   if (isCategorized(d.category)) {
-  //     return foci[d.category];
-  //   }
-  //   return foci.default[axis];
-  // };
-
   function focus(focalPoint) {
     switch (focalPoint) {
       case "left":
@@ -1856,54 +1709,6 @@ function ViewTreepack (config) {
 
   let previousMaxRateMetric = 0;
 
-  // function drawSimulation(){
-
-  //   async.parallel(
-  //     {
-  //       updateNodeCirclesSeries: function (cb) {
-  //         updateNodeCircles(cb);
-  //       },
-  //       updateNodeLabelsSeries: function (cb) {
-  //         updateNodeLabels(cb);
-  //       },
-  //     },
-      
-  //     function drawSimulationCallback() {
-
-  //       if (
-  //         (metricMode === "rate" &&
-  //           newCurrentMaxRateMetricFlag &&
-  //           Math.abs(currentMaxRateMetric - previousMaxRateMetric) /
-  //             currentMaxRateMetric >
-  //             minRateMetricChange) ||
-  //         (metricMode === "mentions" && newCurrentMaxMentionsMetricFlag)
-  //       ) {
-  //         if (metricMode === "rate") {
-  //           newCurrentMaxRateMetricFlag = false;
-  //           previousMaxRateMetric = currentMax.rate.rate;
-  //         }
-  //         if (metricMode === "mentions") {
-  //           newCurrentMaxMentionsMetricFlag = false;
-  //         }
-
-  //         nodeLabelSizeScale = d3
-  //           .scaleLinear()
-  //           .domain([1, currentMetricModeDomainMax])
-  //           .range([fontSizeMin, fontSizeMax])
-  //           .clamp(true);
-
-  //         defaultRadiusScale = d3
-  //           .scaleLinear()
-  //           .domain([0, currentMetricModeDomainMaxSqrt])
-  //           .range([nodeRadiusMin, nodeRadiusMax])
-  //           .clamp(true);
-  //       }
-
-  //       return;
-  //     }
-  //   );
-  // }
-
   function drawSimulation(){
 
     updateNodeCircles()
@@ -2095,7 +1900,6 @@ function ViewTreepack (config) {
   };
 
   self.simulationControl = function (op) {
-    // console.log(`simulationControl | op: ${op}`)
 
     switch (op) {
       case "RESET":

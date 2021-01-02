@@ -28,7 +28,7 @@ const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
 // const LOCAL_SOURCE = "http://mbp3:3000";
 
-const DEFAULT_SOURCE = PRODUCTION_SOURCE;
+const DEFAULT_SOURCE = LOCAL_SOURCE;
 
 const parentWindow = window.opener;
 
@@ -162,6 +162,7 @@ const App = (props) => {
         setSettings(tempSettings)
         break
 
+      case "maxNodesLimit":
       case "charge":
       case "gravity":
       case "velocityDecay":

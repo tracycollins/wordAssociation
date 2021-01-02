@@ -1,5 +1,5 @@
-// import React, { useState } from 'react';
-import React from 'react';
+import React, { useState } from 'react';
+// import React from 'react';
 // import { green } from '@material-ui/core/colors';
 // import clsx from 'clsx';
 
@@ -61,126 +61,201 @@ const Settings = (props) => {
   
   const classes = useStyles();
 
-  const [nodeRadiusRatio, setNodeRadiusRatio] = React.useState(
-    [
+  const defaultSettingsState = {
+    nodeRadiusRatio : [
       props.settings.nodeRadiusRatio.min, 
       props.settings.nodeRadiusRatio.max
-    ]
-  );
-  const handleChangeNodeSize = (event, newNodeRadiusRatio) => {
-    setNodeRadiusRatio(newNodeRadiusRatio);
-    props.handleChange({name: "nodeRadiusRatio", value: newNodeRadiusRatio})
-  };
-
-  const [fontSizeRatio, setFontSizeRatio] = React.useState(
-    [
+    ],
+    fontSizeRatio : [
       props.settings.fontSizeRatio.min, 
       props.settings.fontSizeRatio.max
-    ]
-  );
-  const handleChangeFontSize = (event, newFontSizeRatio) => {
-    setFontSizeRatio(newFontSizeRatio);
-    props.handleChange({name: "fontSizeRatio", value: newFontSizeRatio})
+    ],
+    metricMode: "rate",
+    ageNodes: true,
+    autoCategoryFlag: false,
+    testMode: false,
+    pause: false,
+    charge: props.settings.charge,
+    gravity: props.settings.gravity,
+    velocityDecay: props.settings.velocityDecay,
+    maxNodesLimit: props.settings.maxNodesLimit,
+    nodeMaxAge: props.settings.nodeMaxAge,
+  }
+
+  const [settings, setSettings] = useState(defaultSettingsState);
+
+  const handleChangeSettings = name => (e, value) => {
+    // event.preventDefault();
+    setSettings(prevState => ({...prevState, [name]: value}));
+    props.handleChange({name: name, value: value})
   };
 
-  const [charge, setCharge] = React.useState(props.settings.charge);
-  const handleChangeCharge = (event, newCharge) => {
-    setCharge(newCharge);
-    props.handleChange({name: "charge", value: newCharge})
-  };
+  // const [nodeRadiusRatio, setNodeRadiusRatio] = React.useState(
+  //   [
+  //     props.settings.nodeRadiusRatio.min, 
+  //     props.settings.nodeRadiusRatio.max
+  //   ]
+  // );
+  // const handleChangeNodeSize = (event, newNodeRadiusRatio) => {
+  //   setNodeRadiusRatio(newNodeRadiusRatio);
+  //   props.handleChange({name: "nodeRadiusRatio", value: newNodeRadiusRatio})
+  // };
 
-  const [gravity, setGravity] = React.useState(props.settings.gravity);
-  const handleChangeGravity = (event, newGravity) => {
-    setGravity(newGravity);
-    props.handleChange({name: "gravity", value: newGravity})
-  };
+  // const [fontSizeRatio, setFontSizeRatio] = React.useState(
+  //   [
+  //     props.settings.fontSizeRatio.min, 
+  //     props.settings.fontSizeRatio.max
+  //   ]
+  // );
+  // const handleChangeFontSize = (event, newFontSizeRatio) => {
+  //   setFontSizeRatio(newFontSizeRatio);
+  //   props.handleChange({name: "fontSizeRatio", value: newFontSizeRatio})
+  // };
 
-  const [velocityDecay, setVelocityDecay] = React.useState(props.settings.velocityDecay);
-  const handleChangeVelocityDecay = (event, newVelocityDecay) => {
-    setVelocityDecay(newVelocityDecay);
-    props.handleChange({name: "velocityDecay", value: newVelocityDecay})
-  };
+  // const propertiesSelect = [    
+  //   "metricMode",
+  // ]
+
+  // const propertiesRange = [    
+  //   "nodeRadiusRatio",
+  //   "fontSizeRatio",
+  // ]
+
+  // const propertiesBoolean = [
+  //   "ageNodes",
+  //   "autoCategoryFlag",
+  //   "testMode",
+  //   "pause",
+  // ]
+
+  // const propertiesMoment = [
+  //   "reset",
+  //   "resetDefaultForce",
+  // ]
+
+  // const propertiesScalar = [
+  //   "charge",
+  //   "gravity",
+  //   "maxAgeRate",
+  //   "maxNodesLimit",
+  //   "nodeMaxAge",
+  //   "velocityDecay",
+  // ]
+
+  // const [charge, setCharge] = React.useState(props.settings.charge);
+  // const handleChangeCharge = (event, newCharge) => {
+  //   setCharge(newCharge);
+  //   props.handleChange({name: "charge", value: newCharge})
+  // };
+
+  // const [gravity, setGravity] = React.useState(props.settings.gravity);
+  // const handleChangeGravity = (event, newGravity) => {
+  //   setGravity(newGravity);
+  //   props.handleChange({name: "gravity", value: newGravity})
+  // };
+
+  // const [velocityDecay, setVelocityDecay] = React.useState(props.settings.velocityDecay);
+  // const handleChangeVelocityDecay = (event, newVelocityDecay) => {
+  //   setVelocityDecay(newVelocityDecay);
+  //   props.handleChange({name: "velocityDecay", value: newVelocityDecay})
+  // };
 
   return (
     <>
       <Grid className={classes.grid}>
           <Grid item className={classes.gridItem} xs={3}>
 
-            <Typography className={classes.range} id="nodeRadiusRatio" gutterBottom>
+            <Typography className={classes.range} id="nodeRadiusRatio" name="nodeRadiusRatio" gutterBottom>
               NODE RADIUS RATIO min/max
             </Typography>
             <Slider
               id="nodeRadiusRatio"
               name="nodeRadiusRatio"
-              value={nodeRadiusRatio}
+              value={settings.nodeRadiusRatio}
               min={props.defaults.nodeRadiusRatioRange.min}
               max={props.defaults.nodeRadiusRatioRange.max}
               step={props.defaults.nodeRadiusRatioRange.step}
-              onChange={handleChangeNodeSize}
+              onChange={handleChangeSettings("nodeRadiusRatio")}
               valueLabelDisplay="auto"
               aria-labelledby="range-slider"
               getAriaValueText={valuetext}
             />
 
-            <Typography className={classes.range} id="fontSizeRatio" gutterBottom>
+            <Typography className={classes.range} id="fontSizeRatio" name="fontSizeRatio" gutterBottom>
               FONT SIZE RATIO min/max
             </Typography>
             <Slider
               id="fontSizeRatio"
               name="fontSizeRatio"
-              value={fontSizeRatio}
+              value={settings.fontSizeRatio}
               min={props.defaults.fontSizeRatioRange.min}
               max={props.defaults.fontSizeRatioRange.max}
               step={props.defaults.fontSizeRatioRange.step}
-              onChange={handleChangeFontSize}
+              onChange={handleChangeSettings("fontSizeRatio")}
               valueLabelDisplay="auto"
               aria-labelledby="range-slider"
               getAriaValueText={valuetext}
             />
 
-            <Typography className={classes.range} id="velocityDecay" gutterBottom>
+            <Typography className={classes.range} id="setMaxNodesLimit" name="setMaxNodesLimit" gutterBottom>
+              MAX NODES
+            </Typography>
+            <Slider
+              id="maxNodesLimit"
+              name="maxNodesLimit"
+              value={settings.maxNodesLimit}
+              min={props.defaults.maxNodesLimitRange.min}
+              max={props.defaults.maxNodesLimitRange.max}
+              step={props.defaults.maxNodesLimitRange.step}
+              onChange={handleChangeSettings("maxNodesLimit")}
+              valueLabelDisplay="auto"
+              aria-labelledby="slider"
+              getAriaValueText={valuetext}
+            />
+
+            <Typography className={classes.range} id="velocityDecay" name="velocityDecay" gutterBottom>
               VELOCITY DECAY
             </Typography>
             <Slider
               id="velocityDecay"
               name="velocityDecay"
-              value={velocityDecay}
+              value={settings.velocityDecay}
               min={props.defaults.velocityDecayRange.min}
               max={props.defaults.velocityDecayRange.max}
               step={props.defaults.velocityDecayRange.step}
-              onChange={handleChangeVelocityDecay}
+              onChange={handleChangeSettings("velocityDecay")}
               valueLabelDisplay="auto"
               aria-labelledby="slider"
               getAriaValueText={valuetext}
             />
 
-            <Typography className={classes.range} id="charge" gutterBottom>
+            <Typography className={classes.range} id="charge" name="charge" gutterBottom>
               CHARGE
             </Typography>
             <Slider
               id="charge"
               name="charge"
-              value={charge}
+              value={settings.charge}
               min={props.defaults.chargeRange.min}
               max={props.defaults.chargeRange.max}
               step={props.defaults.chargeRange.step}
-              onChange={handleChangeCharge}
+              onChange={handleChangeSettings("charge")}
               valueLabelDisplay="auto"
               aria-labelledby="slider"
               getAriaValueText={valuetext}
             />
 
-            <Typography className={classes.range} id="gravity" gutterBottom>
+            <Typography className={classes.range} id="gravity" name="gravity" gutterBottom>
               GRAVITY
             </Typography>
             <Slider
               id="gravity"
               name="gravity"
-              value={gravity}
+              value={settings.gravity}
               min={props.defaults.gravityRange.min}
               max={props.defaults.gravityRange.max}
               step={props.defaults.gravityRange.step}
-              onChange={handleChangeGravity}
+              onChange={handleChangeSettings("gravity")}
               valueLabelDisplay="auto"
               aria-labelledby="slider"
               getAriaValueText={valuetext}

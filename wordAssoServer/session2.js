@@ -2,13 +2,13 @@
 
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
-const DEFAULT_SOURCE = PRODUCTION_SOURCE;
+const DEFAULT_SOURCE = LOCAL_SOURCE;
 
 console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
 console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`)
 
-const STORED_CONFIG_VERSION = "2.1.3";
+const STORED_CONFIG_VERSION = "2.1.4";
 const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
 const DEFAULT_USE_STORED_CONFIG = true;
 const globalStoredSettingsName = STORED_CONFIG_NAME;
@@ -24,11 +24,15 @@ const DEFAULT_METRIC_MODE = "rate";
 const DEFAULT_RX_NODE_QUEUE_MAX = 200;
 const DEFAULT_RX_NODE_QUEUE_INTERVAL = 5;
 const DEFAULT_MAX_NODES = 50;
-const DEFAULT_MAX_NODES_LIMIT = 25;
 const DEFAULT_MAX_AGE = 15000;
 const DEFAULT_AGE_RATE = 1.0;
 
 const DEFAULT_TRANSITION_DURATION = 40;
+
+const DEFAULT_MAX_NODES_LIMIT = 25;
+const DEFAULT_MAX_NODES_LIMIT_RANGE_MIN = 0;
+const DEFAULT_MAX_NODES_LIMIT_RANGE_MAX = 100;
+const DEFAULT_MAX_NODES_LIMIT_RANGE_STEP = 1;
 
 const DEFAULT_CHARGE = -50;
 const DEFAULT_CHARGE_RANGE_MIN = -500;
@@ -130,6 +134,12 @@ config.defaults.displayNodeHashMap.word = "hide";
 
 config.defaults.autoCategoryFlag = false;
 config.defaults.metricMode = DEFAULT_METRIC_MODE;
+
+config.defaults.maxNodesLimit = DEFAULT_MAX_NODES_LIMIT;
+config.defaults.maxNodesLimitRange = {};
+config.defaults.maxNodesLimitRange.min = DEFAULT_MAX_NODES_LIMIT_RANGE_MIN; 
+config.defaults.maxNodesLimitRange.max = DEFAULT_MAX_NODES_LIMIT_RANGE_MAX;
+config.defaults.maxNodesLimitRange.step = DEFAULT_MAX_NODES_LIMIT_RANGE_STEP;
 
 config.defaults.charge = DEFAULT_CHARGE;
 config.defaults.chargeRange = {};
@@ -375,7 +385,7 @@ const customizerComm = (event) => {
           currentSessionView.setNodeMaxAge(event.data.value);
           break;
 
-        case "maxNodes":
+        case "maxNodesLimit":
           currentSessionView.setMaxNodesLimit(event.data.value);
           break;
 
@@ -908,19 +918,6 @@ function initSocketHandler () {
           "\n"
       );
       previousConfig.testSendInterval = config.settings.testSendInterval;
-    }
-
-    if (rxConfig.maxNodes !== undefined) {
-      config.settings.maxNodes = rxConfig.maxNodes;
-      console.log(
-        "\n*** ENV CHANGE: NODE_MAX_NODES: WAS: " +
-          previousConfig.maxNodes +
-          " | NOW: " +
-          config.settings.maxNodes +
-          "\n"
-      );
-      currentSessionView.setMaxAge(rxConfig.maxNodes);
-      previousConfig.maxNodes = config.settings.maxNodes;
     }
 
     if (rxConfig.nodeMaxAge !== undefined) {

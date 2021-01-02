@@ -928,18 +928,6 @@ function initSocketHandler () {
       previousConfig.testSendInterval = config.settings.testSendInterval;
     }
 
-    if (rxConfig.nodeMaxAge !== undefined) {
-      config.settings.nodeMaxAge = rxConfig.nodeMaxAge;
-      console.log(
-        "\n*** ENV CHANGE: NODE_MAX_AGE: WAS: " +
-          previousConfig.nodeMaxAge +
-          " | NOW: " +
-          config.settings.nodeMaxAge +
-          "\n"
-      );
-      currentSessionView.setMaxAge(rxConfig.nodeMaxAge);
-      previousConfig.nodeMaxAge = config.settings.nodeMaxAge;
-    }
   });
 
   socket.on("node", rxNode);

@@ -50,6 +50,7 @@ const config = {
     }
   },
   settings: {
+    nodeMaxAge: 0.5,
     maxNodesLimit: 47,
     velocityDecay: 0.33,
     charge: -50,

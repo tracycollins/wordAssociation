@@ -6,6 +6,12 @@ const config = {
       max: 100,
       step: 1
     },
+    nodeMaxAge: 0.5,
+    nodeMaxAgeRange: {
+      min: 0.0,
+      max: 20000,
+      step: 1.0
+    },
     velocityDecay: 0.5,
     velocityDecayRange: {
       min: 0.0,

@@ -9,9 +9,9 @@ console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
 console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`)
 
-const STORED_CONFIG_VERSION = "2.1.4";
+const STORED_CONFIG_VERSION = "2.1.5";
 const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
-const DEFAULT_USE_STORED_CONFIG = true;
+// const DEFAULT_USE_STORED_CONFIG = true;
 const globalStoredSettingsName = STORED_CONFIG_NAME;
 
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
@@ -25,7 +25,7 @@ const DEFAULT_METRIC_MODE = "rate";
 const DEFAULT_RX_NODE_QUEUE_MAX = 200;
 const DEFAULT_RX_NODE_QUEUE_INTERVAL = 5;
 const DEFAULT_MAX_NODES = 50;
-const DEFAULT_MAX_AGE = 15000;
+const DEFAULT_NODE_MAX_AGE = 15000;
 const DEFAULT_AGE_RATE = 1.0;
 
 const DEFAULT_TRANSITION_DURATION = 40;
@@ -112,7 +112,7 @@ config.defaults.panzoomTransform = {};
 
 config.defaults.maxNodes = DEFAULT_MAX_NODES;
 config.defaults.maxNodesLimit = DEFAULT_MAX_NODES_LIMIT;
-config.defaults.maxAge = DEFAULT_MAX_AGE;
+config.defaults.nodeMaxAge = DEFAULT_NODE_MAX_AGE;
 config.defaults.ageRate = DEFAULT_AGE_RATE;
 config.defaults.rxNodeQueueMax = DEFAULT_RX_NODE_QUEUE_MAX;
 config.defaults.rxNodeQueueInterval = DEFAULT_RX_NODE_QUEUE_INTERVAL;
@@ -164,7 +164,6 @@ config.defaults.forceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
 config.defaults.forceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
 config.defaults.collisionIterations = DEFAULT_COLLISION_ITERATIONS;
 config.defaults.collisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
-
 
 config.defaults.fontSizeRatioRange = {};
 config.defaults.fontSizeRatioRange.min = DEFAULT_FONT_SIZE_RATIO_RANGE_MIN; 
@@ -382,7 +381,7 @@ const customizerComm = (event) => {
           currentSessionView.setCharge(event.data.value);
           break;
 
-        case "maxAge":
+        case "nodeMaxAge":
           currentSessionView.setNodeMaxAge(event.data.value);
           break;
 

@@ -90,76 +90,6 @@ const Settings = (props) => {
     props.handleChange({name: name, value: value})
   };
 
-  // const [nodeRadiusRatio, setNodeRadiusRatio] = React.useState(
-  //   [
-  //     props.settings.nodeRadiusRatio.min, 
-  //     props.settings.nodeRadiusRatio.max
-  //   ]
-  // );
-  // const handleChangeNodeSize = (event, newNodeRadiusRatio) => {
-  //   setNodeRadiusRatio(newNodeRadiusRatio);
-  //   props.handleChange({name: "nodeRadiusRatio", value: newNodeRadiusRatio})
-  // };
-
-  // const [fontSizeRatio, setFontSizeRatio] = React.useState(
-  //   [
-  //     props.settings.fontSizeRatio.min, 
-  //     props.settings.fontSizeRatio.max
-  //   ]
-  // );
-  // const handleChangeFontSize = (event, newFontSizeRatio) => {
-  //   setFontSizeRatio(newFontSizeRatio);
-  //   props.handleChange({name: "fontSizeRatio", value: newFontSizeRatio})
-  // };
-
-  // const propertiesSelect = [    
-  //   "metricMode",
-  // ]
-
-  // const propertiesRange = [    
-  //   "nodeRadiusRatio",
-  //   "fontSizeRatio",
-  // ]
-
-  // const propertiesBoolean = [
-  //   "ageNodes",
-  //   "autoCategoryFlag",
-  //   "testMode",
-  //   "pause",
-  // ]
-
-  // const propertiesMoment = [
-  //   "reset",
-  //   "resetDefaultForce",
-  // ]
-
-  // const propertiesScalar = [
-  //   "charge",
-  //   "gravity",
-  //   "maxAgeRate",
-  //   "maxNodesLimit",
-  //   "nodeMaxAge",
-  //   "velocityDecay",
-  // ]
-
-  // const [charge, setCharge] = React.useState(props.settings.charge);
-  // const handleChangeCharge = (event, newCharge) => {
-  //   setCharge(newCharge);
-  //   props.handleChange({name: "charge", value: newCharge})
-  // };
-
-  // const [gravity, setGravity] = React.useState(props.settings.gravity);
-  // const handleChangeGravity = (event, newGravity) => {
-  //   setGravity(newGravity);
-  //   props.handleChange({name: "gravity", value: newGravity})
-  // };
-
-  // const [velocityDecay, setVelocityDecay] = React.useState(props.settings.velocityDecay);
-  // const handleChangeVelocityDecay = (event, newVelocityDecay) => {
-  //   setVelocityDecay(newVelocityDecay);
-  //   props.handleChange({name: "velocityDecay", value: newVelocityDecay})
-  // };
-
   return (
     <>
       <Grid className={classes.grid}>
@@ -208,6 +138,22 @@ const Settings = (props) => {
               max={props.defaults.maxNodesLimitRange.max}
               step={props.defaults.maxNodesLimitRange.step}
               onChange={handleChangeSettings("maxNodesLimit")}
+              valueLabelDisplay="auto"
+              aria-labelledby="slider"
+              getAriaValueText={valuetext}
+            />
+
+            <Typography className={classes.range} id="nodeMaxAge" name="nodeMaxAge" gutterBottom>
+              MAX AGE (seconds)
+            </Typography>
+            <Slider
+              id="nodeMaxAge"
+              name="nodeMaxAge"
+              value={settings.nodeMaxAge}
+              min={props.defaults.nodeMaxAgeRange.min}
+              max={props.defaults.nodeMaxAgeRange.max}
+              step={props.defaults.nodeMaxAgeRange.step}
+              onChange={handleChangeSettings("nodeMaxAge")}
               valueLabelDisplay="auto"
               aria-labelledby="slider"
               getAriaValueText={valuetext}

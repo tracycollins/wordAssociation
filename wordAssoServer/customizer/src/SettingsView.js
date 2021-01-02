@@ -85,6 +85,7 @@ const Settings = (props) => {
   const [settings, setSettings] = useState(defaultSettingsState);
 
   const handleChangeSettings = name => (e, value) => {
+    e.preventDefault();
     setSettings(prevState => ({...prevState, [name]: value}));
     props.handleChange({name: name, value: value})
   };

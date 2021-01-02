@@ -162,6 +162,7 @@ const App = (props) => {
         setSettings(tempSettings)
         break
 
+      case "nodeMaxAge":
       case "maxNodesLimit":
       case "charge":
       case "gravity":

@@ -103,21 +103,15 @@ const App = (props) => {
 
   const [defaults, setDefaults] = useState(props.defaults)
   const defaultsRef = useRef(defaults)
-  useEffect(() => { 
-    defaultsRef.current = defaults 
-  }, [defaults])
+  useEffect(() => { defaultsRef.current = defaults  }, [defaults])
 
   const [settings, setSettings] = useState(props.settings)
   const settingsRef = useRef(settings)
-  useEffect(() => { 
-    settingsRef.current = settings 
-  }, [settings])
+  useEffect(() => {  settingsRef.current = settings  }, [settings])
 
   const [status, setStatus] = useState(props.status)
   const statusRef = useRef(status)
-  useEffect(() => { 
-    statusRef.current = status 
-  }, [status])
+  useEffect(() => {  statusRef.current = status }, [status])
   
   const handleTabChange = (event, newValue) => {
 

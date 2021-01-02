@@ -201,6 +201,8 @@ const App = (props) => {
 
   const receiveMessage = (event) => {
 
+    event.preventDefault();
+
     // Do we trust the sender of this message?
 
     if (event.origin !== DEFAULT_SOURCE){

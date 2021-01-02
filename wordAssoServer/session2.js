@@ -25,10 +25,15 @@ const DEFAULT_METRIC_MODE = "rate";
 const DEFAULT_RX_NODE_QUEUE_MAX = 200;
 const DEFAULT_RX_NODE_QUEUE_INTERVAL = 5;
 const DEFAULT_MAX_NODES = 50;
-const DEFAULT_NODE_MAX_AGE = 15000;
+
 const DEFAULT_AGE_RATE = 1.0;
 
 const DEFAULT_TRANSITION_DURATION = 40;
+
+const DEFAULT_NODE_MAX_AGE = 15000;
+const DEFAULT_NODE_MAX_AGE_RANGE_MIN = 0;
+const DEFAULT_NODE_MAX_AGE_RANGE_MAX = 60000;
+const DEFAULT_NODE_MAX_AGE_RANGE_STEP = 100;
 
 const DEFAULT_MAX_NODES_LIMIT = 25;
 const DEFAULT_MAX_NODES_LIMIT_RANGE_MIN = 0;
@@ -110,9 +115,6 @@ config.defaults.storedConfigName = "config_" + config.defaults.sessionViewType;
 config.defaults.serverActiveTimeoutInterval = 60000;
 config.defaults.panzoomTransform = {};
 
-config.defaults.maxNodes = DEFAULT_MAX_NODES;
-config.defaults.maxNodesLimit = DEFAULT_MAX_NODES_LIMIT;
-config.defaults.nodeMaxAge = DEFAULT_NODE_MAX_AGE;
 config.defaults.ageRate = DEFAULT_AGE_RATE;
 config.defaults.rxNodeQueueMax = DEFAULT_RX_NODE_QUEUE_MAX;
 config.defaults.rxNodeQueueInterval = DEFAULT_RX_NODE_QUEUE_INTERVAL;
@@ -135,6 +137,12 @@ config.defaults.displayNodeHashMap.word = "hide";
 
 config.defaults.autoCategoryFlag = false;
 config.defaults.metricMode = DEFAULT_METRIC_MODE;
+
+config.defaults.nodeMaxAge = DEFAULT_NODE_MAX_AGE;
+config.defaults.nodeMaxAgeRange = {};
+config.defaults.nodeMaxAgeRange.min = DEFAULT_NODE_MAX_AGE_RANGE_MIN; 
+config.defaults.nodeMaxAgeRange.max = DEFAULT_NODE_MAX_AGE_RANGE_MAX;
+config.defaults.nodeMaxAgeRange.step = DEFAULT_NODE_MAX_AGE_RANGE_STEP;
 
 config.defaults.maxNodesLimit = DEFAULT_MAX_NODES_LIMIT;
 config.defaults.maxNodesLimitRange = {};

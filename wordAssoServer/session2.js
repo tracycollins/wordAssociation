@@ -9,7 +9,7 @@ console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
 console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`)
 
-const STORED_CONFIG_VERSION = "2.1.6";
+const STORED_CONFIG_VERSION = "2.1.7";
 const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
 // const DEFAULT_USE_STORED_CONFIG = true;
 const globalStoredSettingsName = STORED_CONFIG_NAME;
@@ -1138,7 +1138,7 @@ setTimeout(function(){
     if (storedSettings) {
       console.log(`LOADED STORED SETTINGS`)
       console.log({storedSettings}) 
-      config.settings = Object.assign(config.settings, storedSettings)
+      config.settings = Object.assign(config.settings, storedSettings.settings)
     }
     else{
       console.log(`*** LOAD STORED SETTINGS FAILED: ${globalStoredSettingsName}`)

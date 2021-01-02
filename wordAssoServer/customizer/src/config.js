@@ -1,5 +1,11 @@
 const config = {
   defaults: {
+    maxNodesLimit: 47,
+    maxNodesLimitRange: {
+      min: 0,
+      max: 100,
+      step: 1
+    },
     velocityDecay: 0.5,
     velocityDecayRange: {
       min: 0.0,
@@ -38,6 +44,7 @@ const config = {
     }
   },
   settings: {
+    maxNodesLimit: 47,
     velocityDecay: 0.33,
     charge: -50,
     gravity: 0.001,

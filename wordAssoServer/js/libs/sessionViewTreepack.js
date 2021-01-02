@@ -1852,6 +1852,7 @@ function ViewTreepack (config) {
 
     console.log(`initD3timer`)
     console.log({nodeArray})
+    console.log({nodeMaxAge})
     console.log({charge})
     console.log({velocityDecay})
     console.log({gravity})

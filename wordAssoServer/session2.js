@@ -41,8 +41,8 @@ const DEFAULT_MAX_NODES_LIMIT_RANGE_MAX = 100;
 const DEFAULT_MAX_NODES_LIMIT_RANGE_STEP = 1;
 
 const DEFAULT_CHARGE = -50;
-const DEFAULT_CHARGE_RANGE_MIN = -500;
-const DEFAULT_CHARGE_RANGE_MAX = 500;
+const DEFAULT_CHARGE_RANGE_MIN = -1000;
+const DEFAULT_CHARGE_RANGE_MAX = 1000;
 const DEFAULT_CHARGE_RANGE_STEP = 10;
 
 const DEFAULT_GRAVITY = 0.001;
@@ -111,7 +111,7 @@ const config = {};
 config.defaults = {}
 config.defaults.app_name = "Session View";
 config.defaults.sessionViewType = "treepack"; // options: force, histogram ??
-config.defaults.storedConfigName = "config_" + config.defaults.sessionViewType;
+config.defaults.storedConfigName = STORED_CONFIG_NAME;
 config.defaults.serverActiveTimeoutInterval = 60000;
 config.defaults.panzoomTransform = {};
 

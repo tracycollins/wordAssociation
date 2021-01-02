@@ -274,7 +274,7 @@ function ViewTreepack (config) {
     return new Node("nodePoolId_" + nodePoolIndex);
   });
 
-  nodePool.grow(2 * config.settings.maxNodes);
+  nodePool.grow(2 * config.settings.maxNodesLimit);
 
   console.log(`POOL INIT | SIZE: ${nodePool.size()}`)
 
@@ -814,11 +814,11 @@ function ViewTreepack (config) {
     const ageNodesLength = nodeIdArray.length;
     let ageRate = DEFAULT_AGE_RATE;
 
-    if (ageNodesLength > config.settings.maxNodesLimit && nodeAddQ.length <= config.settings.maxNodes) {
+    if (ageNodesLength > config.settings.maxNodesLimit && nodeAddQ.length <= config.settings.maxNodesLimit) {
       ageRate = adjustedAgeRateScale(ageNodesLength - config.settings.maxNodesLimit);
     } 
-    else if (nodeAddQ.length > config.settings.maxNodes) {
-      ageRate = adjustedAgeRateScale(nodeAddQ.length - config.settings.maxNodes);
+    else if (nodeAddQ.length > config.settings.maxNodesLimit) {
+      ageRate = adjustedAgeRateScale(nodeAddQ.length - config.settings.maxNodesLimit);
     } 
 
     maxAgeRate = Math.max(ageRate, maxAgeRate);
@@ -1775,7 +1775,7 @@ function ViewTreepack (config) {
 
   self.addNode = function (n) {
 
-    if (nodeAddQ.length >= config.settings.maxNodes) {
+    if (nodeAddQ.length >= config.settings.maxNodesLimit) {
       return;
     }
 

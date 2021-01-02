@@ -36,7 +36,7 @@ const Settings = (props) => {
               NODE RADIUS RATIO
             </Typography>
             <Typography className={classes.range} gutterBottom>
-              {`${props.settings.nodeRadiusRatio.min} min/ ${props.settings.nodeRadiusRatio.max} max`}
+              {`${props.settings.nodeRadiusRatio.min} min | ${props.settings.nodeRadiusRatio.max} max`}
             </Typography>
             <Slider
               id="nodeRadiusRatio"
@@ -54,6 +54,9 @@ const Settings = (props) => {
             <Typography className={classes.range} id="fontSizeRatio" name="fontSizeRatio" gutterBottom>
               FONT SIZE RATIO min/max
             </Typography>
+            <Typography className={classes.range} gutterBottom>
+              {`${props.settings.fontSizeRatio.min} min | ${props.settings.fontSizeRatio.max} max`}
+            </Typography>
             <Slider
               id="fontSizeRatio"
               name="fontSizeRatio"
@@ -70,7 +73,10 @@ const Settings = (props) => {
             <Typography className={classes.range} id="setMaxNodesLimit" name="setMaxNodesLimit" gutterBottom>
               MAX NODES
             </Typography>
-            <Slider
+            <Typography className={classes.range} gutterBottom>
+              {`${props.settings.maxNodesLimit} MAX NODES`}
+            </Typography>
+             <Slider
               id="maxNodesLimit"
               name="maxNodesLimit"
               value={props.settings.maxNodesLimit}
@@ -85,6 +91,9 @@ const Settings = (props) => {
 
             <Typography className={classes.range} id="nodeMaxAge" name="nodeMaxAge" gutterBottom>
               MAX AGE (seconds)
+            </Typography>
+            <Typography className={classes.range} gutterBottom>
+              {`${props.settings.nodeMaxAge} MAX NODE AGE (ms)`}
             </Typography>
             <Slider
               id="nodeMaxAge"
@@ -102,6 +111,9 @@ const Settings = (props) => {
             <Typography className={classes.range} id="velocityDecay" name="velocityDecay" gutterBottom>
               VELOCITY DECAY
             </Typography>
+            <Typography className={classes.range} gutterBottom>
+              {`${props.settings.velocityDecay}/1.0`}
+            </Typography>
             <Slider
               id="velocityDecay"
               name="velocityDecay"
@@ -118,6 +130,9 @@ const Settings = (props) => {
             <Typography className={classes.range} id="charge" name="charge" gutterBottom>
               CHARGE
             </Typography>
+            <Typography className={classes.range} gutterBottom>
+              {`${props.settings.charge}`}
+            </Typography>
             <Slider
               id="charge"
               name="charge"
@@ -133,6 +148,9 @@ const Settings = (props) => {
 
             <Typography className={classes.range} id="gravity" name="gravity" gutterBottom>
               GRAVITY
+            </Typography>
+            <Typography className={classes.range} gutterBottom>
+              {`${props.settings.gravity}`}
             </Typography>
             <Slider
               id="gravity"

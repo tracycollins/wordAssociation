@@ -54,7 +54,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function valuetext(value) {
-  return `${value}°C`;
+  return `${value}`;
 }
 
 const Settings = (props) => {
@@ -85,7 +85,6 @@ const Settings = (props) => {
   const [settings, setSettings] = useState(defaultSettingsState);
 
   const handleChangeSettings = name => (e, value) => {
-    // event.preventDefault();
     setSettings(prevState => ({...prevState, [name]: value}));
     props.handleChange({name: name, value: value})
   };

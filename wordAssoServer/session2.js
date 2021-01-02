@@ -1152,8 +1152,6 @@ setTimeout(function(){
 
     addCustomizeButton();
     addFullscreenButton();
-    // addMetricButton();
-    // addCategoryButton();
 
     console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 

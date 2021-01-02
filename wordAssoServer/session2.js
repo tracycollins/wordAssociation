@@ -289,7 +289,7 @@ let configUpdateTimeOut;
 const configUpdateTimeOutInverval = 3000;
 
 const resetConfigUpdateTimeOut = () => {
-  config.defaults.storedConfigName = "config_" + config.settings.sessionViewType;
+  // config.defaults.storedConfigName = "config_" + config.settings.sessionViewType;
 
   clearTimeout(configUpdateTimeOut);
 

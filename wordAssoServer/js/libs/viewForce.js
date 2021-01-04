@@ -1,18 +1,10 @@
 /* global d3, deePool, HashMap, panzoom*/
 
-function ViewTreepack (config) {
+function ViewForce (inputConfig) {
 
-  console.log("@@@@@@@ CLIENT @@@@@@@@");
-  console.log({config})
+  console.log("@@@@@@@ ViewForce @@@@@@@@");
+  console.log({inputConfig})
 
-  let nodeArray = [];
-
-  const initialXposition = 0.5;
-  const initialYposition = 0.9;
-  // const defaultInitialZoom = 1.0;
-
-  // const DEFAULT_ZOOM_FACTOR = 0.5;
-  const minRateMetricChange = 0.5;
 
   function getWindowDimensions () {
     if (window.innerWidth !== "undefined") {
@@ -39,6 +31,106 @@ function ViewTreepack (config) {
 
   let width = getWindowDimensions().width;
   let height = getWindowDimensions().height;
+
+  let nodeArray = [];
+
+  const config = inputConfig || {};
+  config.settings = config.settings || {};
+  config.defaults = config.defaults || {};
+
+  config.settings.initialXposition = config.settings.initialXposition || 0.5;
+  config.settings.initialYposition = config.settings.initialYposition || 0.9;
+
+  config.settings.minRateMetricChange = config.settings.minRateMetricChange || 0.5;
+
+  config.settings.focus = {};
+
+  config.settings.focus.leftRatio = {};
+  config.settings.focus.leftRatio.x = 0.2;
+  config.settings.focus.leftRatio.y = 0.5;
+  
+  config.settings.focus.rightRatio = {};
+  config.settings.focus.rightRatio.x = 0.8;
+  config.settings.focus.rightRatio.y = 0.5;
+  
+  config.settings.focus.positiveRatio = {};
+  config.settings.focus.positiveRatio.x = 0.5;
+  config.settings.focus.positiveRatio.y = 0.2;
+  
+  config.settings.focus.negativeRatio = {};
+  config.settings.focus.negativeRatio.x = 0.5;
+  config.settings.focus.negativeRatio.y = 0.7;
+  
+  config.settings.focus.neutralRatio = {};
+  config.settings.focus.neutralRatio.x = 0.5;
+  config.settings.focus.neutralRatio.y = 0.5;
+  
+  config.settings.focus.defaultRatio = {};
+  config.settings.focus.defaultRatio.x = 0.5;
+  config.settings.focus.defaultRatio.y = 0.6;
+  
+  let foci = {
+    left: { 
+      x: config.settings.focus.leftRatio.x * width, 
+      y: config.settings.focus.leftRatio.y * height
+    },
+    right: { 
+      x: config.settings.focus.rightRatio.x * width, 
+      y: config.settings.focus.rightRatio.y * height
+    },
+    neutral: { 
+      x: config.settings.focus.neutralRatio.x * width, 
+      y: config.settings.focus.neutralRatio.y * height
+    },
+    positive: { 
+      x: config.settings.focus.positiveRatio.x * width, 
+      y: config.settings.focus.positiveRatio.y * height
+    },
+    negative: { 
+      x: config.settings.focus.negativeRatio.x * width, 
+      y: config.settings.focus.negativeRatio.y * height
+    },
+    none: { 
+      x: config.settings.focus.defaultRatio.x * width, 
+      y: config.settings.focus.defaultRatio.y * height
+    },
+    default: { 
+      x: config.settings.focus.defaultRatio.x * width, 
+      y: config.settings.focus.defaultRatio.y * height
+    },
+  };
+
+  const updateFoci = (w, h) => ({
+    left: { 
+      x: config.settings.focus.leftRatio.x * w, 
+      y: config.settings.focus.leftRatio.y * h
+    },
+    right: { 
+      x: config.settings.focus.rightRatio.x * w, 
+      y: config.settings.focus.rightRatio.y * h
+    },
+    neutral: { 
+      x: config.settings.focus.neutralRatio.x * w, 
+      y: config.settings.focus.neutralRatio.y * h
+    },
+    positive: { 
+      x: config.settings.focus.positiveRatio.x * w, 
+      y: config.settings.focus.positiveRatio.y * h
+    },
+    negative: { 
+      x: config.settings.focus.negativeRatio.x * w, 
+      y: config.settings.focus.negativeRatio.y * h
+    },
+    none: { 
+      x: config.settings.focus.defaultRatio.x * w, 
+      y: config.settings.focus.defaultRatio.y * h
+    },
+    default: { 
+      x: config.settings.focus.defaultRatio.x * w, 
+      y: config.settings.focus.defaultRatio.y * h
+    }
+  }) 
+
 
   function jsonPrint(obj) {
     if (obj || obj === 0) {
@@ -77,21 +169,19 @@ function ViewTreepack (config) {
   };
 
   const DEFAULT_MIN_RATE = 0.1;
-  const minRate = DEFAULT_MIN_RATE;
+  const minRate = config.settings.minRate || DEFAULT_MIN_RATE;
 
   const DEFAULT_MIN_FOLLOWERS = 5000;
-  const minFollowers = DEFAULT_MIN_FOLLOWERS;
+  const minFollowers = config.settings.minFollowers || DEFAULT_MIN_FOLLOWERS;
 
   const DEFAULT_MIN_MENTIONS = 1000;
-
-  const minMentionsUsers = DEFAULT_MIN_MENTIONS;
-  const minMentionsHashtags = 100;
+  const minMentionsUsers = config.settings.minMentionsUsers || DEFAULT_MIN_MENTIONS;
+  const minMentionsHashtags = config.settings.minMentionsHashtags || 100;
 
   const DEFAULT_MIN_FOLLOWERS_AGE_RATE_RATIO = 0.9; // age users with many followers at a slower rate
 
   let mouseMovingFlag = false;
 
-  // let self = self;
   let simulation;
 
   let enableAgeNodes = true;
@@ -101,78 +191,6 @@ function ViewTreepack (config) {
   let resumeTimeStamp = 0;
 
   const sliderPercision = 5;
-
-  // FORCE X & Y
-  const xFocusLeftRatio = 0.2;
-  const yFocusLeftRatio = 0.5;
-
-  const xFocusRightRatio = 0.8;
-  const yFocusRightRatio = 0.5;
-
-  const xFocusPositiveRatio = 0.5;
-  const yFocusPositiveRatio = 0.2;
-
-  const xFocusNegativeRatio = 0.5;
-  const yFocusNegativeRatio = 0.7;
-
-  const xFocusNeutralRatio = 0.5;
-  const yFocusNeutralRatio = 0.5;
-
-  const xFocusDefaultRatio = 0.5;
-  const yFocusDefaultRatio = 0.6;
-
-  // INITIAL POSITION
-  const xMinRatioLeft = 0.25;
-  const xMaxRatioLeft = 0.3;
-
-  const yMinRatioLeft = 0.75;
-  const yMaxRatioLeft = 0.85;
-
-  const xMinRatioRight = 0.7;
-  const xMaxRatioRight = 0.75;
-
-  const yMinRatioRight = 0.75;
-  const yMaxRatioRight = 0.85;
-
-  const xMinRatioPositive = 0.45;
-  const xMaxRatioPositive = 0.55;
-
-  const yMinRatioPositive = 0.3;
-  const yMaxRatioPositive = 0.4;
-
-  const xMinRatioNegative = 0.45;
-  const xMaxRatioNegative = 0.55;
-
-  const yMinRatioNegative = 0.85;
-  const yMaxRatioNegative = 0.95;
-
-  const xMinRatioNeutral = 0.45;
-  const xMaxRatioNeutral = 0.55;
-
-  const yMinRatioNeutral = 0.75;
-  const yMaxRatioNeutral = 0.85;
-
-  const xMinRatioDefault = 0.45;
-  const xMaxRatioDefault = 0.55;
-
-  const yMinRatioDefault = 0.75;
-  const yMaxRatioDefault = 0.85;
-
-  let foci = {
-    left: { x: xFocusLeftRatio * width, y: yFocusLeftRatio * height },
-    right: { x: xFocusRightRatio * width, y: yFocusRightRatio * height },
-    positive: {
-      x: xFocusPositiveRatio * width,
-      y: yFocusPositiveRatio * height,
-    },
-    negative: {
-      x: xFocusNegativeRatio * width,
-      y: yFocusNegativeRatio * height,
-    },
-    neutral: { x: xFocusNeutralRatio * width, y: yFocusNeutralRatio * height },
-    none: { x: xFocusDefaultRatio * width, y: yFocusDefaultRatio * height },
-    default: { x: xFocusDefaultRatio * width, y: yFocusDefaultRatio * height },
-  };
 
   const totalHashmap = {};
   totalHashmap.total = 0;
@@ -263,8 +281,8 @@ function ViewTreepack (config) {
     this.text = "";
     this.vx = 1e-6;
     this.vy = 1e-6;
-    this.x = initialXposition * width;
-    this.y = initialYposition * height;
+    this.x = config.settings.initialXposition * width;
+    this.y = config.settings.initialYposition * height;
   }
 
   let nodePoolIndex = 0;
@@ -330,7 +348,7 @@ function ViewTreepack (config) {
   maxRateMentions.x = 100;
   maxRateMentions.y = 100;
 
-  console.log("TREEPACK CONFIG");
+  console.log("VIEW FORCE CONFIG");
 
   let testMode = false;
   let freezeFlag = false;
@@ -479,10 +497,12 @@ function ViewTreepack (config) {
   });
 
   let panzoomCurrentEvent;
+  let firstPanzoomEvent = true;
 
   panzoomInstance.on("transform", function (e) {
     panzoomCurrentEvent = e;
-    resetZoomEndTimeout();
+    if (!firstPanzoomEvent) { resetZoomEndTimeout(); }
+    firstPanzoomEvent = false;
   });
 
   let zoomEndTimeout;
@@ -509,16 +529,16 @@ function ViewTreepack (config) {
     .append("svg:g")
     .attr("id", "nodeLabelSvgGroup");
 
-  const randomIntFromInterval = function (min, max) {
-    const random = Math.random();
-    const randomInt = Math.floor(random * (max - min + 1) + min);
-    if (Number.isNaN(randomInt)) {
-      console.error(
-        "randomIntFromInterval NaN" + " | MIN: " + min + " | MAX: " + max
-      );
-    }
-    return randomInt;
-  };
+  // const randomIntFromInterval = function (min, max) {
+  //   const random = Math.random();
+  //   const randomInt = Math.floor(random * (max - min + 1) + min);
+  //   if (Number.isNaN(randomInt)) {
+  //     console.error(
+  //       "randomIntFromInterval NaN" + " | MIN: " + min + " | MAX: " + max
+  //     );
+  //   }
+  //   return randomInt;
+  // };
 
   d3.select("body").style("cursor", "default");
 
@@ -733,7 +753,7 @@ function ViewTreepack (config) {
       .clamp(true);
   };
   self.resetDefaultForce = function () {
-    console.warn("RESET TREEPACK DEFAULT FORCE");
+    console.warn("RESET VIEW DEFAULT FORCE");
     self.setTransitionDuration(config.settings.transitionDuration);
     self.setNodeMaxAge(config.settings.nodeMaxAge);
     self.setCharge(config.settings.charge);
@@ -781,8 +801,8 @@ function ViewTreepack (config) {
     n.text = "";
     n.vx = 1e-6;
     n.vy = 1e-6;
-    n.x = initialXposition.width;
-    n.y = initialYposition.height;
+    n.x = config.settings.initialXposition * width;
+    n.y = config.settings.initialYposition * height;
 
     if (document.getElementById(n.nodePoolId)){
       document.getElementById(n.nodePoolId).setAttribute("display", "none");
@@ -907,20 +927,18 @@ function ViewTreepack (config) {
       self.toolTipVisibility(false);
     }
 
-    d3.select(this).style("fill-opacity", 1);
-    d3.select(this).style("stroke", palette.white);
-    d3.select(this).style("stroke-opacity", 1);
-    d3.select(this).style("display", "unset");
-    d3.select("#" + d.nodePoolId).style("fill-opacity", 1);
-    d3.select("#" + d.nodePoolId).style("stroke-opacity", 1);
-    d3.select("#" + d.nodePoolId + "_label").style("stroke", "unset");
-    d3.select("#" + d.nodePoolId + "_label").style("fill", palette.white);
-    d3.select("#" + d.nodePoolId + "_label").style("fill-opacity", 1);
-    d3.select("#" + d.nodePoolId + "_label").style("display", "unset");
+    d3.select("#" + d.nodePoolId)
+      .style("fill-opacity", 1)
+      .style("stroke-opacity", 1);
+
+    d3.select("#" + d.nodePoolId + "_label")
+      .style("stroke", "unset")
+      .style("fill", palette.white)
+      .style("fill-opacity", 1)
+      .style("display", "unset");
 
     switch (d.nodeType) {
       case "user":
-
         tooltipString =
           "@" +
           d.screenName +
@@ -982,13 +1000,15 @@ function ViewTreepack (config) {
       self.toolTipVisibility(false);
     }
 
-    d3.select(this).style("fill", palette.white);
-    d3.select(this).style("fill-opacity", 1);
-    d3.select(this).style("stroke-opacity", 1);
-    d3.select(this).style("display", "unset");
-    d3.select("#" + d.nodePoolId).style("fill-opacity", 1);
-    d3.select("#" + d.nodePoolId).style("stroke", palette.white);
-    d3.select("#" + d.nodePoolId).style("stroke-opacity", 1);
+    // d3.select(this).style("fill", palette.white);
+    // d3.select(this).style("fill-opacity", 1);
+    // d3.select(this).style("stroke-opacity", 1);
+    // d3.select(this).style("display", "unset");
+
+    d3.select("#" + d.nodePoolId)
+      .style("fill-opacity", 1)
+      .style("stroke", palette.white)
+      .style("stroke-opacity", 1);
 
     switch (d.nodeType) {
       case "user":
@@ -1050,47 +1070,14 @@ function ViewTreepack (config) {
 
     self.toolTipVisibility(false);
 
-    d3.select("#" + d.nodePoolId).style("fill-opacity", function () {
-      return nodeLabelOpacityScale(d.ageMaxRatio);
-    });
+    d3.select("#" + d.nodePoolId)
+      .style("fill-opacity", function () {
+        return nodeLabelOpacityScale(d.ageMaxRatio);
+      })
+      .style("stroke-opacity", function () {
+        return nodeLabelOpacityScale(d.ageMaxRatio);
+      });
 
-    d3.select("#" + d.nodePoolId).style("stroke-opacity", function () {
-      return nodeLabelOpacityScale(d.ageMaxRatio);
-    });
-
-    d3.select(this).style("fill", labelFill(d));
-
-    d3.select(this).style("fill-opacity", function () {
-      return nodeLabelOpacityScale(d.ageMaxRatio);
-    });
-
-    d3.select(this).style("display", function () {
-      if (!d.isValid) {
-        return "none";
-      }
-      if (isCategorized(d.category)) {
-        return "unset";
-      }
-      if (d.rate > minRate) {
-        return "unset";
-      }
-      if (
-        d.nodeType === "hashtag" &&
-        (d.mentions > minMentionsHashtags || d.nodeId.includes("trump"))
-      ) {
-        return "unset";
-      }
-      if (
-        d.nodeType === "user" &&
-        (d.followersCount > minFollowers ||
-          d.mentions > minMentionsUsers ||
-          d.screenName.toLowerCase().includes("trump") ||
-          (d.name && d.name.toLowerCase().includes("trump")))
-      ) {
-        return "unset";
-      }
-      return "none";
-    });
   }
 
   function nodeMouseOut(event, d) {
@@ -1098,54 +1085,41 @@ function ViewTreepack (config) {
 
     self.toolTipVisibility(false);
 
-    d3.select(this).style("fill-opacity", function () {
-      return nodeLabelOpacityScale(d.ageMaxRatio);
-    });
+    d3.select("#" + d.nodePoolId)
+      .style("fill-opacity", function () {
+        return nodeLabelOpacityScale(d.ageMaxRatio);
+      })
+      .style("stroke-opacity", function () {
+        return nodeLabelOpacityScale(d.ageMaxRatio);
+      });
 
-    d3.select(this).style("stroke", circleStroke(d));
-
-    d3.select(this).style("stroke-opacity", function () {
-      return nodeLabelOpacityScale(d.ageMaxRatio);
-    });
-
-    d3.select("#" + d.nodePoolId).style("fill-opacity", function () {
-      return nodeLabelOpacityScale(d.ageMaxRatio);
-    });
-
-    d3.select("#" + d.nodePoolId).style("stroke-opacity", function () {
-      return nodeLabelOpacityScale(d.ageMaxRatio);
-    });
-
-    d3.select("#" + d.nodePoolId + "_label").style("fill", labelFill(d));
-
-    d3.select("#" + d.nodePoolId + "_label").style("fill-opacity", function () {
-      return nodeLabelOpacityScale(d.ageMaxRatio);
-    });
-
-    d3.select("#" + d.nodePoolId + "_label").style("display", function () {
-      if (!d.isValid) {
+    d3.select("#" + d.nodePoolId + "_label")
+      .style("fill", labelFill(d))
+      .style("fill-opacity", nodeLabelOpacityScale(d.ageMaxRatio))
+      .style("display", function () {
+        if (!d.isValid) {
+          return "none";
+        }
+        if (isCategorized(d.category)) {
+          return "unset";
+        }
+        if (d.rate > minRate) {
+          return "unset";
+        }
+        if (d.nodeType === "hashtag" && (d.mentions > minMentionsHashtags || d.nodeId.includes("trump"))) {
+          return "unset";
+        }
+        if (
+          d.nodeType === "user" &&
+          (d.followersCount > minFollowers ||
+            d.mentions > minMentionsUsers ||
+            d.screenName.toLowerCase().includes("trump") ||
+            (d.name && d.name.toLowerCase().includes("trump")))
+        ) {
+          return "unset";
+        }
         return "none";
-      }
-      if (isCategorized(d.category)) {
-        return "unset";
-      }
-      if (d.rate > minRate) {
-        return "unset";
-      }
-      if (d.nodeType === "hashtag" && (d.mentions > minMentionsHashtags || d.nodeId.includes("trump"))) {
-        return "unset";
-      }
-      if (
-        d.nodeType === "user" &&
-        (d.followersCount > minFollowers ||
-          d.mentions > minMentionsUsers ||
-          d.screenName.toLowerCase().includes("trump") ||
-          (d.name && d.name.toLowerCase().includes("trump")))
-      ) {
-        return "unset";
-      }
-      return "none";
-    });
+      });
   }
 
   function labelText(d) {
@@ -1471,88 +1445,6 @@ function ViewTreepack (config) {
     return false;
   }
 
-  function focus(focalPoint) {
-    switch (focalPoint) {
-      case "left":
-        return {
-          x: randomIntFromInterval(
-            xMinRatioLeft * width,
-            xMaxRatioLeft * width
-          ),
-          y: randomIntFromInterval(
-            yMinRatioLeft * height,
-            yMaxRatioLeft * height
-          ),
-        };
-      case "right":
-        return {
-          x: randomIntFromInterval(
-            xMinRatioRight * width,
-            xMaxRatioRight * width
-          ),
-          y: randomIntFromInterval(
-            yMinRatioRight * height,
-            yMaxRatioRight * height
-          ),
-        };
-      case "positive":
-        return {
-          x: randomIntFromInterval(
-            xMinRatioPositive * width,
-            xMaxRatioPositive * width
-          ),
-          y: randomIntFromInterval(
-            yMinRatioPositive * height,
-            yMaxRatioPositive * height
-          ),
-        };
-      case "negative":
-        return {
-          x: randomIntFromInterval(
-            xMinRatioNegative * width,
-            xMaxRatioNegative * width
-          ),
-          y: randomIntFromInterval(
-            yMinRatioNegative * height,
-            yMaxRatioNegative * height
-          ),
-        };
-      case "neutral":
-        return {
-          x: randomIntFromInterval(
-            xMinRatioNeutral * width,
-            xMaxRatioNeutral * width
-          ),
-          y: randomIntFromInterval(
-            yMinRatioNeutral * height,
-            yMaxRatioNeutral * height
-          ),
-        };
-      case "none":
-        return {
-          x: randomIntFromInterval(
-            xMinRatioDefault * width,
-            xMaxRatioDefault * width
-          ),
-          y: randomIntFromInterval(
-            yMinRatioDefault * height,
-            yMaxRatioDefault * height
-          ),
-        };
-      default:
-        return {
-          x: randomIntFromInterval(
-            xMinRatioDefault * width,
-            xMaxRatioDefault * width
-          ),
-          y: randomIntFromInterval(
-            yMinRatioDefault * height,
-            yMaxRatioDefault * height
-          ),
-        };
-    }
-  }
-
   let nodeAddQReady = true;
   let nodePoolIdcircle;
 
@@ -1653,8 +1545,8 @@ function ViewTreepack (config) {
         currentNode.tweetsPerDay = newNode.tweetsPerDay;
         currentNode.vx = 1e-6;
         currentNode.vy = 1e-6;
-        currentNode.x = initialXposition * width;
-        currentNode.y = initialYposition * height;
+        currentNode.x = config.settings.initialXposition * width;
+        currentNode.y = config.settings.initialYposition * height;
 
         if (newNode.nodeType === "user") {
           currentNode.following = newNode.following;
@@ -1668,21 +1560,21 @@ function ViewTreepack (config) {
           isCategorized(newNode.categoryAuto)
         ) {
           if (autoCategoryFlag && isCategorized(newNode.categoryAuto)) {
-            currentNode.x = focus(newNode.categoryAuto).x;
-            currentNode.y = focus(newNode.categoryAuto).y;
+            currentNode.x = foci[newNode.categoryAuto].x;
+            currentNode.y = foci[newNode.categoryAuto].y;
           } else if (
             isCategorized(newNode.categoryAuto) &&
             !isCategorized(newNode.category)
           ) {
-            currentNode.x = focus(newNode.categoryAuto).x;
-            currentNode.y = focus(newNode.categoryAuto).y;
+            currentNode.x = foci[newNode.categoryAuto].x;
+            currentNode.y = foci[newNode.categoryAuto].y;
           } else if (isCategorized(newNode.category)) {
-            currentNode.x = focus(newNode.category).x;
-            currentNode.y = focus(newNode.category).y;
+            currentNode.x = foci[newNode.category].x;
+            currentNode.y = foci[newNode.category].y;
           }
         } else {
-          currentNode.x = focus("none").x;
-          currentNode.y = focus("none").y;
+          currentNode.x = foci.none.x;
+          currentNode.y = foci.none.y;
         }
 
         nodePoolIdcircle = document.getElementById(currentNode.nodePoolId);
@@ -1714,7 +1606,7 @@ function ViewTreepack (config) {
     updateNodeCircles()
     updateNodeLabels()
 
-    if ((metricMode === "rate" && newCurrentMaxRateMetricFlag && Math.abs(currentMaxRateMetric - previousMaxRateMetric) / currentMaxRateMetric > minRateMetricChange)
+    if ((metricMode === "rate" && newCurrentMaxRateMetricFlag && Math.abs(currentMaxRateMetric - previousMaxRateMetric) / currentMaxRateMetric > config.settings.minRateMetricChange)
       || (metricMode === "mentions" && newCurrentMaxMentionsMetricFlag)) {
 
       if (metricMode === "rate") {
@@ -1970,30 +1862,7 @@ function ViewTreepack (config) {
 
       console.log("RESIZE: " + width + "x" + height);
 
-      foci = {
-        left: { x: xFocusLeftRatio * width, y: yFocusLeftRatio * height },
-        right: { x: xFocusRightRatio * width, y: yFocusRightRatio * height },
-
-        positive: {
-          x: xFocusPositiveRatio * width,
-          y: yFocusPositiveRatio * height,
-        },
-        negative: {
-          x: xFocusNegativeRatio * width,
-          y: yFocusNegativeRatio * height,
-        },
-
-        neutral: {
-          x: xFocusNeutralRatio * width,
-          y: yFocusNeutralRatio * height,
-        },
-        none: { x: xFocusDefaultRatio * width, y: yFocusDefaultRatio * height },
-
-        default: {
-          x: xFocusDefaultRatio * width,
-          y: yFocusDefaultRatio * height,
-        },
-      };
+      foci = updateFoci(width, height)
 
       console.log("FOCI: " + jsonPrint(foci));
 

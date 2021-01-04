@@ -289,7 +289,6 @@ let configUpdateTimeOut;
 const configUpdateTimeOutInverval = 3000;
 
 const resetConfigUpdateTimeOut = () => {
-  // config.defaults.storedConfigName = "config_" + config.settings.sessionViewType;
 
   clearTimeout(configUpdateTimeOut);
 
@@ -917,42 +916,6 @@ function initSocketHandler () {
     }
   });
 
-  socket.on("CONFIG_CHANGE", function (rxConfig) {
-    status.serverConnected = true;
-    status.socket.connected = true;
-
-    console.log(
-      "\n-----------------------\nRX CONFIG_CHANGE\n" +
-        JSON.stringify(rxConfig, null, 3) +
-        "\n------------------------\n"
-    );
-
-    if (rxConfig.testMode !== undefined) {
-      config.settings.testMode = rxConfig.testMode;
-      console.log(
-        "\n*** ENV CHANGE: TEST_MODE:  WAS: " +
-          previousConfig.testMode +
-          " | NOW: " +
-          config.settings.testMode +
-          "\n"
-      );
-      previousConfig.testMode = config.testMode;
-    }
-
-    if (rxConfig.testSendInterval !== undefined) {
-      config.settings.testSendInterval = rxConfig.testSendInterval;
-      console.log(
-        "\n*** ENV CHANGE: TEST_SEND_INTERVAL: WAS: " +
-          previousConfig.testSendInterval +
-          " | NOW: " +
-          config.settings.testSendInterval +
-          "\n"
-      );
-      previousConfig.testSendInterval = config.settings.testSendInterval;
-    }
-
-  });
-
   socket.on("node", rxNode);
 
   return;
@@ -1181,7 +1144,7 @@ setTimeout(function(){
       status.viewerReadyTransmitted = true;
     });
 
-    currentSessionView = ViewTreepack(config);
+    currentSessionView = ViewForce(config);
     currentSessionView.initD3timer();
     // currentSessionView.resize();    
     initSocketHandler()

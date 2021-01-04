@@ -78,6 +78,7 @@ let rxNodeQueueReady = false;
 const rxNodeQueue = [];
 
 let customizePanelFlag = false;
+let infoPanelFlag = false;
 
 const status = {};
 
@@ -306,7 +307,9 @@ const saveConfig = () => {
   return;
 }
 
+const infoDivElement = document.getElementById("infoDiv");
 const controlDivElement = document.getElementById("controlDiv");
+
 let serverActiveTimeout;
 const serverActiveTimeoutEventObj = new CustomEvent("serverActiveTimeoutEvent");
 
@@ -519,10 +522,32 @@ const toggleCustomize = () => {
   return;
 }
 
+const toggleInfo = () => {
+
+  console.warn("toggleInfo");
+  if (!infoPanelFlag) {
+    infoPanelFlag = !infoPanelFlag;
+  }
+
+  infoDivElement.style.display = infoPanelFlag ? "unset" : "none";
+
+  return;
+}
+
 const updateCustomizeButton = (customizePanelFlag) => {
   document.getElementById("customizeButton").innerHTML = customizePanelFlag
     ? "CLOSE CUSTOMIZE"
     : "CUSTOMIZE";
+  return;
+}
+
+const addInfoButton = () => {
+  const infoButton = document.createElement("BUTTON");
+  infoButton.className = "button";
+  infoButton.setAttribute("id", "infoButton");
+  infoButton.onclick = toggleInfo;
+  infoButton.innerHTML = infoPanelFlag ? "EXIT INFO" : "INFO";
+  controlDivElement.appendChild(infoButton);
   return;
 }
 
@@ -650,8 +675,6 @@ function sendKeepAlive(viewerObj, callback) {
 let socketKeepaliveInterval;
 
 function initKeepalive(viewerObj, interval) {
-  // let keepaliveIndex = 0;
-
   clearInterval(socketKeepaliveInterval);
 
   console.log(
@@ -1146,6 +1169,7 @@ setTimeout(function(){
 
     socket = io("/view");
 
+    addInfoButton();
     addCustomizeButton();
     addFullscreenButton();
 

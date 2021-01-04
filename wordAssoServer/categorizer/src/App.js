@@ -593,6 +593,7 @@ const App = () => {
     switch (eventName){
 
       case "nop":
+        setProgress("idle")
         break;
 
       case "history":

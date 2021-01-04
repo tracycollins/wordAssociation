@@ -300,11 +300,11 @@ function ViewTreepack (config) {
 
   if (config.settings.panzoomTransform === undefined) {
     config.settings.panzoomTransform = {};
+    config.settings.panzoomTransform.ratio = 1.0;
+    config.settings.panzoomTransform.scale = config.settings.panzoomTransform.scale || config.settings.zoomFactor;
+    config.settings.panzoomTransform.x = config.settings.panzoomTransform.x || 0.5 * width;
+    config.settings.panzoomTransform.y = config.settings.panzoomTransform.y || 0.5 * height;
   }
-  config.settings.panzoomTransform.ratio = 1.0;
-  config.settings.panzoomTransform.scale = config.settings.panzoomTransform.scale || config.settings.zoomFactor;
-  config.settings.panzoomTransform.x = config.settings.panzoomTransform.x || 0.5 * width;
-  config.settings.panzoomTransform.y = config.settings.panzoomTransform.y || 0.5 * height;
 
   const maxRateMentions = {};
   maxRateMentions.rateNodeType = "hashtag";
@@ -1905,11 +1905,12 @@ function ViewTreepack (config) {
     switch (op) {
       case "RESET":
         self.reset();
+        // self.resize();
         runningFlag = false;
         break;
       case "START":
         self.initD3timer();
-        self.resize();
+        // self.resize();
         simulation.alphaTarget(0.7).restart();
         enableAgeNodes = true
         runningFlag = true;
@@ -1957,12 +1958,12 @@ function ViewTreepack (config) {
   let resizeTimeOut;
 
   self.resize = function () {
+
     clearTimeout(resizeTimeOut);
 
     resizeTimeOut = setTimeout(function () {
-      resetCurrentMax();
 
-      // d3image = d3.select("#d3group");
+      resetCurrentMax();
 
       width = getWindowDimensions().width;
       height = getWindowDimensions().height;
@@ -2090,13 +2091,13 @@ function ViewTreepack (config) {
     true
   );
 
-  document.addEventListener(
-    "resize",
-    function resizeFunc() {
-      self.resize();
-    },
-    true
-  );
+  // document.addEventListener(
+  //   "resize",
+  //   function resizeFunc() {
+  //     self.resize();
+  //   },
+  //   true
+  // );
 
   self.reset = function () {
     console.info("RESET");
@@ -2106,7 +2107,7 @@ function ViewTreepack (config) {
     nodeArray.length = 0;
     self.toolTipVisibility(false);
     self.resetDefaultForce();
-    self.resize();
+    // self.resize();
     resetCurrentMax();
   };
 

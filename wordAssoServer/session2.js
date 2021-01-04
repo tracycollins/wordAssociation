@@ -813,9 +813,9 @@ function initSocketHandler () {
     status.socket.connected = false;
 
     console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
-    if (currentSessionView !== undefined) {
-      currentSessionView.resize();
-    }
+    // if (currentSessionView !== undefined) {
+    //   currentSessionView.resize();
+    // }
   });
 
   let socketErrorTimeout;
@@ -827,9 +827,9 @@ function initSocketHandler () {
     console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
     console.error("*** SOCKET ERROR\n" + error);
 
-    if (currentSessionView !== undefined) {
-      currentSessionView.resize();
-    }
+    // if (currentSessionView !== undefined) {
+    //   currentSessionView.resize();
+    // }
 
     socket.disconnect(true); // full disconnect, not just namespace
 
@@ -846,9 +846,9 @@ function initSocketHandler () {
 
     console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
     console.error("*** SOCKET CONNECT ERROR\n" + error);
-    if (currentSessionView !== undefined) {
-      currentSessionView.resize();
-    }
+    // if (currentSessionView !== undefined) {
+    //   currentSessionView.resize();
+    // }
   });
 
   socket.on("reconnect_error", function (error) {
@@ -857,9 +857,9 @@ function initSocketHandler () {
 
     console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
     console.error("*** SOCKET RECONNECT ERROR\n" + error);
-    if (currentSessionView !== undefined) {
-      currentSessionView.resize();
-    }
+    // if (currentSessionView !== undefined) {
+    //   currentSessionView.resize();
+    // }
   });
 
   socket.on("unauthorized", function (err) {
@@ -1183,7 +1183,7 @@ setTimeout(function(){
 
     currentSessionView = ViewTreepack(config);
     currentSessionView.initD3timer();
-    currentSessionView.resize();    
+    // currentSessionView.resize();    
     initSocketHandler()
     initSocketSessionUpdateRx()
     resetMouseMoveTimer()

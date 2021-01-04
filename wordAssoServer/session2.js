@@ -1,4 +1,4 @@
-/* global d3,HashMap,store,moment,io,ViewTreepack */
+/* global d3,HashMap,store,moment,io,ViewForce */
 
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
@@ -9,7 +9,7 @@ console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
 console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`)
 
-const STORED_CONFIG_VERSION = "2.1.9";
+const STORED_CONFIG_VERSION = "2.1.10";
 const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
 // const DEFAULT_USE_STORED_CONFIG = true;
 const globalStoredSettingsName = STORED_CONFIG_NAME;
@@ -105,7 +105,6 @@ status.bestNetwork.numInputs = 0;
 status.maxNodes = 0;
 status.maxNodeAddQ = 0;
 
-let previousConfig = {}
 let config = {};
 
 config.defaults = {}
@@ -113,7 +112,12 @@ config.defaults.app_name = "Session View";
 config.defaults.sessionViewType = "treepack"; // options: force, histogram ??
 config.defaults.storedConfigName = STORED_CONFIG_NAME;
 config.defaults.serverActiveTimeoutInterval = 60000;
-config.defaults.panzoomTransform = {};
+
+config.defaults.panzoom = {};
+config.defaults.panzoom.transform = {};
+config.defaults.panzoom.transform.scale = 0.5;
+config.defaults.panzoom.transform.x = 960;
+config.defaults.panzoom.transform.x = 540;
 
 config.defaults.ageRate = DEFAULT_AGE_RATE;
 config.defaults.rxNodeQueueMax = DEFAULT_RX_NODE_QUEUE_MAX;
@@ -196,7 +200,6 @@ config.defaults.nodeRadius.min = config.defaults.nodeRadiusRatio.min * DEFAULT_W
 config.defaults.nodeRadius.max = config.defaults.nodeRadiusRatio.max * DEFAULT_WINDOW_WIDTH;
 
 config.settings = Object.assign({}, config.defaults)
-previousConfig = Object.assign({}, config.defaults)
 
 const palette = {
   black: "#000000",
@@ -1091,7 +1094,7 @@ document.addEventListener("mousemove", function () {
 
 document.addEventListener("panzoomEvent", function () {
     if (currentSessionView) {
-      config.settings.panzoomTransform = currentSessionView.getPanzoomTransform();
+      config.settings.panzoom.transform = currentSessionView.getPanzoomTransform();
       saveConfig();
     }
   },

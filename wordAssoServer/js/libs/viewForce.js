@@ -316,12 +316,12 @@ function ViewForce (inputConfig) {
   let nodeRadiusMin = nodeRadiusRatioMin * width;
   let nodeRadiusMax = nodeRadiusRatioMax * width;
 
-  if (config.settings.panzoomTransform === undefined) {
-    config.settings.panzoomTransform = {};
-    config.settings.panzoomTransform.ratio = 1.0;
-    config.settings.panzoomTransform.scale = config.settings.panzoomTransform.scale || config.settings.zoomFactor;
-    config.settings.panzoomTransform.x = config.settings.panzoomTransform.x || 0.5 * width;
-    config.settings.panzoomTransform.y = config.settings.panzoomTransform.y || 0.5 * height;
+  if (config.settings.panzoom.transform === undefined) {
+    config.settings.panzoom.transform = {};
+    config.settings.panzoom.transform.ratio = 1.0;
+    config.settings.panzoom.transform.scale = config.settings.panzoom.transform.scale || config.settings.zoomFactor;
+    config.settings.panzoom.transform.x = config.settings.panzoom.transform.x || 0.5 * width;
+    config.settings.panzoom.transform.y = config.settings.panzoom.transform.y || 0.5 * height;
   }
 
   const maxRateMentions = {};
@@ -485,11 +485,14 @@ function ViewForce (inputConfig) {
 
   const panzoomElement = document.getElementById("svgTreemapLayoutArea");
 
-  const panzoomInstance = panzoom(panzoomElement, {
-    autocenter: true,
-    bounds: true,
-    initialZoom: 0.9
-  });
+  const panzoomInit = {}
+  panzoomInit.autocenter = config.settings.panzoom.autocenter || true;
+  panzoomInit.bounds = config.settings.panzoom.bounds || true;
+  panzoomInit.initialZoom = config.settings.panzoom.transform.scale || 1.0;
+  panzoomInit.initialX = config.settings.panzoom.transform.x || width*0.5;
+  panzoomInit.initialY = config.settings.panzoom.transform.y || height*0.5;
+
+  const panzoomInstance = panzoom(panzoomElement, panzoomInit);
 
   const panzoomEvent = new CustomEvent("panzoomEvent", {
     bubbles: true,
@@ -511,16 +514,16 @@ function ViewForce (inputConfig) {
     clearTimeout(zoomEndTimeout);
 
     zoomEndTimeout = setTimeout(function () {
-      config.settings.panzoomTransform = panzoomCurrentEvent.getTransform();
+      config.settings.panzoom.transform = panzoomCurrentEvent.getTransform();
       console.log(
         "panzoomTransform transform end\n",
-        jsonPrint(config.settings.panzoomTransform)
+        jsonPrint(config.settings.panzoom.transform)
       );
       document.dispatchEvent(panzoomEvent);
     }, 1000);
   };
 
-  console.log("panzoomInstance zoomAbs\n", jsonPrint(config.settings.panzoomTransform));
+  console.log("panzoomInstance zoomAbs\n", jsonPrint(config.settings.panzoom.transform));
 
   const nodeSvgGroup = svgTreemapLayoutArea
     .append("svg:g")
@@ -568,7 +571,7 @@ function ViewForce (inputConfig) {
     return maxAgeRate;
   };
   self.getPanzoomTransform = function () {
-    return config.settings.panzoomTransform;
+    return config.settings.panzoom.transform;
   };
   
   self.setStats = function (stats) {

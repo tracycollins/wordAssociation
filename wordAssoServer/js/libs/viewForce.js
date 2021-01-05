@@ -7,6 +7,10 @@ function ViewForce (inputConfig) {
 
 
   function getWindowDimensions () {
+    if (window.outerWidth !== "undefined") {
+      return { width: window.outerWidth, height: window.outerHeight };
+    }
+
     if (window.innerWidth !== "undefined") {
       return { width: window.innerWidth, height: window.innerHeight };
     }
@@ -32,6 +36,11 @@ function ViewForce (inputConfig) {
   let width = getWindowDimensions().width;
   let height = getWindowDimensions().height;
 
+  console.log({width})
+  console.log({height})
+
+  const heightOffsetRatio = 0.5; // on add new node
+
   let nodeArray = [];
 
   const config = inputConfig || {};
@@ -43,15 +52,15 @@ function ViewForce (inputConfig) {
 
   config.settings.minRateMetricChange = config.settings.minRateMetricChange || 0.5;
 
-  config.settings.focus = {};
+  config.settings.focus = config.settings.focus || {};
 
   config.settings.focus.leftRatio = {};
   config.settings.focus.leftRatio.x = 0.2;
-  config.settings.focus.leftRatio.y = 0.5;
+  config.settings.focus.leftRatio.y = 0.4;
   
   config.settings.focus.rightRatio = {};
   config.settings.focus.rightRatio.x = 0.8;
-  config.settings.focus.rightRatio.y = 0.5;
+  config.settings.focus.rightRatio.y = 0.4;
   
   config.settings.focus.positiveRatio = {};
   config.settings.focus.positiveRatio.x = 0.5;
@@ -63,11 +72,11 @@ function ViewForce (inputConfig) {
   
   config.settings.focus.neutralRatio = {};
   config.settings.focus.neutralRatio.x = 0.5;
-  config.settings.focus.neutralRatio.y = 0.5;
+  config.settings.focus.neutralRatio.y = 0.4;
   
   config.settings.focus.defaultRatio = {};
   config.settings.focus.defaultRatio.x = 0.5;
-  config.settings.focus.defaultRatio.y = 0.6;
+  config.settings.focus.defaultRatio.y = 0.4;
   
   let foci = {
     left: { 
@@ -243,6 +252,8 @@ function ViewForce (inputConfig) {
   }
 
   function Node(nodePoolId) {
+    this.isFixedNode = false;
+
     this.age = 1e-6;
     this.ageMaxRatio = 1e-6;
     this.ageUpdated = Date.now();
@@ -319,9 +330,9 @@ function ViewForce (inputConfig) {
   if (config.settings.panzoom.transform === undefined) {
     config.settings.panzoom.transform = {};
     config.settings.panzoom.transform.ratio = 1.0;
-    config.settings.panzoom.transform.scale = config.settings.panzoom.transform.scale || config.settings.zoomFactor;
+    config.settings.panzoom.transform.scale = config.settings.panzoom.transform.scale || 0.8;
     config.settings.panzoom.transform.x = config.settings.panzoom.transform.x || 0.5 * width;
-    config.settings.panzoom.transform.y = config.settings.panzoom.transform.y || 0.5 * height;
+    config.settings.panzoom.transform.y = config.settings.panzoom.transform.y || 0.2 * height;
   }
 
   const maxRateMentions = {};
@@ -393,23 +404,19 @@ function ViewForce (inputConfig) {
   let nodeMaxAge = 60000;
   let maxAgeRate = 1e-6;
 
-  // let defaultStrokeWidth = "1.1px";
   const defaultStrokeWidth = "0.5em";
-  // let topTermStrokeWidth = "2.0px";
   const topTermStrokeWidth = "0.6em";
 
-  // let botStrokeWidth = "4.0px";
   const botStrokeWidth = "0.6em";
   const botCircleFillColor = palette.black;
-  // const botCircleStrokeColor = palette.lightgray;
   const botLabelFillColor = palette.white;
 
+  const fixedNodeFillColor = palette.red;
+  const fixedNodeStrokeColor = palette.blue;
+
   const categoryMatchColor = palette.green;
-  // let categoryMatchStrokeWidth = "4.0px";
   const categoryMatchStrokeWidth = "0.6em";
-  // let categoryMismatchStrokeWidth = "7.0px";
   const categoryMismatchStrokeWidth = "0.7em";
-  // let categoryAutoStrokeWidth = "2.0px";
   const categoryAutoStrokeWidth = "0.3em";
 
   const divTooltip = d3
@@ -470,20 +477,20 @@ function ViewForce (inputConfig) {
   const svgMain = d3image
     .append("svg:svg")
     .attr("id", "svgMain")
-    .attr("width", width)
+    .attr("width", '100%')
     .attr("height", height)
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
-  const svgTreemapLayoutArea = svgMain
+  const svgViewForceLayoutArea = svgMain
     .append("svg:g")
-    .attr("id", "svgTreemapLayoutArea")
-    .attr("width", width)
+    .attr("id", "svgViewForceLayoutArea")
+    .attr("width", '100%')
     .attr("height", height)
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
-  const panzoomElement = document.getElementById("svgTreemapLayoutArea");
+  const panzoomElement = document.getElementById("svgViewForceLayoutArea");
 
   const panzoomInit = {}
   panzoomInit.autocenter = config.settings.panzoom.autocenter || true;
@@ -525,23 +532,12 @@ function ViewForce (inputConfig) {
 
   console.log("panzoomInstance zoomAbs\n", jsonPrint(config.settings.panzoom.transform));
 
-  const nodeSvgGroup = svgTreemapLayoutArea
+  const nodeSvgGroup = svgViewForceLayoutArea
     .append("svg:g")
     .attr("id", "nodeSvgGroup");
-  const nodeLabelSvgGroup = svgTreemapLayoutArea
+  const nodeLabelSvgGroup = svgViewForceLayoutArea
     .append("svg:g")
     .attr("id", "nodeLabelSvgGroup");
-
-  // const randomIntFromInterval = function (min, max) {
-  //   const random = Math.random();
-  //   const randomInt = Math.floor(random * (max - min + 1) + min);
-  //   if (Number.isNaN(randomInt)) {
-  //     console.error(
-  //       "randomIntFromInterval NaN" + " | MIN: " + min + " | MAX: " + max
-  //     );
-  //   }
-  //   return randomInt;
-  // };
 
   d3.select("body").style("cursor", "default");
 
@@ -860,14 +856,17 @@ function ViewForce (inputConfig) {
         ageRate = 1e-6;
       }
 
-      if (nNode.nodeType === "user" && nNode.followersCount && nNode.followersCount > minFollowers) {
+      if (nNode.isFixedNode) {
+        age = 1e-6;
+      }
+      else if (nNode.nodeType === "user" && nNode.followersCount && nNode.followersCount > minFollowers) {
         age = nNode.age + ageRate * DEFAULT_MIN_FOLLOWERS_AGE_RATE_RATIO * (Date.now() - nNode.ageUpdated);
       } 
       else {
         age = nNode.age + ageRate * (Date.now() - nNode.ageUpdated);
       }
 
-      if (nNode.isDead || (age >= nodeMaxAge)) {
+      if (!nNode.disableAging && (nNode.isDead || (age >= nodeMaxAge))) {
 
         nodeIdHashMap.remove(nodeId);
         localNodeHashMap.remove(nPoolId);
@@ -877,9 +876,16 @@ function ViewForce (inputConfig) {
 
       } 
       else {
+
+        if (nNode.isFixedNode){
+          nNode.fx = foci[nNode.category].x
+          nNode.fy = foci[nNode.category].y
+        }
         
         nNode.isValid = true;
         nNode.isDead = (age >= nodeMaxAge);
+
+
         nNode.ageUpdated = Date.now();
         nNode.age = Math.max(age, 1e-6);
         nNode.ageMaxRatio = Math.max((age / nodeMaxAge), 1e-6);
@@ -1175,6 +1181,10 @@ function ViewForce (inputConfig) {
     switch (d.nodeType) {
 
       case "user":
+        if (d.isFixedNode){
+          console.debug(`FIXED NODE TYPE: ${d.category}`);
+          break;
+        }
         if (d.lastTweetId && d.lastTweetId !== undefined) {
           console.debug("LOADING TWITTER USER: https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId);
           window.open("https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId, "_blank");
@@ -1197,6 +1207,9 @@ function ViewForce (inputConfig) {
   let nodeCircles;
 
   function circleFill(d) {
+    if (d.isFixedNode) {
+      return fixedNodeFillColor;
+    }
     if (d.isBot) {
       return botCircleFillColor;
     }
@@ -1214,6 +1227,9 @@ function ViewForce (inputConfig) {
   }
 
   function circleStroke(d) {
+    if (d.isFixedNode) {
+      return fixedNodeStrokeColor;
+    }
     if (d.nodeType === "hashtag") {
       return palette.white;
     }
@@ -1255,12 +1271,14 @@ function ViewForce (inputConfig) {
   }
 
   function circleFillOpacity(d){
+    if (d.isFixedNode) { return 1.0; }
     if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
     if (!isCategorized(d.category) && isCategorized(d.categoryAuto)) { return nodeLabelOpacityScaleTopTerm(0.5*d.ageMaxRatio); }
     return nodeLabelOpacityScale(d.ageMaxRatio);
   }
 
   function circleStrokeOpacity(d) { 
+    if (d.isFixedNode) { return 1.0; }
     if (d.isTopTerm) { return nodeLabelOpacityScaleTopTerm(d.ageMaxRatio); }
     return nodeLabelOpacityScale(d.ageMaxRatio);
   }
@@ -1299,6 +1317,8 @@ function ViewForce (inputConfig) {
         return "unset"; 
       })
       .attr("r", function (d) {
+        // if (d.isFixedNode) { return defaultRadiusScale(Math.sqrt(1)); }
+        if (d.isFixedNode) { return 20; }
         if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate)); }
         if (metricMode === "mentions") { return defaultRadiusScale(Math.sqrt(d.mentions)); }
       })
@@ -1467,6 +1487,21 @@ function ViewForce (inputConfig) {
         const nodePoolId = nodeIdHashMap.get(newNode.nodeId);
         const currentNode = localNodeHashMap.get(nodePoolId);
 
+        currentNode.isFixedNode = newNode.isFixedNode;
+        currentNode.disableAging = newNode.disableAging;
+
+        if (newNode.isFixedNode){
+          currentNode.fx = newNode.fx;
+          currentNode.fy = newNode.fy;
+          currentNode.x = newNode.fx;
+          currentNode.y = newNode.fy;
+          currentNode.vx = 1e-6;
+          currentNode.vy = 1e-6;
+        }
+        // else{
+        //   currentNode.fx = null;
+        //   currentNode.fy = null;
+        // }
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
         currentNode.ageUpdated = Date.now();
@@ -1513,6 +1548,8 @@ function ViewForce (inputConfig) {
 
         nodeIdHashMap.set(newNode.nodeId, currentNode.nodePoolId);
 
+        currentNode.isFixedNode = newNode.isFixedNode;
+        currentNode.disableAging = newNode.disableAging;
         currentNode.ageDays = newNode.ageDays;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
@@ -1546,10 +1583,43 @@ function ViewForce (inputConfig) {
         currentNode.screenName = newNode.screenName;
         currentNode.statusesCount = newNode.statusesCount;
         currentNode.tweetsPerDay = newNode.tweetsPerDay;
-        currentNode.vx = 1e-6;
-        currentNode.vy = 1e-6;
-        currentNode.x = config.settings.initialXposition * width;
-        currentNode.y = config.settings.initialYposition * height;
+
+        if (isCategorized(newNode.category) || isCategorized(newNode.categoryAuto)) {
+          if (autoCategoryFlag && isCategorized(newNode.categoryAuto)) {
+            currentNode.x = foci[newNode.categoryAuto].x;
+            currentNode.y = foci[newNode.categoryAuto].y + heightOffsetRatio*height;
+          } 
+          else if (isCategorized(newNode.categoryAuto) && !isCategorized(newNode.category)) {
+            currentNode.x = foci[newNode.categoryAuto].x;
+            currentNode.y = foci[newNode.categoryAuto].y + heightOffsetRatio*height;
+          } 
+          else if (isCategorized(newNode.category)) {
+            currentNode.x = foci[newNode.category].x;
+            currentNode.y = foci[newNode.category].y + heightOffsetRatio*height;
+          }
+        } 
+        else {
+          currentNode.x = foci.none.x;
+          currentNode.y = foci.none.y + heightOffsetRatio*height;
+        }
+
+        // if (newNode.isFixedNode){
+        //   currentNode.fx = newNode.fx;
+        //   currentNode.fy = newNode.fy;
+        //   currentNode.x = newNode.fx;
+        //   currentNode.y = newNode.fy;
+        //   currentNode.vx = 1e-6;
+        //   currentNode.vy = 1e-6;
+        // }
+        // else{
+        //   currentNode.fx = null;
+        //   currentNode.fy = null;
+        //   currentNode.x = config.settings.initialXposition * width;
+        //   currentNode.y = config.settings.initialYposition * height;
+        //   currentNode.vx = 1e-6;
+        //   currentNode.vy = 1e-6;
+        // }
+
 
         if (newNode.nodeType === "user") {
           currentNode.following = newNode.following;
@@ -1558,27 +1628,7 @@ function ViewForce (inputConfig) {
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
-        if (
-          isCategorized(newNode.category) ||
-          isCategorized(newNode.categoryAuto)
-        ) {
-          if (autoCategoryFlag && isCategorized(newNode.categoryAuto)) {
-            currentNode.x = foci[newNode.categoryAuto].x;
-            currentNode.y = foci[newNode.categoryAuto].y;
-          } else if (
-            isCategorized(newNode.categoryAuto) &&
-            !isCategorized(newNode.category)
-          ) {
-            currentNode.x = foci[newNode.categoryAuto].x;
-            currentNode.y = foci[newNode.categoryAuto].y;
-          } else if (isCategorized(newNode.category)) {
-            currentNode.x = foci[newNode.category].x;
-            currentNode.y = foci[newNode.category].y;
-          }
-        } else {
-          currentNode.x = foci.none.x;
-          currentNode.y = foci.none.y;
-        }
+
 
         nodePoolIdcircle = document.getElementById(currentNode.nodePoolId);
 
@@ -1670,12 +1720,19 @@ function ViewForce (inputConfig) {
 
   self.addNode = function (n) {
 
-    if (nodeAddQ.length >= config.settings.maxNodesLimit) {
+    if (!n.isFixedNode && nodeAddQ.length >= config.settings.maxNodesLimit) {
       return;
     }
 
     if (nodeAddQ.length > maxNodeAddQ) {
       maxNodeAddQ = nodeAddQ.length;
+    }
+
+    if (n.isFixedNode){
+      n.fx = foci[n.category].x
+      n.fy = foci[n.category].y
+      n.disableAging = true
+      console.log(`FIXED NODE: ${n.nodeId} | CAT: ${n.category}`)
     }
     
     n.age = 1e-6;
@@ -1865,6 +1922,18 @@ function ViewForce (inputConfig) {
 
       console.log("RESIZE: " + width + "x" + height);
 
+      svgMain
+        .attr("width", '100%')
+        .attr("height", height)
+        .attr("x", 1e-6)
+        .attr("y", 1e-6);
+
+      svgViewForceLayoutArea
+        .attr("width", '100%')
+        .attr("height", height)
+        .attr("x", 1e-6)
+        .attr("y", 1e-6);
+
       foci = updateFoci(width, height)
 
       console.log("FOCI: " + jsonPrint(foci));
@@ -1887,11 +1956,7 @@ function ViewForce (inputConfig) {
         .range([fontSizeMin, fontSizeMax])
         .clamp(true);
 
-      svgMain
-        .attr("width", width)
-        .attr("height", height)
-        .attr("x", 1e-6)
-        .attr("y", 1e-6);
+
 
       if (simulation) {
         simulation
@@ -1963,13 +2028,13 @@ function ViewForce (inputConfig) {
     true
   );
 
-  // document.addEventListener(
-  //   "resize",
-  //   function resizeFunc() {
-  //     self.resize();
-  //   },
-  //   true
-  // );
+  document.addEventListener(
+    "resize",
+    function resizeFunc() {
+      self.resize();
+    },
+    true
+  );
 
   self.reset = function () {
     console.info("RESET");

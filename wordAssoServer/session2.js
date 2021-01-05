@@ -9,14 +9,11 @@ console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
 console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`)
 
-const STORED_CONFIG_VERSION = "2.1.10";
+const STORED_CONFIG_VERSION = "2.1.11";
 const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
-// const DEFAULT_USE_STORED_CONFIG = true;
 const globalStoredSettingsName = STORED_CONFIG_NAME;
 
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
-
-// const DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
 
 const DEFAULT_WINDOW_HEIGHT = 1080;
 const DEFAULT_WINDOW_WIDTH = 1920;
@@ -29,12 +26,12 @@ const DEFAULT_AGE_RATE = 1.0;
 
 const DEFAULT_TRANSITION_DURATION = 40;
 
-const DEFAULT_NODE_MAX_AGE = 15000;
+const DEFAULT_NODE_MAX_AGE = 30000;
 const DEFAULT_NODE_MAX_AGE_RANGE_MIN = 0;
 const DEFAULT_NODE_MAX_AGE_RANGE_MAX = 60000;
 const DEFAULT_NODE_MAX_AGE_RANGE_STEP = 100;
 
-const DEFAULT_MAX_NODES_LIMIT = 25;
+const DEFAULT_MAX_NODES_LIMIT = 40;
 const DEFAULT_MAX_NODES_LIMIT_RANGE_MIN = 0;
 const DEFAULT_MAX_NODES_LIMIT_RANGE_MAX = 100;
 const DEFAULT_MAX_NODES_LIMIT_RANGE_STEP = 1;
@@ -49,7 +46,7 @@ const DEFAULT_GRAVITY_RANGE_MIN = -0.01;
 const DEFAULT_GRAVITY_RANGE_MAX = 0.01;
 const DEFAULT_GRAVITY_RANGE_STEP = 0.00001;
 
-const DEFAULT_VELOCITY_DECAY = 0.35;
+const DEFAULT_VELOCITY_DECAY = 0.5;
 const DEFAULT_VELOCITY_DECAY_RANGE_MIN = 0.0;
 const DEFAULT_VELOCITY_DECAY_RANGE_MAX = 1.0;
 const DEFAULT_VELOCITY_DECAY_RANGE_STEP = 0.01;
@@ -62,12 +59,12 @@ const DEFAULT_COLLISION_ITERATIONS = 1;
 
 const DEFAULT_NODE_RADIUS_RATIO_RANGE_MIN = 0.0;
 const DEFAULT_NODE_RADIUS_RATIO_RANGE_MAX = 0.500;
-const DEFAULT_NODE_RADIUS_RATIO_MIN = 0.02;
-const DEFAULT_NODE_RADIUS_RATIO_MAX = 0.10;
+const DEFAULT_NODE_RADIUS_RATIO_MIN = 0.01;
+const DEFAULT_NODE_RADIUS_RATIO_MAX = 0.075;
 
 const DEFAULT_FONT_SIZE_RATIO_RANGE_MIN = 0.0;
 const DEFAULT_FONT_SIZE_RATIO_RANGE_MAX = 0.1;
-const DEFAULT_FONT_SIZE_RATIO_MIN = 0.01;
+const DEFAULT_FONT_SIZE_RATIO_MIN = 0.015;
 const DEFAULT_FONT_SIZE_RATIO_MAX = 0.04;
 
 const DEFAULT_MAX_READY_ACK_WAIT_COUNT = 10;
@@ -115,9 +112,10 @@ config.defaults.serverActiveTimeoutInterval = 60000;
 
 config.defaults.panzoom = {};
 config.defaults.panzoom.transform = {};
-config.defaults.panzoom.transform.scale = 0.5;
+config.defaults.panzoom.transform.ratio = 1.0;
+config.defaults.panzoom.transform.scale = 0.8;
 config.defaults.panzoom.transform.x = 960;
-config.defaults.panzoom.transform.x = 540;
+config.defaults.panzoom.transform.y = 0;
 
 config.defaults.ageRate = DEFAULT_AGE_RATE;
 config.defaults.rxNodeQueueMax = DEFAULT_RX_NODE_QUEUE_MAX;
@@ -1106,15 +1104,110 @@ const loadStoredSettings = () => {
   return store.get(globalStoredSettingsName);
 }
 
+
+function Node() {
+  this.isFixedNode = false;
+  this.disableAging = false;
+  this.age = 1e-6;
+  this.ageMaxRatio = 1e-6;
+  this.ageUpdated = Date.now();
+  this.category = "none";
+  this.categoryAuto = "none";
+  this.categoryColor = "#FFFFFF";
+  this.categoryMatch = false;
+  this.categoryMismatch = false;
+  this.following = false;
+  this.followersCount = 0;
+  this.followersMentions = 0;
+  this.friendsCount = 0;
+  this.fullName = 0;
+  this.hashtagId = false;
+  this.index = 0;
+  this.isBot = false;
+  this.isTweeter = false;
+  this.isDead = true;
+  this.isIgnored = false;
+  this.isMaxNode = false;
+  this.isTopTerm = false;
+  this.isTrendingTopic = false;
+  this.isValid = false;
+  this.lastTweetId = false;
+  this.mentions = 0;
+  this.mouseHoverFlag = false;
+  this.name = "";
+  this.newFlag = true;
+  this.nodeId = "";
+  this.nodeType = "user";
+  this.rank = -1;
+  this.rate = 1e-6;
+  this.screenName = "";
+  this.statusesCount = 0;
+  this.text = "";
+  this.fx = null;
+  this.fy = null;
+  this.vx = 1e-6;
+  this.vy = 1e-6;
+  this.x = 1e-6;
+  this.y = 1e-6;
+}
+
+
+function getWindowDimensions () {
+
+  if (window.outerWidth !== "undefined") {
+    return { width: window.outerWidth, height: window.outerHeight };
+  }
+  if (window.innerWidth !== "undefined") {
+    return { width: window.innerWidth, height: window.innerHeight };
+  }
+  // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
+
+  if (
+    document.documentElement !== "undefined" &&
+    document.documentElement.clientWidth !== "undefined" &&
+    document.documentElement.clientWidth !== 0
+  ) {
+    return {
+      width: document.documentElement.clientWidth,
+      height: document.documentElement.clientHeight,
+    };
+  }
+  // older versions of IE
+  return {
+    width: document.getElementsByTagName("body")[0].clientWidth,
+    height: document.getElementsByTagName("body")[0].clientHeight,
+  };
+}
+
+let width = getWindowDimensions().width;
+let height = getWindowDimensions().height;
+
 window.addEventListener(
   "beforeunload",
   function () {
     console.log("CLOSING...");
-    if (customizerWindow){
-      customizerWindow.close()
-    }
+    if (customizerWindow){ customizerWindow.close() }
     customizePanelFlag = false;
   },
+  false
+);
+
+window.addEventListener(
+  "load",
+  function () {
+
+    console.log("LOAD SESSION");
+
+    width = getWindowDimensions().width;
+    height = getWindowDimensions().height;
+
+    config.settings.panzoom.transform.x = 0.5 * width;
+    config.defaults.panzoom.transform.x = 0.5 * width;
+    config.settings.panzoom.transform.y = 0.5 * height;
+    config.defaults.panzoom.transform.y = 0.5 * height;
+
+  },
+
   false
 );
 
@@ -1151,8 +1244,22 @@ setTimeout(function(){
     currentSessionView.initD3timer();
     // currentSessionView.resize();    
     initSocketHandler()
-    initSocketSessionUpdateRx()
     resetMouseMoveTimer()
+    const fixedNodes = {
+    }
+
+    // for (const category of ["left", "right", "neutral", "positive", "negative", "none"]){
+    //   fixedNodes[category] = new Node();
+    //   fixedNodes[category].nodeId = "fixedNode_" + category;
+    //   fixedNodes[category].screenName = category;
+    //   fixedNodes[category].category = category;
+    //   fixedNodes[category].isFixedNode = true;
+    //   fixedNodes[category].disableAging = true;
+    //   currentSessionView.addNode(fixedNodes[category]);
+    // }
+
+    initSocketSessionUpdateRx()
+
   }
   catch(err){
     console.error({err})

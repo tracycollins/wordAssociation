@@ -382,9 +382,6 @@ tspan.mg-points-mono {
     font-size: 0.45rem;
 }
 
-.mg-european-hours {
-}
-
 .mg-year-marker text {
     fill: white;
     font-size: 0.4rem;
@@ -410,45 +407,8 @@ tspan.mg-points-mono {
             box-sizing: border-box;
 }
 
-div#serverPrompt {
-  margin: auto;
-  float: none;
-  background-color:black;
-  color:#888888;
-  font-family: "Lucida Console", Monaco, monospace;
-  font-size: 0.5em;
-  text-align: left;
-  /*margin-left: 1em;*/
-  line-height: 0.5em;
-}
-
-div#userResponseStream {
-  margin: auto;
-  float: none;
-  background-color:red;
-  color:#888888;
-  font-family: "Lucida Console", Monaco, monospace;
-  font-size: 2em;
-  text-align: left;
-  /*margin-left: 1em;*/
-  line-height: 1.5em;
-}
-
-div#userResponse {
-  margin: auto;
-  float: none;
-  background-color:black;
-  color:#888888;
-  font-family: "Lucida Console", Monaco, monospace;
-  font-size: 1em;
-  text-align: left;
-  /*margin-left: 1em;*/
-  line-height: 0.5em;
-}
-
 label{
   display: block;
-  /*text-align: center;*/
   color: #777777;
   margin-top: 1.5em;
   margin-bottom: 1.5em;
@@ -458,10 +418,8 @@ a {
 }
 
 textarea{
-  /*margin-left: 0.5em;*/
   margin: none;
   padding: 0.5em;
-  /*border: 2px solid gray;*/
   background-color:black;
   color: yellow;
   font-family: "Lucida Console", Monaco, monospace;
@@ -473,10 +431,8 @@ textarea{
 
 
 input[type="text"]{
-  /*margin-left: 0.5em;*/
   margin: none;
   padding: 0.5em;
-  /*border: 2px solid gray;*/
   background-color:black;
   color: yellow;
   font-family: "Lucida Console", Monaco, monospace;
@@ -484,8 +440,6 @@ input[type="text"]{
   line-height: 1em;
 }
 output[type="text"]{
-  /*margin-left: 0.5em;*/
-  /*margin: 10em;*/
   padding: 0.5em;
   color: #00BB00;
   border: 2px solid green;
@@ -493,54 +447,17 @@ output[type="text"]{
   width: 20%;
 }
 
-.statsTableText {
-  font-size: 0.2em;
-}
-
 .button {
   background-color:black;
-  /*opacity: 0.6;*/
-  /*border:1px solid gray;*/
   cursor:pointer;
   color:#888888;
 }
 .button:hover {
   color:white;
-  /*background-color:gray;*/
 }
 .button:focus {
   outline:0;
 }
-
-.sessionLink {
-  background-color:black;
-  /*border:1px solid gray;*/
-  cursor:pointer;
-  color:#888888;
-}
-
-.sessionLink:hover {
-  color:red;
-  background-color:gray;
-}
-.sessionLink:focus {
-  outline:0;
-}
-
-.sessionViewButton {
-  background-color:black;
-  /*border:1px solid gray;*/
-  cursor:pointer;
-  color:#888888;
-}
-.sessionViewButton:hover {
-  color:white;
-  /*background-color:gray;*/
-}
-.sessionViewButton:focus {
-  outline:0;
-}
-
 
 .fullscreenButton {
   background-color:black;
@@ -555,22 +472,6 @@ output[type="text"]{
 .fullscreenButton:focus {
   outline:0;
 }
-
-
-/*.statsToggleButton {
-  background-color:black;
-  border:1px solid gray;
-  cursor:pointer;
-  color:#888888;
-}
-.statsToggleButton:hover {
-  color:white;
-  background-color:gray;
-}
-.statsToggleButton:focus {
-  outline:0;
-}
-*/
 
 .infoButton {
   background-color:black;

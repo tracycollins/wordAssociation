@@ -12,8 +12,8 @@ mark, audio, video {
     font-size: 100%;
     font: inherit;
     vertical-align: baseline;
-    margin: 0;
-    padding: 0;
+    /* margin: 0;
+    padding: 0; */
     background: black;
 }
 
@@ -27,16 +27,8 @@ body {
     font-weight: 100;
     font-size: 100%;
     line-height: 100%;
-    /*background: #ffffff;*/
     background: black;
     color: gray;
-    width: 100%;
-    height: auto;
-    /*max-width: 1000px;*/
-    margin: 0 auto;
-    /*margin-top: 10px;*/
-    /*margin: 10%;*/
-    /*margin-top: 10px;*/
 }
 
 
@@ -61,27 +53,15 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 300;
     color: #CB4B19;
     font-size: 1.75em;
-    margin-bottom: .2em;
-}
-
-p {
-    margin-bottom: .2em;
+    /* margin-bottom: .2em; */
 }
 
 table {
   border-collapse: collapse;
 }
 
-.container {
-    width: 80%;
-    max-width: 1000px;
-    margin: 0 auto;
-    margin-top: 10px;
-}
-
 @media all and (max-width: 500px) {
     h2 {
-        padding-left: 10px;
         text-align: center;
     }
 
@@ -89,11 +69,6 @@ table {
         width: 100%;
     }
 }
-
-#graphic {
-    margin: 0 auto;
-}
-
 
 hr {
     border: 0;

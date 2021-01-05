@@ -281,11 +281,12 @@ const moment = require("moment");
 
 const express = require("express");
 // set up rate limiter: maximum of five requests per minute
-const RateLimit = require('express-rate-limit');
-const limiter = new RateLimit({
-  windowMs: 1*60*1000, // 1 minute
-  max: 100
-});
+
+// const RateLimit = require('express-rate-limit');
+// const limiter = new RateLimit({
+//   windowMs: 1*60*1000, // 1 minute
+//   max: 100
+// });
 
 const app = express();
 // apply rate limiter to all requests
@@ -7808,7 +7809,8 @@ async function updateUserSets(p) {
       chalkAlert(MODULE_ID + " | ABORT updateUserSets: DB CONNECTION NOT READY")
     );
     updateUserSetsRunning = false;
-    throw new Error("DB CONNECTION NOT READY");
+    // throw new Error("DB CONNECTION NOT READY");
+    return;
   }
 
   if (updateUserSetsRunning) {
@@ -7893,12 +7895,24 @@ async function initUpdateUserSetsInterval(p){
 
   const interval = params.interval || configuration.updateUserSetsInterval
 
-  await updateUserSets();
+  try{
+    await updateUserSets()
+  }
+  catch(e){
+    console.log(chalkError(`${MODULE_ID} | *** INIT USER SETS INTERVAL ERROR: ${e}`));
+  }
 
   clearInterval(updateUserSetsInterval)
 
-  updateUserSetsInterval = setInterval(() => {
-    updateUserSets()
+  updateUserSetsInterval = setInterval(async () => {
+
+    try{
+      await updateUserSets()
+    }
+    catch(e){
+      console.log(chalkError(`${MODULE_ID} | *** UPDATE USER SETS ERROR: ${e}`));
+    }
+
   }, interval);
 
   return;

@@ -14,7 +14,7 @@
   "dependencies": {
     "@google-cloud/pubsub": "^2.7.0",
     "@slack/web-api": "^5.15.0",
-    "@threeceelabs/mongoose-twitter": "^1.0.347",
+    "@threeceelabs/mongoose-twitter": "^1.0.348",
     "@threeceelabs/session-view": "^1.0.2",
     "@threeceelabs/threecee-utilities": "^1.0.418",
     "axios": "^0.21.1",

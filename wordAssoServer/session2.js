@@ -443,7 +443,7 @@ const openCustomizer = (cnf) => {
   customizerWindow = window.open(
     DEFAULT_SOURCE + "/customize",
     "CUSTOMIZE",
-    "width=1000,height=600"
+    "width=1000,height=800"
   );
 
   window.addEventListener("message", customizerComm, false);

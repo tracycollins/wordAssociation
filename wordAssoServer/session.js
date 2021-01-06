@@ -1,104 +1,131 @@
-/* jshint undef: true, unused: true */
-/* globals
-CustomEvent,
-ViewTreepack, 
-clearTimeout,
-setTimeout, 
-setInterval, 
-window, 
-document, 
-console, 
-store, 
-io, 
-requirejs, 
-moment,
-clearInterval,
-HashMap,
-Element,
-async, 
-*/
-
-"use strict";
-
-const STORED_SETTINGS_VERSION = 0.01;
-const DEFAULT_USE_STORED_SETTINGS = false;
+/* global d3,HashMap,store,moment,io,ViewForce */
 
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
-const DEFAULT_SOURCE = REPLACE_SOURCE;
 
-const DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
+const DEFAULT_SOURCE = PRODUCTION_SOURCE;
 
-let customizePanelFlag = false;
-let customizePanelWindow;
+console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
+console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
+console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`)
 
-const ONE_SECOND = 1000;
-const ONE_MINUTE = 60 * ONE_SECOND;
+const STORED_CONFIG_VERSION = "2.1.11";
+const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
+const globalStoredSettingsName = STORED_CONFIG_NAME;
 
-const DEFAULT_KEEPALIVE_INTERVAL = ONE_MINUTE;
-const DEFAULT_STATS_UPDATE_INTERVAL = ONE_SECOND;
+const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 
-const DEFAULT_PAGE_LOAD_TIMEOUT = ONE_SECOND;
-
-const DEFAULT_FORCEVIEW_MODE = "web";
-const DEFAULT_SESSION_VIEW = "treepack";
-
-const DEFAULT_RX_NODE_QUEUE_INTERVAL = 5;
-const DEFAULT_RX_NODE_QUEUE_MAX = 100;
-
-const DEFAULT_ZOOM_FACTOR = 0.75;
+const DEFAULT_WINDOW_HEIGHT = 1080;
+const DEFAULT_WINDOW_WIDTH = 1920;
 
 const DEFAULT_METRIC_MODE = "rate";
-const DEFAULT_MAX_NODES = 50;
-const DEFAULT_MAX_AGE = 15000;
+const DEFAULT_RX_NODE_QUEUE_MAX = 200;
+const DEFAULT_RX_NODE_QUEUE_INTERVAL = 5;
+
 const DEFAULT_AGE_RATE = 1.0;
 
 const DEFAULT_TRANSITION_DURATION = 40;
+
+const DEFAULT_NODE_MAX_AGE = 30000;
+const DEFAULT_NODE_MAX_AGE_RANGE_MIN = 0;
+const DEFAULT_NODE_MAX_AGE_RANGE_MAX = 60000;
+const DEFAULT_NODE_MAX_AGE_RANGE_STEP = 100;
+
+const DEFAULT_MAX_NODES_LIMIT = 40;
+const DEFAULT_MAX_NODES_LIMIT_RANGE_MIN = 0;
+const DEFAULT_MAX_NODES_LIMIT_RANGE_MAX = 100;
+const DEFAULT_MAX_NODES_LIMIT_RANGE_STEP = 1;
+
 const DEFAULT_CHARGE = -50;
+const DEFAULT_CHARGE_RANGE_MIN = -1000;
+const DEFAULT_CHARGE_RANGE_MAX = 1000;
+const DEFAULT_CHARGE_RANGE_STEP = 10;
+
 const DEFAULT_GRAVITY = 0.001;
+const DEFAULT_GRAVITY_RANGE_MIN = -0.01;
+const DEFAULT_GRAVITY_RANGE_MAX = 0.01;
+const DEFAULT_GRAVITY_RANGE_STEP = 0.00001;
+
+const DEFAULT_VELOCITY_DECAY = 0.5;
+const DEFAULT_VELOCITY_DECAY_RANGE_MIN = 0.0;
+const DEFAULT_VELOCITY_DECAY_RANGE_MAX = 1.0;
+const DEFAULT_VELOCITY_DECAY_RANGE_STEP = 0.01;
+
 const DEFAULT_FORCEX_MULTIPLIER = 25.0;
-const DEFAULT_FORCEX_SESSION_MULTIPLIER = 50.0;
 const DEFAULT_FORCEY_MULTIPLIER = 25.0;
 
-const DEFAULT_NODE_RADIUS_RATIO_MIN = 0.01;
-const DEFAULT_NODE_RADIUS_RATIO_MAX = 0.15;
-const DEFAULT_NODE_RADIUS_MIN = 5.0;
-const DEFAULT_NODE_RADIUS_MAX = 100.0;
-
-const DEFAULT_VELOCITY_DECAY = 0.35;
-const DEFAULT_LINK_DISTANCE = 100.0;
-const DEFAULT_LINK_STRENGTH = 0.5;
 const DEFAULT_COLLISION_RADIUS_MULTIPLIER = 1.0;
 const DEFAULT_COLLISION_ITERATIONS = 1;
 
-const DEFAULT_FONT_SIZE_MIN = 16;
-const DEFAULT_FONT_SIZE_MAX = 60;
-const DEFAULT_FONT_SIZE_MIN_RATIO = 0.02;
-const DEFAULT_FONT_SIZE_MAX_RATIO = 0.05;
+const DEFAULT_NODE_RADIUS_RATIO_RANGE_MIN = 0.0;
+const DEFAULT_NODE_RADIUS_RATIO_RANGE_MAX = 0.500;
+const DEFAULT_NODE_RADIUS_RATIO_MIN = 0.01;
+const DEFAULT_NODE_RADIUS_RATIO_MAX = 0.075;
 
-const DEFAULT_FONT_SIZE_TOPTERM_RATIO = 0.026;
+const DEFAULT_FONT_SIZE_RATIO_RANGE_MIN = 0.0;
+const DEFAULT_FONT_SIZE_RATIO_RANGE_MAX = 0.1;
+const DEFAULT_FONT_SIZE_RATIO_MIN = 0.015;
+const DEFAULT_FONT_SIZE_RATIO_MAX = 0.04;
 
-
-const DEFAULT_MAX_RX_QUEUE = 250;
 const DEFAULT_MAX_READY_ACK_WAIT_COUNT = 10;
+const DEFAULT_KEEPALIVE_INTERVAL = 60000;
 
-// TREEMAP
-const TREEMAP_MAX_NODES = DEFAULT_MAX_NODES;
-const TREEMAP_MAX_AGE = DEFAULT_MAX_AGE;
-// TREEPACK
-const TREEPACK_MAX_NODES = DEFAULT_MAX_NODES;
-const TREEPACK_MAX_AGE = DEFAULT_MAX_AGE;
+let currentSessionView;
+let rxNodeQueueReady = false;
+const rxNodeQueue = [];
 
-let serverCheckInterval = 5 * ONE_MINUTE;
+let customizePanelFlag = false;
+let infoPanelFlag = false;
+
+const status = {};
+
+status.serverConnected = false;
+status.viewerReadyTransmitted = false;
+status.viewerReadyAck = false
+status.isAuthenticated = false || LOCAL_SOURCE === DEFAULT_SOURCE;
+
+status.socket = {};
+status.socket.errors = 0;
+status.socket.error = false;
+status.socket.connected = true;
+status.socket.connects = 0;
+status.socket.reconnects = 0;
+
+status.bestNetwork = {};
+status.bestNetwork.networkId = "";
+status.bestNetwork.successRate = 0;
+status.bestNetwork.matchRate = 0;
+status.bestNetwork.overallMatchRate = 0;
+status.bestNetwork.inputsId = "";
+status.bestNetwork.numInputs = 0;
+
+status.maxNodes = 0;
+status.maxNodeAddQ = 0;
 
 let config = {};
 
 config.defaults = {}
-config.defaults.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
+config.defaults.app_name = "Session View";
+config.defaults.sessionViewType = "treepack"; // options: force, histogram ??
+config.defaults.storedConfigName = STORED_CONFIG_NAME;
+config.defaults.serverActiveTimeoutInterval = 60000;
+
+config.defaults.panzoom = {};
+config.defaults.panzoom.transform = {};
+config.defaults.panzoom.transform.ratio = 1.0;
+config.defaults.panzoom.transform.scale = 0.8;
+config.defaults.panzoom.transform.x = 960;
+config.defaults.panzoom.transform.y = 0;
+
+config.defaults.ageRate = DEFAULT_AGE_RATE;
+config.defaults.rxNodeQueueMax = DEFAULT_RX_NODE_QUEUE_MAX;
+config.defaults.rxNodeQueueInterval = DEFAULT_RX_NODE_QUEUE_INTERVAL;
+config.defaults.transitionDuration = DEFAULT_TRANSITION_DURATION;
+
+config.defaults.metricMode = DEFAULT_METRIC_MODE;
 config.defaults.pauseOnMouseMove = true;
 config.defaults.keepaliveInterval = DEFAULT_KEEPALIVE_INTERVAL;
 config.defaults.viewerReadyInterval = 10000;
-config.defaults.panzoomTransform = {};
 
 config.defaults.displayNodeHashMap = {};
 
@@ -110,104 +137,67 @@ config.defaults.displayNodeHashMap.url = "hide";
 config.defaults.displayNodeHashMap.user = "show";
 config.defaults.displayNodeHashMap.word = "hide";
 
+config.defaults.autoCategoryFlag = false;
+config.defaults.metricMode = DEFAULT_METRIC_MODE;
+
+config.defaults.nodeMaxAge = DEFAULT_NODE_MAX_AGE;
+config.defaults.nodeMaxAgeRange = {};
+config.defaults.nodeMaxAgeRange.min = DEFAULT_NODE_MAX_AGE_RANGE_MIN; 
+config.defaults.nodeMaxAgeRange.max = DEFAULT_NODE_MAX_AGE_RANGE_MAX;
+config.defaults.nodeMaxAgeRange.step = DEFAULT_NODE_MAX_AGE_RANGE_STEP;
+
+config.defaults.maxNodesLimit = DEFAULT_MAX_NODES_LIMIT;
+config.defaults.maxNodesLimitRange = {};
+config.defaults.maxNodesLimitRange.min = DEFAULT_MAX_NODES_LIMIT_RANGE_MIN; 
+config.defaults.maxNodesLimitRange.max = DEFAULT_MAX_NODES_LIMIT_RANGE_MAX;
+config.defaults.maxNodesLimitRange.step = DEFAULT_MAX_NODES_LIMIT_RANGE_STEP;
+
+config.defaults.charge = DEFAULT_CHARGE;
+config.defaults.chargeRange = {};
+config.defaults.chargeRange.min = DEFAULT_CHARGE_RANGE_MIN; 
+config.defaults.chargeRange.max = DEFAULT_CHARGE_RANGE_MAX;
+config.defaults.chargeRange.step = DEFAULT_CHARGE_RANGE_STEP;
+
+config.defaults.gravity = DEFAULT_GRAVITY;
+config.defaults.gravityRange = {};
+config.defaults.gravityRange.min = DEFAULT_GRAVITY_RANGE_MIN
+config.defaults.gravityRange.max = DEFAULT_GRAVITY_RANGE_MAX;
+config.defaults.gravityRange.step = DEFAULT_GRAVITY_RANGE_STEP;
+
+config.defaults.velocityDecay = DEFAULT_VELOCITY_DECAY;
+config.defaults.velocityDecayRange = {};
+config.defaults.velocityDecayRange.min = DEFAULT_VELOCITY_DECAY_RANGE_MIN;
+config.defaults.velocityDecayRange.max = DEFAULT_VELOCITY_DECAY_RANGE_MAX;
+config.defaults.velocityDecayRange.step = DEFAULT_VELOCITY_DECAY_RANGE_STEP;
+
+config.defaults.forceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
+config.defaults.forceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
+config.defaults.collisionIterations = DEFAULT_COLLISION_ITERATIONS;
+config.defaults.collisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
+
+config.defaults.fontSizeRatioRange = {};
+config.defaults.fontSizeRatioRange.min = DEFAULT_FONT_SIZE_RATIO_RANGE_MIN; 
+config.defaults.fontSizeRatioRange.max = DEFAULT_FONT_SIZE_RATIO_RANGE_MAX;
+config.defaults.fontSizeRatioRange.step = 0.001;
+config.defaults.fontSizeRatio = {};
+config.defaults.fontSizeRatio.min = DEFAULT_FONT_SIZE_RATIO_MIN;
+config.defaults.fontSizeRatio.max = DEFAULT_FONT_SIZE_RATIO_MAX;
+config.defaults.fontSize = {};
+config.defaults.fontSize.min = config.defaults.fontSizeRatioRange.min * DEFAULT_WINDOW_HEIGHT;
+config.defaults.fontSize.max = config.defaults.fontSizeRatioRange.max * DEFAULT_WINDOW_HEIGHT;
+
 config.defaults.nodeRadiusRatioRange = {};
-config.defaults.nodeRadiusRatioRange.min = 0.0;
-config.defaults.nodeRadiusRatioRange.max = 0.5;
-config.defaults.nodeRadiusRatioRange.step = 0.01;
+config.defaults.nodeRadiusRatioRange.min = DEFAULT_NODE_RADIUS_RATIO_RANGE_MIN;
+config.defaults.nodeRadiusRatioRange.max = DEFAULT_NODE_RADIUS_RATIO_RANGE_MAX;
+config.defaults.nodeRadiusRatioRange.step = 0.001;
+config.defaults.nodeRadiusRatio = {};
+config.defaults.nodeRadiusRatio.min = DEFAULT_NODE_RADIUS_RATIO_MIN;
+config.defaults.nodeRadiusRatio.max = DEFAULT_NODE_RADIUS_RATIO_MAX;
+config.defaults.nodeRadius = {};
+config.defaults.nodeRadius.min = config.defaults.nodeRadiusRatio.min * DEFAULT_WINDOW_WIDTH;
+config.defaults.nodeRadius.max = config.defaults.nodeRadiusRatio.max * DEFAULT_WINDOW_WIDTH;
 
-
-let previousConfig = {};
-
-let statsObj = {};
-
-statsObj.serverConnected = false;
-statsObj.isAuthenticated = false || LOCAL_SOURCE === DEFAULT_SOURCE;
-
-statsObj.socket = {};
-statsObj.socket.errors = 0;
-statsObj.socket.error = false;
-statsObj.socket.connected = true;
-statsObj.socket.connects = 0;
-statsObj.socket.reconnects = 0;
-
-statsObj.bestNetwork = {};
-statsObj.bestNetwork.networkId = "";
-statsObj.bestNetwork.successRate = 0;
-statsObj.bestNetwork.matchRate = 0;
-statsObj.bestNetwork.overallMatchRate = 0;
-statsObj.bestNetwork.inputsId = "";
-statsObj.bestNetwork.numInputs = 0;
-
-statsObj.maxNodes = 0;
-statsObj.maxNodeAddQ = 0;
-
-function jsonPrint(obj) {
-  if (obj || obj === 0) {
-    return JSON.stringify(obj, null, 2);
-  } else {
-    return "UNDEFINED";
-  }
-}
-
-let randomIntFromInterval = function (min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min);
-};
-
-const VIEWER_ID = "viewer_" + randomIntFromInterval(1000000000, 9999999999);
-
-const DEFAULT_VIEWER_OBJ = {
-  nodeId: VIEWER_ID,
-  userId: VIEWER_ID,
-  viewerId: VIEWER_ID,
-  screenName: VIEWER_ID,
-  type: "viewer",
-  namespace: "view",
-  timeStamp: Date.now(),
-  tags: {
-    entity: VIEWER_ID,
-    type: "viewer",
-    mode: "stream"
-  },
-};
-
-let viewerObj = DEFAULT_VIEWER_OBJ;
-
-console.log("viewerObj\n" + jsonPrint(viewerObj));
-
-let storedConfigName;
-let storedSettings;
-
-let useStoredConfig = DEFAULT_USE_STORED_SETTINGS;
-let globalStoredSettingsName = "config_" + DEFAULT_SESSION_VIEW;
-
-let d3;
-let customizerWindow;
-let currentSessionView;
-
-let defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
-
-let pageLoadedTimeIntervalFlag = true;
-
-const TREEPACK_DEFAULT = {};
-TREEPACK_DEFAULT.ZOOOM_FACTOR = DEFAULT_ZOOM_FACTOR;
-TREEPACK_DEFAULT.TRANSITION_DURATION = DEFAULT_TRANSITION_DURATION;
-TREEPACK_DEFAULT.MAX_NODES = TREEPACK_MAX_NODES;
-TREEPACK_DEFAULT.MAX_AGE = TREEPACK_MAX_AGE;
-TREEPACK_DEFAULT.CHARGE = DEFAULT_CHARGE;
-TREEPACK_DEFAULT.GRAVITY = DEFAULT_GRAVITY;
-TREEPACK_DEFAULT.FORCEX_MULTIPLIER = DEFAULT_FORCEX_MULTIPLIER;
-TREEPACK_DEFAULT.FORCEY_MULTIPLIER = DEFAULT_FORCEY_MULTIPLIER;
-TREEPACK_DEFAULT.VELOCITY_DECAY = DEFAULT_VELOCITY_DECAY;
-TREEPACK_DEFAULT.COLLISION_RADIUS_MULTIPLIER = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
-TREEPACK_DEFAULT.COLLISION_ITERATIONS = DEFAULT_COLLISION_ITERATIONS;
-TREEPACK_DEFAULT.FONT_SIZE_MIN_RATIO = DEFAULT_FONT_SIZE_MIN_RATIO;
-TREEPACK_DEFAULT.FONT_SIZE_MAX_RATIO = DEFAULT_FONT_SIZE_MAX_RATIO;
-TREEPACK_DEFAULT.NODE_RADIUS_RATIO_MIN = DEFAULT_NODE_RADIUS_RATIO_MIN;
-TREEPACK_DEFAULT.NODE_RADIUS_RATIO_MAX = DEFAULT_NODE_RADIUS_RATIO_MAX;
-
-config.defaults.twitterUser = {};
-config.defaults.twitterUser.userId = "";
-config.defaults.fullscreenMode = false;
+config.settings = Object.assign({}, config.defaults)
 
 const palette = {
   black: "#000000",
@@ -241,89 +231,90 @@ categoryColorHashMap.set("right", palette.yellow);
 categoryColorHashMap.set("none", palette.black);
 categoryColorHashMap.set("auto", palette.white);
 
-let monitorMode = false;
-
-const socket = io("/view");
-
-let seconds;
-let minutes;
-let hours;
-let days;
-
-function msToTime(duration) {
-  seconds = parseInt((duration / 1000) % 60);
-  minutes = parseInt((duration / (1000 * 60)) % 60);
-  hours = parseInt((duration / (1000 * 60 * 60)) % 24);
-  days = parseInt(duration / (1000 * 60 * 60 * 24));
-
-  days = days < 10 ? "0" + days : days;
-  hours = hours < 10 ? "0" + hours : hours;
-  minutes = minutes < 10 ? "0" + minutes : minutes;
-  seconds = seconds < 10 ? "0" + seconds : seconds;
-
-  return days + ":" + hours + ":" + minutes + ":" + seconds;
+function jsonPrint(obj) {
+  if (obj || obj === 0) {
+    return JSON.stringify(obj, null, 2);
+  } else {
+    return "UNDEFINED";
+  }
 }
 
-function saveConfig() {
-  storedConfigName = "config_" + config.settings.sessionViewType;
-  store.set(storedConfigName, config);
-  console.debug("STORED CONFIG" + " | " + storedConfigName);
+const randomIntFromInterval = function (min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+};
+
+const VIEWER_ID = "viewer_" + randomIntFromInterval(1000000000, 9999999999);
+
+const DEFAULT_VIEWER_OBJ = {
+  nodeId: VIEWER_ID,
+  userId: VIEWER_ID,
+  viewerId: VIEWER_ID,
+  screenName: VIEWER_ID,
+  type: "viewer",
+  namespace: "view",
+  timeStamp: Date.now(),
+  tags: {
+    entity: VIEWER_ID,
+    type: "viewer",
+    mode: "stream"
+  },
+};
+
+const viewerObj = DEFAULT_VIEWER_OBJ;
+
+let currentDate;
+let currentTime;
+
+const optionsTimeStamp = {
+  weekday: "long",
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  hour12: false,
+  minute: "2-digit",
+};
+
+function getTimeStamp(inputTime) {
+  if (inputTime === undefined) {
+    currentDate = new Date().toDateString("en-US", optionsTimeStamp);
+    currentTime = new Date().toTimeString("en-US", optionsTimeStamp);
+  } else {
+    currentDate = new Date(inputTime).toDateString("en-US", optionsTimeStamp);
+    currentTime = new Date(inputTime).toTimeString("en-US", optionsTimeStamp);
+  }
+  return currentDate + " - " + currentTime;
 }
 
-let controlDivElement = document.getElementById("controlDiv");
+let configUpdateTimeOut;
+const configUpdateTimeOutInverval = 3000;
 
-document.addEventListener("nodeSearch",function (event) {
-  console.log("nodeSearch event", event.detail);
-  const searchTerm = event.detail.node && event.detail.node.nodeType === "user" ? "@" + event.detail.node.screenName : "#" + event.detail.node.nodeId;
-  socket.emit("TWITTER_SEARCH_NODE", searchTerm);
-});
+const resetConfigUpdateTimeOut = () => {
 
-function displayControl(isVisible) {
-  controlDivElement.style.visibility = isVisible ? "visible" : "hidden";
+  clearTimeout(configUpdateTimeOut);
+
+  configUpdateTimeOut = setTimeout(function () {
+    console.debug("STORE CONFIG");
+    saveConfig();
+    return;
+  }, configUpdateTimeOutInverval);
 }
 
-let showPropArray = [
-  "networkId",
-  "successRate",
-  "matchRate",
-  "overallMatchRate",
-  "numInputs",
-  "inputsId",
-];
-
-let mouseMoveTimeoutEventObj = new CustomEvent("mouseMoveTimeoutEvent");
-let mouseMoveTimeout;
-let mouseMovingFlag = false;
-let mouseMoveTimeoutInterval = 2000;
-
-function resetMouseMoveTimer() {
-  
-  clearTimeout(mouseMoveTimeout);
-
-  mouseMoveTimeout = setTimeout(function () {
-    mouseMovingFlag = false;
-    displayControl(false);
-
-    d3.select("body").style("cursor", "none");
-
-    currentSessionView.toolTipVisibility(false);
-    currentSessionView.mouseMoving(false);
-
-    if (config.settings.pauseOnMouseMove && !config.settings.pauseFlag) {
-      currentSessionView.simulationControl("RESUME");
-    }
-
-    document.dispatchEvent(mouseMoveTimeoutEventObj);
-  }, mouseMoveTimeoutInterval);
+const saveConfig = () => {
+  config.defaults.storedConfigName = globalStoredSettingsName
+  store.set(config.defaults.storedConfigName, config);
+  console.debug("STORED CONFIG" + " | " + config.defaults.storedConfigName);
+  return;
 }
 
-let serverActiveTimeoutEventObj = new CustomEvent("serverActiveTimeoutEvent");
+const infoDivElement = document.getElementById("infoDiv");
+const controlDivElement = document.getElementById("controlDiv");
+
 let serverActiveTimeout;
-let serverActiveFlag = false;
-let serverActiveTimeoutInterval = 90 * ONE_SECOND;
+const serverActiveTimeoutEventObj = new CustomEvent("serverActiveTimeoutEvent");
 
-function resetServerActiveTimer() {
-  serverActiveFlag = true;
+const resetServerActiveTimer = () => {
+
   if (currentSessionView !== undefined) {
     currentSessionView.setEnableAgeNodes(true);
   }
@@ -331,129 +322,11 @@ function resetServerActiveTimer() {
   clearTimeout(serverActiveTimeout);
 
   serverActiveTimeout = setTimeout(function () {
-    serverActiveFlag = false;
     document.dispatchEvent(serverActiveTimeoutEventObj);
-  }, serverActiveTimeoutInterval);
+  }, config.settings.serverActiveTimeoutInterval);
 }
 
-window.onbeforeunload = function () {
-};
-
-const openCustomizer = (cnf) => {
-  
-  console.debug("openCustomizer");
-
-  customizerWindow = window.open(
-    DEFAULT_SOURCE + "/customize",
-    "CUSTOMIZE",
-    "width=1200,height=800"
-  );
-
-  window.addEventListener("message", customizerComm, false);
-
-  customizerWindow.addEventListener(
-    "beforeunload",
-    function () {
-      console.log("CUSTOMIZE POP UP CLOSING...");
-      customizePanelFlag = false;
-      updateCustomizeButton(customizePanelFlag);
-    },
-    false
-  );
-
-  customizerWindow.addEventListener(
-    "load",
-    function () {
-      customizePanelFlag = true;
-      updateCustomizeButton(customizePanelFlag);
-      customizerWindow.postMessage({ op: "INIT", config: cnf }, DEFAULT_SOURCE);
-      return;
-    },
-    false
-  );
-}
-
-function updateCustomizeButton(customizePanelFlag) {
-  document.getElementById("customizeButton").innerHTML = customizePanelFlag
-    ? "CLOSE CUSTOMIZE"
-    : "CUSTOMIZE";
-}
-
-function addCategoryButton() {
-  let categoryButton = document.createElement("BUTTON");
-  categoryButton.className = "button";
-  categoryButton.setAttribute("id", "categoryButton");
-  categoryButton.setAttribute("onclick", "toggleAutoCategory()");
-  categoryButton.innerHTML = config.autoCategoryFlag
-    ? "AUTO CATEGORY"
-    : "MANUAL CATEGORY";
-  controlDivElement.appendChild(categoryButton);
-}
-
-function updateCategoryButton() {
-  document.getElementById("categoryButton").innerHTML = config.autoCategoryFlag
-    ? "AUTO CATEGORY"
-    : "MANUAL CATEGORY";
-}
-
-function updateMetricButton() {
-  document.getElementById("metricButton").innerHTML = config.settings.metricMode.toUpperCase() + " RADIUS";
-}
-
-function addMetricButton() {
-  let metricButton = document.createElement("BUTTON");
-  if (config.settings.metricMode === undefined) {
-    config.settings.metricMode = "rate";
-  }
-  metricButton.className = "button";
-  metricButton.setAttribute("id", "metricButton");
-  metricButton.setAttribute("onclick", "toggleMetric()");
-  metricButton.innerHTML = config.settings.metricMode.toUpperCase() + " RADIUS";
-  controlDivElement.appendChild(metricButton);
-}
-
-function updateFullscreenButton() {
-  document.getElementById("fullscreenButton").innerHTML = config.settings.fullscreenMode
-    ? "EXIT FULLSCREEN"
-    : "FULLSCREEN";
-}
-
-const addCustomizeButton = () => {
-  let customizeButton = document.createElement("BUTTON");
-  customizeButton.className = "button";
-  customizeButton.setAttribute("id", "customizeButton");
-  customizeButton.setAttribute("onclick", "toggleCustomize()");
-  customizeButton.innerHTML = config.settings.customizeMode
-    ? "EXIT CUSTOMIZE"
-    : "CUSTOMIZE";
-  controlDivElement.appendChild(customizeButton);
-}
-
-function addFullscreenButton() {
-  let fullscreenButton = document.createElement("BUTTON");
-  fullscreenButton.className = "button";
-  fullscreenButton.setAttribute("id", "fullscreenButton");
-  fullscreenButton.setAttribute("onclick", "toggleFullScreen()");
-  fullscreenButton.innerHTML = config.fullscreenMode
-    ? "EXIT FULLSCREEN"
-    : "FULLSCREEN";
-  controlDivElement.appendChild(fullscreenButton);
-}
-
-let configUpdateTimeOut;
-let configUpdateTimeOutInverval = 3000;
-
-function resetConfigUpdateTimeOut() {
-  storedConfigName = "config_" + config.settings.sessionViewType;
-
-  clearTimeout(configUpdateTimeOut);
-
-  configUpdateTimeOut = setTimeout(function () {
-    console.debug("STORE CONFIG");
-    saveConfig();
-  }, configUpdateTimeOutInverval);
-}
-
+let customizerWindow;
 const customizerComm = (event) => {
 
   console.debug("CUSTOMIZE PANEL: " + event.origin);
@@ -467,23 +340,12 @@ const customizerComm = (event) => {
 
     case "READY":
       console.warn("R< CUSTOMIZE PANEL READY");
-      controlPanelReadyFlag = true;
+      // customizePanel = true;
       break;
 
     case "CLOSE":
       console.warn("R< CUSTOMIZE PANEL CLOSING...");
       resetConfigUpdateTimeOut();
-      break;
-
-    case "MOMENT":
-      console.warn("R< CUSTOMIZE PANEL MOMENT...");
-      switch (event.data.id) {
-        case "resetButton":
-          reset();
-          break;
-        default:
-          console.error("CUSTOMIZE PANEL UNKNOWN MOMENT BUTTON");
-      }
       break;
 
     case "TOGGLE":
@@ -492,32 +354,8 @@ const customizerComm = (event) => {
 
       switch (event.data.id) {
 
-        case "categoryAutoButton":
-          toggleAutoCategory();
-          break;
-
-        case "metricToggleButton":
-          toggleMetric();
-          break;
-
         case "fullscreenToggleButton":
           toggleFullScreen();
-          break;
-
-        case "pauseToggleButton":
-          togglePause();
-          break;
-
-        case "statsToggleButton":
-          toggleStats();
-          break;
-
-        case "testModeToggleButton":
-          toggleTestMode();
-          break;
-
-        case "removeDeadNodeToogleButton":
-          toggleRemoveDeadNode();
           break;
           
         default:
@@ -553,26 +391,24 @@ const customizerComm = (event) => {
           currentSessionView.setCharge(event.data.value);
           break;
 
-        case "maxAge":
+        case "nodeMaxAge":
           currentSessionView.setNodeMaxAge(event.data.value);
           break;
 
-        case "maxNodes":
+        case "maxNodesLimit":
           currentSessionView.setMaxNodesLimit(event.data.value);
           break;
 
-        case "fontSizeRatioMin":
-          currentSessionView.setFontSizeRatioMin(event.data.value);
-          break;
-
-        case "fontSizeRatioMax":
-          currentSessionView.setFontSizeRatioMax(event.data.value);
-          break;
-
-        case "nodeRadiusRatioRange":
+        case "nodeRadiusRatio":
           currentSessionView.setNodeRadiusRatioMin(event.data.min);
           currentSessionView.setNodeRadiusRatioMax(event.data.max);
           console.log(`CUSTOMIZER SET | setNodeRadiusRatio | min: ${event.data.min} max: ${event.data.max}`)
+          break;
+
+        case "fontSizeRatio":
+          currentSessionView.setFontSizeRatioMin(event.data.min);
+          currentSessionView.setFontSizeRatioMax(event.data.max);
+          console.log(`CUSTOMIZER SET | setFontSizeRatio | min: ${event.data.min} max: ${event.data.max}`)
           break;
 
         default:
@@ -599,831 +435,42 @@ const customizerComm = (event) => {
   }
 }
 
-function toggleShowNodeType(displayNodeType) {
+const openCustomizer = (cnf) => {
+  
+  console.debug("openCustomizer");
+  console.debug({cnf})
 
-  if (config.settings.displayNodeHashMap[displayNodeType] === "show") {
-    config.settings.displayNodeHashMap[displayNodeType] = "hide";
-  } 
-  else {
-    config.settings.displayNodeHashMap[displayNodeType] = "show";
-  }
-
-  currentSessionView.setMetricMode(config.settings.metricMode);
-
-  console.warn("SET RADIUS MODE: " + config.settings.metricMode);
-
-  updateMetricButton();
-
-}
-
-function toggleMetric() {
-
-  if (config.settings.metricMode === "rate") {
-    config.settings.metricMode = "mentions";
-  } else {
-    config.settings.metricMode = "rate";
-  }
-  currentSessionView.setMetricMode(config.settings.metricMode);
-  console.warn("SET RADIUS MODE: " + config.settings.metricMode);
-  updateMetricButton();
-
-}
-
-function togglePause() {
-  config.settings.pauseFlag = !config.settings.pauseFlag;
-  currentSessionView.setPause(config.settings.pauseFlag);
-  console.warn("TOGGLE PAUSE: " + config.settings.pauseFlag);
-}
-
-function toggleRemoveDeadNode() {
-  config.settings.removeDeadNodesFlag = !config.settings.removeDeadNodesFlag;
-  currentSessionView.setRemoveDeadNodesFlag(config.settings.removeDeadNodesFlag);
-  console.warn("TOGGLE REMOVE DEAD NODES: " + config.settings.removeDeadNodesFlag);
-}
-
-function toggleAutoCategory() {
-  config.settings.autoCategoryFlag = !config.settings.autoCategoryFlag;
-  currentSessionView.setAutoCategoryFlag(config.settings.autoCategoryFlag);
-  console.warn("AUTO CATEGORY: " + config.settings.autoCategoryFlag);
-
-  updateCategoryButton();
-
-}
-
-function toggleTestMode() {
-  config.settings.testMode = !config.settings.testMode;
-  config.settings.testModeEnabled = config.settings.testMode;
-  console.warn("TEST MODE: " + config.settings.testModeEnabled);
-  currentSessionView.setTestMode(config.settings.testModeEnabled);
-}
-
-let keysForSortedKeys = [];
-function getSortedKeys(hmap, sortProperty) {
-  hmap.forEach(function (value, key) {
-    if (!value.isSessionNode) {
-      keysForSortedKeys.push(key);
-    }
-  });
-  return keysForSortedKeys.sort(function (a, b) {
-    return hmap.get(b)[sortProperty] - hmap.get(a)[sortProperty];
-  });
-}
-
-let optionsTimeStamp = {
-  weekday: "long",
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-  hour: "2-digit",
-  hour12: false,
-  minute: "2-digit",
-};
-
-let currentDate;
-let currentTime;
-
-function getTimeStamp(inputTime) {
-  if (inputTime === undefined) {
-    currentDate = new Date().toDateString("en-US", optionsTimeStamp);
-    currentTime = new Date().toTimeString("en-US", optionsTimeStamp);
-  } else {
-    currentDate = new Date(inputTime).toDateString("en-US", optionsTimeStamp);
-    currentTime = new Date(inputTime).toTimeString("en-US", optionsTimeStamp);
-  }
-  return currentDate + " - " + currentTime;
-}
-
-function getBrowserPrefix() {
-  // Check for the unprefixed property.
-  // if ("hidden" in document) {
-  if (document.hidden !== undefined) {
-    return null;
-  }
-  // All the possible prefixes.
-  let browserPrefixes = ["moz", "ms", "o", "webkit"];
-  let prefix;
-
-  browserPrefixes.forEach(function (p) {
-    prefix = p + "Hidden";
-    if (document[prefix] !== undefined) {
-      return p;
-    }
-  });
-
-  // The API is not supported in browser.
-  return null;
-}
-
-function hiddenProperty(prefix) {
-  if (prefix) {
-    return prefix + "Hidden";
-  } else {
-    return "hidden";
-  }
-}
-
-function getVisibilityEvent(prefix) {
-  if (prefix) {
-    return prefix + "visibilitychange";
-  } else {
-    return "visibilitychange";
-  }
-}
-
-let viewerReadyInterval;
-
-function initViewerReadyInterval(interval) {
-  console.log("INIT VIEWER READY INTERVAL");
-
-  clearInterval(viewerReadyInterval);
-
-  viewerReadyInterval = setInterval(function () {
-    if (
-      statsObj.serverConnected &&
-      !statsObj.viewerReadyTransmitted &&
-      !statsObj.viewerReadyAck
-    ) {
-      viewerObj.timeStamp = Date.now();
-
-      console.log(
-        "T> VIEWER_READY" +
-          " | " +
-          viewerObj.userId +
-          " | CONNECTED: " +
-          statsObj.serverConnected +
-          " | READY TXD: " +
-          statsObj.viewerReadyTransmitted +
-          " | READY ACK RXD: " +
-          statsObj.viewerReadyAck +
-          " | " +
-          getTimeStamp()
-      );
-
-      statsObj.viewerReadyTransmitted = true;
-
-      socket.emit(
-        "VIEWER_READY",
-        { userId: viewerObj.userId, timeStamp: Date.now() },
-        function () {
-          statsObj.viewerReadyTransmitted = true;
-        }
-      );
-
-      clearInterval(viewerReadyInterval);
-    } else if (
-      statsObj.serverConnected &&
-      statsObj.viewerReadyTransmitted &&
-      !statsObj.viewerReadyAck
-    ) {
-      if (statsObj.userReadyAckWait > DEFAULT_MAX_READY_ACK_WAIT_COUNT) {
-        statsObj.viewerReadyTransmitted = false;
-        console.log(
-          "*** RESENDING _READY AFTER " +
-            DEFAULT_MAX_READY_ACK_WAIT_COUNT +
-            " WAIT CYCLES"
-        );
-      } else {
-        statsObj.userReadyAckWait += 1;
-        console.log(
-          "... WAITING FOR VIEWER_READY_ACK" +
-            " | " +
-            DEFAULT_MAX_READY_ACK_WAIT_COUNT +
-            " WAIT CYCLES"
-        );
-      }
-    } else if (!statsObj.serverConnected) {
-      console.log("... WAITING FOR SERVER CONNECTION ...");
-    }
-  }, interval);
-}
-
-function sendKeepAlive(viewerObj, callback) {
-  if (statsObj.viewerReadyAck && statsObj.serverConnected) {
-    let statsObjSmall = statsObj;
-    delete statsObjSmall.heartBeat;
-
-    socket.emit("SESSION_KEEPALIVE", {
-      user: viewerObj,
-      stats: statsObjSmall,
-      results: {},
-    });
-
-    callback(null);
-  } else {
-    console.error(
-      "!!!! CANNOT TX KEEPALIVE" +
-        " | " +
-        viewerObj.userId +
-        " | CONNECTED: " +
-        statsObj.serverConnected +
-        " | READY TXD: " +
-        statsObj.viewerReadyTransmitted +
-        " | READY ACK RXD: " +
-        statsObj.viewerReadyAck +
-        " | " +
-        moment().format(defaultDateTimeFormat)
-    );
-    callback("ERROR");
-  }
-}
-
-let socketKeepaliveInterval;
-
-function initKeepalive(viewerObj, interval) {
-  let keepaliveIndex = 0;
-
-  clearInterval(socketKeepaliveInterval);
-
-  console.log(
-    "START KEEPALIVE" +
-      " | READY ACK: " +
-      statsObj.viewerReadyAck +
-      " | SERVER CONNECTED: " +
-      statsObj.serverConnected +
-      " | INTERVAL: " +
-      interval +
-      " ms"
+  customizerWindow = window.open(
+    DEFAULT_SOURCE + "/customize",
+    "CUSTOMIZE",
+    "width=1000,height=800"
   );
 
-  sendKeepAlive(viewerObj, function (err) {
-    if (err) {
-      console.error("KEEPALIVE ERROR: " + err);
-    }
-  });
+  window.addEventListener("message", customizerComm, false);
 
-  socketKeepaliveInterval = setInterval(function () {
-    // TX KEEPALIVE
-
-    statsObj.elapsed = Date.now() - statsObj.startTime;
-
-    viewerObj.stats = statsObj;
-
-    sendKeepAlive(viewerObj, function (err) {
-      if (err) {
-        console.error("KEEPALIVE ERROR: " + err);
-      }
-    });
-
-    keepaliveIndex += 1;
-  }, interval);
-}
-
-socket.on("connect", function () {
-  viewerObj.socketId = socket.id;
-
-  statsObj.socketId = socket.id;
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-
-  if (currentSessionView !== undefined) {
-    currentSessionView.setEnableAgeNodes(true);
-  }
-  console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
-
-  statsObj.socket.connects += 1;
-
-  viewerObj.timeStamp = Date.now();
-
-  socket.emit("authentication", {
-    namespace: "view",
-    userId: viewerObj.userId,
-    password: "0123456789",
-  });
-});
-
-socket.on("SERVER_READY", function (serverAck) {
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-  console.log("RX SERVER_READY | SERVER ACK: " + jsonPrint(serverAck));
-});
-
-socket.on("VIEWER_READY_ACK", function (vSesKey) {
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-  statsObj.viewerReadyAck = true;
-
-  console.log("RX VIEWER_READY_ACK | SESSION KEY: " + vSesKey);
-
-  statsObj.viewerSessionKey = vSesKey;
-  viewerObj.viewerSessionKey = vSesKey;
-
-  if (config.settings.VIEWER_OBJ === undefined) {
-    config.settings.VIEWER_OBJ = {};
-  }
-
-  config.settings.VIEWER_OBJ = viewerObj;
-
-  console.debug("STORE CONFIG ON VIEWER_READY_ACK");
-  saveConfig();
-
-  initKeepalive(viewerObj, DEFAULT_KEEPALIVE_INTERVAL);
-});
-
-socket.on("USER_AUTHENTICATED", function (userObj) {
-  statsObj.isAuthenticated = true;
-  statsObj.socket.connected = true;
-  console.log("RX USER_AUTHENTICATED | USER: @" + userObj.screenName);
-});
-
-socket.on("reconnect", function () {
-  viewerObj.socketId = socket.id;
-
-  statsObj.serverConnected = true;
-  console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
-
-  statsObj.socket.reconnects += 1;
-  statsObj.socket.connected = true;
-
-  viewerObj.timeStamp = Date.now();
-
-  socket.emit("VIEWER_READY", viewerObj, function () {
-    statsObj.viewerReadyTransmitted = true;
-    socket.emit("authentication", {
-      namespace: "view",
-      userId: viewerObj.userId,
-      password: "0123456789",
-    });
-  });
-});
-
-socket.on("disconnect", function () {
-  statsObj.serverConnected = false;
-  statsObj.socket.connected = false;
-
-  console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
-  if (currentSessionView !== undefined) {
-    currentSessionView.resize();
-  }
-});
-
-let socketErrorTimeout;
-
-socket.on("error", function (error) {
-  statsObj.socket.errors += 1;
-  statsObj.socket.error = error;
-
-  console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
-  console.error("*** SOCKET ERROR\n" + error);
-
-  if (currentSessionView !== undefined) {
-    currentSessionView.resize();
-  }
-
-  socket.disconnect(true); // full disconnect, not just namespace
-
-  clearTimeout(socketErrorTimeout);
-
-  socketErrorTimeout = setTimeout(function () {
-    socket.connect();
-  }, 5000);
-});
-
-socket.on("connect_error", function (error) {
-  statsObj.socket.errors += 1;
-  statsObj.socket.error = error;
-
-  console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
-  console.error("*** SOCKET CONNECT ERROR\n" + error);
-  if (currentSessionView !== undefined) {
-    currentSessionView.resize();
-  }
-});
-
-socket.on("reconnect_error", function (error) {
-  statsObj.socket.errors += 1;
-  statsObj.socket.error = error;
-
-  console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
-  console.error("*** SOCKET RECONNECT ERROR\n" + error);
-  if (currentSessionView !== undefined) {
-    currentSessionView.resize();
-  }
-});
-
-socket.on("unauthorized", function (err) {
-  statsObj.serverConnected = true;
-
-  console.error(
-    "TSS | *** UNAUTHORIZED *** " +
-      " | ID: " +
-      socket.id +
-      " | VIEWER ID: " +
-      viewerObj.userId +
-      " | " +
-      err.message
-  );
-});
-
-socket.on("authenticated", function () {
-  console.debug("AUTHENTICATED | " + socket.id);
-
-  statsObj.socketId = socket.id;
-  statsObj.serverConnected = true;
-  statsObj.userReadyTransmitted = false;
-  statsObj.userReadyAck = false;
-
-  console.log("CONNECTED TO HOST" + " | ID: " + socket.id);
-
-  initViewerReadyInterval(config.settings.viewerReadyInterval);
-});
-
-const sSmall = {};
-sSmall.bestNetwork = {};
-
-socket.on("HEARTBEAT", function (hb) {
-  resetServerActiveTimer();
-
-  statsObj.bestNetwork = hb.bestNetwork;
-
-  statsObj.maxNodes = currentSessionView === undefined ? 0 : currentSessionView.getMaxNodes();
-  statsObj.maxNodeAddQ = currentSessionView === undefined ? 0 : currentSessionView.getMaxNodeAddQ();
-
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-
-});
-
-socket.on("STATS", function (stats) {
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-
-  console.log("<R STATS" + "\n" + jsonPrint(stats));
-
-  if (currentSessionView) {
-    currentSessionView.setStats(stats);
-  }
-});
-
-socket.on("CONFIG_CHANGE", function (rxConfig) {
-  statsObj.serverConnected = true;
-  statsObj.socket.connected = true;
-
-  console.log(
-    "\n-----------------------\nRX CONFIG_CHANGE\n" +
-      JSON.stringify(rxConfig, null, 3) +
-      "\n------------------------\n"
+  customizerWindow.addEventListener(
+    "beforeunload",
+    function () {
+      console.log("CUSTOMIZE POP UP CLOSING...");
+      customizePanelFlag = false;
+      updateCustomizeButton(customizePanelFlag);
+    },
+    false
   );
 
-  if (rxConfig.testMode !== undefined) {
-    config.settings.testMode = rxConfig.testMode;
-    console.log(
-      "\n*** ENV CHANGE: TEST_MODE:  WAS: " +
-        previousConfig.testMode +
-        " | NOW: " +
-        config.settings.testMode +
-        "\n"
-    );
-    previousConfig.testMode = config.testMode;
-  }
-
-  if (rxConfig.testSendInterval !== undefined) {
-    config.settings.testSendInterval = rxConfig.testSendInterval;
-    console.log(
-      "\n*** ENV CHANGE: TEST_SEND_INTERVAL: WAS: " +
-        previousConfig.testSendInterval +
-        " | NOW: " +
-        config.settings.testSendInterval +
-        "\n"
-    );
-    previousConfig.testSendInterval = config.settings.testSendInterval;
-  }
-
-  if (rxConfig.maxNodes !== undefined) {
-    config.settings.maxNodes = rxConfig.maxNodes;
-    console.log(
-      "\n*** ENV CHANGE: NODE_MAX_NODES: WAS: " +
-        previousConfig.maxNodes +
-        " | NOW: " +
-        config.settings.maxNodes +
-        "\n"
-    );
-    currentSessionView.setMaxAge(rxConfig.maxNodes);
-    previousConfig.maxNodes = config.settings.maxNodes;
-  }
-
-  if (rxConfig.nodeMaxAge !== undefined) {
-    config.settings.nodeMaxAge = rxConfig.nodeMaxAge;
-    console.log(
-      "\n*** ENV CHANGE: NODE_MAX_AGE: WAS: " +
-        previousConfig.nodeMaxAge +
-        " | NOW: " +
-        config.settings.nodeMaxAge +
-        "\n"
-    );
-    currentSessionView.setMaxAge(rxConfig.nodeMaxAge);
-    previousConfig.nodeMaxAge = config.settings.nodeMaxAge;
-  }
-});
-
-
-let rxNodeQueueReady = false;
-let rxNodeQueue = [];
-
-let rxNode = function (node) {
-  if (rxNodeQueue.length >= DEFAULT_RX_NODE_QUEUE_MAX) {
-    return;
-  }
-
-  if (node.nodeType !== "user" && node.nodeType !== "hashtag") {
-    return;
-  }
-
-  rxNodeQueue.push(node);
-};
-
-socket.on("node", rxNode);
-
-let windowVisible = true;
-
-document.title = "Word Association";
-
-let prefix = getBrowserPrefix();
-let hidden = hiddenProperty(prefix);
-let visibilityEvent = getVisibilityEvent(prefix);
-
-function reset() {
-  windowVisible = true;
-  if (currentSessionView !== undefined) {
-    currentSessionView.simulationControl("RESET");
-    currentSessionView.resetDefaultForce();
-    currentSessionView.simulationControl("START");
-  }
-}
-
-window.addEventListener("resize", function () {
-  currentSessionView.resize();
-});
-
-document.addEventListener(visibilityEvent, function () {
-  if (!document[hidden]) {
-    windowVisible = true;
-    resetMouseMoveTimer();
-    if (currentSessionView !== undefined) {
-      currentSessionView.setPause(false);
-    }
-    console.info("visibilityEvent: " + windowVisible);
-  } else {
-    windowVisible = false;
-    if (currentSessionView !== undefined) {
-      currentSessionView.setPause(true);
-    }
-    console.info("visibilityEvent: " + windowVisible);
-  }
-});
-
-const getUrlVariables = () => {
-
-  let urlSessionId;
-  let urlNamespace;
-  let sessionType;
-
-  let searchString = window.location.search.substring(1);
-  console.log("searchString: " + searchString);
-
-  let variableArray = searchString.split("&");
-
-  let asyncTasks = [];
-
-  variableArray.forEach(function (variable) {
-
-    asyncTasks.push(function (callback2) {
-
-      let keyValuePair = variable.split("=");
-
-      if (keyValuePair[0] !== "" && keyValuePair[1] !== undefined) {
-        console.log(
-          variable +
-            " >>> URL config: " +
-            keyValuePair[0] +
-            " : " +
-            keyValuePair[1]
-        );
-        if (keyValuePair[0] === "monitor") {
-          monitorMode = keyValuePair[1];
-          console.log("MONITOR MODE | monitorMode: " + monitorMode);
-          return callback2(null, {
-            monitorMode: monitorMode,
-          });
-        }
-        if (keyValuePair[0] === "session") {
-          urlSessionId = keyValuePair[1];
-          console.log("SESSION MODE | urlSessionId: " + urlSessionId);
-          return callback2(null, {
-            sessionMode: true,
-            sessionId: urlSessionId,
-          });
-        }
-        if (keyValuePair[0] === "nsp") {
-          urlNamespace = keyValuePair[1];
-          console.log("namespace: " + urlNamespace);
-          return callback2(null, {
-            namespace: urlNamespace,
-          });
-        }
-        if (keyValuePair[0] === "type") {
-          sessionType = keyValuePair[1];
-          console.log("SESSION TYPE | sessionType: " + sessionType);
-          return callback2(null, {
-            sessionType: sessionType,
-          });
-        }
-        if (keyValuePair[0] === "viewtype") {
-          config.settings.sessionViewType = keyValuePair[1];
-          console.info(
-            "SESSION VIEW TYPE | sessionViewType: " + config.settings.sessionViewType
-          );
-          return callback2(null, {
-            sessionViewType: config.settings.sessionViewType,
-          });
-        }
-      } 
-      else {
-        console.log("NO URL VARIABLES");
-        return callback2(null, []);
-      }
-    });
-  });
-
-  async.parallel(asyncTasks, function (err, results) {
-    let urlConfig = {};
-
-    // results is an array of objs:  results = [ {key0: val0}, ... {keyN: valN} ];
-    async.each(
-      results,
-      function (urlVarObj, cb1) {
-        console.log("urlVarObj\n" + jsonPrint(urlVarObj));
-
-        let urlVarKeys = Object.keys(urlVarObj);
-
-        async.each(
-          urlVarKeys,
-          function (key, cb2) {
-            urlConfig[key] = urlVarObj[key];
-            console.log("key: " + key + " > urlVarObj[key]: " + urlVarObj[key]);
-            cb2();
-          },
-          function () {
-            cb1();
-          }
-        );
-      },
-      function (err) {
-        return({err: err, urlConfig: urlConfig});
-      }
-    );
-  });
-}
-
-let globalLinkIndex = 0;
-
-function generateLinkId() {
-  globalLinkIndex += 1;
-  return "LNK" + globalLinkIndex;
-}
-
-let totalHashMap = {};
-let totalNodes = 0;
-let leftNodesRatio = 0;
-let rightNodesRatio = 0;
-let neutralNodesRatio = 0;
-let positiveNodesRatio = 0;
-let negativeNodesRatio = 0;
-let noneNodesRatio = 0;
-let statsUpdateInterval;
-
-// //  STATS UPDATE
-// function initStatsUpdate(interval) {
-//   clearInterval(statsUpdateInterval);
-
-//   statsLeftBar.path.setAttribute("stroke", palette.blue);
-//   statsRightBar.path.setAttribute("stroke", palette.yellow);
-//   statsNeutralBar.path.setAttribute("stroke", palette.gray);
-//   statsPositiveBar.path.setAttribute("stroke", palette.green);
-//   statsNegativeBar.path.setAttribute("stroke", palette.red);
-//   statsNoneBar.path.setAttribute("stroke", palette.white);
-
-//   statsUpdateInterval = setInterval(function () {
-//     if (config.showStatsFlag) {
-//       totalHashMap = currentSessionView.getTotalHashMap();
-
-//       if (totalHashMap.total > 0) {
-//         leftNodesRatio = totalHashMap.left / totalHashMap.total;
-//         rightNodesRatio = totalHashMap.right / totalHashMap.total;
-//         neutralNodesRatio = totalHashMap.neutral / totalHashMap.total;
-//         positiveNodesRatio = totalHashMap.positive / totalHashMap.total;
-//         negativeNodesRatio = totalHashMap.negative / totalHashMap.total;
-//         noneNodesRatio = totalHashMap.none / totalHashMap.total;
-//       }
-
-//       statsLeftBar.animate(leftNodesRatio);
-//       statsRightBar.animate(rightNodesRatio);
-//       statsNeutralBar.animate(neutralNodesRatio);
-//       statsPositiveBar.animate(positiveNodesRatio);
-//       statsNegativeBar.animate(negativeNodesRatio);
-//       statsNoneBar.animate(noneNodesRatio);
-//     }
-//   }, interval);
-// }
-
-let socketSessionUpdateInterval;
-
-const initSocketSessionUpdateRx = () => {
-
-  rxNodeQueueReady = true;
-
-  let newNode = {};
-  let category;
-
-  let viewNumNodes = 0;
-  let viewNodeAddQlength = 0;
-
-  clearInterval(socketSessionUpdateInterval);
-
-  socketSessionUpdateInterval = setInterval(function () {
-
-    viewNodeAddQlength = currentSessionView.getNodeAddQlength();
-    // viewNumNodes = currentSessionView.getNumNodes();
-
-    // if (rxNodeQueueReady && (rxNodeQueue.length > 0) && (viewNumNodes <= 1.5*DEFAULT_MAX_NODES) && (viewNodeAddQlength <= 1.5*DEFAULT_RX_NODE_QUEUE_MAX)) {
-    if (
-      rxNodeQueueReady &&
-      rxNodeQueue.length > 0 &&
-      viewNodeAddQlength <= 1.5 * DEFAULT_RX_NODE_QUEUE_MAX
-    ) {
-      rxNodeQueueReady = false;
-
-      newNode = rxNodeQueue.shift();
-
-      if (config.autoCategoryFlag && newNode.categoryAuto) {
-        category = newNode.categoryAuto;
-      } else {
-        category = newNode.category;
-      }
-
-      if (newNode.categoryAuto !== "none" && (category === undefined || category === "none")) {
-        // newNode.categoryColor = categoryColorHashMap.get(newNode.categoryAuto);
-        newNode.categoryColor = categoryColorHashMap.get("auto");
-      } else if (category === undefined || category === "none") {
-        newNode.categoryColor = categoryColorHashMap.get("none");
-      } else {
-        newNode.categoryColor = categoryColorHashMap.get(category);
-      }
-
-      newNode.age = 1e-6;
-      newNode.ageMaxRatio = 1e-6;
-      newNode.mouseHoverFlag = false;
-      newNode.isDead = false;
-      newNode.r = 0;
-      newNode.following = newNode.following ? newNode.following : false;
-      newNode.mentions = newNode.mentions ? newNode.mentions : 1;
-
-      if (newNode.nodeType === "user") {
-        newNode.text = newNode.screenName.toLowerCase();
-        newNode.screenName = newNode.screenName.toLowerCase();
-      }
-
-      newNode.categoryMismatch =
-        newNode.category !== "none" &&
-        newNode.category &&
-        newNode.categoryAuto &&
-        newNode.category !== newNode.categoryAuto;
-      newNode.categoryMatch =
-        newNode.category !== "none" &&
-        newNode.category &&
-        newNode.categoryAuto &&
-        newNode.category === newNode.categoryAuto;
-
-      currentSessionView.addNode(newNode);
-      rxNodeQueueReady = true;
-    }
-  }, DEFAULT_RX_NODE_QUEUE_INTERVAL);
+  customizerWindow.addEventListener(
+    "load",
+    function () {
+      customizePanelFlag = true;
+      updateCustomizeButton(customizePanelFlag);
+      customizerWindow.postMessage({ op: "INIT", config: cnf, status: status }, DEFAULT_SOURCE);
+      return;
+    },
+    false
+  );
 
   return;
 }
-
-//================================
-// GET NODES FROM QUEUE
-//================================
-
-function sum(obj) {
-  let s = 0;
-  let props = Object.keys(obj);
-
-  async.each(
-    props,
-    function (prop, cb) {
-      if (obj.hasOwnProperty(prop)) {
-        s += parseFloat(obj[prop]);
-      }
-      cb();
-    },
-    function () {
-      return s;
-    }
-  );
-}
-
-let randomNumber360 = 180;
 
 function toggleFullScreen() {
   console.warn("toggleFullScreen");
@@ -1463,8 +510,8 @@ function toggleFullScreen() {
 const toggleCustomize = () => {
 
   console.warn("toggleCustomize");
-  customizePanelFlag = !customizePanelFlag;
-  if (customizePanelFlag) {
+  if (!customizePanelFlag) {
+    customizePanelFlag = !customizePanelFlag;
     openCustomizer(config)
   }
   else{
@@ -1475,169 +522,768 @@ const toggleCustomize = () => {
   return;
 }
 
-requirejs.onError = function (err) {
-  console.error("*** REQUIRE ERROR\n" + err);
-  if (err.requireType === "timeout") {
-    console.log("modules: " + err.requireModules);
+const toggleInfo = () => {
+
+  console.warn("toggleInfo");
+  if (!infoPanelFlag) {
+    infoPanelFlag = !infoPanelFlag;
   }
-  throw err;
+
+  infoDivElement.style.display = infoPanelFlag ? "unset" : "none";
+
+  return;
+}
+
+const updateCustomizeButton = (customizePanelFlag) => {
+  document.getElementById("customizeButton").innerHTML = customizePanelFlag
+    ? "CLOSE CUSTOMIZE"
+    : "CUSTOMIZE";
+  return;
+}
+
+const addInfoButton = () => {
+  const infoButton = document.createElement("BUTTON");
+  infoButton.className = "button";
+  infoButton.setAttribute("id", "infoButton");
+  infoButton.onclick = toggleInfo;
+  infoButton.innerHTML = infoPanelFlag ? "EXIT INFO" : "INFO";
+  controlDivElement.appendChild(infoButton);
+  return;
+}
+
+const addCustomizeButton = () => {
+  const customizeButton = document.createElement("BUTTON");
+  customizeButton.className = "button";
+  customizeButton.setAttribute("id", "customizeButton");
+  customizeButton.onclick = toggleCustomize;
+  customizeButton.innerHTML = config.settings.customizeMode
+    ? "EXIT CUSTOMIZE"
+    : "CUSTOMIZE";
+  controlDivElement.appendChild(customizeButton);
+  return;
+}
+
+const addFullscreenButton = () => {
+  const fullscreenButton = document.createElement("BUTTON");
+  fullscreenButton.className = "button";
+  fullscreenButton.setAttribute("id", "fullscreenButton");
+  fullscreenButton.onclick = toggleFullScreen
+  fullscreenButton.innerHTML = config.fullscreenMode
+    ? "EXIT FULLSCREEN"
+    : "FULLSCREEN";
+  controlDivElement.appendChild(fullscreenButton);
+  return;
+}
+
+let viewerReadyInterval;
+
+function initViewerReadyInterval(interval) {
+  console.log("INIT VIEWER READY INTERVAL");
+
+  clearInterval(viewerReadyInterval);
+
+  viewerReadyInterval = setInterval(function () {
+    if (
+      status.serverConnected &&
+      !status.viewerReadyTransmitted &&
+      !status.viewerReadyAck
+    ) {
+      viewerObj.timeStamp = Date.now();
+
+      console.log(
+        "T> VIEWER_READY" +
+          " | " +
+          viewerObj.userId +
+          " | CONNECTED: " +
+          status.serverConnected +
+          " | READY TXD: " +
+          status.viewerReadyTransmitted +
+          " | READY ACK RXD: " +
+          status.viewerReadyAck +
+          " | " +
+          getTimeStamp()
+      );
+
+      status.viewerReadyTransmitted = true;
+
+      socket.emit(
+        "VIEWER_READY",
+        { userId: viewerObj.userId, timeStamp: Date.now() },
+        function () {
+          status.viewerReadyTransmitted = true;
+        }
+      );
+
+      clearInterval(viewerReadyInterval);
+    } else if (
+      status.serverConnected &&
+      status.viewerReadyTransmitted &&
+      !status.viewerReadyAck
+    ) {
+      if (status.userReadyAckWait > DEFAULT_MAX_READY_ACK_WAIT_COUNT) {
+        status.viewerReadyTransmitted = false;
+        console.log(
+          "*** RESENDING _READY AFTER " +
+            DEFAULT_MAX_READY_ACK_WAIT_COUNT +
+            " WAIT CYCLES"
+        );
+      } else {
+        status.userReadyAckWait += 1;
+        console.log(
+          "... WAITING FOR VIEWER_READY_ACK" +
+            " | " +
+            DEFAULT_MAX_READY_ACK_WAIT_COUNT +
+            " WAIT CYCLES"
+        );
+      }
+    } else if (!status.serverConnected) {
+      console.log("... WAITING FOR SERVER CONNECTION ...");
+    }
+  }, interval);
+}
+
+function sendKeepAlive(viewerObj, callback) {
+  if (status.viewerReadyAck && status.serverConnected) {
+    const statusSmall = status;
+    delete statusSmall.heartBeat;
+
+    socket.emit("SESSION_KEEPALIVE", {
+      user: viewerObj,
+      stats: statusSmall,
+      results: {},
+    });
+
+    callback(null);
+  } else {
+    console.error(
+      "!!!! CANNOT TX KEEPALIVE" +
+        " | " +
+        viewerObj.userId +
+        " | CONNECTED: " +
+        status.serverConnected +
+        " | READY TXD: " +
+        status.viewerReadyTransmitted +
+        " | READY ACK RXD: " +
+        status.viewerReadyAck +
+        " | " +
+        moment().format(defaultDateTimeFormat)
+    );
+    callback("ERROR");
+  }
+}
+
+let socketKeepaliveInterval;
+
+function initKeepalive(viewerObj, interval) {
+  clearInterval(socketKeepaliveInterval);
+
+  console.log(
+    "START KEEPALIVE" +
+      " | READY ACK: " +
+      status.viewerReadyAck +
+      " | SERVER CONNECTED: " +
+      status.serverConnected +
+      " | INTERVAL: " +
+      interval +
+      " ms"
+  );
+
+  sendKeepAlive(viewerObj, function (err) {
+    if (err) {
+      console.error("KEEPALIVE ERROR: " + err);
+    }
+  });
+
+  socketKeepaliveInterval = setInterval(function () {
+    // TX KEEPALIVE
+
+    status.elapsed = Date.now() - status.startTime;
+
+    viewerObj.stats = status;
+
+    sendKeepAlive(viewerObj, function (err) {
+      if (err) {
+        console.error("KEEPALIVE ERROR: " + err);
+      }
+    });
+
+    // keepaliveIndex += 1;
+  }, interval);
+}
+
+let socket;
+
+const rxNode = function (node) {
+  
+  if (rxNodeQueue.length >= config.settings.rxNodeQueueMax) {
+    return;
+  }
+
+  if (node.nodeType !== "user" && node.nodeType !== "hashtag") {
+    return;
+  }
+
+  rxNodeQueue.push(node);
 };
 
-const loadViewType = async (svt) => {
+function initSocketHandler () {
 
-  console.log("LOADING SESSION VIEW TYPE: " + svt);
+  socket.on("connect", function () {
 
-  config.settings.sessionViewType = "treepack";
+    viewerObj.socketId = socket.id;
 
-  const ViewTreepack = require "js/libs/sessionViewTreepack"
+    status.socketId = socket.id;
+    status.serverConnected = true;
+    status.socket.connected = true;
 
-  // requirejs(["js/libs/sessionViewTreepack"], function () {
+    if (currentSessionView !== undefined) {
+      currentSessionView.setEnableAgeNodes(true);
+    }
+    console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
 
-  //   console.debug("sessionViewTreepack LOADED");
+    status.socket.connects += 1;
 
-  //   config.defaults.transitionDuration = TREEPACK_DEFAULT.TRANSITION_DURATION;
-  //   config.defaults.maxAge = TREEPACK_DEFAULT.MAX_AGE;
-  //   config.defaults.collisionRadiusMultiplier = TREEPACK_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
-  //   config.defaults.collisionIterations = TREEPACK_DEFAULT.COLLISION_ITERATIONS;
-  //   config.defaults.charge = TREEPACK_DEFAULT.CHARGE;
-  //   config.defaults.gravity = TREEPACK_DEFAULT.GRAVITY;
-  //   config.defaults.nodeRadiusMinRatio = TREEPACK_DEFAULT.NODE_RADIUS_MIN_RATIO;
-  //   config.defaults.nodeRadiusMaxRatio = TREEPACK_DEFAULT.NODE_RADIUS_MAX_RATIO;
-  //   config.defaults.velocityDecay = TREEPACK_DEFAULT.VELOCITY_DECAY;
-  //   config.defaults.forceXmultiplier = TREEPACK_DEFAULT.FORCEX_MULTIPLIER;
-  //   config.defaults.forceYmultiplier = TREEPACK_DEFAULT.FORCEY_MULTIPLIER;
-  //   config.defaults.fontSizeMinRatio = TREEPACK_DEFAULT.FONT_SIZE_MIN_RATIO;
-  //   config.defaults.fontSizeMaxRatio = TREEPACK_DEFAULT.FONT_SIZE_MAX_RATIO;
+    viewerObj.timeStamp = Date.now();
 
-  //   // DEFAULT_TRANSITION_DURATION = TREEPACK_DEFAULT.TRANSITION_DURATION;
-  //   // DEFAULT_MAX_AGE = TREEPACK_DEFAULT.MAX_AGE;
-  //   // DEFAULT_COLLISION_RADIUS_MULTIPLIER = TREEPACK_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
-  //   // DEFAULT_COLLISION_ITERATIONS = TREEPACK_DEFAULT.COLLISION_ITERATIONS;
-  //   // DEFAULT_CHARGE = TREEPACK_DEFAULT.CHARGE;
-  //   // DEFAULT_GRAVITY = TREEPACK_DEFAULT.GRAVITY;
-  //   // DEFAULT_NODE_RADIUS_MIN_RATIO = TREEPACK_DEFAULT.NODE_RADIUS_MIN_RATIO;
-  //   // DEFAULT_NODE_RADIUS_MAX_RATIO = TREEPACK_DEFAULT.NODE_RADIUS_MAX_RATIO;
-  //   // DEFAULT_VELOCITY_DECAY = TREEPACK_DEFAULT.VELOCITY_DECAY;
-  //   // DEFAULT_FORCEX_MULTIPLIER = TREEPACK_DEFAULT.FORCEX_MULTIPLIER;
-  //   // DEFAULT_FORCEY_MULTIPLIER = TREEPACK_DEFAULT.FORCEY_MULTIPLIER;
-  //   // DEFAULT_FONT_SIZE_MIN_RATIO = TREEPACK_DEFAULT.FONT_SIZE_MIN_RATIO;
-  //   // DEFAULT_FONT_SIZE_MAX_RATIO = TREEPACK_DEFAULT.FONT_SIZE_MAX_RATIO;
+    socket.emit("authentication", {
+      namespace: "view",
+      userId: viewerObj.userId,
+      password: "0123456789",
+    });
+    
+  });
 
-  //   return new ViewTreepack(config);
-  //   // initSocketSessionUpdateRx();
-  // });
+  socket.on("SERVER_READY", function (serverAck) {
+    status.serverConnected = true;
+    status.socket.connected = true;
+    console.log("RX SERVER_READY | SERVER ACK: " + jsonPrint(serverAck));
+  });
 
+  socket.on("VIEWER_READY_ACK", function (vSesKey) {
+    status.serverConnected = true;
+    status.socket.connected = true;
+    status.viewerReadyAck = true;
+
+    console.log("RX VIEWER_READY_ACK | SESSION KEY: " + vSesKey);
+
+    status.viewerSessionKey = vSesKey;
+    viewerObj.viewerSessionKey = vSesKey;
+
+    if (config.settings.VIEWER_OBJ === undefined) {
+      config.settings.VIEWER_OBJ = {};
+    }
+
+    config.settings.VIEWER_OBJ = viewerObj;
+
+    console.debug("STORE CONFIG ON VIEWER_READY_ACK");
+    saveConfig();
+
+    initKeepalive(viewerObj, config.settings.keepaliveInterval);
+  });
+
+  socket.on("USER_AUTHENTICATED", function (userObj) {
+    status.isAuthenticated = true;
+    status.socket.connected = true;
+    console.log("RX USER_AUTHENTICATED | USER: @" + userObj.screenName);
+  });
+
+  socket.on("reconnect", function () {
+    viewerObj.socketId = socket.id;
+
+    status.serverConnected = true;
+    console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
+
+    status.socket.reconnects += 1;
+    status.socket.connected = true;
+
+    viewerObj.timeStamp = Date.now();
+
+    socket.emit("VIEWER_READY", viewerObj, function () {
+      status.viewerReadyTransmitted = true;
+      socket.emit("authentication", {
+        namespace: "view",
+        userId: viewerObj.userId,
+        password: "0123456789",
+      });
+    });
+  });
+
+  socket.on("disconnect", function () {
+    status.serverConnected = false;
+    status.socket.connected = false;
+
+    console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
+    // if (currentSessionView !== undefined) {
+    //   currentSessionView.resize();
+    // }
+  });
+
+  let socketErrorTimeout;
+
+  socket.on("error", function (error) {
+    status.socket.errors += 1;
+    status.socket.error = error;
+
+    console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
+    console.error("*** SOCKET ERROR\n" + error);
+
+    // if (currentSessionView !== undefined) {
+    //   currentSessionView.resize();
+    // }
+
+    socket.disconnect(true); // full disconnect, not just namespace
+
+    clearTimeout(socketErrorTimeout);
+
+    socketErrorTimeout = setTimeout(function () {
+      socket.connect();
+    }, 5000);
+  });
+
+  socket.on("connect_error", function (error) {
+    status.socket.errors += 1;
+    status.socket.error = error;
+
+    console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
+    console.error("*** SOCKET CONNECT ERROR\n" + error);
+    // if (currentSessionView !== undefined) {
+    //   currentSessionView.resize();
+    // }
+  });
+
+  socket.on("reconnect_error", function (error) {
+    status.socket.errors += 1;
+    status.socket.error = error;
+
+    console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
+    console.error("*** SOCKET RECONNECT ERROR\n" + error);
+    // if (currentSessionView !== undefined) {
+    //   currentSessionView.resize();
+    // }
+  });
+
+  socket.on("unauthorized", function (err) {
+    status.serverConnected = true;
+
+    console.error(
+      "TSS | *** UNAUTHORIZED *** " +
+        " | ID: " +
+        socket.id +
+        " | VIEWER ID: " +
+        viewerObj.userId +
+        " | " +
+        err.message
+    );
+  });
+
+  socket.on("authenticated", function () {
+    console.debug("AUTHENTICATED | " + socket.id);
+
+    status.socketId = socket.id;
+    status.serverConnected = true;
+    status.userReadyTransmitted = false;
+    status.userReadyAck = false;
+
+    console.log("CONNECTED TO HOST" + " | ID: " + socket.id);
+
+    initViewerReadyInterval(config.settings.viewerReadyInterval);
+  });
+
+  const sSmall = {};
+  sSmall.bestNetwork = {};
+
+  socket.on("HEARTBEAT", function (hb) {
+    console.log(`HEARTBEAT`);
+    resetServerActiveTimer();
+
+    status.bestNetwork = hb.bestNetwork;
+
+    status.maxNodes = currentSessionView === undefined ? 0 : currentSessionView.getMaxNodes();
+    status.maxNodeAddQ = currentSessionView === undefined ? 0 : currentSessionView.getMaxNodeAddQ();
+
+    status.serverConnected = true;
+    status.socket.connected = true;
+
+  });
+
+  socket.on("STATS", function (stats) {
+    status.serverConnected = true;
+    status.socket.connected = true;
+
+    console.log("<R STATS" + "\n" + jsonPrint(stats));
+
+    if (currentSessionView) {
+      currentSessionView.setStats(stats);
+    }
+  });
+
+  socket.on("node", rxNode);
+
+  return;
 }
 
-function onFullScreenChange() {
+let socketSessionUpdateInterval;
 
-  let fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
-  // if in fullscreen mode fullscreenElement wont be null
-  currentSessionView.resize();
-  config.fullscreenMode = Boolean(fullscreenElement);
-  console.log("FULLSCREEN: " + config.fullscreenMode);
-  updateFullscreenButton();
+function initSocketSessionUpdateRx() {
+
+  rxNodeQueueReady = true;
+
+  let newNode = {};
+  let category;
+
+  // const viewNumNodes = 0;
+  let viewNodeAddQlength = 0;
+
+  clearInterval(socketSessionUpdateInterval);
+
+  socketSessionUpdateInterval = setInterval(function () {
+
+    viewNodeAddQlength = currentSessionView.getNodeAddQlength();
+
+    if (rxNodeQueueReady && rxNodeQueue.length > 0 && viewNodeAddQlength <= 1.5 * config.settings.rxNodeQueueMax) {
+
+      rxNodeQueueReady = false;
+
+      newNode = rxNodeQueue.shift();
+
+      if (config.autoCategoryFlag && newNode.categoryAuto) {
+        category = newNode.categoryAuto;
+      } 
+      else {
+        category = newNode.category;
+      }
+
+      if (newNode.categoryAuto !== "none" && (category === undefined || category === "none")) {
+        newNode.categoryColor = categoryColorHashMap.get("auto");
+      } 
+      else if (category === undefined || category === "none") {
+        newNode.categoryColor = categoryColorHashMap.get("none");
+      } 
+      else {
+        newNode.categoryColor = categoryColorHashMap.get(category);
+      }
+
+      newNode.age = 1e-6;
+      newNode.ageMaxRatio = 1e-6;
+      newNode.mouseHoverFlag = false;
+      newNode.isDead = false;
+      newNode.r = 0;
+      newNode.following = newNode.following ? newNode.following : false;
+      newNode.mentions = newNode.mentions ? newNode.mentions : 1;
+
+      if (newNode.nodeType === "user") {
+        newNode.text = newNode.screenName.toLowerCase();
+        newNode.screenName = newNode.screenName.toLowerCase();
+      }
+
+      newNode.categoryMismatch = newNode.category !== "none" && newNode.category && newNode.categoryAuto && newNode.category !== newNode.categoryAuto;
+      newNode.categoryMatch = newNode.category !== "none" && newNode.category && newNode.categoryAuto && newNode.category === newNode.categoryAuto;
+
+      currentSessionView.addNode(newNode);
+      rxNodeQueueReady = true;
+
+    }
+
+  }, config.settings.rxNodeQueueInterval);
+
+  return;
 }
 
-const loadStoredSettings = async () => {
+function getBrowserPrefix() {
+  // Check for the unprefixed property.
+  // if ("hidden" in document) {
+  if (document.hidden !== undefined) {
+    return null;
+  }
+  // All the possible prefixes.
+  const browserPrefixes = ["moz", "ms", "o", "webkit"];
+  let prefix;
+
+  browserPrefixes.forEach(function (p) {
+    prefix = p + "Hidden";
+    if (document[prefix] !== undefined) {
+      return p;
+    }
+  });
+
+  // The API is not supported in browser.
+  return null;
+}
+
+function hiddenProperty(prefix) {
+  if (prefix) {
+    return prefix + "Hidden";
+  } else {
+    return "hidden";
+  }
+}
+
+function getVisibilityEvent(prefix) {
+  if (prefix) {
+    return prefix + "visibilitychange";
+  } else {
+    return "visibilitychange";
+  }
+}
+
+const prefix = getBrowserPrefix();
+const hidden = hiddenProperty(prefix);
+const visibilityEvent = getVisibilityEvent(prefix);
+let windowVisible = true;
+
+function displayControl(isVisible) {
+  controlDivElement.style.display = isVisible ? "unset" : "none";
+}
+
+const mouseMoveTimeoutEventObj = new CustomEvent("mouseMoveTimeoutEvent");
+let mouseMoveTimeout;
+// let mouseMovingFlag = false;
+const mouseMoveTimeoutInterval = 2000;
+
+function resetMouseMoveTimer() {
+  clearTimeout(mouseMoveTimeout);
+
+  mouseMoveTimeout = setTimeout(function () {
+    displayControl(false);
+
+    d3.select("body").style("cursor", "none");
+
+    currentSessionView.toolTipVisibility(false);
+    currentSessionView.mouseMoving(false);
+
+    if (config.settings.pauseOnMouseMove && !config.settings.pauseFlag) {
+      currentSessionView.simulationControl("RESUME");
+    }
+
+    document.dispatchEvent(mouseMoveTimeoutEventObj);
+  }, mouseMoveTimeoutInterval);
+}
+
+document.addEventListener(visibilityEvent, function () {
+  if (!document[hidden]) {
+    windowVisible = true;
+    resetMouseMoveTimer();
+    if (currentSessionView !== undefined) {
+      currentSessionView.setPause(false);
+    }
+    console.info("visibilityEvent: " + windowVisible);
+  } else {
+    windowVisible = false;
+    if (currentSessionView !== undefined) {
+      currentSessionView.setPause(true);
+    }
+    console.info("visibilityEvent: " + windowVisible);
+  }
+});
+
+document.addEventListener("mousemove", function () {
+    if (currentSessionView) {
+      if (config.settings.pauseOnMouseMove) {
+        currentSessionView.simulationControl("PAUSE");
+      }
+      // mouseMovingFlag = true;
+      currentSessionView.mouseMoving(true);
+      displayControl(true);
+      resetMouseMoveTimer();
+    }
+  },
+  true
+);
+
+document.addEventListener("panzoomEvent", function () {
+    if (currentSessionView) {
+      config.settings.panzoom.transform = currentSessionView.getPanzoomTransform();
+      saveConfig();
+    }
+  },
+  true
+);
+
+const loadStoredSettings = () => {
   console.log("LOADING STORED SETTINGS: " + globalStoredSettingsName);
   return store.get(globalStoredSettingsName);
 }
 
-const initialize = async () => {
-
-  console.log("INITIALIZE ...");
-
-  config.settings = Object.assign({}, config.defaults);
-
-  if (useStoredConfig){
-
-    const storedSettings = await loadStoredSettings()
-
-    if (storedSettings && storedSettings.version === STORED_SETTINGS_VERSION) {
-      config.settings = Object.assign(config.settings, storedSettings);
-    } 
-
-  }
-
-  console.log({config})
-
-  document.addEventListener("fullscreenchange", onFullScreenChange, false);
-  document.addEventListener("webkitfullscreenchange", onFullScreenChange, false);
-  document.addEventListener("mozfullscreenchange", onFullScreenChange, false);
-
-  let sessionId;
-  let namespace;
-
-  currentSessionView = await loadViewType(config.settings.sessionViewType)
-  currentSessionView.initD3timer();
-  currentSessionView.resize();
-
-  console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
-
-  viewerObj.timeStamp = Date.now();
-
-  socket.emit("VIEWER_READY", viewerObj, function () {
-    statsObj.viewerReadyTransmitted = true;
-  });
-
-  setTimeout(function () {
-    console.log("END PAGE LOAD TIMEOUT");
-    pageLoadedTimeIntervalFlag = false;
-    statsObj.isAuthenticated = LOCAL_SOURCE === DEFAULT_SOURCE;
-    console.log("AUTHENTICATED: " + statsObj.isAuthenticated);
-    initSocketSessionUpdateRx();
-    return;
-  }, PAGE_LOAD_TIMEOUT);
-
+function Node() {
+  this.isFixedNode = false;
+  this.disableAging = false;
+  this.age = 1e-6;
+  this.ageMaxRatio = 1e-6;
+  this.ageUpdated = Date.now();
+  this.category = "none";
+  this.categoryAuto = "none";
+  this.categoryColor = "#FFFFFF";
+  this.categoryMatch = false;
+  this.categoryMismatch = false;
+  this.following = false;
+  this.followersCount = 0;
+  this.followersMentions = 0;
+  this.friendsCount = 0;
+  this.fullName = 0;
+  this.hashtagId = false;
+  this.index = 0;
+  this.isBot = false;
+  this.isTweeter = false;
+  this.isDead = true;
+  this.isIgnored = false;
+  this.isMaxNode = false;
+  this.isTopTerm = false;
+  this.isTrendingTopic = false;
+  this.isValid = false;
+  this.lastTweetId = false;
+  this.mentions = 0;
+  this.mouseHoverFlag = false;
+  this.name = "";
+  this.newFlag = true;
+  this.nodeId = "";
+  this.nodeType = "user";
+  this.rank = -1;
+  this.rate = 1e-6;
+  this.screenName = "";
+  this.statusesCount = 0;
+  this.text = "";
+  this.fx = null;
+  this.fy = null;
+  this.vx = 1e-6;
+  this.vy = 1e-6;
+  this.x = 1e-6;
+  this.y = 1e-6;
 }
 
-requirejs(
-  ["https://d3js.org/d3.v6.min.js"],
+function getWindowDimensions () {
 
-  function (d3Loaded) {
+  if (window.outerWidth !== "undefined") {
+    return { width: window.outerWidth, height: window.outerHeight };
+  }
+  if (window.innerWidth !== "undefined") {
+    return { width: window.innerWidth, height: window.innerHeight };
+  }
+  // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
 
-    console.log("d3 LOADED");
-    d3 = d3Loaded;
+  if (
+    document.documentElement !== "undefined" &&
+    document.documentElement.clientWidth !== "undefined" &&
+    document.documentElement.clientWidth !== 0
+  ) {
+    return {
+      width: document.documentElement.clientWidth,
+      height: document.documentElement.clientHeight,
+    };
+  }
+  // older versions of IE
+  return {
+    width: document.getElementsByTagName("body")[0].clientWidth,
+    height: document.getElementsByTagName("body")[0].clientHeight,
+  };
+}
 
-    initialize(config)
-    addCustomizeButton();
-    addFullscreenButton();
-    addMetricButton();
-    addCategoryButton();
-    resetMouseMoveTimer();
+let width = getWindowDimensions().width;
+let height = getWindowDimensions().height;
 
-    document.addEventListener(
-      "mousemove",
-      function () {
-        if (currentSessionView) {
-          if (config.settings.pauseOnMouseMove) {
-            currentSessionView.simulationControl("PAUSE");
-          }
-          mouseMovingFlag = true;
-          currentSessionView.mouseMoving(true);
-          displayControl(true);
-          resetMouseMoveTimer();
-        }
-      },
-      true
-    );
+window.addEventListener("beforeunload",
+  function () {
+    console.log("CLOSING...");
+    if (customizerWindow){ customizerWindow.close() }
+    customizePanelFlag = false;
+  },
+  false
+);
 
-    document.addEventListener(
-      "panzoomEvent",
-      function () {
-        if (currentSessionView) {
-          config.settings.panzoomTransform = currentSessionView.getPanzoomTransform();
-          saveConfig();
-        }
-      },
-      true
-    );
+window.addEventListener("load",
+  function () {
+
+    console.log("LOAD SESSION");
+
+    width = getWindowDimensions().width;
+    height = getWindowDimensions().height;
+
+    config.settings.panzoom.transform.x = 0.5 * width;
+    config.defaults.panzoom.transform.x = 0.5 * width;
+    config.settings.panzoom.transform.y = 0.5 * height;
+    config.defaults.panzoom.transform.y = 0.5 * height;
+
   },
 
-  function (error) {
-    console.log("REQUIREJS ERROR handler", error);
-    console.log(error.requireModules && error.requireModules[0]);
-    console.log(error.message);
-  }
+  false
 );
+
+const nodeSearch = (event) => {
+// { detail: { node: d }}
+
+  console.log(`EVENT | NODE SEARCH | TYPE: ${event.detail.node.nodeType} | @${event.detail.node.screenName}`);
+
+  let searchNode
+
+  switch (event.detail.node.nodeType){
+    case "user":
+      searchNode = "@" + event.detail.node.screenName;
+    break;
+    case "hashtag":
+      searchNode = "#" + event.detail.node.nodeId;
+    break;
+    default:
+      console.error(`EVENT | NODE SEARCH | UNKNOWN TYPE: ${event.detail.node.nodeType}`);
+      return;
+  }
+
+  socket.emit("TWITTER_SEARCH_NODE", {searchNode: searchNode})
+}
+
+document.addEventListener("nodeSearch", nodeSearch, false);
+
+
+setTimeout(function(){
+
+  try{
+
+    const storedSettings = loadStoredSettings();
+
+    if (storedSettings) {
+      console.log(`LOADED STORED SETTINGS`)
+      console.log({storedSettings}) 
+      config = Object.assign({}, config, storedSettings)
+    }
+    else{
+      console.log(`*** LOAD STORED SETTINGS FAILED: ${globalStoredSettingsName}`)
+    }
+
+    socket = io("/view");
+
+    addInfoButton();
+    addCustomizeButton();
+    addFullscreenButton();
+
+    console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
+
+    viewerObj.timeStamp = Date.now();
+
+    socket.emit("VIEWER_READY", viewerObj, function () {
+      status.viewerReadyTransmitted = true;
+    });
+
+    currentSessionView = ViewForce(config);
+    currentSessionView.initD3timer();
+    // currentSessionView.resize();    
+    initSocketHandler()
+    resetMouseMoveTimer()
+    // const fixedNodes = {
+    // }
+
+    // for (const category of ["left", "right", "neutral", "positive", "negative", "none"]){
+    //   fixedNodes[category] = new Node();
+    //   fixedNodes[category].nodeId = "fixedNode_" + category;
+    //   fixedNodes[category].screenName = "threecee";
+    //   fixedNodes[category].category = category;
+    //   fixedNodes[category].isFixedNode = true;
+    //   fixedNodes[category].disableAging = true;
+    //   currentSessionView.addNode(fixedNodes[category]);
+    // }
+
+    initSocketSessionUpdateRx()
+
+  }
+  catch(err){
+    console.error({err})
+  }
+
+}, 100)

@@ -47,6 +47,10 @@ function ViewForce (inputConfig) {
   config.settings = config.settings || {};
   config.defaults = config.defaults || {};
 
+  config.settings.adjustedAgeRateScaleRange = {};
+  config.settings.adjustedAgeRateScaleRange.min = 1.0;
+  config.settings.adjustedAgeRateScaleRange.max = 10.0;
+  
   config.settings.initialXposition = config.settings.initialXposition || 0.5;
   config.settings.initialYposition = config.settings.initialYposition || 0.9;
 
@@ -470,7 +474,7 @@ function ViewForce (inputConfig) {
   const adjustedAgeRateScale = d3
     .scaleLinear()
     .domain([1, config.settings.maxNodesLimit])
-    .range([1.0, 100.0]);
+    .range([config.settings.adjustedAgeRateScaleRange.min, config.settings.adjustedAgeRateScaleRange.max]);
 
   const d3image = d3.select("#d3group");
 

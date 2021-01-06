@@ -1629,7 +1629,6 @@ function ViewForce (inputConfig) {
         }
 
 
-
         nodePoolIdcircle = document.getElementById(currentNode.nodePoolId);
 
         if (nodePoolIdcircle) {
@@ -1803,13 +1802,13 @@ function ViewForce (inputConfig) {
   self.initD3timer = function() {
 
     console.log(`initD3timer`)
-    console.log({nodeArray})
-    console.log({nodeMaxAge})
-    console.log({charge})
-    console.log({velocityDecay})
-    console.log({gravity})
-    console.log({forceXmultiplier})
-    console.log({forceYmultiplier})
+    // console.log({nodeArray})
+    // console.log({nodeMaxAge})
+    // console.log({charge})
+    // console.log({velocityDecay})
+    // console.log({gravity})
+    // console.log({forceXmultiplier})
+    // console.log({forceYmultiplier})
 
     simulation = d3.forceSimulation(nodeArray)
       .force("charge", d3.forceManyBody().strength(charge))
@@ -1955,7 +1954,6 @@ function ViewForce (inputConfig) {
         .domain([1, currentMetricModeDomainMax])
         .range([fontSizeMin, fontSizeMax])
         .clamp(true);
-
 
 
       if (simulation) {

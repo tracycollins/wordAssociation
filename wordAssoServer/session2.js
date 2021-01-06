@@ -3,7 +3,7 @@
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
 
-const DEFAULT_SOURCE = PRODUCTION_SOURCE;
+const DEFAULT_SOURCE = LOCAL_SOURCE;
 
 console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
@@ -1104,7 +1104,6 @@ const loadStoredSettings = () => {
   return store.get(globalStoredSettingsName);
 }
 
-
 function Node() {
   this.isFixedNode = false;
   this.disableAging = false;
@@ -1151,7 +1150,6 @@ function Node() {
   this.y = 1e-6;
 }
 
-
 function getWindowDimensions () {
 
   if (window.outerWidth !== "undefined") {
@@ -1182,8 +1180,7 @@ function getWindowDimensions () {
 let width = getWindowDimensions().width;
 let height = getWindowDimensions().height;
 
-window.addEventListener(
-  "beforeunload",
+window.addEventListener("beforeunload",
   function () {
     console.log("CLOSING...");
     if (customizerWindow){ customizerWindow.close() }
@@ -1192,8 +1189,7 @@ window.addEventListener(
   false
 );
 
-window.addEventListener(
-  "load",
+window.addEventListener("load",
   function () {
 
     console.log("LOAD SESSION");
@@ -1210,6 +1206,31 @@ window.addEventListener(
 
   false
 );
+
+const nodeSearch = (event) => {
+// { detail: { node: d }}
+
+  console.log(`EVENT | NODE SEARCH | TYPE: ${event.detail.node.nodeType} | @${event.detail.node.screenName}`);
+
+  let searchNode
+
+  switch (event.detail.node.nodeType){
+    case "user":
+      searchNode = "@" + event.detail.node.screenName;
+    break;
+    case "hashtag":
+      searchNode = "#" + event.detail.node.nodeId;
+    break;
+    default:
+      console.error(`EVENT | NODE SEARCH | UNKNOWN TYPE: ${event.detail.node.nodeType}`);
+      return;
+  }
+
+  socket.emit("TWITTER_SEARCH_NODE", {searchNode: searchNode})
+}
+
+document.addEventListener("nodeSearch", nodeSearch, false);
+
 
 setTimeout(function(){
 
@@ -1248,15 +1269,15 @@ setTimeout(function(){
     const fixedNodes = {
     }
 
-    // for (const category of ["left", "right", "neutral", "positive", "negative", "none"]){
-    //   fixedNodes[category] = new Node();
-    //   fixedNodes[category].nodeId = "fixedNode_" + category;
-    //   fixedNodes[category].screenName = category;
-    //   fixedNodes[category].category = category;
-    //   fixedNodes[category].isFixedNode = true;
-    //   fixedNodes[category].disableAging = true;
-    //   currentSessionView.addNode(fixedNodes[category]);
-    // }
+    for (const category of ["left", "right", "neutral", "positive", "negative", "none"]){
+      fixedNodes[category] = new Node();
+      fixedNodes[category].nodeId = "fixedNode_" + category;
+      fixedNodes[category].screenName = "threecee";
+      fixedNodes[category].category = category;
+      fixedNodes[category].isFixedNode = true;
+      fixedNodes[category].disableAging = true;
+      currentSessionView.addNode(fixedNodes[category]);
+    }
 
     initSocketSessionUpdateRx()
 

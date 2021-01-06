@@ -30,7 +30,7 @@ const Settings = (props) => {
   return (
     <>
       <Grid className={classes.grid}>
-          <Grid item className={classes.gridItem} xs={3}>
+          <Grid item className={classes.gridItem} xs={6}>
 
             <Typography className={classes.range} id="nodeRadiusRatio" name="nodeRadiusRatio" gutterBottom>
               NODE RADIUS RATIO

@@ -1266,18 +1266,18 @@ setTimeout(function(){
     // currentSessionView.resize();    
     initSocketHandler()
     resetMouseMoveTimer()
-    const fixedNodes = {
-    }
+    // const fixedNodes = {
+    // }
 
-    for (const category of ["left", "right", "neutral", "positive", "negative", "none"]){
-      fixedNodes[category] = new Node();
-      fixedNodes[category].nodeId = "fixedNode_" + category;
-      fixedNodes[category].screenName = "threecee";
-      fixedNodes[category].category = category;
-      fixedNodes[category].isFixedNode = true;
-      fixedNodes[category].disableAging = true;
-      currentSessionView.addNode(fixedNodes[category]);
-    }
+    // for (const category of ["left", "right", "neutral", "positive", "negative", "none"]){
+    //   fixedNodes[category] = new Node();
+    //   fixedNodes[category].nodeId = "fixedNode_" + category;
+    //   fixedNodes[category].screenName = "threecee";
+    //   fixedNodes[category].category = category;
+    //   fixedNodes[category].isFixedNode = true;
+    //   fixedNodes[category].disableAging = true;
+    //   currentSessionView.addNode(fixedNodes[category]);
+    // }
 
     initSocketSessionUpdateRx()
 

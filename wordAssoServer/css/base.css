@@ -12,8 +12,8 @@ mark, audio, video {
     font-size: 100%;
     font: inherit;
     vertical-align: baseline;
-    /* margin: 0;
-    padding: 0; */
+    margin: 0;
+    padding: 0;
     background: black;
 }
 

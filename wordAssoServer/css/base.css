@@ -23,6 +23,8 @@ menu, nav, section {
 }
 
 body {
+    margin: 0;
+    padding: 0;
     font-family: "Exo 2", "Helvetica Neue", Helvetica, sans-serif, monospace;
     font-weight: 100;
     font-size: 100%;
@@ -30,7 +32,6 @@ body {
     background: black;
     color: gray;
 }
-
 
 ol, ul {
     list-style: none

@@ -477,7 +477,7 @@ const App = () => {
           console.log({historyArrayRef})
           console.log({historyArrayIndexRef})
           eventName = "history"
-          if (eventCode === "ArrrowRight"){
+          if (eventCode === "ArrowRight"){
             // if (historyArrayRef.current.length > 0){
               // historyArrayRef.current.pop()
               // const nextRoute = historyArrayRef.current.pop()

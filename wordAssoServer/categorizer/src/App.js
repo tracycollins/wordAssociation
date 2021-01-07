@@ -1,22 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-// import useSocket from 'use-socket.io-client';
-// import { useImmer } from 'use-immer';
-import { useParams, useHistory, useLocation } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { useHotkeys } from 'react-hotkeys-hook';
 import socketClient from "socket.io-client";
 import { makeStyles } from '@material-ui/core/styles';
-
 import Container from '@material-ui/core/Container';
 import AppBar from '@material-ui/core/AppBar';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Button from '@material-ui/core/Button';
-// import ButtonGroup from '@material-ui/core/ButtonGroup';
-// import InputBase from '@material-ui/core/InputBase';
-// import SearchIcon from '@material-ui/icons/Search';
 import InputBase from '@material-ui/core/InputBase';
 import Link from '@material-ui/core/Link';
 import SearchIcon from '@material-ui/icons/Search';
-
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -26,12 +19,10 @@ import './App.css';
 import UserView from './UserView.js';
 import HashtagView from './HashtagView.js';
 import AuthUserView from './AuthUserView.js';
-// import { ButtonGroup } from '@material-ui/core';
 
 const MIN_USERS_AVAILABLE = 10;
 const MIN_FOLLOWERS_COUNT = 5000;
 
-// const ENDPOINT = "http://mbp3:9997/view";
 const ENDPOINT = "https://word.threeceelabs.com/view";
 const DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
 
@@ -168,9 +159,6 @@ const App = () => {
 
   const history = useHistory()
   let location = useLocation()
-  let { slug } = useParams()
-
-  // console.log({slug})
 
   const classes = useStyles()
 
@@ -275,26 +263,15 @@ const App = () => {
     rateMax: 0,
   }
 
-  const defaultAccount = {
-    screenName: ""
-  }
-
   const defaultTweets = {
     search_metadata: {},
     statuses: []
   }
 
   const [tabValue, setTabValue] = useState(0)
-  // const tabValueRef = useRef(tabValue)
 
   const [filterLowFollowersCount, setFilterLowFollowersCount] = useState(true)
   const filterLowFollowersCountRef = useRef(filterLowFollowersCount)
-  
-  const [historyArray, setHistoryArray] = useState([location.pathname])
-  const historyArrayRef = useRef(historyArray)
-
-  const [historyArrayIndex, setHistoryArrayIndex] = useState(0)
-  const historyArrayIndexRef = useRef(historyArrayIndex)
 
   const [twitterAuthenticated, setTwitterAuthenticated] = useState(false)
   const twitterAuthenticatedRef = useRef(twitterAuthenticated)
@@ -303,7 +280,6 @@ const App = () => {
   const twitterAuthenticatedUserRef = useRef(twitterAuthenticatedUser)
 
   const [userSearch, setUserSearch] = useState("")
-  // const userSearchRef = useRef(userSearch)
 
   const [status, setStatus] = useState(defaultStatus)
   const statusRef = useRef(status)
@@ -325,21 +301,11 @@ const App = () => {
   const [currentUser, setCurrentUser] = useState(defaultUser)
   const currentUserRef = useRef(currentUser)
 
+  const [waitForCurrentUser, setWaitForCurrentUser] = useState(false)
+  const waitForCurrentUserRef = useRef(waitForCurrentUser)
+
   const [currentHashtag, setCurrentHashtag] = useState(defaultHashtag)
   const currentHashtagRef = useRef(currentHashtag)
-  
-  const [currentAccount, setCurrentAccount] = useState(defaultAccount)
-  // const currentAccountRef = useRef(currentAccount)
-  
-  // useEffect(() => {
-  //   const tempHistoryArray = [...historyArrayRef.current]
-  //   if (tempHistoryArray.length > 0 && location.pathname !== tempHistoryArray[0]){
-  //     tempHistoryArray.push(location.pathname)
-  //     setHistoryArray(() => [...tempHistoryArray])
-  //     setHistoryArrayIndex(tempHistoryArray.length-1)
-  //     historyArrayRef.current = tempHistoryArray
-  //   }
-  // }, [location])
   
   useEffect(() => { 
     filterLowFollowersCountRef.current = filterLowFollowersCount
@@ -356,6 +322,10 @@ const App = () => {
   useEffect(() => { 
     currentTabRef.current = currentTab 
   }, [currentTab])
+  
+  useEffect(() => { 
+    waitForCurrentUserRef.current = waitForCurrentUser 
+  }, [waitForCurrentUser])
   
   useEffect(() => { 
     currentUsersRef.current = currentUsers 
@@ -381,7 +351,6 @@ const App = () => {
     tweetsRef.current = tweets 
   }, [tweets])
   
-  // const currentNode = currentTabRef.current === "user" ? currentUserRef.current : currentHashtagRef.current;
   const currentNode = currentTab === "user" ? currentUser : currentHashtag;
 
   useEffect(() => { 
@@ -451,7 +420,6 @@ const App = () => {
       socket.emit("logout", viewerObj)
       setTwitterAuthenticated(false)
       setTwitterAuthenticatedUser({})
-      setCurrentAccount({})
       setProgress(progress => "idle")
     }
     else{
@@ -468,7 +436,6 @@ const App = () => {
       setUsers(tempUsers)
       console.log("USING CURRENT USERS | CURRENT USERS: " + tempUsers.length + " | @" + user.screenName)
       setCurrentUser(user)
-      // setProgress("idle")
       return tempUsers.length
     }
     return 0;
@@ -603,11 +570,9 @@ const App = () => {
 
     if (node.nodeType === "user"){
       searchFilter = "@?";
-      // console.log("handleNodeChange | @" + node.screenName + " | name: " + eventName + " | value: " + eventValue)
     }
     else{
       searchFilter = "#?";
-      // console.log("handleNodeChange | #" + node.nodeId + " | name: " + eventName + " | value: " + eventValue)
     }
 
     setProgress(eventName)
@@ -642,7 +607,12 @@ const App = () => {
 
         usersAvailable = currentUsersAvailable(eventName)
 
-        // if (eventName !== "all" || usersAvailable < 3){
+        if (usersAvailable === 0 && !waitForCurrentUserRef.current){
+          console.log("NO USERS | usersAvailable: " + usersAvailable)
+          console.log("SET WAIT FOR CURRENT USER | : "  + waitForCurrentUserRef.current)
+          setWaitForCurrentUser(true)
+        }
+
         if (usersAvailable < MIN_USERS_AVAILABLE){
           console.log("GET MORE USERS | usersAvailable: " + usersAvailable)
           socket.emit("TWITTER_SEARCH_NODE", {searchNode: searchFilter})
@@ -784,6 +754,7 @@ const App = () => {
 
       let tempUsers = []
       let minFollowers = filterLowFollowersCountRef.current ? 5000 : 0;
+      let currentUserSetFlag = false;
 
       if (response.nodes && response.nodes.length > 0) {
 
@@ -798,7 +769,15 @@ const App = () => {
             }
             else {
               console.log("+++ USER | @" + user.screenName + " | FOLLOWERS: " + user.followersCount)
-              tempUsers.push(user)
+              if (!currentUserSetFlag && waitForCurrentUserRef.current) {
+                console.log("WAIT FOR CURRENT USER | SET CURRENT USER | @" + user.screenName + " | FOLLOWERS: " + user.followersCount)
+                currentUserSetFlag = true;
+                setCurrentUser(user)
+                setWaitForCurrentUser(false)
+              }
+              else{
+                tempUsers.push(user)
+              }
             }
           }
         }
@@ -878,9 +857,6 @@ const App = () => {
     })
 
     socket.on("action", (action) => {
-      
-      // console.debug("RX ACTION | socket: " + socket.id + " | TYPE: " + action.type)
-      // console.debug("RX ACTION | ", action.data)
 
       switch (action.type){
 
@@ -914,7 +890,6 @@ const App = () => {
       setProgress(progress => "idle")
       setTwitterAuthenticated(() => true)
       setTwitterAuthenticatedUser(twitterAuthenticatedUser => userObj)
-      setCurrentAccount(userObj)
       console.log("RX TWITTER USER_AUTHENTICATED | USER: @" + userObj.screenName)
     })
 
@@ -1034,7 +1009,6 @@ const App = () => {
                 <SearchIcon color="primary"/>
               </div>
               <InputBase
-                // placeholder={currentTabRef.current === "user" ? "user search..." : "hashtag search..."}
                 placeholder={currentTab === "user" ? "user search..." : "hashtag search..."}
                 classes={{
                   root: classes.inputRoot,

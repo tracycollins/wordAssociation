@@ -400,11 +400,13 @@ const App = () => {
     if (progress === "history" && newLocation !== location.pathname){
       history.replace(newLocation)
       console.log(`history size: ${history.length} | new location: ${newLocation}`)
+      setProgress("idle")
     }
 
     if (progress !== "history" && newLocation !== location.pathname){
       history.push(newLocation)
       console.log(`history size: ${history.length} | new location: ${newLocation}`)
+      setProgress("idle")
     }
 
   }, [currentNode, history, currentTab, location.pathname, progress])

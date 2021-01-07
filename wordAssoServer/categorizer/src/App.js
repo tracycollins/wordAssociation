@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 // import useSocket from 'use-socket.io-client';
 // import { useImmer } from 'use-immer';
-import { useHistory, useLocation } from "react-router-dom";
+import { useParams, useHistory, useLocation } from "react-router-dom";
 import { useHotkeys } from 'react-hotkeys-hook';
 import socketClient from "socket.io-client";
 import { makeStyles } from '@material-ui/core/styles';
@@ -168,7 +168,7 @@ const App = () => {
 
   const history = useHistory()
   let location = useLocation()
-  // let { slug } = useParams()
+  let { slug } = useParams()
 
   // console.log({slug})
 
@@ -331,15 +331,15 @@ const App = () => {
   const [currentAccount, setCurrentAccount] = useState(defaultAccount)
   // const currentAccountRef = useRef(currentAccount)
   
-  useEffect(() => {
-    const tempHistoryArray = [...historyArrayRef.current]
-    if (tempHistoryArray.length > 0 && location.pathname !== tempHistoryArray[0]){
-      tempHistoryArray.push(location.pathname)
-      setHistoryArray(() => [...tempHistoryArray])
-      setHistoryArrayIndex(tempHistoryArray.length-1)
-      historyArrayRef.current = tempHistoryArray
-    }
-  }, [location.pathname])
+  // useEffect(() => {
+  //   const tempHistoryArray = [...historyArrayRef.current]
+  //   if (tempHistoryArray.length > 0 && location.pathname !== tempHistoryArray[0]){
+  //     tempHistoryArray.push(location.pathname)
+  //     setHistoryArray(() => [...tempHistoryArray])
+  //     setHistoryArrayIndex(tempHistoryArray.length-1)
+  //     historyArrayRef.current = tempHistoryArray
+  //   }
+  // }, [location])
   
   useEffect(() => { 
     filterLowFollowersCountRef.current = filterLowFollowersCount
@@ -381,7 +381,34 @@ const App = () => {
     tweetsRef.current = tweets 
   }, [tweets])
   
-  const currentNode = currentTabRef.current === "user" ? currentUserRef.current : currentHashtagRef.current;
+  // const currentNode = currentTabRef.current === "user" ? currentUserRef.current : currentHashtagRef.current;
+  const currentNode = currentTab === "user" ? currentUser : currentHashtag;
+
+  useEffect(() => { 
+
+    console.log(`IN CURRENT NODE USE EFFECT | progress: ${progress}`)
+
+    let newLocation = ""
+
+    if (currentTab === "user"){
+      newLocation = "/categorizer/user/" + currentNode.screenName.toLowerCase();
+    }
+    if (currentTab === "hashtag"){
+      newLocation = "/categorizer/hashtag/" + currentNode.nodeId.toLowerCase();
+    }
+
+    if (progress === "history" && newLocation !== location.pathname){
+      history.replace(newLocation)
+      console.log(`history size: ${history.length} | new location: ${newLocation}`)
+    }
+
+    if (progress !== "history" && newLocation !== location.pathname){
+      history.push(newLocation)
+      console.log(`history size: ${history.length} | new location: ${newLocation}`)
+    }
+
+  }, [currentNode, history, currentTab, location.pathname, progress])
+  
 
   const handleTabChange = (event, newValue) => {
 
@@ -439,7 +466,7 @@ const App = () => {
       setUsers(tempUsers)
       console.log("USING CURRENT USERS | CURRENT USERS: " + tempUsers.length + " | @" + user.screenName)
       setCurrentUser(user)
-      setProgress("idle")
+      // setProgress("idle")
       return tempUsers.length
     }
     return 0;
@@ -474,24 +501,18 @@ const App = () => {
         case "ArrowRight":
         case "ArrowLeft":
           console.log("location.pathname: " + location.pathname)
-          console.log({historyArrayRef})
-          console.log({historyArrayIndexRef})
+
           eventName = "history"
+
           if (eventCode === "ArrowRight"){
-            // if (historyArrayRef.current.length > 0){
-              // historyArrayRef.current.pop()
-              // const nextRoute = historyArrayRef.current.pop()
-              history.forward()
-              eventValue = location.pathname.split("/").pop()
-            // }
+            history.goForward()
+            console.log("history.goForward: loc: " + location.pathname)
+            eventValue = location.pathname.split("/").pop()
           }
           if (eventCode === "ArrowLeft"){ 
-            if (historyArrayRef.current.length > 0){
-              historyArrayRef.current.pop()
-              const nextRoute = historyArrayRef.current.pop()
-              // history.push(nextRoute)
-              eventValue = nextRoute.split("/").pop()
-            }
+            history.goBack()
+            console.log("history.goBack: loc: " + location.pathname)
+            eventValue = location.pathname.split("/").pop()
           }
           break;
 
@@ -580,11 +601,11 @@ const App = () => {
 
     if (node.nodeType === "user"){
       searchFilter = "@?";
-      console.log("handleNodeChange | @" + node.screenName + " | name: " + eventName + " | value: " + eventValue)
+      // console.log("handleNodeChange | @" + node.screenName + " | name: " + eventName + " | value: " + eventValue)
     }
     else{
       searchFilter = "#?";
-      console.log("handleNodeChange | #" + node.nodeId + " | name: " + eventName + " | value: " + eventValue)
+      // console.log("handleNodeChange | #" + node.nodeId + " | name: " + eventName + " | value: " + eventValue)
     }
 
     setProgress(eventName)
@@ -708,7 +729,7 @@ const App = () => {
         console.log({event})
     }
     
-  }, [location])
+  }, [location, history])
 
   const nodeValid = (node) => {
 
@@ -724,40 +745,21 @@ const App = () => {
 
   useEffect(() => {
     if (currentTabRef.current === "user"){
-      console.log({history})
-      console.log("loc:  " + location.pathname)
-      if (!location.pathname.endsWith("/user/" + currentUserRef.current.screenName)){
-        console.log("history push: /categorize/user/" + currentUserRef.current.screenName)
-        history.push("/categorize/user/" + currentUserRef.current.screenName)
-      }
+      console.log("user loc:  " + location.pathname)
     }
-  }, [history, currentUser, location.pathname, tabValue])
+  }, [location, tabValue])
 
   useEffect(() => {
     if (currentTabRef.current === "hashtag"){
-      console.log("history loc:  " + history.location.pathname)
-      if (!history.location.pathname.endsWith("/hashtag/" + currentHashtagRef.current.nodeId)){
-        console.log("history push: /categorize/hashtag/" + currentHashtagRef.current.nodeId)
-        history.push("/categorize/hashtag/" + currentHashtagRef.current.nodeId)
-      }
+      console.log("hashtag loc:  " + location.pathname)
     }
-  }, [history, currentHashtag, location.pathname, tabValue])
+  }, [location, tabValue])
 
   useEffect(() => {
     if (currentTabRef.current === "authUser"){
-      console.log("history loc:  " + history.location.pathname)
-      if (!history.location.pathname.endsWith("/account/" + currentAccount.nodeId)){
-        if (twitterAuthenticated){
-          console.log("history push: /categorize/account/" + currentAccount.nodeId)
-          history.push("/categorize/account/" + currentAccount.nodeId)
-        }
-        else{
-          console.log("NOT AUTHENTICATED: history push: /categorize/account/")
-          history.push("/categorize/account/")
-        }
-      }
+      console.log("authUser loc:  " + location.pathname)
     }
-  }, [history, currentAccount, location.pathname, tabValue, twitterAuthenticated])
+  }, [location, tabValue])
 
   useEffect(() => {
 
@@ -821,10 +823,10 @@ const App = () => {
       
       if (nodeValid(response.node)) {
         setCurrentUser(currentUser => response.node)
-        console.debug("new: @" + response.node.screenName)
-      }
-      else{
-
+        console.debug("new twitter user: @" + response.node.screenName)
+        // if (currentTabRef.current === "user"){
+        //   history.push("/categorizer/user/" + response.node.screenName.toLowerCase())
+        // }
       }
 
       setProgress(progress => "idle")
@@ -875,8 +877,8 @@ const App = () => {
 
     socket.on("action", (action) => {
       
-      console.debug("RX ACTION | socket: " + socket.id + " | TYPE: " + action.type)
-      console.debug("RX ACTION | ", action.data)
+      // console.debug("RX ACTION | socket: " + socket.id + " | TYPE: " + action.type)
+      // console.debug("RX ACTION | ", action.data)
 
       switch (action.type){
 

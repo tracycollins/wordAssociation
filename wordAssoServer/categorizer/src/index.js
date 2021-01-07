@@ -9,19 +9,6 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
-// ReactDOM.render(
-//   <Router>
-//     <div>
-//       <Switch>
-//         <Route path="/categorize/user/:slug">
-//           <App />
-//         </Route>
-//       </Switch>
-//     </div>
-//   </Router>,
-//   document.getElementById('root')
-// );
-
 ReactDOM.render(
   <Router>
     <div>

@@ -391,10 +391,10 @@ const App = () => {
     let newLocation = ""
 
     if (currentTab === "user"){
-      newLocation = "/categorizer/user/" + currentNode.screenName.toLowerCase();
+      newLocation = "/categorize/user/" + currentNode.screenName.toLowerCase();
     }
     if (currentTab === "hashtag"){
-      newLocation = "/categorizer/hashtag/" + currentNode.nodeId.toLowerCase();
+      newLocation = "/categorize/hashtag/" + currentNode.nodeId.toLowerCase();
     }
 
     if (progress === "history" && newLocation !== location.pathname){
@@ -825,7 +825,7 @@ const App = () => {
         setCurrentUser(currentUser => response.node)
         console.debug("new twitter user: @" + response.node.screenName)
         // if (currentTabRef.current === "user"){
-        //   history.push("/categorizer/user/" + response.node.screenName.toLowerCase())
+        //   history.push("/categorize/user/" + response.node.screenName.toLowerCase())
         // }
       }
 

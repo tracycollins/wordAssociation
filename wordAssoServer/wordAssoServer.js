@@ -8739,14 +8739,11 @@ function initAppRouting(callback) {
     });
   });
 
-  // const categorizerHtml = path.join(__dirname, "/categorizer/build/index.html");
-
   app.get("/categorize/user/:query", async function searchUserById(req, res) {
 
     console.log(chalkLog(MODULE_ID + " | R< SEARCH | USER | QUERY: " + req.params.query));
 
     try{
-      // res.sendFile(categorizerHtml);
       twitterSearchNode({ searchNode: req.params.query });
     }
     catch(e){
@@ -8762,7 +8759,6 @@ function initAppRouting(callback) {
     console.log(chalkLog(MODULE_ID + " | R< SEARCH | HASHTAG | QUERY: " + req.params.query));
 
     try{
-      // res.sendFile(categorizerHtml);
       twitterSearchNode({ searchNode: req.params.query });
     }
     catch(e){
@@ -8773,28 +8769,30 @@ function initAppRouting(callback) {
 
   });
 
-  // app.get("/categorize", async function requestCategorize(req, res) {
+  app.get("/categorize", async function requestCategorize(req, res) {
 
-  //   console.log(chalkLog(MODULE_ID + " | R< CATEGORIZE"));
+    const categorizerHtml = path.join(__dirname, "/categorizer/build/index.html");
 
-  //   res.sendFile(categorizerHtml, function responseCategorizer(err) {
+    console.log(chalkLog(MODULE_ID + " | R< CATEGORIZE"));
 
-  //     if (err) {
-  //       console.log(chalkError(MODULE_ID +
-  //         " | GET /categorize ERROR:" +
-  //         " | " + getTimeStamp() +
-  //         " | " + req.url +
-  //         " | " + categorizerHtml +
-  //         " | " + err
-  //         ));
-  //     } 
-  //     else {
-  //       console.log(chalkAlert(MODULE_ID + " | SENT:", categorizerHtml));
-  //     }
+    res.sendFile(categorizerHtml, function responseCategorizer(err) {
 
-  //   });
+      if (err) {
+        console.log(chalkError(MODULE_ID +
+          " | GET /categorize ERROR:" +
+          " | " + getTimeStamp() +
+          " | " + req.url +
+          " | " + categorizerHtml +
+          " | " + err
+          ));
+      } 
+      else {
+        console.log(chalkAlert(MODULE_ID + " | SENT:", categorizerHtml));
+      }
 
-  // });
+    });
+
+  });
 
   app.get("/stats", async function requestStats(req, res) {
 

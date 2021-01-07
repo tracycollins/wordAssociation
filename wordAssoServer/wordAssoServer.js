@@ -8745,6 +8745,7 @@ function initAppRouting(callback) {
 
     try{
       twitterSearchNode({ searchNode: req.params.query });
+      res.sendStatus(200);
     }
     catch(e){
       console.log(chalkError(MODULE_ID + " | R< SEARCH | *** USER ERROR | QUERY: " + req.params.query));
@@ -8760,6 +8761,7 @@ function initAppRouting(callback) {
 
     try{
       twitterSearchNode({ searchNode: req.params.query });
+      res.sendStatus(200);
     }
     catch(e){
       console.log(chalkError(MODULE_ID + " | R< SEARCH | *** HASHTAG ERROR | QUERY: " + req.params.query));

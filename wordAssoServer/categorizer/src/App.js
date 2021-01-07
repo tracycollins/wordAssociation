@@ -481,7 +481,7 @@ const App = () => {
             // if (historyArrayRef.current.length > 0){
               // historyArrayRef.current.pop()
               // const nextRoute = historyArrayRef.current.pop()
-              history.goForward()
+              history.forward()
               eventValue = location.pathname.split("/").pop()
             // }
           }

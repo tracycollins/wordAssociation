@@ -465,10 +465,11 @@ const App = () => {
     let eventName = event.target.name || "nop";
     let eventValue = event.target.value;
     let eventChecked = event.target.checked;
+    let eventCode = event.code;
 
-    if (event.target.name === undefined && event.code){
+    if (event.target.name === undefined && eventCode){
 
-      switch (event.code){
+      switch (eventCode){
 
         case "ArrowRight":
         case "ArrowLeft":
@@ -476,7 +477,7 @@ const App = () => {
           console.log({historyArrayRef})
           console.log({historyArrayIndexRef})
           eventName = "history"
-          if (event.code === "ArrrowRight"){
+          if (eventCode === "ArrrowRight"){
             // if (historyArrayRef.current.length > 0){
               // historyArrayRef.current.pop()
               // const nextRoute = historyArrayRef.current.pop()
@@ -484,7 +485,7 @@ const App = () => {
               eventValue = location.pathname.split("/").pop()
             // }
           }
-          if (event.code === "ArrowLeft"){ 
+          if (eventCode === "ArrowLeft"){ 
             if (historyArrayRef.current.length > 0){
               historyArrayRef.current.pop()
               const nextRoute = historyArrayRef.current.pop()

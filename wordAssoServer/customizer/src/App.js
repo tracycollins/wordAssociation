@@ -231,7 +231,7 @@ const App = (props) => {
       case "STATS":
         if (event.data.status) {
           setStatus(event.data.status);
-          console.log(`statusRef.current \n ${statusRef.current}`)
+          // console.log(`statusRef.current \n ${statusRef.current}`)
         }
       break;
 

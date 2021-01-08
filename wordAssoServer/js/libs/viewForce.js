@@ -214,7 +214,6 @@ function ViewForce (inputConfig) {
   totalHashmap.negative = 0;
   totalHashmap.none = 0;
 
-
   let currentMaxRateMetric = 2;
 
   const currentMax = {};

@@ -254,11 +254,12 @@ const App = (props) => {
       )
     }
     else{
-      return 
+      return (
         <StatsView 
           status={statusRef.current} 
         >
         </StatsView>
+      )
     }
   }
 

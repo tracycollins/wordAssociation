@@ -881,9 +881,9 @@ function initSocketHandler () {
         status.socket.connected = true;
 
         console.log("<R STATS" + "\n" + jsonPrint(action.data));
-        
-        if (currentSessionView) {
-          currentSessionView.setStats(action.data);
+
+        if (customizerWindow) {
+          customizerWindow.postMessage({ op: "STATS", status: status }, DEFAULT_SOURCE);
         }
 
         break

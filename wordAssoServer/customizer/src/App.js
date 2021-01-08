@@ -229,8 +229,8 @@ const App = (props) => {
       break;
 
       case "STATS":
-        if (event.data.stats) {
-          setStatus(event.data.stats);
+        if (event.data.status) {
+          setStatus(event.data.status);
           console.log(`statusRef.current \n ${statusRef.current}`)
         }
       break;

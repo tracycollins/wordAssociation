@@ -7704,11 +7704,8 @@ async function updateUserSets(p) {
   console.log(chalkInfo(MODULE_ID + " | UPDATING USER SETS..."));
 
   if (!statsObj.dbConnectionReady) {
-    console.log(
-      chalkAlert(MODULE_ID + " | ABORT updateUserSets: DB CONNECTION NOT READY")
-    );
+    console.log(chalkAlert(MODULE_ID + " | ABORT updateUserSets: DB CONNECTION NOT READY"));
     updateUserSetsRunning = false;
-    // throw new Error("DB CONNECTION NOT READY");
     return;
   }
 
@@ -7720,9 +7717,7 @@ async function updateUserSets(p) {
 
   const params = p || {};
 
-  params.query = params.query || {
-    $or: [{ categorized: true }, { categorizedAuto: true }],
-  };
+  params.query = params.query || { $or: [{ categorized: true }, { categorizedAuto: true }] };
 
   userSearchCursor = global.wordAssoDb.User.find(params.query)
     .select({
@@ -7827,7 +7822,8 @@ async function updateHashtagSets(p) {
 
   if (!statsObj.dbConnectionReady) {
     console.log(chalkAlert(MODULE_ID + " | ABORT updateHashtagSets: DB CONNECTION NOT READY"));
-    throw new Error("DB CONNECTION NOT READY");
+    updateHashtagSetsRunning = false;
+    return;
   }
 
   if (updateHashtagSetsRunning) {

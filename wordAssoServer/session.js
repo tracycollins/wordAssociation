@@ -875,15 +875,15 @@ function initSocketHandler () {
 
     switch (action.type){
 
-      case "stats":
+      case "heartbeat":
 
         status.serverConnected = true;
         status.socket.connected = true;
 
-        console.log("<R STATS" + "\n" + jsonPrint(action.data));
+        console.log("<R HB" + "\n" + jsonPrint(action.data));
 
         if (customizerWindow) {
-          customizerWindow.postMessage({ op: "STATS", status: action.data }, DEFAULT_SOURCE);
+          customizerWindow.postMessage({ op: "HEARTBEAT", status: action.data }, DEFAULT_SOURCE);
         }
 
         break

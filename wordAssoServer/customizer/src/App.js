@@ -1,20 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-// import { green, grey } from '@material-ui/core/colors';
 
-// import { useHistory, useLocation } from "react-router-dom";
-// import { useHotkeys } from 'react-hotkeys-hook';
-// import socketClient from "socket.io-client";
 import { makeStyles } from '@material-ui/core/styles';
-
 import Container from '@material-ui/core/Container';
 import AppBar from '@material-ui/core/AppBar';
-// import CircularProgress from '@material-ui/core/CircularProgress';
-// import Button from '@material-ui/core/Button';
-
-// import InputBase from '@material-ui/core/InputBase';
-// import Link from '@material-ui/core/Link';
-// import SearchIcon from '@material-ui/icons/Search';
-
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -116,7 +104,7 @@ const App = (props) => {
   const handleTabChange = (event, newValue) => {
 
     event.preventDefault()
-    console.log({newValue})
+    // console.log({newValue})
 
     switch (newValue){
       case 0:
@@ -195,7 +183,11 @@ const App = (props) => {
       )
     }
     else{
-      return <StatsView settings={settings} stats={status} />
+      return 
+        <StatsView 
+          status={statusRef.current} 
+        >
+        </StatsView>
     }
   }
 
@@ -241,6 +233,7 @@ const App = (props) => {
         if (event.data.status){
           setStatus(event.data.status)
           console.log(`statusRef.current \n ${statusRef.current}`)
+          console.log({statusRef})
         }
       break;
 

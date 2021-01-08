@@ -811,11 +811,7 @@ function initSocketHandler () {
   socket.on("disconnect", function () {
     status.serverConnected = false;
     status.socket.connected = false;
-
     console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
-    // if (currentSessionView !== undefined) {
-    //   currentSessionView.resize();
-    // }
   });
 
   let socketErrorTimeout;
@@ -843,79 +839,77 @@ function initSocketHandler () {
   socket.on("connect_error", function (error) {
     status.socket.errors += 1;
     status.socket.error = error;
-
     console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
     console.error("*** SOCKET CONNECT ERROR\n" + error);
-    // if (currentSessionView !== undefined) {
-    //   currentSessionView.resize();
-    // }
   });
 
   socket.on("reconnect_error", function (error) {
     status.socket.errors += 1;
     status.socket.error = error;
-
     console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
     console.error("*** SOCKET RECONNECT ERROR\n" + error);
-    // if (currentSessionView !== undefined) {
-    //   currentSessionView.resize();
-    // }
   });
 
   socket.on("unauthorized", function (err) {
     status.serverConnected = true;
-
-    console.error(
-      "TSS | *** UNAUTHORIZED *** " +
-        " | ID: " +
-        socket.id +
-        " | VIEWER ID: " +
-        viewerObj.userId +
-        " | " +
-        err.message
+    console.error("*** UNAUTHORIZED *** | ID: " + socket.id +
+      " | VIEWER ID: " + viewerObj.userId +
+      " | " + err.message
     );
   });
 
   socket.on("authenticated", function () {
     console.debug("AUTHENTICATED | " + socket.id);
-
     status.socketId = socket.id;
     status.serverConnected = true;
     status.userReadyTransmitted = false;
     status.userReadyAck = false;
-
-    console.log("CONNECTED TO HOST" + " | ID: " + socket.id);
-
+    console.log("CONNECTED TO HOST | ID: " + socket.id);
     initViewerReadyInterval(config.settings.viewerReadyInterval);
   });
 
   const sSmall = {};
   sSmall.bestNetwork = {};
 
-  socket.on("HEARTBEAT", function (hb) {
-    console.log(`HEARTBEAT`);
-    resetServerActiveTimer();
+  socket.on("action", (action) => {
 
-    status.bestNetwork = hb.bestNetwork;
+    switch (action.type){
 
-    status.maxNodes = currentSessionView === undefined ? 0 : currentSessionView.getMaxNodes();
-    status.maxNodeAddQ = currentSessionView === undefined ? 0 : currentSessionView.getMaxNodeAddQ();
+      case "stats":
 
-    status.serverConnected = true;
-    status.socket.connected = true;
+        status.serverConnected = true;
+        status.socket.connected = true;
 
-  });
+        console.log("<R STATS" + "\n" + jsonPrint(action.data));
+        
+        if (currentSessionView) {
+          currentSessionView.setStats(action.data);
+        }
 
-  socket.on("STATS", function (stats) {
-    status.serverConnected = true;
-    status.socket.connected = true;
+        break
 
-    console.log("<R STATS" + "\n" + jsonPrint(stats));
-
-    if (currentSessionView) {
-      currentSessionView.setStats(stats);
+      default:
     }
   });
+
+  // socket.on("HEARTBEAT", function (hb) {
+  //   console.log(`HEARTBEAT`);
+  //   resetServerActiveTimer();
+  //   status.bestNetwork = hb.bestNetwork;
+  //   status.maxNodes = currentSessionView === undefined ? 0 : currentSessionView.getMaxNodes();
+  //   status.maxNodeAddQ = currentSessionView === undefined ? 0 : currentSessionView.getMaxNodeAddQ();
+  //   status.serverConnected = true;
+  //   status.socket.connected = true;
+  // });
+
+  // socket.on("STATS", function (stats) {
+  //   status.serverConnected = true;
+  //   status.socket.connected = true;
+  //   console.log("<R STATS" + "\n" + jsonPrint(stats));
+  //   if (currentSessionView) {
+  //     currentSessionView.setStats(stats);
+  //   }
+  // });
 
   socket.on("node", rxNode);
 

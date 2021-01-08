@@ -101,6 +101,10 @@ const App = (props) => {
   const statusRef = useRef(status)
   useEffect(() => { statusRef.current = status }, [status])
   
+  const [heartbeat, setHeartbeat] = useState(props.status)
+  const heartbeatRef = useRef(heartbeat)
+  useEffect(() => { heartbeatRef.current = heartbeat }, [heartbeat])
+  
   const handleTabChange = (event, newValue) => {
 
     event.preventDefault()
@@ -231,7 +235,12 @@ const App = (props) => {
       case "STATS":
         if (event.data.status) {
           setStatus(event.data.status);
-          // console.log(`statusRef.current \n ${statusRef.current}`)
+        }
+      break;
+
+      case "HEARTBEAT":
+        if (event.data.status) {
+          setHeartbeat(event.data.status);
         }
       break;
 
@@ -256,7 +265,7 @@ const App = (props) => {
     else{
       return (
         <StatsView 
-          status={statusRef.current} 
+          heartbeat={heartbeatRef.current} 
         >
         </StatsView>
       )

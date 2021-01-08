@@ -14,13 +14,13 @@ ReactDOM.render(
     <div>
       <Switch>
         <Route path="/customize/settings">
-          <App defaults={config.defaults} settings={config.settings} status={{}}/>
+          <App defaults={config.defaults} settings={config.settings} status={{}} heartbeat={{}}/>
         </Route>
         <Route path="/customize/stats">
-          <App defaults={config.defaults} settings={config.settings} status={{}}/>
+          <App defaults={config.defaults} settings={config.settings} status={{}} heartbeat={{}}/>
         </Route>
         <Route >
-          <App defaults={config.defaults} settings={config.settings} status={{}}/>
+          <App defaults={config.defaults} settings={config.settings} status={{}} heartbeat={{}}/>
         </Route>
       </Switch>
     </div>

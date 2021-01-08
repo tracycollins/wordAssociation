@@ -16,7 +16,7 @@ const useStyles = makeStyles((theme) => ({
 
 const Stats = (props) => {
 
-  // const { status } = props;
+  // const { heartbeat } = props;
   console.log(props)
   
   // statsObj.nodesPerSec = 0.0;

@@ -16,8 +16,8 @@ const useStyles = makeStyles((theme) => ({
 
 const Stats = (props) => {
 
-  const { heartbeat } = props;
-  console.log(props)
+  // const { heartbeat } = props;
+  // console.log(props)
   
   // statsObj.nodesPerSec = 0.0;
   // statsObj.nodesPerMin = 0.0;
@@ -33,7 +33,7 @@ const Stats = (props) => {
               <Typography className={classes.range} id="nodesPerMin" name="nodesPerMin" gutterBottom>
                 NODE RATE
               </Typography>
-              <LinearProgress variant="determinate" value={47}>
+              <LinearProgress variant="determinate" value={(props.heartbeat.nodesPerMin/props.heartbeat.maxNodesPerMin)}>
               </LinearProgress>
           </Grid>
         </Grid>

@@ -677,15 +677,9 @@ let socketKeepaliveInterval;
 function initKeepalive(viewerObj, interval) {
   clearInterval(socketKeepaliveInterval);
 
-  console.log(
-    "START KEEPALIVE" +
-      " | READY ACK: " +
-      status.viewerReadyAck +
-      " | SERVER CONNECTED: " +
-      status.serverConnected +
-      " | INTERVAL: " +
-      interval +
-      " ms"
+  console.log("START KEEPALIVE | READY ACK: " + status.viewerReadyAck +
+    " | SERVER CONNECTED: " + status.serverConnected +
+    " | INTERVAL: " + interval + " ms"
   );
 
   sendKeepAlive(viewerObj, function (err) {
@@ -695,10 +689,8 @@ function initKeepalive(viewerObj, interval) {
   });
 
   socketKeepaliveInterval = setInterval(function () {
-    // TX KEEPALIVE
 
     status.elapsed = Date.now() - status.startTime;
-
     viewerObj.stats = status;
 
     sendKeepAlive(viewerObj, function (err) {
@@ -707,7 +699,6 @@ function initKeepalive(viewerObj, interval) {
       }
     });
 
-    // keepaliveIndex += 1;
   }, interval);
 }
 

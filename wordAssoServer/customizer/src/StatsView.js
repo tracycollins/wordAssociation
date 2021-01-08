@@ -285,6 +285,9 @@ const useStyles = makeStyles((theme) => ({
 // }
 
 const Stats = (props) => {
+
+  // const { status } = props;
+  console.log(props)
   
   // statsObj.nodesPerSec = 0.0;
   // statsObj.nodesPerMin = 0.0;

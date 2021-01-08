@@ -3695,7 +3695,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
         // sObj.user = statsObj.user;
         // sObj.bestNetwork = statsObj.bestNetwork;
 
-        viewNameSpace.emit("action", { type: "stats", data: statsObj });
+        viewNameSpace.emit("action", { type: "heartbeat", data: statsObj });
 
         heartbeatsSent += 1;
         if (heartbeatsSent % 60 == 0) {

@@ -108,10 +108,8 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   selectCategory: {
-    border: '1px solid black',
+    border: '1px solid darkgray',
     borderRadius: theme.shape.borderRadius,
-    // '&:before': { borderColor: 'black' },
-    // '&:after': { borderColor: 'black' },
     fontSize: '0.9rem',
     padding: theme.spacing(1),
     marginBottom: theme.spacing(1),

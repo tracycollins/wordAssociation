@@ -21,6 +21,7 @@ import { green } from '@material-ui/core/colors';
 // import FormGroup from '@material-ui/core/FormGroup';
 // import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
+import LinearProgress from '@material-ui/core/LinearProgress';
 // import IconButton from '@material-ui/core/IconButton';
 // import InputBase from '@material-ui/core/InputBase';
 // import InputLabel from '@material-ui/core/InputLabel';
@@ -38,7 +39,7 @@ import Grid from '@material-ui/core/Grid';
 // import TableHead from '@material-ui/core/TableHead';
 // import TableRow from '@material-ui/core/TableRow';
 // import Toolbar from '@material-ui/core/Toolbar';
-// import Typography from '@material-ui/core/Typography';
+import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 
 // const StyledTableCell = withStyles((theme) => ({
@@ -285,12 +286,19 @@ const useStyles = makeStyles((theme) => ({
 
 const Stats = (props) => {
   
+  // statsObj.nodesPerSec = 0.0;
+  // statsObj.nodesPerMin = 0.0;
+  // statsObj.maxNodesPerMin = 0.0;
+  // statsObj.maxNodesPerMinTime = moment().valueOf();
+
+
   const classes = useStyles();
 
   return (
     <>
       <Grid className={classes.grid}>
           <Grid item className={classes.gridItem} xs={3}>
+              <LinearProgress variant="determinate" value={(props.stats.maxNodesPerMin !== undefined && props.stats.maxNodesPerMin !== 0 ? props.stats.nodesPerMin/props.stats.maxNodesPerMin : 0)} />
           </Grid>
         </Grid>
     </>

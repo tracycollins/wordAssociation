@@ -29,13 +29,18 @@ const Stats = (props) => {
   return (
     <>
       <Grid className={classes.grid}>
-          <Grid item className={classes.gridItem} xs={6}>
+          <Grid item className={classes.gridItem} xs={8}>
+
               <Typography className={classes.range} id="bestNetwork" name="bestNetwork" gutterBottom>
                 {`BEST NN: ${props.heartbeat.bestNetwork.networkId} | IN ID: ${props.heartbeat.bestNetwork.inputsId} | SR: ${props.heartbeat.bestNetwork.successRate}%`}
               </Typography>
+
               <Typography className={classes.range} id="nodesPerMin" name="nodesPerMin" gutterBottom>
                 {`TWITTER | ${props.heartbeat.twitter.tweetsPerMin} TPM | ${props.heartbeat.twitter.tweetsReceived} RCVD | ${props.heartbeat.twitter.maxTweetsPerMin} MAX TPM`}
               </Typography>
+              <LinearProgress variant="determinate" value={(100.0 * props.heartbeat.twitter.tweetsPerMin / props.heartbeat.twitter.maxTweetsPerMin)}>
+              </LinearProgress>
+
               <Typography className={classes.range} id="nodesPerMin" name="nodesPerMin" gutterBottom>
                 {`NODE RATE: ${props.heartbeat.nodesPerMin} | ${props.heartbeat.maxNodesPerMin} MAX`}
               </Typography>

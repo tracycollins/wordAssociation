@@ -8818,7 +8818,7 @@ function initAppRouting(callback) {
     res.send(statsObj)
   });
 
-  const customizerHtml = path.join(__dirname, "/customize/build/index.html");
+  const customizerHtml = path.join(__dirname, "/customizer/build/index.html");
 
   app.get("/customize", async function requestCustomizer(req, res) {
 

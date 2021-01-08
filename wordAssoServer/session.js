@@ -883,7 +883,7 @@ function initSocketHandler () {
         console.log("<R STATS" + "\n" + jsonPrint(action.data));
 
         if (customizerWindow) {
-          customizerWindow.postMessage({ op: "STATS", status: status }, DEFAULT_SOURCE);
+          customizerWindow.postMessage({ op: "STATS", status: action.data }, DEFAULT_SOURCE);
         }
 
         break
@@ -891,25 +891,6 @@ function initSocketHandler () {
       default:
     }
   });
-
-  // socket.on("HEARTBEAT", function (hb) {
-  //   console.log(`HEARTBEAT`);
-  //   resetServerActiveTimer();
-  //   status.bestNetwork = hb.bestNetwork;
-  //   status.maxNodes = currentSessionView === undefined ? 0 : currentSessionView.getMaxNodes();
-  //   status.maxNodeAddQ = currentSessionView === undefined ? 0 : currentSessionView.getMaxNodeAddQ();
-  //   status.serverConnected = true;
-  //   status.socket.connected = true;
-  // });
-
-  // socket.on("STATS", function (stats) {
-  //   status.serverConnected = true;
-  //   status.socket.connected = true;
-  //   console.log("<R STATS" + "\n" + jsonPrint(stats));
-  //   if (currentSessionView) {
-  //     currentSessionView.setStats(stats);
-  //   }
-  // });
 
   socket.on("node", rxNode);
 
@@ -924,8 +905,6 @@ function initSocketSessionUpdateRx() {
 
   let newNode = {};
   let category;
-
-  // const viewNumNodes = 0;
   let viewNodeAddQlength = 0;
 
   clearInterval(socketSessionUpdateInterval);

@@ -31,7 +31,7 @@ const Stats = (props) => {
       <Grid className={classes.grid}>
           <Grid item className={classes.gridItem} xs={6}>
               <Typography className={classes.range} id="nodesPerMin" name="nodesPerMin" gutterBottom>
-                {`NODE RATE: ${props.heartbeat.nodesPerMin}`}
+                {`NODE RATE: ${props.heartbeat.nodesPerMin} | ${props.heartbeat.maxNodesPerMin} MAX`}
               </Typography>
               <LinearProgress variant="determinate" value={(props.heartbeat.nodesPerMin/props.heartbeat.maxNodesPerMin)}>
               </LinearProgress>

@@ -1154,97 +1154,6 @@ async function initSlackWebClient(){
   }
 }
 
-// async function initSlackWebClient() {
-//   try {
-//     const { WebClient } = require("@slack/client");
-//     slackWebClient = new WebClient(slackRtmToken);
-
-//     const conversationsListResponse = await slackWebClient.conversations.list({
-//       token: slackOAuthAccessToken,
-//     });
-
-//     conversationsListResponse.channels.forEach(async function (channel) {
-
-//       if (channel.name === slackChannel) {
-//         configuration.slackChannel = channel;
-
-//         const message = {
-//           token: slackOAuthAccessToken,
-//           channel: configuration.slackChannel.id,
-//           text: "OP",
-//         };
-
-//         message.attachments = [];
-//         message.attachments.push({
-//           text: "INIT",
-//           fields: [
-//             { title: "SRC", value: hostname + "_" + process.pid },
-//             { title: "MOD", value: MODULE_NAME },
-//             { title: "DST", value: "ALL" },
-//           ],
-//         });
-
-//         await slackWebClient.chat.postMessage(message);
-//       }
-
-//       channelsHashMap.set(channel.id, channel);
-//     });
-
-//     statsObj.slack.webClient.ready = true;
-//     statsObj.slack.webClient.error = false;
-//     return;
-//   } 
-//   catch (err) {
-//     console.log(chalkError(MODULE_ID + " | *** INIT SLACK WEB CLIENT ERROR: " + err));
-//     statsObj.slack.webClient.ready = false;
-//     statsObj.slack.webClient.error = err;
-//     return;
-//     // throw err;
-//   }
-// }
-
-// async function initSlackRtmClient() {
-
-//   try{
-//     const { RTMClient } = require("@slack/client");
-//     slackRtmClient = new RTMClient(slackRtmToken);
-
-//     await slackRtmClient.start();
-
-//     slackRtmClient.on("slack_event", async function (eventType, event) {
-//       switch (eventType) {
-//         case "pong":
-//           debug(
-//             chalkLog(
-//               MODULE_ID +
-//                 " | SLACK RTM PONG | " +
-//                 getTimeStamp() +
-//                 " | " +
-//                 event.reply_to
-//             )
-//           );
-//           break;
-//         default:
-//           debug(chalkInfo(MODULE_ID +
-//             " | SLACK RTM EVENT | " + getTimeStamp() +
-//             " | " + eventType +
-//             "\n" + jsonPrint(event)
-//           ));
-//       }
-//     });
-//     statsObj.slack.rtmClient.ready = true;
-//     statsObj.slack.rtmClient.error = false;
-//     return;
-//   }
-//   catch(err){
-//     statsObj.slack.rtmClient.ready = false;
-//     statsObj.slack.rtmClient.error = err;
-//     console.log(chalkError(MODULE_ID + " | *** INIT SLACK RTM CLIENT ERROR: " + err));
-//   }
-
-
-// }
-
 const addedHashtagsSet = new Set();
 const deletedHashtagsSet = new Set();
 
@@ -1298,21 +1207,17 @@ statsObj.slack.rtmClient = {};
 statsObj.slack.rtmClient.ready = false;
 statsObj.slack.rtmClient.error = false;
 
-
 statsObj.bots = {};
 statsObj.bots.numOfBots = 0;
 
 statsObj.pubSub = {};
-
 statsObj.pubSub.subscriptions = {};
 statsObj.pubSub.subscriptions.errors = [];
-
 statsObj.pubSub.messagesSent = 0;
 statsObj.pubSub.messagesReceived = 0;
 
 statsObj.commandLineArgsLoaded = false;
-// statsObj.currentThreeceeUserIndex = 0;
-// statsObj.currentThreeceeUser = "altthreecee00";
+
 statsObj.threeceeUsersConfiguredFlag = false;
 statsObj.twitNotReadyWarning = false;
 statsObj.initSetsComplete = false;
@@ -1368,7 +1273,6 @@ statsObj.traffic.users.percentBots = 0;
 statsObj.traffic.users.total = 0;
 
 statsObj.user = {};
-
 statsObj.user.categorizedBy = {};
 
 for (const user of threeceeAuthorizedUsers){
@@ -1540,11 +1444,6 @@ configuration.metrics = {};
 configuration.metrics.nodeMeterEnabled = DEFAULT_METRICS_NODE_METER_ENABLED;
 configuration.minFollowersAutoCategorize = DEFAULT_MIN_FOLLOWERS_AUTO_CATEGORIZE;
 configuration.minFollowersAutoFollow = DEFAULT_MIN_FOLLOWERS_AUTO_FOLLOW;
-
-// configuration.threeceeUsers = [];
-// configuration.threeceeUsers = DEFAULT_THREECEE_USERS;
-
-// statsObj.currentThreeceeUser = "altthreecee00";
 
 const threeceeTwitter = {};
 const threeceeInfoTwitter = {};

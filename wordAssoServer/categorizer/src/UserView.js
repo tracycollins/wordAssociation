@@ -66,6 +66,12 @@ const useStyles = makeStyles((theme) => ({
     outlined: true,
     variant: 'outlined',
   },
+  timelineError: {
+    textAlign: "center",
+    border: '2px solid red',
+    color: 'red',
+    backgroundColor: 'white',
+  },
   card: {
     alignSelf: "center",
   },
@@ -346,6 +352,7 @@ const User = (props) => {
                   screenName: props.user.screenName
                 }}
                 options={{width: '100%', height: '800'}}
+                renderError={(_err) => <div className={classes.timelineError}><p>COULD NOT LOAD USER TWEETS</p></div>}
               />
             </Paper>
           </Grid>

@@ -62,6 +62,7 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   paper: {
+    padding: theme.spacing(1),
     outlined: true,
     variant: 'outlined',
   },
@@ -133,7 +134,8 @@ const useStyles = makeStyles((theme) => ({
   radioButton: {
   },
   table: {
-    maxWidth: "90%",
+    maxWidth: "95%",
+    align: 'center',
     padding: theme.spacing(1),
   },
   tableHead: {
@@ -451,7 +453,7 @@ const User = (props) => {
               >
                 SETTINGS
               </Typography>
-              <FormGroup align="center">
+              <FormGroup  align="center">
                 <FormControl align="center">
                   <Select
                     labelId="category-manual-label"

@@ -101,7 +101,7 @@ const App = (props) => {
   const statusRef = useRef(status)
   useEffect(() => { statusRef.current = status }, [status])
   
-  const [heartbeat, setHeartbeat] = useState(props.status)
+  const [heartbeat, setHeartbeat] = useState(props.heartbeat)
   const heartbeatRef = useRef(heartbeat)
   useEffect(() => { heartbeatRef.current = heartbeat }, [heartbeat])
   
@@ -248,7 +248,6 @@ const App = (props) => {
         console.error(`*** ERROR | UNKNOWN MESSAGE | OP: ${event.data.op}`);
     }
   }
-
 
   const displayTab = (tab) => {
     if (tab === "settings"){

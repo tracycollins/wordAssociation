@@ -170,27 +170,6 @@ const App = (props) => {
     }    
   }
 
-  const displayTab = (tab) => {
-    if (tab === "settings"){
-      return (
-        <SettingsView 
-          defaults={defaultsRef.current} 
-          settings={settingsRef.current} 
-          status={statusRef.current} 
-          handleChange={handleChange}
-        >
-        </SettingsView>
-      )
-    }
-    else{
-      return 
-        <StatsView 
-          status={statusRef.current} 
-        >
-        </StatsView>
-    }
-  }
-
   const receiveMessage = (event) => {
 
     event.preventDefault();
@@ -209,11 +188,11 @@ const App = (props) => {
       return;
     }
 
-    console.debug("RX MESSAGE | SOURCE"
-      + " | ORIGIN: " + event.origin 
-      + " | PARENT WINDOW: " + parentWindow.PARENT_ID
-      + " | DEFAULT_SOURCE: " + DEFAULT_SOURCE
-    );
+    // console.debug("RX MESSAGE | SOURCE"
+    //   + " | ORIGIN: " + event.origin 
+    //   + " | PARENT WINDOW: " + parentWindow.PARENT_ID
+    //   + " | DEFAULT_SOURCE: " + DEFAULT_SOURCE
+    // );
 
     switch (event.data.op) {
 
@@ -258,6 +237,28 @@ const App = (props) => {
 
       default:
         console.error(`*** ERROR | UNKNOWN MESSAGE | OP: ${event.data.op}`);
+    }
+  }
+
+
+  const displayTab = (tab) => {
+    if (tab === "settings"){
+      return (
+        <SettingsView 
+          defaults={defaultsRef.current} 
+          settings={settingsRef.current} 
+          status={statusRef.current} 
+          handleChange={handleChange}
+        >
+        </SettingsView>
+      )
+    }
+    else{
+      return 
+        <StatsView 
+          status={statusRef.current} 
+        >
+        </StatsView>
     }
   }
 

@@ -298,7 +298,7 @@ const Stats = (props) => {
     <>
       <Grid className={classes.grid}>
           <Grid item className={classes.gridItem} xs={3}>
-              <LinearProgress variant="determinate" value={(props.stats.maxNodesPerMin !== undefined && props.stats.maxNodesPerMin !== 0 ? props.stats.nodesPerMin/props.stats.maxNodesPerMin : 0)} />
+              <LinearProgress variant="determinate" value={(props.status.maxNodesPerMin !== undefined && props.status.maxNodesPerMin !== 0 ? props.status.nodesPerMin/props.status.maxNodesPerMin : 0)} />
           </Grid>
         </Grid>
     </>

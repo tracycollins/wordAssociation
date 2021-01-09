@@ -51,7 +51,7 @@ function ViewForce (inputConfig) {
 
   config.settings.adjustedAgeRateScaleRange = {};
   config.settings.adjustedAgeRateScaleRange.min = 1.0;
-  config.settings.adjustedAgeRateScaleRange.max = 50.0;
+  config.settings.adjustedAgeRateScaleRange.max = 75.0;
   
   config.settings.initialXposition = config.settings.initialXposition || 0.5;
   config.settings.initialYposition = config.settings.initialYposition || 0.9;

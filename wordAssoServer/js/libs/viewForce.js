@@ -481,7 +481,7 @@ function ViewForce (inputConfig) {
     .append("svg:svg")
     .attr("id", "svgMain")
     .attr("width", '100%')
-    .attr("height", 'auto')
+    .attr("height", height)
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
@@ -489,7 +489,7 @@ function ViewForce (inputConfig) {
     .append("svg:g")
     .attr("id", "svgViewForceLayoutArea")
     .attr("width", '100%')
-    .attr("height", 'auto')
+    .attr("height", height)
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
@@ -1926,13 +1926,13 @@ function ViewForce (inputConfig) {
 
       svgMain
         .attr("width", '100%')
-        .attr("height", 'auto')
+        .attr("height", height)
         .attr("x", 1e-6)
         .attr("y", 1e-6);
 
       svgViewForceLayoutArea
         .attr("width", '100%')
-        .attr("height", 'auto')
+        .attr("height", height)
         .attr("x", 1e-6)
         .attr("y", 1e-6);
 

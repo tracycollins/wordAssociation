@@ -8,6 +8,7 @@ function ViewForce (inputConfig) {
 
   function getWindowDimensions () {
 
+    // chrome on mbp2 needs this for correct height. no clue why!
     if (window.innerWidth !== "undefined") {
       return { width: window.innerWidth, height: window.innerHeight };
     }
@@ -50,7 +51,7 @@ function ViewForce (inputConfig) {
 
   config.settings.adjustedAgeRateScaleRange = {};
   config.settings.adjustedAgeRateScaleRange.min = 1.0;
-  config.settings.adjustedAgeRateScaleRange.max = 10.0;
+  config.settings.adjustedAgeRateScaleRange.max = 100.0;
   
   config.settings.initialXposition = config.settings.initialXposition || 0.5;
   config.settings.initialYposition = config.settings.initialYposition || 0.9;

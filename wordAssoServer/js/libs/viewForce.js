@@ -473,7 +473,8 @@ function ViewForce (inputConfig) {
     .clamp(true);
 
   const adjustedAgeRateScale = d3
-    .scaleLinear()
+    // .scaleLinear()
+    .scaleSqrt()
     .domain([1, config.settings.maxNodesLimit])
     .range([config.settings.adjustedAgeRateScaleRange.min, config.settings.adjustedAgeRateScaleRange.max]);
 

@@ -7,12 +7,13 @@ function ViewForce (inputConfig) {
 
 
   function getWindowDimensions () {
-    if (window.outerWidth !== "undefined") {
-      return { width: window.outerWidth, height: window.outerHeight };
-    }
 
     if (window.innerWidth !== "undefined") {
       return { width: window.innerWidth, height: window.innerHeight };
+    }
+
+    if (window.outerWidth !== "undefined") {
+      return { width: window.outerWidth, height: window.outerHeight };
     }
     // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
 

@@ -9,7 +9,7 @@ console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
 console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`)
 
-const STORED_CONFIG_VERSION = "2.1.13";
+const STORED_CONFIG_VERSION = "2.1.14";
 const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
 const globalStoredSettingsName = STORED_CONFIG_NAME;
 
@@ -113,7 +113,7 @@ config.defaults.serverActiveTimeoutInterval = 60000;
 config.defaults.panzoom = {};
 config.defaults.panzoom.transform = {};
 config.defaults.panzoom.transform.ratio = 1.0;
-config.defaults.panzoom.transform.scale = 0.8;
+config.defaults.panzoom.transform.scale = 0.6;
 config.defaults.panzoom.transform.x = 960;
 config.defaults.panzoom.transform.y = 0;
 

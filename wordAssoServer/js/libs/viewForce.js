@@ -335,7 +335,7 @@ function ViewForce (inputConfig) {
   if (config.settings.panzoom.transform === undefined) {
     config.settings.panzoom.transform = {};
     config.settings.panzoom.transform.ratio = 1.0;
-    config.settings.panzoom.transform.scale = config.settings.panzoom.transform.scale || 0.8;
+    config.settings.panzoom.transform.scale = config.settings.panzoom.transform.scale || 0.6;
     config.settings.panzoom.transform.x = config.settings.panzoom.transform.x || 0.5 * width;
     config.settings.panzoom.transform.y = config.settings.panzoom.transform.y || 0.2 * height;
   }
@@ -501,7 +501,7 @@ function ViewForce (inputConfig) {
   const panzoomInit = {}
   panzoomInit.autocenter = config.settings.panzoom.autocenter || true;
   panzoomInit.bounds = config.settings.panzoom.bounds || true;
-  panzoomInit.initialZoom = config.settings.panzoom.transform.scale || 1.0;
+  panzoomInit.initialZoom = config.settings.panzoom.transform.scale || 0.6;
   panzoomInit.initialX = config.settings.panzoom.transform.x || width*0.5;
   panzoomInit.initialY = config.settings.panzoom.transform.y || height*0.5;
 

@@ -32,12 +32,12 @@ const config = {
     },
     nodeRadiusRatioRange: {
       min: 0.0,
-      max: 1.0,
+      max: 0.25,
       step: 0.001
     },
     nodeRadiusRatio: {
-      min: 0.047,
-      max: 0.47
+      min: 0.007,
+      max: 0.047
     },
     fontSizeRatioRange: {
       min: 0.0,
@@ -82,7 +82,7 @@ const config = {
     },
     nodeRadiusRatioRange: {
       min: 0.0,
-      max: 0.5,
+      max: 0.25,
       step: 0.001
     },
     nodeRadiusRatio: {

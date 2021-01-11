@@ -272,7 +272,10 @@ const merge = require("deepmerge");
 const Measured = require("measured-core");
 const omit = require("object.omit");
 const pick = require("object.pick");
-const config = require("./config/config");
+const configServer = require("./config/configServer");
+
+console.log({configServer})
+
 const fs = require("fs");
 const path = require("path");
 const async = require("async");
@@ -3523,20 +3526,21 @@ configEvents.on("CHILD_ERROR", function childError(childObj) {
 });
 
 configEvents.on("INTERNET_READY", function internetReady() {
-  console.log(chalkInfo(getTimeStamp() + " | SERVER_READY EVENT"));
+
+  console.log(chalkInfo(`${getTimeStamp()} | SERVER_READY EVENT | PORT: ${configServer.port}`));
 
   clearInterval(heartbeatInterval);
 
   if (!httpServer.listening) {
     httpServer.on("reconnect", function serverReconnect() {
       statsObj.internetReady = true;
-      debug(chalkConnect(getTimeStamp() + " | PORT RECONNECT: " + config.port));
+      debug(chalkConnect(getTimeStamp() + " | PORT RECONNECT: " + configServer.port));
     });
 
     httpServer.on("connect", function serverConnect() {
       statsObj.socket.connects += 1;
       statsObj.internetReady = true;
-      debug(chalkConnect(getTimeStamp() + " | PORT CONNECT: " + config.port));
+      debug(chalkConnect(getTimeStamp() + " | PORT CONNECT: " + configServer.port));
 
       httpServer.on("disconnect", function serverDisconnect() {
         statsObj.internetReady = false;
@@ -3546,20 +3550,20 @@ configEvents.on("INTERNET_READY", function internetReady() {
               " | *** PORT DISCONNECTED | " +
               getTimeStamp() +
               " | " +
-              config.port
+              configServer.port
           )
         );
       });
     });
 
-    httpServer.listen(config.port, function serverListen() {
+    httpServer.listen(configServer.port, function serverListen() {
       debug(
         chalkInfo(
           MODULE_ID +
             " | " +
             getTimeStamp() +
             " | LISTENING ON PORT " +
-            config.port
+            configServer.port
         )
       );
     });
@@ -3579,14 +3583,14 @@ configEvents.on("INTERNET_READY", function internetReady() {
           chalkError(
             MODULE_ID +
               " | *** HTTP ADDRESS IN USE: " +
-              config.port +
+              configServer.port +
               " ... RETRYING..."
           )
         );
 
         setTimeout(function serverErrorTimeout() {
-          httpServer.listen(config.port, function serverErrorListen() {
-            debug(MODULE_ID + " | LISTENING ON PORT " + config.port);
+          httpServer.listen(configServer.port, function serverErrorListen() {
+            debug(MODULE_ID + " | LISTENING ON PORT " + configServer.port);
           });
         }, 5000);
       }
@@ -3839,7 +3843,7 @@ if (debug.enabled) {
 }
 
 debug("NODE_ENV : " + process.env.NODE_ENV);
-debug("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
+debug("CLIENT HOST + PORT: " + "http://localhost:" + configServer.port);
 
 // async function updateTwitterWebhook() {
 //   statsObj.status = "UPDATE TWITTER WEBHOOK";

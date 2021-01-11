@@ -1,4 +1,4 @@
-/* global d3,HashMap,store,moment,io,ViewForce */
+/* global config,d3,HashMap,store,moment,io,ViewForce */
 
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
@@ -9,63 +9,17 @@ console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
 console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`)
 
-const STORED_CONFIG_VERSION = "2.1.14";
+const STORED_CONFIG_VERSION = "2.1.15";
 const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
 const globalStoredSettingsName = STORED_CONFIG_NAME;
 
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 
-const DEFAULT_WINDOW_HEIGHT = 1080;
-const DEFAULT_WINDOW_WIDTH = 1920;
+// const DEFAULT_WINDOW_HEIGHT = 1080;
+// const DEFAULT_WINDOW_WIDTH = 1920;
 
-const DEFAULT_METRIC_MODE = "rate";
 const DEFAULT_RX_NODE_QUEUE_MAX = 200;
 const DEFAULT_RX_NODE_QUEUE_INTERVAL = 5;
-
-const DEFAULT_AGE_RATE = 1.0;
-
-const DEFAULT_TRANSITION_DURATION = 40;
-
-const DEFAULT_NODE_MAX_AGE = 30000;
-const DEFAULT_NODE_MAX_AGE_RANGE_MIN = 0;
-const DEFAULT_NODE_MAX_AGE_RANGE_MAX = 60000;
-const DEFAULT_NODE_MAX_AGE_RANGE_STEP = 100;
-
-const DEFAULT_MAX_NODES_LIMIT = 40;
-const DEFAULT_MAX_NODES_LIMIT_RANGE_MIN = 0;
-const DEFAULT_MAX_NODES_LIMIT_RANGE_MAX = 100;
-const DEFAULT_MAX_NODES_LIMIT_RANGE_STEP = 1;
-
-const DEFAULT_CHARGE = -50;
-const DEFAULT_CHARGE_RANGE_MIN = -1000;
-const DEFAULT_CHARGE_RANGE_MAX = 1000;
-const DEFAULT_CHARGE_RANGE_STEP = 10;
-
-const DEFAULT_GRAVITY = 0.001;
-const DEFAULT_GRAVITY_RANGE_MIN = -0.01;
-const DEFAULT_GRAVITY_RANGE_MAX = 0.01;
-const DEFAULT_GRAVITY_RANGE_STEP = 0.00001;
-
-const DEFAULT_VELOCITY_DECAY = 0.5;
-const DEFAULT_VELOCITY_DECAY_RANGE_MIN = 0.0;
-const DEFAULT_VELOCITY_DECAY_RANGE_MAX = 1.0;
-const DEFAULT_VELOCITY_DECAY_RANGE_STEP = 0.01;
-
-const DEFAULT_FORCEX_MULTIPLIER = 25.0;
-const DEFAULT_FORCEY_MULTIPLIER = 25.0;
-
-const DEFAULT_COLLISION_RADIUS_MULTIPLIER = 1.0;
-const DEFAULT_COLLISION_ITERATIONS = 1;
-
-const DEFAULT_NODE_RADIUS_RATIO_RANGE_MIN = 0.0;
-const DEFAULT_NODE_RADIUS_RATIO_RANGE_MAX = 0.500;
-const DEFAULT_NODE_RADIUS_RATIO_MIN = 0.01;
-const DEFAULT_NODE_RADIUS_RATIO_MAX = 0.075;
-
-const DEFAULT_FONT_SIZE_RATIO_RANGE_MIN = 0.0;
-const DEFAULT_FONT_SIZE_RATIO_RANGE_MAX = 0.1;
-const DEFAULT_FONT_SIZE_RATIO_MIN = 0.015;
-const DEFAULT_FONT_SIZE_RATIO_MAX = 0.04;
 
 const DEFAULT_MAX_READY_ACK_WAIT_COUNT = 10;
 const DEFAULT_KEEPALIVE_INTERVAL = 60000;
@@ -102,100 +56,13 @@ status.bestNetwork.numInputs = 0;
 status.maxNodes = 0;
 status.maxNodeAddQ = 0;
 
-let config = {};
-
-config.defaults = {}
 config.defaults.app_name = "Session View";
 config.defaults.sessionViewType = "treepack"; // options: force, histogram ??
 config.defaults.storedConfigName = STORED_CONFIG_NAME;
-config.defaults.serverActiveTimeoutInterval = 60000;
-
-config.defaults.panzoom = {};
-config.defaults.panzoom.transform = {};
-config.defaults.panzoom.transform.ratio = 1.0;
-config.defaults.panzoom.transform.scale = 0.6;
-config.defaults.panzoom.transform.x = 960;
-config.defaults.panzoom.transform.y = 0;
-
-config.defaults.ageRate = DEFAULT_AGE_RATE;
 config.defaults.rxNodeQueueMax = DEFAULT_RX_NODE_QUEUE_MAX;
 config.defaults.rxNodeQueueInterval = DEFAULT_RX_NODE_QUEUE_INTERVAL;
-config.defaults.transitionDuration = DEFAULT_TRANSITION_DURATION;
-
-config.defaults.metricMode = DEFAULT_METRIC_MODE;
-config.defaults.pauseOnMouseMove = true;
 config.defaults.keepaliveInterval = DEFAULT_KEEPALIVE_INTERVAL;
 config.defaults.viewerReadyInterval = 10000;
-
-config.defaults.displayNodeHashMap = {};
-
-config.defaults.displayNodeHashMap = {};
-config.defaults.displayNodeHashMap.emoji = "hide";
-config.defaults.displayNodeHashMap.hashtag = "show";
-config.defaults.displayNodeHashMap.place = "hide";
-config.defaults.displayNodeHashMap.url = "hide";
-config.defaults.displayNodeHashMap.user = "show";
-config.defaults.displayNodeHashMap.word = "hide";
-
-config.defaults.autoCategoryFlag = false;
-config.defaults.metricMode = DEFAULT_METRIC_MODE;
-
-config.defaults.nodeMaxAge = DEFAULT_NODE_MAX_AGE;
-config.defaults.nodeMaxAgeRange = {};
-config.defaults.nodeMaxAgeRange.min = DEFAULT_NODE_MAX_AGE_RANGE_MIN; 
-config.defaults.nodeMaxAgeRange.max = DEFAULT_NODE_MAX_AGE_RANGE_MAX;
-config.defaults.nodeMaxAgeRange.step = DEFAULT_NODE_MAX_AGE_RANGE_STEP;
-
-config.defaults.maxNodesLimit = DEFAULT_MAX_NODES_LIMIT;
-config.defaults.maxNodesLimitRange = {};
-config.defaults.maxNodesLimitRange.min = DEFAULT_MAX_NODES_LIMIT_RANGE_MIN; 
-config.defaults.maxNodesLimitRange.max = DEFAULT_MAX_NODES_LIMIT_RANGE_MAX;
-config.defaults.maxNodesLimitRange.step = DEFAULT_MAX_NODES_LIMIT_RANGE_STEP;
-
-config.defaults.charge = DEFAULT_CHARGE;
-config.defaults.chargeRange = {};
-config.defaults.chargeRange.min = DEFAULT_CHARGE_RANGE_MIN; 
-config.defaults.chargeRange.max = DEFAULT_CHARGE_RANGE_MAX;
-config.defaults.chargeRange.step = DEFAULT_CHARGE_RANGE_STEP;
-
-config.defaults.gravity = DEFAULT_GRAVITY;
-config.defaults.gravityRange = {};
-config.defaults.gravityRange.min = DEFAULT_GRAVITY_RANGE_MIN
-config.defaults.gravityRange.max = DEFAULT_GRAVITY_RANGE_MAX;
-config.defaults.gravityRange.step = DEFAULT_GRAVITY_RANGE_STEP;
-
-config.defaults.velocityDecay = DEFAULT_VELOCITY_DECAY;
-config.defaults.velocityDecayRange = {};
-config.defaults.velocityDecayRange.min = DEFAULT_VELOCITY_DECAY_RANGE_MIN;
-config.defaults.velocityDecayRange.max = DEFAULT_VELOCITY_DECAY_RANGE_MAX;
-config.defaults.velocityDecayRange.step = DEFAULT_VELOCITY_DECAY_RANGE_STEP;
-
-config.defaults.forceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
-config.defaults.forceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
-config.defaults.collisionIterations = DEFAULT_COLLISION_ITERATIONS;
-config.defaults.collisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
-
-config.defaults.fontSizeRatioRange = {};
-config.defaults.fontSizeRatioRange.min = DEFAULT_FONT_SIZE_RATIO_RANGE_MIN; 
-config.defaults.fontSizeRatioRange.max = DEFAULT_FONT_SIZE_RATIO_RANGE_MAX;
-config.defaults.fontSizeRatioRange.step = 0.001;
-config.defaults.fontSizeRatio = {};
-config.defaults.fontSizeRatio.min = DEFAULT_FONT_SIZE_RATIO_MIN;
-config.defaults.fontSizeRatio.max = DEFAULT_FONT_SIZE_RATIO_MAX;
-config.defaults.fontSize = {};
-config.defaults.fontSize.min = config.defaults.fontSizeRatioRange.min * DEFAULT_WINDOW_HEIGHT;
-config.defaults.fontSize.max = config.defaults.fontSizeRatioRange.max * DEFAULT_WINDOW_HEIGHT;
-
-config.defaults.nodeRadiusRatioRange = {};
-config.defaults.nodeRadiusRatioRange.min = DEFAULT_NODE_RADIUS_RATIO_RANGE_MIN;
-config.defaults.nodeRadiusRatioRange.max = DEFAULT_NODE_RADIUS_RATIO_RANGE_MAX;
-config.defaults.nodeRadiusRatioRange.step = 0.001;
-config.defaults.nodeRadiusRatio = {};
-config.defaults.nodeRadiusRatio.min = DEFAULT_NODE_RADIUS_RATIO_MIN;
-config.defaults.nodeRadiusRatio.max = DEFAULT_NODE_RADIUS_RATIO_MAX;
-config.defaults.nodeRadius = {};
-config.defaults.nodeRadius.min = config.defaults.nodeRadiusRatio.min * DEFAULT_WINDOW_WIDTH;
-config.defaults.nodeRadius.max = config.defaults.nodeRadiusRatio.max * DEFAULT_WINDOW_WIDTH;
 
 config.settings = Object.assign({}, config.defaults)
 
@@ -310,21 +177,21 @@ const saveConfig = () => {
 const infoDivElement = document.getElementById("infoDiv");
 const controlDivElement = document.getElementById("controlDiv");
 
-let serverActiveTimeout;
-const serverActiveTimeoutEventObj = new CustomEvent("serverActiveTimeoutEvent");
+// let serverActiveTimeout;
+// const serverActiveTimeoutEventObj = new CustomEvent("serverActiveTimeoutEvent");
 
-const resetServerActiveTimer = () => {
+// const resetServerActiveTimer = () => {
 
-  if (currentSessionView !== undefined) {
-    currentSessionView.setEnableAgeNodes(true);
-  }
+//   if (currentSessionView !== undefined) {
+//     currentSessionView.setEnableAgeNodes(true);
+//   }
 
-  clearTimeout(serverActiveTimeout);
+//   clearTimeout(serverActiveTimeout);
 
-  serverActiveTimeout = setTimeout(function () {
-    document.dispatchEvent(serverActiveTimeoutEventObj);
-  }, config.settings.serverActiveTimeoutInterval);
-}
+//   serverActiveTimeout = setTimeout(function () {
+//     document.dispatchEvent(serverActiveTimeoutEventObj);
+//   }, config.settings.serverActiveTimeoutInterval);
+// }
 
 let customizerWindow;
 const customizerComm = (event) => {
@@ -373,11 +240,6 @@ const customizerComm = (event) => {
       console.warn("R< CONTROL PANEL UPDATE");
 
       switch (event.data.id) {
-
-        case "transitionDuration":
-          currentSessionView.setTransitionDuration(event.data.value);
-          config.settings.TransitionDuration = event.data.value;
-          break;
 
         case "velocityDecay":
           currentSessionView.setVelocityDecay(event.data.value);
@@ -1068,51 +930,51 @@ const loadStoredSettings = () => {
   return store.get(globalStoredSettingsName);
 }
 
-function Node() {
-  this.isFixedNode = false;
-  this.disableAging = false;
-  this.age = 1e-6;
-  this.ageMaxRatio = 1e-6;
-  this.ageUpdated = Date.now();
-  this.category = "none";
-  this.categoryAuto = "none";
-  this.categoryColor = "#FFFFFF";
-  this.categoryMatch = false;
-  this.categoryMismatch = false;
-  this.following = false;
-  this.followersCount = 0;
-  this.followersMentions = 0;
-  this.friendsCount = 0;
-  this.fullName = 0;
-  this.hashtagId = false;
-  this.index = 0;
-  this.isBot = false;
-  this.isTweeter = false;
-  this.isDead = true;
-  this.isIgnored = false;
-  this.isMaxNode = false;
-  this.isTopTerm = false;
-  this.isTrendingTopic = false;
-  this.isValid = false;
-  this.lastTweetId = false;
-  this.mentions = 0;
-  this.mouseHoverFlag = false;
-  this.name = "";
-  this.newFlag = true;
-  this.nodeId = "";
-  this.nodeType = "user";
-  this.rank = -1;
-  this.rate = 1e-6;
-  this.screenName = "";
-  this.statusesCount = 0;
-  this.text = "";
-  this.fx = null;
-  this.fy = null;
-  this.vx = 1e-6;
-  this.vy = 1e-6;
-  this.x = 1e-6;
-  this.y = 1e-6;
-}
+// function Node() {
+//   this.isFixedNode = false;
+//   this.disableAging = false;
+//   this.age = 1e-6;
+//   this.ageMaxRatio = 1e-6;
+//   this.ageUpdated = Date.now();
+//   this.category = "none";
+//   this.categoryAuto = "none";
+//   this.categoryColor = "#FFFFFF";
+//   this.categoryMatch = false;
+//   this.categoryMismatch = false;
+//   this.following = false;
+//   this.followersCount = 0;
+//   this.followersMentions = 0;
+//   this.friendsCount = 0;
+//   this.fullName = 0;
+//   this.hashtagId = false;
+//   this.index = 0;
+//   this.isBot = false;
+//   this.isTweeter = false;
+//   this.isDead = true;
+//   this.isIgnored = false;
+//   this.isMaxNode = false;
+//   this.isTopTerm = false;
+//   this.isTrendingTopic = false;
+//   this.isValid = false;
+//   this.lastTweetId = false;
+//   this.mentions = 0;
+//   this.mouseHoverFlag = false;
+//   this.name = "";
+//   this.newFlag = true;
+//   this.nodeId = "";
+//   this.nodeType = "user";
+//   this.rank = -1;
+//   this.rate = 1e-6;
+//   this.screenName = "";
+//   this.statusesCount = 0;
+//   this.text = "";
+//   this.fx = null;
+//   this.fy = null;
+//   this.vx = 1e-6;
+//   this.vy = 1e-6;
+//   this.x = 1e-6;
+//   this.y = 1e-6;
+// }
 
 function getWindowDimensions () {
 

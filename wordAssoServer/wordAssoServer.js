@@ -5,6 +5,9 @@ if (envConfig.error) {
   throw envConfig.error
 }
  
+const DEFAULT_BEST_NETWORK_FILE = "bestRuntimeNetwork.json";
+const bestRuntimeNetworkFileName = DEFAULT_BEST_NETWORK_FILE;
+
 console.log("WAS | ENV CONFIG")
 console.log(envConfig.parsed)
 
@@ -1646,9 +1649,6 @@ followableSearchTermSet.add("yanggang");
 followableSearchTermSet.add("🌊");
 
 let followableSearchTermsArray = [...followableSearchTermSet];
-
-const DEFAULT_BEST_NETWORK_FILE = "bestRuntimeNetwork.json";
-const bestRuntimeNetworkFileName = DEFAULT_BEST_NETWORK_FILE;
 
 const previousUserUncategorizedCreated = moment();
 
@@ -10673,9 +10673,7 @@ async function loadBestRuntimeNetwork(p) {
   let file = params.file || bestRuntimeNetworkFileName;
 
   try {
-    console.log(
-      chalkLog(MODULE_ID + " | LOAD BEST NETWORKS | " + folder + "/" + file)
-    );
+    console.log(chalkLog(`${MODULE_ID} | LOAD BEST RUNTIME NETWORK | ${folder}/${file}`));
 
     const bRtNnObj = await tcUtils.loadFileRetry({
       folder: folder,
@@ -10684,33 +10682,12 @@ async function loadBestRuntimeNetwork(p) {
     });
 
     if (bRtNnObj) {
-      bRtNnObj.matchRate =
-        bRtNnObj.matchRate !== undefined ? bRtNnObj.matchRate : 0;
-      bRtNnObj.overallMatchRate =
-        bRtNnObj.overallMatchRate !== undefined ? bRtNnObj.overallMatchRate : 0;
-      bRtNnObj.runtimeMatchRate =
-        bRtNnObj.runtimeMatchRate !== undefined ? bRtNnObj.runtimeMatchRate : 0;
 
-      console.log(
-        chalkInfo(
-          MODULE_ID +
-            " | LOAD BEST NETWORK RUNTIME ID" +
-            " | " +
-            bRtNnObj.networkId +
-            " | SR: " +
-            bRtNnObj.successRate.toFixed(2) +
-            "%" +
-            " | MR: " +
-            bRtNnObj.matchRate.toFixed(2) +
-            "%" +
-            " | OAMR: " +
-            bRtNnObj.overallMatchRate.toFixed(2) +
-            "%" +
-            " | RMR: " +
-            bRtNnObj.runtimeMatchRate.toFixed(2) +
-            "%"
-        )
-      );
+      bRtNnObj.matchRate = bRtNnObj.matchRate !== undefined ? bRtNnObj.matchRate : 0;
+      bRtNnObj.overallMatchRate = bRtNnObj.overallMatchRate !== undefined ? bRtNnObj.overallMatchRate : 0;
+      bRtNnObj.runtimeMatchRate = bRtNnObj.runtimeMatchRate !== undefined ? bRtNnObj.runtimeMatchRate : 0;
+
+      console.log(chalkLog(`${MODULE_ID} | LOAD BEST NETWORK RUNTIME ID | ${bRtNnObj.networkId} | ${bRtNnObj.runtimeMatchRate.toFixed(3)}%`));
 
       file = bRtNnObj.networkId + ".json";
 
@@ -10723,21 +10700,13 @@ async function loadBestRuntimeNetwork(p) {
 
         if (nnObj) {
           nnObj.matchRate = nnObj.matchRate !== undefined ? nnObj.matchRate : 0;
-          nnObj.overallMatchRate =
-            nnObj.overallMatchRate !== undefined ? nnObj.overallMatchRate : 0;
-          nnObj.runtimeMatchRate =
-            nnObj.runtimeMatchRate !== undefined ? nnObj.runtimeMatchRate : 0;
+          nnObj.overallMatchRate = nnObj.overallMatchRate !== undefined ? nnObj.overallMatchRate : 0;
+          nnObj.runtimeMatchRate = nnObj.runtimeMatchRate !== undefined ? nnObj.runtimeMatchRate : 0;
 
           bestNetworkObj = {};
           bestNetworkObj = deepcopy(nnObj);
 
-          console.log(
-            chalk.green.bold(
-              MODULE_ID +
-                " | +++ LOADED BEST NETWORK: " +
-                bestNetworkObj.networkId
-            )
-          );
+          console.log(chalk.green.bold(`${MODULE_ID} | +++ LOADED BEST NETWORK | ${bestNetworkObj.networkId} | ${bestNetworkObj.runtimeMatchRate.toFixed(3)}%`));
 
           statsObj.bestNetwork = pick(
             bestNetworkObj,
@@ -10745,16 +10714,9 @@ async function loadBestRuntimeNetwork(p) {
           );
 
           if (statsObj.previousBestNetworkId != bestNetworkObj.networkId) {
-            console.log(
-              chalk.green.bold(
-                MODULE_ID +
-                  " | >>> BEST NETWORK CHANGE" +
-                  " | PREV: " +
-                  statsObj.previousBestNetworkId +
-                  " > NEW: " +
-                  bestNetworkObj.networkId
-              )
-            );
+
+            console.log(chalk.green.bold(`${MODULE_ID} | >>> BEST NETWORK CHANGE | PREV: ${statsObj.previousBestNetworkId} > NEW ${bestNetworkObj.networkId}`));
+
             statsObj.previousBestNetworkId = bestNetworkObj.networkId;
             configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
           }
@@ -10762,29 +10724,19 @@ async function loadBestRuntimeNetwork(p) {
           return bestNetworkObj.networkId;
         }
       } catch (e) {
-        console.log(
-          chalkError(
-            MODULE_ID + " | *** ERROR LOAD BEST NETWORK RUNTIME ID: " + e
-          )
-        );
-        console.log(
-          chalkAlert(
-            MODULE_ID +
-              " | ... SEARCH DB FOR BEST RUNTIME NETWORK: " +
-              bRtNnObj.networkId
-          )
-        );
+
+        console.log(chalkError(`${MODULE_ID} | *** ERROR LOAD BEST RUNTIME NETWORK | ERROR: ${e}`));
+        console.log(chalkAlert(`${MODULE_ID} | ... SEARCH DB FOR BEST RUNTIME NETWORK: ${bRtNnObj.networkId}`));
       }
     }
 
-    const nnArray = await global.wordAssoDb.NeuralNetwork.find({
-      runtimeMatchRate: { $lt: 100 },
-    })
+    const nnArray = await global.wordAssoDb.NeuralNetwork
+      .find({ runtimeMatchRate: { $lt: 100 } })
       .sort({ runtimeMatchRate: -1 })
       .limit(1);
 
     if (nnArray.length == 0) {
-      console.log(chalkError(MODULE_ID + " | *** NEURAL NETWORK NOT FOUND"));
+      console.log(chalkError(`${MODULE_ID} | *** BEST RUNTIME NETWORK NOT FOUND`));
       return;
     }
 
@@ -10804,76 +10756,23 @@ async function loadBestRuntimeNetwork(p) {
     statsObj.bestNetwork = pick(bestNetworkObj, statsBestNetworkPickArray);
 
     if (statsObj.previousBestNetworkId != bestNetworkObj.networkId) {
-      console.log(
-        chalk.green.bold(
-          MODULE_ID +
-            " | >>> BEST NETWORK CHANGE" +
-            " | PREV: " +
-            statsObj.previousBestNetworkId +
-            " > NEW: " +
-            bestNetworkObj.networkId
-        )
-      );
+      console.log(chalk.green.bold(`${MODULE_ID} | >>> BEST NETWORK CHANGE | PREV: ${statsObj.previousBestNetworkId} > NEW ${bestNetworkObj.networkId}`));
       statsObj.previousBestNetworkId = bestNetworkObj.networkId;
       configEvents.emit("NEW_BEST_NETWORK", bestNetworkObj.networkId);
     }
 
-    console.log(
-      chalk.blue.bold(
-        MODULE_ID +
-          " | +++ BEST NEURAL NETWORK LOADED FROM DB" +
-          " | " +
-          bestNetworkObj.networkId +
-          " | SR: " +
-          bestNetworkObj.successRate.toFixed(2) +
-          "%" +
-          " | MR: " +
-          bestNetworkObj.matchRate.toFixed(2) +
-          "%" +
-          " | OAMR: " +
-          bestNetworkObj.overallMatchRate.toFixed(2) +
-          "%" +
-          " | RMR: " +
-          bestNetworkObj.runtimeMatchRate.toFixed(2) +
-          "%"
-      )
-    );
+    console.log(chalk.blue.bold(`${MODULE_ID} | +++ BEST NEURAL NETWORK LOADED FROM DB | ${bestNetworkObj.networkId} | ${bestNetworkObj.runtimeMatchRate.toFixed(3)}%`));
 
     return bestNetworkObj.networkId;
+
   } catch (err) {
+
     if (err.code == "ETIMEDOUT") {
-      console.log(
-        chalkError(
-          MODULE_ID +
-            " | *** LOAD BEST NETWORK ERROR: NETWORK TIMEOUT:  " +
-            folder +
-            "/" +
-            file
-        )
-      );
+      console.log(chalkError(`${MODULE_ID} | *** LOAD BEST NETWORK ERROR: NETWORK TIMEOUT | ${folder}/${file}`));
     } else if (err.code == "ENOTFOUND") {
-      console.log(
-        chalkError(
-          MODULE_ID +
-            " | *** LOAD BEST NETWORK ERROR: FILE NOT FOUND:  " +
-            folder +
-            "/" +
-            file
-        )
-      );
+      console.log(chalkError(`${MODULE_ID} | *** LOAD BEST NETWORK ERROR: FILE NOT FOUND | ${folder}/${file}`));
     } else {
-      console.log(
-        chalkError(
-          MODULE_ID +
-            " | *** LOAD BEST NETWORK ERROR" +
-            " | " +
-            folder +
-            "/" +
-            file +
-            "\n" +
-            jsonPrint(err)
-        )
-      );
+      console.log(chalkError(`${MODULE_ID} | *** LOAD BEST NETWORK ERROR: ${err}`));
     }
 
     console.log(err);
@@ -12454,7 +12353,7 @@ async function initWatchConfig() {
         }
       }
 
-      if (f.endsWith("bestRuntimeNetwork.json")) {
+      if (f.endsWith(bestRuntimeNetworkFileName)) {
         await loadBestRuntimeNetwork();
       }
 
@@ -12619,23 +12518,15 @@ setTimeout(async function () {
     await initAllowLocations();
     await initIgnoreLocations();
     await initIgnoredProfileWords();
-    // await updateUserSets();
     await initUpdateUserSetsInterval();
-    // await updateHashtagSets();
     await initUpdateHashtagSetsInterval();
     await loadBestRuntimeNetwork();
-    await initNodeSetPropsQueueInterval(
-      configuration.nodeSetPropsQueueInterval
-    );
-    await initTransmitNodeQueueInterval(
-      configuration.transmitNodeQueueInterval
-    );
+    await initNodeSetPropsQueueInterval(configuration.nodeSetPropsQueueInterval);
+    await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
     await initRateQinterval(configuration.rateQueueInterval);
     await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);
     await initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
-    await initSorterMessageRxQueueInterval(
-      configuration.sorterMessageRxQueueInterval
-    );
+    await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
     await initDbuChild({ childId: DEFAULT_DBU_CHILD_ID });
     await initDbHashtagChangeStream();
     await initTweetParser({ childId: DEFAULT_TWP_CHILD_ID });

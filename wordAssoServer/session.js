@@ -9,7 +9,7 @@ console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
 console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`)
 
-const STORED_CONFIG_VERSION = "2.1.12";
+const STORED_CONFIG_VERSION = "2.1.13";
 const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
 const globalStoredSettingsName = STORED_CONFIG_NAME;
 
@@ -1227,22 +1227,8 @@ setTimeout(function(){
 
     currentSessionView = ViewForce(config);
     currentSessionView.initD3timer();
-    // currentSessionView.resize();    
     initSocketHandler()
     resetMouseMoveTimer()
-    // const fixedNodes = {
-    // }
-
-    // for (const category of ["left", "right", "neutral", "positive", "negative", "none"]){
-    //   fixedNodes[category] = new Node();
-    //   fixedNodes[category].nodeId = "fixedNode_" + category;
-    //   fixedNodes[category].screenName = "threecee";
-    //   fixedNodes[category].category = category;
-    //   fixedNodes[category].isFixedNode = true;
-    //   fixedNodes[category].disableAging = true;
-    //   currentSessionView.addNode(fixedNodes[category]);
-    // }
-
     initSocketSessionUpdateRx()
 
   }

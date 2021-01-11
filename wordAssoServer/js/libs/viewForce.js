@@ -74,7 +74,7 @@ function ViewForce (inputConfig) {
   
   config.settings.focus.negativeRatio = {};
   config.settings.focus.negativeRatio.x = 0.5;
-  config.settings.focus.negativeRatio.y = 0.7;
+  config.settings.focus.negativeRatio.y = 0.85;
   
   config.settings.focus.neutralRatio = {};
   config.settings.focus.neutralRatio.x = 0.5;

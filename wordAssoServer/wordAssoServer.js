@@ -11710,6 +11710,7 @@ async function initConfig() {
 }
 
 async function initDbUserChangeStream() {
+
   console.log(chalkLog(MODULE_ID + " | ... INIT DB USER CHANGE STREAM"));
 
   const userCollection = global.dbConnection.collection("users");
@@ -11799,9 +11800,17 @@ async function initDbUserChangeStream() {
       change.updateDescription &&
       change.updateDescription.updatedFields
     ) {
+
       const changedArray = Object.keys(change.updateDescription.updatedFields);
 
       categoryChanges = {};
+
+      if (changedArray.includes("profileHistograms") || changedArray.includes("tweetHistograms") || changedArray.includes("friends")) {
+        if (empty(change.fullDocument.profileHistograms) && empty(change.fullDocument.tweetHistograms) && empty(change.fullDocument.friends) ) {
+          console.log(chalkAlert(`${MODULE_ID_PREFIX} | !!! USER HIST CHANGED TO EMPTY | @${change.fullDocument.screenName}`))
+        }
+      }
+
 
       if (changedArray.includes("category")) {
         categoryChanges.manual = change.fullDocument.category;
@@ -11816,103 +11825,50 @@ async function initDbUserChangeStream() {
         categoryChanges.verified = change.fullDocument.categoryVerified;
       }
 
-      if (
-        categoryChanges.auto ||
-        categoryChanges.manual ||
-        categoryChanges.network ||
-        categoryChanges.verified
-      ) {
+      if (categoryChanges.auto || categoryChanges.manual || categoryChanges.network || categoryChanges.verified) {
         let textAppend = "";
 
         catObj = categorizedUserHashMap.get(change.fullDocument.nodeId);
 
-        if (
-          categoryChanges.manual &&
-          formatCategory(catObj.manual) !==
-            formatCategory(categoryChanges.manual)
-        ) {
-          textAppend +=
-            " | M: " +
-            formatCategory(catObj.manual) +
-            " -> " +
-            formatCategory(categoryChanges.manual);
+        if (categoryChanges.manual && formatCategory(catObj.manual) !== formatCategory(categoryChanges.manual)) {
+          textAppend += " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual);
           catObj.manual = categoryChanges.manual;
           catChangeFlag = true;
           statsObj.user.categoryChanged += 1;
         }
 
-        if (
-          categoryChanges.auto &&
-          formatCategory(catObj.auto) !== formatCategory(categoryChanges.auto)
-        ) {
-          textAppend +=
-            " A: " +
-            formatCategory(catObj.auto) +
-            " -> " +
-            formatCategory(categoryChanges.auto);
+        if (categoryChanges.auto && formatCategory(catObj.auto) !== formatCategory(categoryChanges.auto)) {
+          textAppend += " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto);
           catObj.auto = categoryChanges.auto;
           catAutoChangeFlag = true;
           statsObj.user.categoryAutoChanged += 1;
         }
 
-        if (
-          categoryChanges.network &&
-          catObj.network &&
-          catObj.network !== categoryChanges.network
-        ) {
-          textAppend +=
-            " | CN: " + catObj.network + " -> " + categoryChanges.network;
+        if (categoryChanges.network && catObj.network && catObj.network !== categoryChanges.network) {
+          textAppend += " | CN: " + catObj.network + " -> " + categoryChanges.network;
           catObj.network = categoryChanges.network;
           catNetworkChangeFlag = true;
           statsObj.user.categorizeNetworkChanged += 1;
         }
 
-        if (
-          categoryChanges.verified &&
-          catObj.verified &&
-          catObj.verified !== categoryChanges.verified
-        ) {
-          textAppend +=
-            " | V: " +
-            formatBoolean(catObj.verified) +
-            " -> " +
-            formatCategory(categoryChanges.verified);
+        if (categoryChanges.verified && catObj.verified && catObj.verified !== categoryChanges.verified) {
+          textAppend += " | V: " + formatBoolean(catObj.verified) + " -> " + formatCategory(categoryChanges.verified);
           catObj.verified = categoryChanges.verified;
           catVerifiedChangeFlag = true;
           statsObj.user.categoryVerifiedChanged += 1;
         }
 
-        if (
-          catChangeFlag ||
-          catAutoChangeFlag ||
-          catNetworkChangeFlag ||
-          catVerifiedChangeFlag
-        ) {
+        if (catChangeFlag || catAutoChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {
+
           chalkType = chalkLog;
 
-          if (
-            catChangeFlag &&
-            catObj.manual !== "none" &&
-            categoryChanges.manual === "none"
-          ) {
+          if (catChangeFlag && catObj.manual !== "none" && categoryChanges.manual === "none") {
             chalkType = chalkAlert;
           }
 
-          const text =
-            MODULE_ID +
-            " | DB CHG | CAT USR" +
-            " [ M: " +
-            statsObj.user.categoryChanged +
-            " A: " +
-            statsObj.user.categoryAutoChanged +
-            " N: " +
-            statsObj.user.categorizeNetworkChanged +
-            "]" +
-            " | " +
-            change.fullDocument.nodeId +
-            " | @" +
-            change.fullDocument.screenName +
-            textAppend;
+          const text = MODULE_ID + " | DB CHG | CAT USR"
+            + " [ M: " + statsObj.user.categoryChanged + " A: " + statsObj.user.categoryAutoChanged + " N: " + statsObj.user.categorizeNetworkChanged + "]" +
+            " | " + change.fullDocument.nodeId + " | @" + change.fullDocument.screenName + textAppend;
 
           console.log(chalkType(text));
 
@@ -11920,6 +11876,7 @@ async function initDbUserChangeStream() {
           uncategorizeableUserSet.delete(catObj.nodeId);
         }
       }
+
     }
   });
 

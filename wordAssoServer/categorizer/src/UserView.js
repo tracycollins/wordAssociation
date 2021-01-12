@@ -325,6 +325,7 @@ const User = (props) => {
                     {props.user.name}
                   </Typography>
                   <Typography variant="h6">@{props.user.screenName} </Typography>
+                  <Typography>{props.user.location !== undefined ? props.user.location : ""} </Typography>
               </CardContent>
               <CardContent >
                   <Typography>{props.user.description}</Typography>

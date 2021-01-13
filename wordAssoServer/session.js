@@ -1075,7 +1075,7 @@ setTimeout(function(){
 
     socket = io("/view");
 
-    addInfoButton();
+    // addInfoButton();
     addCustomizeButton();
     addFullscreenButton();
 

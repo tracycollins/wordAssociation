@@ -780,9 +780,7 @@ const nodeSetPropsResultHandler = async function (message) {
       }
 
       if (messageObj.stats) {
-        debug(
-          chalkLog(MODULE_ID + "\nUSER STATS\n" + jsonPrint(messageObj.stats))
-        );
+        debug(chalkLog(MODULE_ID + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
         defaults(statsObj.user, messageObj.stats);
       }
 

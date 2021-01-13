@@ -12,9 +12,9 @@
   "author": "tracy collins",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/pubsub": "^2.7.0",
+    "@google-cloud/pubsub": "^2.8.0",
     "@slack/web-api": "^5.15.0",
-    "@threeceelabs/mongoose-twitter": "^1.0.350",
+    "@threeceelabs/mongoose-twitter": "^1.0.351",
     "@threeceelabs/session-view": "^1.0.2",
     "@threeceelabs/threecee-utilities": "^1.0.423",
     "axios": "^0.21.1",

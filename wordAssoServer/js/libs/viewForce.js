@@ -1808,13 +1808,6 @@ function ViewForce (inputConfig) {
   self.initD3timer = function() {
 
     console.log(`initD3timer`)
-    // console.log({nodeArray})
-    // console.log({nodeMaxAge})
-    // console.log({charge})
-    // console.log({velocityDecay})
-    // console.log({gravity})
-    // console.log({forceXmultiplier})
-    // console.log({forceYmultiplier})
 
     simulation = d3.forceSimulation(nodeArray)
       .force("charge", d3.forceManyBody().strength(charge))
@@ -1847,12 +1840,14 @@ function ViewForce (inputConfig) {
         .strength(1.0)
       )
       .velocityDecay(velocityDecay)
-      .on("tick", ticked);
+      .on("tick", ticked)
+      .alphaTarget(0.7);
 
     simulation.on("end", console.log("*** END"))
 
     // *** NEEDED FOR SIM TO RUN FOREVER: alphaTarget > alphaMin (default 0.001)
-    simulation.alphaTarget(0.7).restart();
+    // simulation.alphaTarget(0.7).restart();
+    simulation.restart();
 
     return
   };

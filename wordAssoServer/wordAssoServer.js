@@ -3677,26 +3677,6 @@ configEvents.on("INTERNET_READY", function internetReady() {
       if (statsObj.internetReady && statsObj.ioReady) {
         statsObj.configuration = configuration;
 
-        // heartbeatObj.serverTime = statsObj.serverTime;
-        // heartbeatObj.startTime = statsObj.startTime;
-        // heartbeatObj.runTime = statsObj.runTime;
-        // heartbeatObj.upTime = statsObj.upTime;
-        // heartbeatObj.elapsed = statsObj.elapsed;
-        // heartbeatObj.nodesPerMin = statsObj.nodesPerMin;
-        // heartbeatObj.maxNodesPerMin = statsObj.maxNodesPerMin;
-
-        // heartbeatObj.twitter.tweetsPerMin = statsObj.twitter.tweetsPerMin;
-        // heartbeatObj.twitter.maxTweetsPerMin = statsObj.twitter.maxTweetsPerMin;
-        // heartbeatObj.twitter.maxTweetsPerMinTime =
-        //   statsObj.twitter.maxTweetsPerMinTime;
-
-        // viewNameSpace.volatile.emit("HEARTBEAT", heartbeatObj);
-        // viewNameSpace.emit("action", { type: "heartbeat", data: heartbeatObj });
-
-        // const sObj = {};
-        // sObj.user = statsObj.user;
-        // sObj.bestNetwork = statsObj.bestNetwork;
-
         viewNameSpace.emit("action", { type: "heartbeat", data: statsObj });
 
         heartbeatsSent += 1;
@@ -11575,22 +11555,6 @@ function initStatsUpdate() {
             statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
           }
 
-          // if (adminNameSpace) {
-          //   statsObj.admin.connected = Object.keys(
-          //     adminNameSpace.connected
-          //   ).length;
-          // } // userNameSpace.sockets.length ;
-          // if (utilNameSpace) {
-          //   statsObj.entity.util.connected = Object.keys(
-          //     utilNameSpace.connected
-          //   ).length;
-          // } // userNameSpace.sockets.length ;
-          // if (viewNameSpace) {
-          //   statsObj.entity.viewer.connected = Object.keys(
-          //     viewNameSpace.connected
-          //   ).length;
-          // } // userNameSpace.sockets.length ;
-
           statsObj.queues.saveFileQueue = tcUtils.saveFileQueue({
             folder: statsHostFolder,
             file: statsFile,
@@ -11623,13 +11587,6 @@ async function initConfig() {
   configuration.verbose = process.env.VERBOSE || false;
   configuration.quitOnError = process.env.QUIT_ON_ERROR || false;
   configuration.enableStdin = process.env.ENABLE_STDIN || true;
-  // configuration.statsUpdateIntervalTime = process.env.WAS_STATS_UPDATE_INTERVAL || 10*ONE_MINUTE;
-
-  // console.log(
-  //   chalkTwitter(
-  //     MODULE_ID + " | THREECEE USERS\n" + jsonPrint(configuration.threeceeUsers)
-  //   )
-  // );
 
   threeceeTwitter.twit = {};
   threeceeTwitter.twitterConfig = {};
@@ -11664,8 +11621,6 @@ async function initConfig() {
     threeceeInfoTwitter.twitterRateLimitException = false;
     threeceeInfoTwitter.twitterRateLimitExceptionFlag = false;
     threeceeInfoTwitter.twitterRateLimitResetAt = false;
-
-    // debug(chalkTwitter(MODULE_ID + " | THREECEE INFO USER @" + user + "\n" + jsonPrint(threeceeInfoTwitter)));
   }
 
   try {
@@ -11674,19 +11629,11 @@ async function initConfig() {
 
     const configArgs = Object.keys(configuration);
 
-    configArgs.forEach(function (arg) {
+    configArgs.forEach((arg) => {
       if (_.isObject(configuration[arg])) {
-        console.log(
-          MODULE_ID +
-            " | _FINAL CONFIG | " +
-            arg +
-            "\n" +
-            jsonPrint(configuration[arg])
-        );
+        console.log(`${MODULE_ID} | _FINAL CONFIG | ${arg}\n${jsonPrint(configuration[arg])}`);
       } else {
-        console.log(
-          MODULE_ID + " | _FINAL CONFIG | " + arg + ": " + configuration[arg]
-        );
+        console.log(`${MODULE_ID} | _FINAL CONFIG | ${arg}: ${configuration[arg]}`);
       }
     });
 
@@ -11697,11 +11644,12 @@ async function initConfig() {
     }
 
     await initStatsUpdate(configuration);
-
     statsObj.configuration = configuration;
 
     return configuration;
-  } catch (err) {
+
+  } 
+  catch (err) {
     console.log(chalkLog(MODULE_ID + " | *** INIT CONFIG ERROR: " + err));
     throw err;
   }
@@ -12393,12 +12341,6 @@ setTimeout(async function () {
   );
 
   try {
-    global.dbConnection = await connectDb();
-
-    // await initSlackRtmClient();
-    await initSlackWebClient();
-
-    await waitDbConnectionReady();
 
     const cnf = await initConfig();
 
@@ -12407,12 +12349,11 @@ setTimeout(async function () {
       configuration.twitter = {};
     }
 
+    console.log(chalkTwitter(MODULE_ID + " | " + configuration.processName));
+
     configuration.isPrimaryHost = hostname === configuration.primaryHost;
     configuration.isDatabaseHost = hostname === configuration.databaseHost;
-
-    configuration.primaryHostSuffix = configuration.isPrimaryHost
-      ? "-primary"
-      : "";
+    configuration.primaryHostSuffix = configuration.isPrimaryHost ? "-primary" : "";
 
     console.log(chalkBlueBold(MODULE_ID +
       " | PROCESS: " + configuration.processName +
@@ -12424,10 +12365,14 @@ setTimeout(async function () {
 
     statsObj.status = "START";
 
-    console.log(chalkTwitter(MODULE_ID + " | " + configuration.processName));
+    const mongoDbAppName = `${MODULE_ID}_${process.pid}`;
+
+    global.dbConnection = await connectDb({appName: mongoDbAppName});
+
+    await initSlackWebClient();
+    await waitDbConnectionReady();
 
     slackText = "*WAS START*";
-
     await slackSendWebMessage({ channel: slackChannel, text: slackText });
 
     await killAll();
@@ -12437,38 +12382,9 @@ setTimeout(async function () {
     await initPassport();
     await initThreeceeTwitterUser("altthreecee00");
 
-    // if (hostname == "google") {
-
-    //   try {
-
-    //     await webhook.removeWebhooks();
-
-    //     webhook.on("event", (event) => {
-    //       console.log("TWITTER WEBHOOK EVENT", event)
-    //     });
-
-    //     const token = threeceeTwitter.twitterConfig.token;
-    //     const tokenSecret = threeceeTwitter.twitterConfig.token_secret;
-
-    //     await webhook.subscribe({token, tokenSecret});
-    //     await getTwitterWebhooks();
-
-    //     if (statsObj.twitter.aaSubs) {
-    //       console.log(chalkLog(MODULE_ID + " | TWITTER AA SUBSCRIPTIONS ... SKIP ADD SUBS"));
-    //     }
-    //     if (!statsObj.twitter.aaSubs) {
-    //       await addTwitterAccountActivitySubscription({ threeceeUser: "altthreecee00" });
-    //     }
-    //   } 
-    //   catch (err) {
-    //     console.log(chalkError(MODULE_ID + " | **** TWITTER WEBHOOK ERROR: " + err));
-    //   }
-    // }
-
     configEvents.emit("DB_CONNECT");
 
     pubSubClient = await initPubSub();
-
     await initIgnoreWordsHashMap();
     await initAllowLocations();
     await initIgnoreLocations();

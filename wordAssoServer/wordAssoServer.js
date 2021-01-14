@@ -163,10 +163,11 @@ const DEFAULT_CHILD_ID_PREFIX = "wa_node_child_";
 const DEFAULT_DBU_CHILD_ID = DEFAULT_CHILD_ID_PREFIX + "dbu";
 const DEFAULT_TSS_CHILD_ID = DEFAULT_CHILD_ID_PREFIX + "tss";
 const DEFAULT_TWP_CHILD_ID = DEFAULT_CHILD_ID_PREFIX + "twp";
-
+const DEFAULT_MGI_CHILD_ID = DEFAULT_CHILD_ID_PREFIX + "mgi";
 let dbuChild;
 let tssChild;
 let twpChild;
+// let mgiChild;
 
 let filterDuplicateTweets = true;
 let filterRetweets = false;
@@ -1075,40 +1076,6 @@ async function slackSendWebMessage(msgObj){
     throw err;
   }
 }
-
-// async function slackSendWebMessage(msgObj) {
-
-//   try {
-//     const token = msgObj.token || slackOAuthAccessToken;
-//     const channel = msgObj.channel || configuration.slackChannel.id;
-//     const text = msgObj.text || msgObj;
-
-//     const message = {
-//       token: token,
-//       channel: channel,
-//       text: text,
-//     };
-
-//     if (msgObj.attachments !== undefined) {
-//       message.attachments = msgObj.attachments;
-//     }
-
-//     // if (slackWebClient && slackWebClient !== undefined) {
-//     if (statsObj.slack.webClient.ready) {
-//       const sendResponse = await slackWebClient.chat.postMessage(message);
-//       return sendResponse;
-//     } 
-//     else {
-//       console.log(chalkAlert(MODULE_ID + " | SLACK WEB NOT READY | SKIPPING SEND SLACK MESSAGE\n" + jsonPrint(message)));
-//       return;
-//     }
-//   } 
-//   catch (err) {
-//     console.log(chalkAlert(MODULE_ID + " | *** slackSendWebMessage ERROR: " + err));
-//     console.log(chalkAlert(MODULE_ID + " | *** slackSendWebMessage msgObj\n" + jsonPrint(msgObj)));
-//     throw err;
-//   }
-// }
 
 async function initSlackWebClient(){
   try {
@@ -2063,15 +2030,13 @@ function printUser(params) {
   }
 }
 
-async function connectDb() {
+async function connectDb(params) {
   try {
     statsObj.status = "CONNECTING MONGO DB";
 
     console.log(chalkBlueBold(MODULE_ID + " | CONNECT MONGO DB ..."));
 
-    const db = await global.wordAssoDb.connect({
-      appName: MODULE_ID + "_" + process.pid,
-    });
+    const db = await global.wordAssoDb.connect(params);
 
     db.on("error", async function (err) {
       statsObj.status = "MONGO ERROR";
@@ -4047,6 +4012,7 @@ debug("CLIENT HOST + PORT: " + "http://localhost:" + configServer.port);
 let prevTweetUser;
 
 function socketRxTweet(tw) {
+
   prevTweetUser = tweetIdCache.get(tw.id_str);
 
   if (prevTweetUser !== undefined) {
@@ -9134,6 +9100,9 @@ function initAppRouting(callback) {
 
 function initTwitterRxQueueInterval(interval) {
   return new Promise(function (resolve, reject) {
+
+    console.log(chalkLog(MODULE_ID + " | initTwitterRxQueueInterval | interval: " + interval));
+
     let tweetRxQueueReady = true;
 
     const twpMessageObj = { op: "tweet", tweetStatus: {} };
@@ -9658,6 +9627,44 @@ function initTssPingInterval(interval) {
       }
     }, interval);
   }
+}
+
+const initMongoIndexChild = async (params) => {
+
+  statsObj.status = "INIT MGI CHILD";
+
+  statsObj.mgiChildReady = false;
+
+  console.log(
+    chalk.bold.black(MODULE_ID + " | INIT MGI CHILD")
+  );
+
+  return new Promise(function (resolve) {
+
+    const mgi = cp.fork(`${__dirname}/js/libs/mgiChild.js`);
+
+    childrenHashMap[params.childId] = {};
+    childrenHashMap[params.childId].pid = mgi.pid;
+    childrenHashMap[params.childId].childId = params.childId;
+    childrenHashMap[params.childId].title = params.childId;
+    childrenHashMap[params.childId].status = "NEW";
+    childrenHashMap[params.childId].errors = 0;
+
+    touchChildPidFile({
+      childId: params.childId,
+      pid: childrenHashMap[params.childId].pid,
+    });
+
+    mgi.on("message", async function mgiMessageRx() {});
+
+    mgi.on("error", function mgiError() {});
+
+    mgi.on("exit", function mgiExit() {});
+
+    mgi.on("close", function mgiClose() {});
+
+    resolve();
+  });
 }
 
 function initTssChild(params) {
@@ -12345,6 +12352,14 @@ setTimeout(async function () {
   );
 
   try {
+    const mongoDbAppName = `${MODULE_ID}_${process.pid}`;
+
+    global.dbConnection = await connectDb({appName: mongoDbAppName});
+
+    await initSlackWebClient();
+    await waitDbConnectionReady();
+
+    configEvents.emit("DB_CONNECT");
 
     const cnf = await initConfig();
 
@@ -12369,24 +12384,18 @@ setTimeout(async function () {
 
     statsObj.status = "START";
 
-    const mongoDbAppName = `${MODULE_ID}_${process.pid}`;
-
-    global.dbConnection = await connectDb({appName: mongoDbAppName});
-
-    await initSlackWebClient();
-    await waitDbConnectionReady();
 
     slackText = "*WAS START*";
     await slackSendWebMessage({ channel: slackChannel, text: slackText });
 
     await killAll();
     await allTrue();
+    await initMongoIndexChild({childId: DEFAULT_MGI_CHILD_ID});
     await initKeySortInterval(configuration.keySortInterval);
     await tcUtils.initSaveFileQueue({ interval: 100 });
     await initPassport();
     await initThreeceeTwitterUser("altthreecee00");
 
-    configEvents.emit("DB_CONNECT");
 
     pubSubClient = await initPubSub();
     await initIgnoreWordsHashMap();

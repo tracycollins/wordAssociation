@@ -1,6 +1,6 @@
 {
   "name": "@threeceelabs/wordassoserver",
-  "version": "2.1.13",
+  "version": "2.1.14",
   "description": "word",
   "main": "wordAssoServer.js",
   "directories": {
@@ -16,7 +16,7 @@
     "@slack/web-api": "^6.0.0",
     "@threeceelabs/mongoose-twitter": "^1.0.363",
     "@threeceelabs/session-view": "^1.0.2",
-    "@threeceelabs/threecee-utilities": "^1.0.423",
+    "@threeceelabs/threecee-utilities": "^1.0.425",
     "axios": "^0.21.1",
     "command-line-args": "^5.1.1",
     "connect-mongo": "^3.2.0",

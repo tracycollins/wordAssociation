@@ -3906,7 +3906,7 @@ debug("CLIENT HOST + PORT: " + "http://localhost:" + configServer.port);
 //     console.log(chalkLog(MODULE_ID + " | GET TWITTER WEBHOOKS"));
 
 //     if (bodyJson.length > 0) {
-//       for (const sub of bodyJson) {
+//       for (let sub of bodyJson) {
 //         statsObj.twitterSubs[sub.id.toString()] = {};
 //         statsObj.twitterSubs[sub.id.toString()] = sub;
 

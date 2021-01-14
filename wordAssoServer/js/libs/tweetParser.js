@@ -11,7 +11,7 @@ const EventEmitter2 = require("eventemitter2").EventEmitter2;
 
 const chalk = require("chalk");
 const chalkLog = chalk.gray;
-const chalkBlueBold = chalk.blue.bold;
+// const chalkBlueBold = chalk.blue.bold;
 const chalkInfo = chalk.black;
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
@@ -28,7 +28,7 @@ configEvents.on("newListener", function(data) {
   debug("*** NEW CONFIG EVENT LISTENER: " + data);
 });
 
-global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+// global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
 const tweetParserQueue = [];
 
@@ -51,7 +51,7 @@ function quit(message) {
     exitCode = 1;
   }
 
-  console.log("TWP | " + process.argv[1]
+  console.log(MODULE_ID_PREFIX + " | " + process.argv[1]
     + " | " + moment().format(compactDateTimeFormat)
     + " | TWEET PARSER: **** QUITTING"
     + " | CAUSE: " + msg
@@ -59,21 +59,21 @@ function quit(message) {
     
   );
 
-  if (global.dbConnection) {
-    global.dbConnection.close(function () {
+  // if (global.dbConnection) {
+  //   global.dbConnection.close(function () {
       
-      console.log(chalkAlert(
-            "TWP | =========================="
-        + "\nTWP | MONGO DB CONNECTION CLOSED"
-        + "\nTWP | =========================="
-      ));
+  //     console.log(chalkAlert(
+  //           MODULE_ID_PREFIX + " | =========================="
+  //       + "\nTWP | MONGO DB CONNECTION CLOSED"
+  //       + "\nTWP | =========================="
+  //     ));
 
-      process.exit(exitCode);
-    });
-  }
-  else {
+  //     process.exit(exitCode);
+  //   });
+  // }
+  // else {
     process.exit(exitCode);
-  }
+  // }
 }
 
 process.on("SIGHUP", function() {
@@ -91,73 +91,73 @@ process.on("disconnect", function() {
 let tcUtils;
 let tweetServerController;
 
-async function connectDb(){
+// async function connectDb(){
 
-  try {
+//   try {
 
-    console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
+//     console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
 
-    const db = await global.wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
+//     const db = await global.wordAssoDb.connect({appName: MODULE_ID_PREFIX + "_" + process.pid});
 
-    db.on("error", async function(err){
-      statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
-    });
+//     db.on("error", async function(err){
+//       statsObj.dbConnectionReady = false;
+//       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
+//     });
 
-    db.on("close", async function(err){
-      statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
-    });
+//     db.on("close", async function(err){
+//       statsObj.dbConnectionReady = false;
+//       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
+//     });
 
-    db.on("disconnected", async function(){
-      statsObj.dbConnectionReady = false;
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
-    });
+//     db.on("disconnected", async function(){
+//       statsObj.dbConnectionReady = false;
+//       console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
+//     });
 
-    console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
+//     console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
 
-    const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
-    tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
+//     const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
+//     tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
 
-    const TweetServerController = require("@threeceelabs/tweet-server-controller");
-    tweetServerController = new TweetServerController(MODULE_ID_PREFIX + "_TSC");
+//     const TweetServerController = require("@threeceelabs/tweet-server-controller");
+//     tweetServerController = new TweetServerController(MODULE_ID_PREFIX + "_TSC");
 
-    tweetServerController.on("error", function(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** TSC ERROR | " + err));
-    });
+//     tweetServerController.on("error", function(err){
+//       console.log(chalkError(MODULE_ID_PREFIX + " | *** TSC ERROR | " + err));
+//     });
 
-    tweetServerController.on("ready", function(appname){
-      console.log(chalk.green(MODULE_ID_PREFIX + " | TSC READY | " + appname));
-    });
+//     tweetServerController.on("ready", function(appname){
+//       console.log(chalk.green(MODULE_ID_PREFIX + " | TSC READY | " + appname));
+//     });
 
-    statsObj.dbConnectionReady = true;
+//     statsObj.dbConnectionReady = true;
 
-    return db;
-  }
-  catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECT ERROR: " + err));
-    throw err;
-  }
-}
+//     return db;
+//   }
+//   catch(err){
+//     console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECT ERROR: " + err));
+//     throw err;
+//   }
+// }
 
 console.log(
-  "\n\nTWP | ====================================================================================================\n" 
+  MODULE_ID_PREFIX + "\n\n | ====================================================================================================\n" 
   + process.argv[1] 
-  + "\nTWP | PROCESS ID:    " + process.pid 
-  + "\nTWP | PROCESS TITLE: " + process.title 
-  + "\nTWP | " + "====================================================================================================\n" 
+  + "\n | PROCESS ID:    " + process.pid 
+  + "\n | PROCESS TITLE: " + process.title 
+  + "\n | " + "====================================================================================================\n" 
 );
 
 
 if (debug.enabled) {
-  console.log("TWP | %%%%%%%%%%%%%%\nTWP | %%%%%%% DEBUG ENABLED %%%%%%%\nTWP | %%%%%%%%%%%%%%\n");
+  console.log(MODULE_ID_PREFIX + " | %%%%%%%%%%%%%%\n | %%%%%%% DEBUG ENABLED %%%%%%%\n | %%%%%%%%%%%%%%\n");
 }
 
 let tweetParserQueueInterval;
 
 function initTweetParserQueueInterval(cnf){
 
-  console.log(chalkInfo("TWP | initTweetParserQueueInterval"
+  console.log(chalkInfo(MODULE_ID_PREFIX + " | initTweetParserQueueInterval"
     + " | TWEET VERSION 2: " + cnf.tweetVersion2
     + " | " + cnf.updateInterval + " MS"
   ));
@@ -193,21 +193,21 @@ function initTweetParserQueueInterval(cnf){
       }
       catch(err){
 
-        console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: " + tcUtils.getTimeStamp()));
-        console.log(chalkError("TWP | *** CREATE STREAM TWEET ERROR: ", err));
+        console.log(chalkError(MODULE_ID_PREFIX + " | *** CREATE STREAM TWEET ERROR: " + tcUtils.getTimeStamp()));
+        console.log(chalkError(MODULE_ID_PREFIX + " | *** CREATE STREAM TWEET ERROR: ", err));
 
         process.send({op: "ERROR", err: err}, function(err){
 
           tweetParserQueueReady = true;
 
           if (err) {
-            console.trace(chalkError("TWP | *** PARSER SEND ERROR ERROR"
+            console.trace(chalkError(MODULE_ID_PREFIX + " | *** PARSER SEND ERROR ERROR"
               + " | " + moment().format(compactDateTimeFormat)
               + " | " + err
             ));
           }
           else {
-            debug(chalkInfo("TWP | PARSER SEND ERROR COMPLETE"
+            debug(chalkInfo(MODULE_ID_PREFIX + " | PARSER SEND ERROR COMPLETE"
               + " | " + moment().format(compactDateTimeFormat)
             ));
           }
@@ -225,7 +225,7 @@ process.on("message", function(m) {
 
     case "VERBOSE":
       configuration.verbose = m.verbose;
-      console.log(chalkInfo("TWP | VERBOSE"
+      console.log(chalkInfo(MODULE_ID_PREFIX + " | VERBOSE"
         + " | " + m.verbose
       ));
     break;
@@ -238,7 +238,7 @@ process.on("message", function(m) {
       configuration.updateInterval = m.interval;
       configuration.tweetVersion2 = m.tweetVersion2;
 
-      console.log(chalkInfo("TWP | TWEET PARSER INIT"
+      console.log(chalkInfo(MODULE_ID_PREFIX + " | TWEET PARSER INIT"
         + " | TITLE: " + m.title
         + " | INTERVAL: " + m.interval
         + " | TWEET VERSION 2: " + m.tweetVersion2
@@ -248,7 +248,7 @@ process.on("message", function(m) {
     break;
 
     case "PING":
-      debug(chalkLog("TWP | PING"
+      debug(chalkLog(MODULE_ID_PREFIX + " | PING"
         + " | PING ID: " + moment(m.pingId).format(compactDateTimeFormat)
       ));
 
@@ -262,18 +262,18 @@ process.on("message", function(m) {
 
         tweetParserQueue.push(m.tweetStatus);
 
-        debug(chalkInfo("TWP | PARSER T<"
+        debug(chalkInfo(MODULE_ID_PREFIX + " | PARSER T<"
           + " [ TPQ: " + tweetParserQueue.length + "]"
           + " | " + m.tweetStatus.id_str
         ));
       }
       else {
-        debug(chalkAlert("TWP | *** MAX TWEET PARSE Q SIZE: " + tweetParserQueue.length));
+        debug(chalkAlert(MODULE_ID_PREFIX + " | *** MAX TWEET PARSE Q SIZE: " + tweetParserQueue.length));
       }
     break;
 
     default:
-      console.trace(chalkError("TWP | *** TWEET PARSER UNKNOWN OP"
+      console.trace(chalkError(MODULE_ID_PREFIX + " | *** TWEET PARSER UNKNOWN OP"
         + " | INTERVAL: " + m.op
       ));
   }
@@ -282,23 +282,12 @@ process.on("message", function(m) {
 setTimeout(async function(){
 
   try {
-
-    console.log("TWP | " + chalk.blue(configuration.processName + " STARTED "));
-
+    console.log(MODULE_ID_PREFIX + " | " + chalk.blue(configuration.processName + " STARTED "));
     statsObj.status = "START";
-
-    try {
-      global.dbConnection = await connectDb();
-      process.send({ op: "READY"});
-    }
-    catch(err){
-      console.log(chalkError("TWP | *** MONGO DB CONNECT ERROR: " + err + " | QUITTING ***"));
-      quit("MONGO DB CONNECT ERROR");
-    }
-
+    process.send({ op: "READY"});
   }
   catch(err){
-    console.log(chalkError("TWP | *** INIT TIMEOUT ERROR: " + err));
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** INIT TIMEOUT ERROR: " + err));
     quit();
   }
 }, 1000);

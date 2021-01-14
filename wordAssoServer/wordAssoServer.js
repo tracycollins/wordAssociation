@@ -7268,9 +7268,8 @@ async function countDocuments(params) {
   } 
   catch (err) {
     countDocumentsRunning[params.documentType] = false;
-    console.log(
-      chalkError(MODULE_ID + " | *** DB COUNT DOCUMENTS ERROR\n" + err)
-    );
+    console.log(chalkError(MODULE_ID + " | *** DB COUNT DOCUMENTS ERROR: " + err));
+    console.error(err);
     throw err;
   }
 }
@@ -7304,195 +7303,202 @@ const setUpdateHashtagCountsTimeout = () => {
 
 async function updateUserCounts() {
 
-  if (updateUserCountsRunning) {
+  try{
+
+    if (updateUserCountsRunning) {
+      return;
+    }
+
+    setUpdateUserCountsTimeout();
+
+    const startToday = moment().startOf('day').valueOf();
+    const endToday = moment().endOf('day').valueOf();
+
+    const startPeriod = moment().startOf('week').valueOf();
+    const endPeriod = moment().endOf('week').valueOf();
+    
+    const startPeriodLast = moment().startOf('week').subtract(7, 'days').valueOf();
+    const endPeriodLast = moment().endOf('week').subtract(7, 'days').valueOf();
+
+    statsObj.user.total = await countDocuments({ documentType: "users" });
+    console.log(chalkBlue(MODULE_ID + " | GRAND TOTAL USERS: " + statsObj.user.total));
+
+    statsObj.user.following = await countDocuments({
+      documentType: "users",
+      query: { following: true },
+    });
+    console.log(chalkBlue(MODULE_ID + " | FOLLOWING USERS: " + statsObj.user.following));
+
+    statsObj.user.notFollowing = await countDocuments({
+      documentType: "users",
+      query: { following: false },
+    });
+    console.log(chalkBlue(MODULE_ID + " | NOT FOLLOWING USERS: " + statsObj.user.notFollowing));
+
+    statsObj.user.ignored = await countDocuments({
+      documentType: "users",
+      query: { ignored: true },
+    });
+    console.log(chalkBlue(MODULE_ID + " | IGNORED USERS: " + statsObj.user.ignored));
+
+    statsObj.user.categoryVerified = await countDocuments({
+      documentType: "users",
+      query: { categoryVerified: true },
+    });
+    console.log(chalkBlue(MODULE_ID + " | CAT VERIFIED USERS: " + statsObj.user.categoryVerified));
+
+    // -----
+
+    statsObj.user.categorizedManual = await countDocuments({
+      documentType: "users",
+      query: { categorized: true },
+    });
+    console.log(chalkBlue(MODULE_ID + " | CAT MANUAL USERS: " + statsObj.user.categorizedManual));
+
+    statsObj.user.manual.left = await countDocuments({
+      documentType: "users",
+      query: { category: "left" },
+    });
+    console.log(chalkBlue(MODULE_ID + " | CAT MANUAL USERS LEFT: " + statsObj.user.manual.left));
+
+    statsObj.user.manual.right = await countDocuments({
+      documentType: "users",
+      query: { category: "right" },
+    });
+    console.log(chalkBlue(MODULE_ID + " | CAT MANUAL USERS RIGHT: " + statsObj.user.manual.right));
+
+    statsObj.user.manual.neutral = await countDocuments({
+      documentType: "users",
+      query: { category: "neutral" },
+    });
+    console.log(chalkBlue(MODULE_ID + " | CAT MANUAL USERS NEUTRAL: " + statsObj.user.manual.neutral));
+
+    // -----
+
+    statsObj.user.uncategorized.all = await countDocuments({
+      documentType: "users",
+      query: { category: "none" },
+    });
+    console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL USERS: " + statsObj.user.uncategorized.all));
+
+    statsObj.user.uncategorized.left = await countDocuments({
+      documentType: "users",
+      query: { category: "none", categoryAuto: "left" },
+    });
+    console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL LEFT USERS: " + statsObj.user.uncategorized.left));
+
+    statsObj.user.uncategorized.right = await countDocuments({
+      documentType: "users",
+      query: { category: "none", categoryAuto: "right" },
+    });
+    console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL RIGHT USERS: " + statsObj.user.uncategorized.right));
+
+    statsObj.user.uncategorized.neutral = await countDocuments({
+      documentType: "users",
+      query: { category: "none", categoryAuto: "neutral" },
+    });
+    console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL NEUTRAL USERS: " + statsObj.user.uncategorized.neutral));
+
+    // -----
+
+    statsObj.user.categorizedAuto = await countDocuments({
+      documentType: "users",
+      query: { categorizedAuto: true },
+    });
+    console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS: " + statsObj.user.categorizedAuto));
+
+    statsObj.user.auto.left = await countDocuments({
+      documentType: "users",
+      query: { categoryAuto: "left" },
+    });
+    console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS LEFT: " + statsObj.user.auto.left));
+
+    statsObj.user.auto.right = await countDocuments({
+      documentType: "users",
+      query: { categoryAuto: "right" },
+    });
+    console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS RIGHT: " + statsObj.user.auto.right));
+
+    statsObj.user.auto.neutral = await countDocuments({
+      documentType: "users",
+      query: { categoryAuto: "neutral" },
+    });
+    console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS NEUTRAL: " + statsObj.user.auto.neutral));
+
+    statsObj.user.uncategorizedAuto = await countDocuments({
+      documentType: "users",
+      query: { categoryAuto: "none" },
+    });
+    console.log(chalkBlue(MODULE_ID + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto));
+
+    // -----
+
+    statsObj.user.mismatched = await countDocuments({
+      documentType: "users",
+      query: { categoryMismatch: true },
+    });
+    console.log(chalkBlue(MODULE_ID + " | MISMATCHED USERS: " + statsObj.user.mismatched));
+
+    // -----
+
+    for(const user of threeceeAuthorizedUsers){
+
+      let queryPath = `categorizedBy.users.${user}.category`;
+      let query = {};
+      query[queryPath] = {$nin: [null, false]};
+
+      statsObj.user.categorizedBy[user].total = await countDocuments({
+        documentType: "users",
+        query: query,
+      });
+
+      console.log(chalkBlue(`${MODULE_ID} | USERS CATEGORIZED BY @${user}: ${statsObj.user.categorizedBy[user].total}`));
+
+      // ---
+
+      queryPath = `categorizedBy.users.${user}.timeStamp`;
+      query = {};
+      query[queryPath] = { $gte: startToday, $lte: endToday };
+
+      statsObj.user.categorizedBy[user].today = await countDocuments({
+        documentType: "users",
+        query: query
+      });
+      console.log(chalkBlue(`${MODULE_ID} | USERS CATEGORIZED TODAY BY @${user}: ${statsObj.user.categorizedBy[user].today}`));
+
+      // ---
+
+      query = {};
+      query[queryPath] = { $gte: startPeriod, $lte: endPeriod };
+
+      statsObj.user.categorizedBy[user].periodCurrent = await countDocuments({
+        documentType: "users",
+        query: query
+      });
+
+      console.log(chalkBlue(`${MODULE_ID} | USERS CATEGORIZED THIS WEEK BY @${user}: ${statsObj.user.categorizedBy[user].periodCurrent}`));
+
+      // ---
+
+      query = {};
+      query[queryPath] = { $gte: startPeriodLast, $lte: endPeriodLast };
+
+
+      statsObj.user.categorizedBy[user].periodLast = await countDocuments({
+        documentType: "users",
+        query: query
+      });
+
+      console.log(chalkBlue(`${MODULE_ID} | USERS CATEGORIZED LAST WEEK BY @${user}: ${statsObj.user.categorizedBy[user].periodLast}`));
+
+    }
+
     return;
   }
-
-  setUpdateUserCountsTimeout();
-
-  const startToday = moment().startOf('day').valueOf();
-  const endToday = moment().endOf('day').valueOf();
-
-  const startPeriod = moment().startOf('week').valueOf();
-  const endPeriod = moment().endOf('week').valueOf();
-  
-  const startPeriodLast = moment().startOf('week').subtract(7, 'days').valueOf();
-  const endPeriodLast = moment().endOf('week').subtract(7, 'days').valueOf();
-
-  statsObj.user.total = await countDocuments({ documentType: "users" });
-  console.log(chalkBlue(MODULE_ID + " | GRAND TOTAL USERS: " + statsObj.user.total));
-
-  statsObj.user.following = await countDocuments({
-    documentType: "users",
-    query: { following: true },
-  });
-  console.log(chalkBlue(MODULE_ID + " | FOLLOWING USERS: " + statsObj.user.following));
-
-  statsObj.user.notFollowing = await countDocuments({
-    documentType: "users",
-    query: { following: false },
-  });
-  console.log(chalkBlue(MODULE_ID + " | NOT FOLLOWING USERS: " + statsObj.user.notFollowing));
-
-  statsObj.user.ignored = await countDocuments({
-    documentType: "users",
-    query: { ignored: true },
-  });
-  console.log(chalkBlue(MODULE_ID + " | IGNORED USERS: " + statsObj.user.ignored));
-
-  statsObj.user.categoryVerified = await countDocuments({
-    documentType: "users",
-    query: { categoryVerified: true },
-  });
-  console.log(chalkBlue(MODULE_ID + " | CAT VERIFIED USERS: " + statsObj.user.categoryVerified));
-
-  // -----
-
-  statsObj.user.categorizedManual = await countDocuments({
-    documentType: "users",
-    query: { categorized: true },
-  });
-  console.log(chalkBlue(MODULE_ID + " | CAT MANUAL USERS: " + statsObj.user.categorizedManual));
-
-  statsObj.user.manual.left = await countDocuments({
-    documentType: "users",
-    query: { category: "left" },
-  });
-  console.log(chalkBlue(MODULE_ID + " | CAT MANUAL USERS LEFT: " + statsObj.user.manual.left));
-
-  statsObj.user.manual.right = await countDocuments({
-    documentType: "users",
-    query: { category: "right" },
-  });
-  console.log(chalkBlue(MODULE_ID + " | CAT MANUAL USERS RIGHT: " + statsObj.user.manual.right));
-
-  statsObj.user.manual.neutral = await countDocuments({
-    documentType: "users",
-    query: { category: "neutral" },
-  });
-  console.log(chalkBlue(MODULE_ID + " | CAT MANUAL USERS NEUTRAL: " + statsObj.user.manual.neutral));
-
-  // -----
-
-  statsObj.user.uncategorized.all = await countDocuments({
-    documentType: "users",
-    query: { category: "none" },
-  });
-  console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL USERS: " + statsObj.user.uncategorized.all));
-
-  statsObj.user.uncategorized.left = await countDocuments({
-    documentType: "users",
-    query: { category: "none", categoryAuto: "left" },
-  });
-  console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL LEFT USERS: " + statsObj.user.uncategorized.left));
-
-  statsObj.user.uncategorized.right = await countDocuments({
-    documentType: "users",
-    query: { category: "none", categoryAuto: "right" },
-  });
-  console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL RIGHT USERS: " + statsObj.user.uncategorized.right));
-
-  statsObj.user.uncategorized.neutral = await countDocuments({
-    documentType: "users",
-    query: { category: "none", categoryAuto: "neutral" },
-  });
-  console.log(chalkBlue(MODULE_ID + " | UNCAT MANUAL NEUTRAL USERS: " + statsObj.user.uncategorized.neutral));
-
-  // -----
-
-  statsObj.user.categorizedAuto = await countDocuments({
-    documentType: "users",
-    query: { categorizedAuto: true },
-  });
-  console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS: " + statsObj.user.categorizedAuto));
-
-  statsObj.user.auto.left = await countDocuments({
-    documentType: "users",
-    query: { categoryAuto: "left" },
-  });
-  console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS LEFT: " + statsObj.user.auto.left));
-
-  statsObj.user.auto.right = await countDocuments({
-    documentType: "users",
-    query: { categoryAuto: "right" },
-  });
-  console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS RIGHT: " + statsObj.user.auto.right));
-
-  statsObj.user.auto.neutral = await countDocuments({
-    documentType: "users",
-    query: { categoryAuto: "neutral" },
-  });
-  console.log(chalkBlue(MODULE_ID + " | CAT AUTO USERS NEUTRAL: " + statsObj.user.auto.neutral));
-
-  statsObj.user.uncategorizedAuto = await countDocuments({
-    documentType: "users",
-    query: { categoryAuto: "none" },
-  });
-  console.log(chalkBlue(MODULE_ID + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto));
-
-  // -----
-
-  statsObj.user.mismatched = await countDocuments({
-    documentType: "users",
-    query: { categoryMismatch: true },
-  });
-  console.log(chalkBlue(MODULE_ID + " | MISMATCHED USERS: " + statsObj.user.mismatched));
-
-  // -----
-
-  for(const user of threeceeAuthorizedUsers){
-
-    let queryPath = `categorizedBy.users.${user}.category`;
-    let query = {};
-    query[queryPath] = {$nin: [null, false]};
-
-    statsObj.user.categorizedBy[user].total = await countDocuments({
-      documentType: "users",
-      query: query,
-    });
-
-    console.log(chalkBlue(`${MODULE_ID} | USERS CATEGORIZED BY @${user}: ${statsObj.user.categorizedBy[user].total}`));
-
-    // ---
-
-    queryPath = `categorizedBy.users.${user}.timeStamp`;
-    query = {};
-    query[queryPath] = { $gte: startToday, $lte: endToday };
-
-    statsObj.user.categorizedBy[user].today = await countDocuments({
-      documentType: "users",
-      query: query
-    });
-    console.log(chalkBlue(`${MODULE_ID} | USERS CATEGORIZED TODAY BY @${user}: ${statsObj.user.categorizedBy[user].today}`));
-
-    // ---
-
-    query = {};
-    query[queryPath] = { $gte: startPeriod, $lte: endPeriod };
-
-    statsObj.user.categorizedBy[user].periodCurrent = await countDocuments({
-      documentType: "users",
-      query: query
-    });
-
-    console.log(chalkBlue(`${MODULE_ID} | USERS CATEGORIZED THIS WEEK BY @${user}: ${statsObj.user.categorizedBy[user].periodCurrent}`));
-
-    // ---
-
-    query = {};
-    query[queryPath] = { $gte: startPeriodLast, $lte: endPeriodLast };
-
-
-    statsObj.user.categorizedBy[user].periodLast = await countDocuments({
-      documentType: "users",
-      query: query
-    });
-
-    console.log(chalkBlue(`${MODULE_ID} | USERS CATEGORIZED LAST WEEK BY @${user}: ${statsObj.user.categorizedBy[user].periodLast}`));
-
+  catch(err){
+    console.error(chalkError(`${MODULE_ID_PREFIX} | *** updateUserCounts ERROR: ${err}`))
+    return;
   }
-
-  return;
 }
 
 async function updateHashtagCounts() {

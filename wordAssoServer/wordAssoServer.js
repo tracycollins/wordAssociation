@@ -7823,9 +7823,7 @@ async function updateHashtagSets(p) {
 
   const params = p || {};
 
-  params.query = params.query || {
-    $or: [{ categorized: true }, { categorizedAuto: true }],
-  };
+  params.query = params.query || { categorized: true };
 
   updateHashtagCounts();
 

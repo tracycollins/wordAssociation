@@ -202,6 +202,7 @@ setTimeout(async function(){
       {categoryAuto: 1},
       {categoryMismatch: 1},
       {categoryVerified: 1},
+      {friends: 1},
       {followersCount: 1},
       {following: 1},
       {ignored: 1},

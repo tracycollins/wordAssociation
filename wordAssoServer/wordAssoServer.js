@@ -7096,7 +7096,8 @@ async function updateUserCounts() {
 
     statsObj.user.categorizedManual = await countDocuments({
       documentType: "users",
-      query: { categorized: true },
+      // query: { categorized: true },
+      query: { category: { "$in": ["left", "neutral", "right"]} },
     });
     console.log(chalkBlue(MODULE_ID + " | CAT MANUAL USERS: " + statsObj.user.categorizedManual));
 
@@ -7272,7 +7273,8 @@ async function updateHashtagCounts() {
 
   statsObj.hashtag.categorizedManual = await countDocuments({
     documentType: "hashtags",
-    query: { categorized: true },
+    query: { category: { "$in": ["left", "neutral", "right"] } },
+    // query: { categorized: true },
   });
   console.log(
     chalkBlue(
@@ -7450,7 +7452,9 @@ async function updateUserSets(p) {
 
   const params = p || {};
 
-  params.query = params.query || { $or: [{ categorized: true }, { categorizedAuto: true }] };
+  params.query = params.query 
+    || { $or: [{ category: { "$in": ["left", "neutral", "right"] } }, { categoryAuto: { "$in": ["left", "neutral", "right"] } }] };
+  // params.query = params.query || { $or: [{ categorized: true }, { categorizedAuto: true }] };
 
   userSearchCursor = global.wordAssoDb.User.find(params.query)
     .select({
@@ -7568,7 +7572,7 @@ async function updateHashtagSets(p) {
 
   const params = p || {};
 
-  params.query = params.query || { categorized: true };
+  params.query = params.query || { category: { "$in": ["left", "neutral", "right"] } };
 
   updateHashtagCounts();
 

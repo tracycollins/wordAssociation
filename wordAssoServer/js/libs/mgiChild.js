@@ -170,6 +170,11 @@ setTimeout(async function(){
 
     const usersCollection = global.dbConnection.collection("users");
 
+    const currentUserIndexes = await usersCollection.getIndexes();
+
+    console.log(chalkLog(`${MODULE_ID_PREFIX} | CURRENT USER INDEXES`))
+    console.log({currentUserIndexes})
+
     const defaultUserIndexes = [
       {'categorizedBy.users.altthreecee00.category': 1},
       {'categorizedBy.users.altthreecee00.timeStamp': 1},
@@ -205,7 +210,18 @@ setTimeout(async function(){
 
     for(const indexObj of defaultUserIndexes){
       console.log(`${MODULE_ID_PREFIX} | ... CREATING USER INDEX: ${Object.keys(indexObj)}`)
-      await usersCollection.createIndex(indexObj, {background: true})
+      try{
+        await usersCollection.createIndex(indexObj, {background: true})
+      }
+      catch(e){
+        if (e.code === 85){
+          console.log(chalkAlert(`${MODULE_ID_PREFIX} | !!! CREATING USER INDEX: ${Object.keys(indexObj)} EXISTS | SKIPPING ...`))
+        }
+        else{
+          console.log(chalkAlert(`${MODULE_ID_PREFIX} | !!! CREATING USER INDEX ERROR: ${Object.keys(indexObj)} | ERR: ${e}`))
+          console.log(e)
+        }
+      }
     }
 
     process.send({ op: "DONE"});

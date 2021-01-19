@@ -33,7 +33,7 @@ let config = {
     },
     nodeRadiusRatioRange: {
       min: 0.0,
-      max: 0.100,
+      max: 0.200,
       step: 0.001
     },
     nodeRadiusRatio: {

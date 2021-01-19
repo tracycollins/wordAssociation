@@ -7,28 +7,48 @@ const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 const debug = require("debug")("twp");
 const moment = require("moment");
-const EventEmitter2 = require("eventemitter2").EventEmitter2;
 
 const chalk = require("chalk");
 const chalkLog = chalk.gray;
-const chalkBlueBold = chalk.blue.bold;
 const chalkInfo = chalk.black;
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 
 const statsObj = {};
 
-const configEvents = new EventEmitter2({
-  wildcard: true,
-  newListener: true,
-  maxListeners: 20
-});
-
-configEvents.on("newListener", function(data) {
-  debug("*** NEW CONFIG EVENT LISTENER: " + data);
-});
-
 global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+
+const tcuAppName = MODULE_ID_PREFIX + "_TCU";
+const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
+const tcUtils = new ThreeceeUtilities(tcuAppName);
+
+tcUtils.on("error", function (err) {
+  console.log(`${MODULE_ID_PREFIX} | *** THREECEE UTILS ERROR | ${tcuAppName} | ERROR: ${err}`);
+});
+
+tcUtils.on("ready", function () {
+  console.log(`${MODULE_ID_PREFIX} | +++ THREECEE UTILS READY: ${tcuAppName}`);
+});
+
+const tscAppName = MODULE_ID_PREFIX + "_TSC";
+const TweetServerController = require("@threeceelabs/tweet-server-controller");
+const tweetServerController = new TweetServerController(tscAppName);
+
+tweetServerController.on("error", function(err){
+  console.log(`${MODULE_ID_PREFIX} | *** TWEET SERVER CONTROLLER ERROR | ${tscAppName} | ERROR: ${err}`);
+});
+
+tweetServerController.on("ready", function(){
+  console.log(`${MODULE_ID_PREFIX} | +++ TWEET SERVER CONTROLLER READY: ${tscAppName}`);
+});
+
+const mguAppName = MODULE_ID_PREFIX + "_MGU";
+const MongooseUtilities = require("@threeceelabs/mongoose-utilities");
+const mgUtils = new MongooseUtilities(mguAppName);
+
+mgUtils.on("ready", async () => {
+  console.log(`${MODULE_ID_PREFIX} | +++ MONGOOSE UTILS READY: ${mguAppName}`);
+})
 
 const tweetParserQueue = [];
 
@@ -87,58 +107,6 @@ process.on("SIGINT", function() {
 process.on("disconnect", function() {
   quit("DISCONNECT");
 });
-
-let tcUtils;
-let tweetServerController;
-
-async function connectDb(){
-
-  try {
-
-    console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
-
-    const db = await global.wordAssoDb.connect({appName: MODULE_ID_PREFIX + "_" + process.pid});
-
-    db.on("error", async function(err){
-      statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
-    });
-
-    db.on("close", async function(err){
-      statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
-    });
-
-    db.on("disconnected", async function(){
-      statsObj.dbConnectionReady = false;
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
-    });
-
-    console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
-
-    const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
-    tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
-
-    const TweetServerController = require("@threeceelabs/tweet-server-controller");
-    tweetServerController = new TweetServerController(MODULE_ID_PREFIX + "_TSC");
-
-    tweetServerController.on("error", function(err){
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** TSC ERROR | " + err));
-    });
-
-    tweetServerController.on("ready", function(appname){
-      console.log(chalk.green(MODULE_ID_PREFIX + " | TSC READY | " + appname));
-    });
-
-    statsObj.dbConnectionReady = true;
-
-    return db;
-  }
-  catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECT ERROR: " + err));
-    throw err;
-  }
-}
 
 console.log(
   MODULE_ID_PREFIX + "\n\n | ====================================================================================================\n" 
@@ -287,7 +255,7 @@ setTimeout(async function(){
 
 
     try {
-      global.dbConnection = await connectDb();
+      global.dbConnection = await mgUtils.connectDb()
       process.send({ op: "READY"});
     }
     catch(err){

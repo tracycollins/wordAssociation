@@ -116,6 +116,29 @@ tcUtils.on("ready", function (appname) {
   console.log(chalk.green(MODULE_ID + " | TCU READY | " + appname));
 });
 
+const mguAppName = MODULE_ID_PREFIX + "_MGU";
+const MongooseUtilities = require("@threeceelabs/mongoose-utilities");
+const mgUtils = new MongooseUtilities(mguAppName);
+
+mgUtils.on("ready", async () => {
+  console.log(`${MODULE_ID_PREFIX} | +++ MONGOOSE UTILS READY: ${mguAppName}`);
+  statsObj.dbConnectionReady = true;
+})
+
+const uscAppName = MODULE_ID_PREFIX + "_USC";
+const UserServerController = require("@threeceelabs/user-server-controller");
+const userServerController = new UserServerController(uscAppName);
+
+userServerController.on("error", async (err) => {
+  console.log(`${MODULE_ID_PREFIX} | *** USER SERVER CONTROLLER ERROR | ${uscAppName} | ERROR: ${err}`);
+})
+
+userServerController.on("ready", async () => {
+  console.log(`${MODULE_ID_PREFIX} | +++ USER SERVER CONTROLLER READY: ${uscAppName}`);
+  statsObj.dbConnectionReady = true;
+})
+
+
 const jsonPrint = tcUtils.jsonPrint;
 const formatBoolean = tcUtils.formatBoolean;
 const formatCategory = tcUtils.formatCategory;
@@ -123,9 +146,6 @@ const getTimeStamp = tcUtils.getTimeStamp;
 const msToTime = tcUtils.msToTime;
 
 let twitterClient;
-
-let userServerController;
-let userServerControllerReady = false;
 
 let neuralNetworkChangeStream;
 let userChangeStream;
@@ -2030,65 +2050,6 @@ function printUser(params) {
   }
 }
 
-async function connectDb(params) {
-  try {
-    statsObj.status = "CONNECTING MONGO DB";
-
-    console.log(chalkBlueBold(MODULE_ID + " | CONNECT MONGO DB ..."));
-
-    const db = await global.wordAssoDb.connect(params);
-
-    db.on("error", async function (err) {
-      statsObj.status = "MONGO ERROR";
-      statsObj.dbConnectionReady = false;
-      console.log(
-        chalkError(MODULE_ID + " | *** MONGO DB CONNECTION ERROR: " + err)
-      );
-    });
-
-    db.on("close", async function () {
-      statsObj.status = "MONGO CLOSED";
-      statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID + " | *** MONGO DB CONNECTION CLOSED"));
-    });
-
-    db.on("disconnected", async function () {
-      statsObj.status = "MONGO DISCONNECTED";
-      statsObj.dbConnectionReady = false;
-      console.log(chalkAlert(MODULE_ID + " | *** MONGO DB DISCONNECTED"));
-    });
-
-    console.log(chalk.green(MODULE_ID + " | MONGOOSE DEFAULT CONNECTION OPEN"));
-
-    statsObj.dbConnectionReady = true;
-
-    const UserServerController = require("@threeceelabs/user-server-controller");
-
-    userServerController = new UserServerController(MODULE_ID + "_USC");
-
-    userServerController.on("error", function (err) {
-      userServerControllerReady = false;
-      console.log(chalkError(MODULE_ID + " | *** USC ERROR | " + err));
-    });
-
-    userServerController.on("ready", function (appname) {
-      userServerControllerReady = true;
-      console.log(chalk.green(MODULE_ID + " | USC READY | " + appname));
-    });
-
-    await global.wordAssoDb.User.deleteMany({
-      $and: [{ lang: { $nin: [false, null, ""] } }, { lang: { $ne: "en" } }],
-    });
-
-    return db;
-  } catch (err) {
-    console.log(
-      chalkError(MODULE_ID + " | *** MONGO DB CONNECT ERROR: " + err)
-    );
-    throw err;
-  }
-}
-
 function initPassport() {
 
   return new Promise(function (resolve) {
@@ -2128,14 +2089,6 @@ function initPassport() {
           }
 
           const rawUser = profile._json;
-
-          if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-            console.log(chalkAlert(MODULE_ID + " | *** NOT READY"
-              + " | statsObj.dbConnectionReady: " + statsObj.dbConnectionReady
-              + " | userServerControllerReady: " + userServerControllerReady
-            ));
-            return cb(new Error("userServerController not ready"), null);
-          }
 
           userServerController.convertRawUser({ user: rawUser }, function (err, user) {
             if (err) {
@@ -2831,7 +2784,7 @@ function initStats(callback) {
   statsObj.internetReady = false;
   statsObj.internetTestError = false;
 
-  statsObj.dbConnectionReady = false;
+  // statsObj.dbConnectionReady = false;
 
   statsObj.tweetParserReady = false;
   tweetParserReady = false;
@@ -3104,9 +3057,7 @@ function showStats(options) {
         " | TNQ " +
         transmitNodeQueue.length +
         " | TNQ RDY " +
-        transmitNodeQueueReady +
-        " | USC RDY " +
-        userServerControllerReady
+        transmitNodeQueueReady
     )
   );
 }
@@ -5863,41 +5814,14 @@ async function initSocketHandler(socketObj) {
     });
 
     socket.on("USER_READY", function userReady(userObj) {
-      console.log(
-        chalkSocket(
-          MODULE_ID +
-            " | R< USER READY" +
-            " | " +
-            getTimeStamp() +
-            " | " +
-            ipAddress +
-            " | " +
-            socket.id +
-            " | NID: " +
-            userObj.nodeId +
-            " | SENT " +
-            getTimeStamp(parseInt(userObj.timeStamp))
-        )
-      );
+      
+      console.log(chalkSocket(`${MODULE_ID} | R< USER READY | ${getTimeStamp()} | ${ipAddress} | ${socket.id} | ${userObj.nodeId} | SENT AT ${getTimeStamp(parseInt(userObj.timeStamp))}`));
 
-      socket.emit(
-        "USER_READY_ACK",
-        { userId: userObj.userId, timeStamp: moment().valueOf() },
-        function (err) {
+      socket.emit("USER_READY_ACK", { userId: userObj.userId, timeStamp: moment().valueOf() }, (err) => {
           if (err) {
-            console.log(
-              chalkError(
-                MODULE_ID +
-                  " | *** USER_READY_ACK SEND ERROR | " +
-                  userObj.userId
-              )
-            );
+            console.log(chalkError(`${MODULE_ID} | *** USER_READY_ACK SEND ERROR | ${userObj.userId}`));
           } else {
-            console.log(
-              chalkError(
-                MODULE_ID + " | TXD> USER_READY_ACK | " + userObj.userId
-              )
-            );
+            console.log(chalkError(`${MODULE_ID} | TXD> USER_READY_ACK | ${userObj.userId}`));
           }
         }
       );
@@ -5906,79 +5830,52 @@ async function initSocketHandler(socketObj) {
     socket.on("VIEWER_READY", async function viewerReady(viewerObj) {
       const timeStamp = moment().valueOf();
 
-      console.log(
-        chalkSocket(
-          MODULE_ID +
-            " | VIEWER READY" +
-            " | " +
-            getTimeStamp(timeStamp) +
-            " | " +
-            ipAddress +
-            " | " +
-            socket.id +
-            " | " +
-            viewerObj.viewerId +
-            " | SENT AT " +
-            getTimeStamp(parseInt(viewerObj.timeStamp))
-        )
-      );
+      console.log(chalkSocket(`${MODULE_ID} | VIEWER READY | ${getTimeStamp(timeStamp)} | ${ipAddress} | ${socket.id} | ${viewerObj.viewerId} | SENT AT ${getTimeStamp(parseInt(viewerObj.timeStamp))}`));
 
-      if (!userServerControllerReady || !statsObj.dbConnectionReady) {
+      try {
+
+        const results = await twitterSearchUser({
+          node: {
+            nodeType: "user",
+            screenName: defaultTwitterUserScreenName,
+          },
+        });
+
+        if (results.node) {
+          socket.emit("SET_TWITTER_USER", {
+            node: results.node,
+            stats: statsObj,
+          });
+        } else {
+          socket.emit("TWITTER_USER_NOT_FOUND", { node: defaultTwitterUserScreenName, stats: statsObj });
+        }
+
+        socket.emit("VIEWER_READY_ACK", {
+          nodeId: viewerObj.viewerId,
+          timeStamp: moment().valueOf(),
+          viewerSessionKey: moment().valueOf(),
+        });
+
+      } 
+      catch (err) {
         console.log(
-          chalkAlert(
+          chalkError(
             MODULE_ID +
-              " | *** NOT READY" +
-              " | statsObj.dbConnectionReady: " +
-              statsObj.dbConnectionReady +
-              " | userServerControllerReady: " +
-              userServerControllerReady
+              " | *** ERROR | VIEWER READY FIND USER" +
+              " | " +
+              getTimeStamp(timeStamp) +
+              " | " +
+              ipAddress +
+              " | " +
+              socket.id +
+              " | " +
+              viewerObj.viewerId +
+              " | ERROR: " +
+              err
           )
         );
-      } else {
-        try {
-
-          const results = await twitterSearchUser({
-            node: {
-              nodeType: "user",
-              screenName: defaultTwitterUserScreenName,
-            },
-          });
-
-          if (results.node) {
-            socket.emit("SET_TWITTER_USER", {
-              node: results.node,
-              stats: statsObj,
-            });
-          } else {
-            socket.emit("TWITTER_USER_NOT_FOUND", { node: defaultTwitterUserScreenName, stats: statsObj });
-          }
-
-          socket.emit("VIEWER_READY_ACK", {
-            nodeId: viewerObj.viewerId,
-            timeStamp: moment().valueOf(),
-            viewerSessionKey: moment().valueOf(),
-          });
-
-        } 
-        catch (err) {
-          console.log(
-            chalkError(
-              MODULE_ID +
-                " | *** ERROR | VIEWER READY FIND USER" +
-                " | " +
-                getTimeStamp(timeStamp) +
-                " | " +
-                ipAddress +
-                " | " +
-                socket.id +
-                " | " +
-                viewerObj.viewerId +
-                " | ERROR: " +
-                err
-            )
-          );
-        }
       }
+
     });
 
     socket.on("TWITTER_AUTHENTICATE", async function socketLogin(viewerObj) {
@@ -7438,12 +7335,6 @@ async function updateUserSets(p) {
 
   console.log(chalkInfo(MODULE_ID + " | UPDATING USER SETS..."));
 
-  if (!statsObj.dbConnectionReady) {
-    console.log(chalkAlert(MODULE_ID + " | ABORT updateUserSets: DB CONNECTION NOT READY"));
-    updateUserSetsRunning = false;
-    return;
-  }
-
   if (updateUserSetsRunning) {
     return;
   }
@@ -7556,12 +7447,6 @@ async function updateHashtagSets(p) {
   statsObj.status = "UPDATE HASHTAG SETS";
 
   console.log(chalkInfo(MODULE_ID + " | UPDATING HASHTAG SETS..."));
-
-  if (!statsObj.dbConnectionReady) {
-    console.log(chalkAlert(MODULE_ID + " | ABORT updateHashtagSets: DB CONNECTION NOT READY"));
-    updateHashtagSetsRunning = false;
-    return;
-  }
 
   if (updateHashtagSetsRunning) {
     console.log(chalkAlert(MODULE_ID + " | SKIP updateHashtagSets: RUNNING..."));
@@ -7844,10 +7729,10 @@ function initTransmitNodeQueueInterval(interval) {
               node.updateLastSeen = true;
             }
 
-            if (!statsObj.dbConnectionReady) {
-              transmitNodeQueueReady = true;
-              return;
-            }
+            // if (!statsObj.dbConnectionReady) {
+            //   transmitNodeQueueReady = true;
+            //   return;
+            // }
 
             if (node.isTweeter) {
               statsObj.traffic.users.total += 1;
@@ -7915,10 +7800,10 @@ function initTransmitNodeQueueInterval(interval) {
 
           try {
 
-            if (!statsObj.dbConnectionReady) {
-              transmitNodeQueueReady = true;
-              return;
-            }
+            // if (!statsObj.dbConnectionReady) {
+            //   transmitNodeQueueReady = true;
+            //   return;
+            // }
 
             node = await updateNodeMeter(node);
               
@@ -8800,20 +8685,6 @@ function initAppRouting(callback) {
       channel: slackChannelUserAuth,
       text: slackText,
     });
-
-    if (!userServerControllerReady || !statsObj.dbConnectionReady) {
-      console.log(
-        chalkAlert(
-          MODULE_ID +
-            " | *** NOT READY" +
-            " | statsObj.dbConnectionReady: " +
-            statsObj.dbConnectionReady +
-            " | userServerControllerReady: " +
-            userServerControllerReady
-        )
-      );
-      return callback(new Error("userServerController not ready"), null);
-    }
 
     userServerController.findOne({ user: req.session.passport.user }, function (
       err,
@@ -11957,7 +11828,8 @@ function allTrue(p) {
     );
 
     const waitInterval = setInterval(function () {
-      if (statsObj.dbConnectionReady && statsObj.initSetsComplete) {
+
+      if (statsObj.initSetsComplete) {
         clearInterval(waitInterval);
         resolve(true);
       }
@@ -11974,26 +11846,6 @@ function allTrue(p) {
         return resolve(false);
       }
     }, params.interval);
-  });
-}
-
-let dbConnectionReadyInterval;
-
-function waitDbConnectionReady() {
-  return new Promise(function (resolve) {
-    dbConnectionReadyInterval = setInterval(function () {
-      console.log(
-        chalkBlue(MODULE_ID + " | ... WAIT DB CONNECTION | " + getTimeStamp())
-      );
-
-      if (statsObj.dbConnectionReady) {
-        console.log(
-          chalk.green(MODULE_ID + " | +++ DB CONNECTION | " + getTimeStamp())
-        );
-        clearInterval(dbConnectionReadyInterval);
-        return resolve();
-      }
-    }, 5000);
   });
 }
 
@@ -12130,12 +11982,10 @@ setTimeout(async function () {
   );
 
   try {
-    const mongoDbAppName = `${MODULE_ID}_${process.pid}`;
 
-    global.dbConnection = await connectDb({appName: mongoDbAppName});
+    global.dbConnection = await mgUtils.connectDb()
 
     await initSlackWebClient();
-    await waitDbConnectionReady();
 
     configEvents.emit("DB_CONNECT");
 

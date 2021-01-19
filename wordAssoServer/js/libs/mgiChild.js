@@ -121,52 +121,21 @@ process.on("unhandledRejection", function(err, promise) {
 
 global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
-async function connectDb(){
+const mguAppName = MODULE_ID_PREFIX + "_MGU";
+const MongooseUtilities = require("@threeceelabs/mongoose-utilities");
+const mgUtils = new MongooseUtilities(mguAppName);
 
-  try {
-
-    statsObj.status = "CONNECTING MONGO DB";
-
-    console.log(chalkLog(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
-
-    const db = await global.wordAssoDb.connect({appName: MODULE_ID_PREFIX + "_" + process.pid});
-
-    db.on("error", async function(err){
-      statsObj.status = "MONGO ERROR";
-      statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR: " + err));
-    });
-
-    db.on("close", async function(){
-      statsObj.status = "MONGO CLOSED";
-      statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
-    });
-
-    db.on("disconnected", async function(){
-      statsObj.status = "MONGO DISCONNECTED";
-      statsObj.dbConnectionReady = false;
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
-    });
-
-    console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));    
-
-    statsObj.dbConnectionReady = true;
-
-    return db;
-  }
-  catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECT ERROR: " + err));
-    throw err;
-  }
-}
-
+mgUtils.on("ready", async () => {
+  console.log(`${MODULE_ID_PREFIX} | +++ MONGOOSE UTILS READY: ${mguAppName}`);
+  statsObj.status = "MONGO CONNECTED";
+  statsObj.dbConnectionReady = true;
+})
 
 setTimeout(async function(){
 
   try {
 
-    global.dbConnection = await connectDb();
+    global.dbConnection = await mgUtils.connectDb()
 
     const usersCollection = global.dbConnection.collection("users");
 

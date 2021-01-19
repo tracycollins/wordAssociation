@@ -417,21 +417,7 @@ function quit(message) {
     
   );
 
-  // if (dbConnection !== undefined) {
-
-  //   dbConnection.close(function () {
-  //     console.log(chalkAlert(
-  //           MODULE_ID + " | =========================="
-  //       + "\nTSS | MONGO DB CONNECTION CLOSED"
-  //       + "\nTSS | =========================="
-  //     ));
-
-  //     process.exit(exitCode);
-  //   });
-  // }
-  // else {
-    process.exit(exitCode);
-  // }
+  process.exit(exitCode);
 }
 
 function initStatsUpdate(cnf){

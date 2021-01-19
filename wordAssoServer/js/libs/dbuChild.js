@@ -112,6 +112,14 @@ process.on("disconnect", function() {
 
 global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
+const mguAppName = MODULE_ID_PREFIX + "_MGU";
+const MongooseUtilities = require("@threeceelabs/mongoose-utilities");
+const mgUtils = new MongooseUtilities(mguAppName);
+
+mgUtils.on("ready", async () => {
+  console.log(`${MODULE_ID_PREFIX} | +++ MONGOOSE UTILS READY: ${mguAppName}`);
+})
+
 const configuration = {}; // merge of defaultConfiguration & hostConfiguration
 configuration.processName = process.env.DBU_PROCESS_NAME || "node_databaseUpdate";
 configuration.verbose = DEFAULT_VERBOSE;
@@ -173,45 +181,6 @@ process.on("exit", function() {
   quit("EXIT");
 });
 
-async function connectDb(){
-
-  try {
-
-    statsObj.status = "CONNECTING MONGO DB";
-
-    console.log(chalkLog(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
-
-    const db = await global.wordAssoDb.connect({appName: MODULE_ID_PREFIX + "_" + process.pid});
-
-    db.on("error", async function(err){
-      statsObj.status = "MONGO ERROR";
-      statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR: " + err));
-    });
-
-    db.on("close", async function(){
-      statsObj.status = "MONGO CLOSED";
-      statsObj.dbConnectionReady = false;
-      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
-    });
-
-    db.on("disconnected", async function(){
-      statsObj.status = "MONGO DISCONNECTED";
-      statsObj.dbConnectionReady = false;
-      console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
-    });
-
-    console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));    
-
-    statsObj.dbConnectionReady = true;
-
-    return db;
-  }
-  catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECT ERROR: " + err));
-    throw err;
-  }
-}
 
 function initialize(){
 
@@ -485,7 +454,7 @@ setTimeout(async function(){
 
     console.log(chalkLog("DBU | " + configuration.processName + " STARTED"));
 
-    await connectDb();
+    global.dbConnection = await mgUtils.connectDb()
 
     process.send({ op: "READY"});
 

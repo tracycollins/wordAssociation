@@ -830,7 +830,7 @@ const nodeSetPropsResultHandler = async function (message) {
           await global.wordAssoDb.User.findOneAndUpdate(
             { nodeId: messageObj.node.nodeId },
             messageObj.node,
-            { upsert: true, new: true }
+            { upsert: true }
           );
 
           // return dbUser;
@@ -3970,7 +3970,7 @@ async function pubSubNodeSetProps(params) {
       const dbUser = await global.wordAssoDb.User.findOneAndUpdate(
         { nodeId: node.nodeId },
         node,
-        { upsert: true, new: true }
+        { upsert: true, new: true, lean: true }
       );
 
       delete nodeSetPropsResultHashMap[params.requestId]
@@ -4420,7 +4420,7 @@ async function pubSubSearchNode(params) {
         const nodeUpdated = await global.wordAssoDb.User.findOneAndUpdate(
           { nodeId: node.nodeId },
           node,
-          { upsert: true, new: true }
+          { upsert: true, new: true, lean: true }
         );
 
         result.nodes.push(nodeUpdated);
@@ -4449,7 +4449,7 @@ async function pubSubSearchNode(params) {
         const nodeUpdated = await global.wordAssoDb.User.findOneAndUpdate(
           { nodeId: node.nodeId },
           node,
-          { upsert: true, new: true }
+          { upsert: true, new: true, lean: true }
         );
 
         return {
@@ -6522,7 +6522,7 @@ async function fetchBotIds(p){
                 profileImageUrl: botObj.profile_photo,
                 bannerImageUrl: botObj.cover_photo,
               },
-              { upsert: true, new: true }
+              { upsert: true, new: true, lean: true }
             );
 
             botNodeIdSet.add(nodeUpdated.nodeId)

@@ -259,13 +259,13 @@ const AUTH_USER_CACHE_CHECK_PERIOD = ONE_HOUR / 1000; // seconds
 const AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL = 600;
 const AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD = 5;
 
-const TOPTERMS_CACHE_DEFAULT_TTL = 60;
+const TOPTERMS_CACHE_DEFAULT_TTL = 30;
 const TOPTERMS_CACHE_CHECK_PERIOD = 5;
 
-const NODE_CACHE_DEFAULT_TTL = 60;
+const NODE_CACHE_DEFAULT_TTL = 30;
 const NODE_CACHE_CHECK_PERIOD = 1;
 
-const TWEET_ID_CACHE_DEFAULT_TTL = 20;
+const TWEET_ID_CACHE_DEFAULT_TTL = 10;
 const TWEET_ID_CACHE_CHECK_PERIOD = 5;
 
 const DEFAULT_CATEGORIZE_CACHE_DEFAULT_TTL = 300; //
@@ -2907,12 +2907,6 @@ function initStats(callback) {
 
   statsObj.caches = {};
 
-  // statsObj.caches.uncatUserCache = {};
-  // statsObj.caches.uncatUserCache.stats = {};
-  // statsObj.caches.uncatUserCache.stats.keys = 0;
-  // statsObj.caches.uncatUserCache.stats.keysMax = 0;
-  // statsObj.caches.uncatUserCache.expired = 0;
-
   statsObj.caches.ipCache = {};
   statsObj.caches.ipCache.stats = {};
   statsObj.caches.ipCache.stats.keys = 0;
@@ -3979,6 +3973,8 @@ async function pubSubNodeSetProps(params) {
         { upsert: true, new: true }
       );
 
+      delete nodeSetPropsResultHashMap[params.requestId]
+
       return dbUser;
     }
 
@@ -4010,6 +4006,8 @@ async function pubSubNodeSetProps(params) {
 
       await dbHashtag.save();
 
+      delete nodeSetPropsResultHashMap[params.requestId]
+
       return dbHashtag;
     }
 
@@ -4021,6 +4019,8 @@ async function pubSubNodeSetProps(params) {
         " | NID: " + params.node.nodeId
       ));
     }
+
+    delete nodeSetPropsResultHashMap[params.requestId]
 
     return node;
 
@@ -6314,90 +6314,80 @@ let transmitNodeQueueInterval;
 const transmitNodeQueue = [];
 
 function checkFollowableSearchTerm(searchTerm, text) {
-  if (new RegExp("\\b" + searchTerm + "\\b", "i").test(text)) {
-    return searchTerm;
+
+  if (text === undefined || !text || text === "") {
+    return false;
   }
+
+  if (new RegExp("\\b" + searchTerm + "\\b", "i").test(text.trim())) {
+    return true;
+  }
+
   return false;
 }
 
-function followable(text) {
-  return new Promise(function (resolve) {
-    let hitSearchTerm = false;
+// function followable(text) {
 
-    followableSearchTermsArray.some(function (searchTerm) {
-      hitSearchTerm = checkFollowableSearchTerm(searchTerm, text);
-      return hitSearchTerm;
+//   return new Promise(function (resolve) {
+    
+//     let hitSearchTerm = false;
+
+//     followableSearchTermsArray.some(function (searchTerm) {
+//       hitSearchTerm = checkFollowableSearchTerm(searchTerm, text);
+//       return hitSearchTerm;
+//     });
+
+//     resolve(hitSearchTerm);
+//   });
+// }
+
+function followable(node) {
+
+  // return new Promise(function (resolve) {
+    
+    // let hitSearchTerm = false;
+
+    return followableSearchTermsArray.some(function (searchTerm) {
+      return checkFollowableSearchTerm(searchTerm, node.name)
+      || checkFollowableSearchTerm(searchTerm, node.screenName)
+      || checkFollowableSearchTerm(searchTerm, node.description);
     });
 
-    resolve(hitSearchTerm);
-  });
+    // followableSearchTermsArray.some(function (searchTerm) {
+    //   hitSearchTerm = checkFollowableSearchTerm(searchTerm, node.screenName);
+    //   return hitSearchTerm;
+    // });
+
+    // followableSearchTermsArray.some(function (searchTerm) {
+    //   hitSearchTerm = checkFollowableSearchTerm(searchTerm, node.description);
+    //   return hitSearchTerm;
+    // });
+
+    // resolve(hitSearchTerm);
+  // });
 }
 
 async function userCategorizeable(params) {
-  let hitSearchTerm = false;
+  // const hitSearchTerm = false;
   const node = params.node;
-  const verbose =
-    params.verbose && params.verbose !== undefined ? params.verbose : false;
+  // const verbose =
+  //   params.verbose && params.verbose !== undefined ? params.verbose : false;
 
   // assume it's a user node
 
   if (isCategorized(node)) {
-    if (verbose) {
-      console.log(
-        chalkLog(
-          MODULE_ID +
-            " | userCategorizeable | TRUE | CATEGORIZED" +
-            " | @" +
-            node.screenName
-        )
-      );
-    }
     return true;
   }
 
   if (node.following && node.following !== undefined) {
-    if (verbose) {
-      console.log(
-        chalkLog(
-          MODULE_ID +
-            " | userCategorizeable | TRUE | FOLLOWING" +
-            " | @" +
-            node.screenName
-        )
-      );
-    }
     return true;
   }
 
   if (node.ignored && node.ignored !== undefined) {
-    if (verbose) {
-      console.log(
-        chalkLog(
-          MODULE_ID +
-            " | userCategorizeable | FALSE | IGNORED" +
-            " | FOLLOWING: " +
-            node.ignored +
-            " | @" +
-            node.screenName
-        )
-      );
-    }
     return false;
   }
 
   if (node.lang && node.lang !== undefined && node.lang != "en") {
-    if (verbose) {
-      console.log(
-        chalkLog(
-          MODULE_ID +
-            " | userCategorizeable | FALSE | LANG NOT ENG" +
-            " | LANG: " +
-            node.lang +
-            " | @" +
-            node.screenName
-        )
-      );
-    }
     return false;
   }
 
@@ -6409,19 +6399,6 @@ async function userCategorizeable(params) {
     !allowLocationsRegEx.test(node.location) &&
     ignoreLocationsRegEx.test(node.location)
   ) {
-    if (verbose) {
-      console.log(
-        chalkLog(
-          MODULE_ID +
-            " | userCategorizeable | FALSE | IGNORED LOCATION" +
-            " | LANG: " +
-            node.location +
-            " | @" +
-            node.screenName
-        )
-      );
-    }
-
     return false;
   }
 
@@ -6430,109 +6407,44 @@ async function userCategorizeable(params) {
     node.followersCount !== undefined &&
     node.followersCount < configuration.minFollowersAutoCategorize
   ) {
-    if (verbose) {
-      console.log(
-        chalkLog(
-          MODULE_ID +
-            " | userCategorizeable | FALSE | LOW FOLLOWERS" +
-            " | FOLLOWERS: " +
-            node.followersCount +
-            " | @" +
-            node.screenName
-        )
-      );
-    }
-
     return false;
   }
 
-  if (!node.description || node.description === undefined) {
-    node.description = "";
-  }
-  if (!node.screenName || node.screenName === undefined) {
-    node.screenName = "";
-  }
-  if (!node.name || node.name === undefined) {
-    node.name = "";
-  }
+  return followable(node);
 
-  if (node.name !== "") {
-    hitSearchTerm = await followable(node.name);
+  // if (!node.description || node.description === undefined) {
+  //   node.description = "";
+  // }
+  // if (!node.screenName || node.screenName === undefined) {
+  //   node.screenName = "";
+  // }
+  // if (!node.name || node.name === undefined) {
+  //   node.name = "";
+  // }
 
-    if (hitSearchTerm) {
-      if (verbose) {
-        console.log(
-          chalkInfo(
-            MODULE_ID +
-              " | userCategorizeable | TRUE  | NAME SEARCH TERM HIT" +
-              " | @" +
-              node.screenName +
-              " | NAME: " +
-              node.name
-          )
-        );
-      }
+  // if (node.name !== "") {
+  //   hitSearchTerm = await followable(node.name);
 
-      return true;
-    }
-  }
+  //   if (hitSearchTerm) {
+  //     return true;
+  //   }
+  // }
 
-  if (node.description !== "") {
-    hitSearchTerm = await followable(node.description);
+  // if (node.description !== "") {
+  //   hitSearchTerm = await followable(node.description);
 
-    if (hitSearchTerm) {
-      if (verbose) {
-        console.log(
-          chalkInfo(
-            MODULE_ID +
-              " | userCategorizeable | TRUE  | DESCRIPTION SEARCH TERM HIT" +
-              " | @" +
-              node.screenName +
-              " | DESCRIPTION: " +
-              node.description
-          )
-        );
-      }
+  //   if (hitSearchTerm) {
+  //     return true;
+  //   }
+  // }
 
-      return true;
-    }
-  }
-
-  if (node.screenName !== "") {
-    hitSearchTerm = await followable(node.screenName);
-
-    if (hitSearchTerm) {
-      if (verbose) {
-        console.log(
-          chalkInfo(
-            MODULE_ID +
-              " | userCategorizeable | TRUE  | SCREENNAME SEARCH TERM HIT" +
-              " | @" +
-              node.screenName
-          )
-        );
-      }
-
-      return true;
-    }
-  }
-
-  if (verbose) {
-    console.log(
-      chalkLog(
-        MODULE_ID +
-          " | userCategorizeable | TRUE (DEFAULT NOT FALSE)" +
-          " | NID: " +
-          node.nodeId +
-          " | @" +
-          node.screenName +
-          " | NAME: " +
-          node.name
-      )
-    );
-  }
-
-  return false;
+  // if (node.screenName !== "") {
+  //   hitSearchTerm = await followable(node.screenName);
+  //   if (hitSearchTerm) {
+  //     return true;
+  //   }
+  // }
+  // return false;
 }
 
 let botSetInterval
@@ -7657,6 +7569,12 @@ function initTransmitNodeQueueInterval(interval) {
 
     clearInterval(transmitNodeQueueInterval);
 
+    let node;
+    let categorizeable;
+    let uncatObj;
+    // let nodeSmall;
+    let nCacheObj;
+
     transmitNodeQueueInterval = setInterval(async function () {
 
       try {
@@ -7667,7 +7585,7 @@ function initTransmitNodeQueueInterval(interval) {
 
         transmitNodeQueueReady = false;
 
-        let node = transmitNodeQueue.shift();
+        node = transmitNodeQueue.shift();
 
         if (!node) {
           console.log(chalkError(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q")));
@@ -7696,29 +7614,29 @@ function initTransmitNodeQueueInterval(interval) {
         }
 
         if (node.nodeType === "user") {
-          const categorizeable = await userCategorizeable({ node: node });
+
+          categorizeable = await userCategorizeable({ node: node });
 
           if (categorizeable) {
-            // node.following = true;
-            // unfollowableUserSet.delete(node.nodeId);
+
             uncategorizeableUserSet.delete(node.nodeId);
 
             node = await updateNodeMeter(node);
 
-            const uncatObj = await uncatDbCheck({ node: node });
+            uncatObj = await uncatDbCheck({ node: node });
 
             if (uncatObj === undefined) {
-              const nodeSmall = pick(node, fieldsTransmitKeys);
 
               nodeSetPropsQueue.push({
                 createNodeOnMiss: true,
-                node: nodeSmall,
+                node: pick(node, fieldsTransmitKeys),
                 props: { screenName: node.screenName.toLowerCase() },
                 autoCategorize: true,
               });
+
             }
 
-            const nCacheObj = nodeCache.get(node.nodeId);
+            nCacheObj = nodeCache.get(node.nodeId);
 
             if (nCacheObj !== undefined) {
               node.mentions = Math.max(node.mentions, nCacheObj.mentions);
@@ -7727,34 +7645,19 @@ function initTransmitNodeQueueInterval(interval) {
 
             if (node.isTweeter) {
               node.updateLastSeen = true;
-            }
-
-            // if (!statsObj.dbConnectionReady) {
-            //   transmitNodeQueueReady = true;
-            //   return;
-            // }
-
-            if (node.isTweeter) {
               statsObj.traffic.users.total += 1;
             }
 
             try {
               if (node.status && node.status.created_at) {
-                node.ageDays =
-                  moment(node.status.created_at, twitterDateFormat).diff(
-                    node.createdAt
-                  ) / ONE_DAY;
+                node.ageDays = moment(node.status.created_at, twitterDateFormat).diff(node.createdAt) / ONE_DAY;
               } else {
                 node.ageDays = moment().diff(node.createdAt) / ONE_DAY;
               }
 
-              node.tweetsPerDay =
-                node.ageDays > 0 ? node.statusesCount / node.ageDays : 0;
+              node.tweetsPerDay = node.ageDays > 0 ? node.statusesCount / node.ageDays : 0;
 
-              viewNameSpace.volatile.emit(
-                "node",
-                pick(node, fieldsTransmitKeys)
-              );
+              viewNameSpace.volatile.emit("node",pick(node, fieldsTransmitKeys));
 
               transmitNodeQueueReady = true;
 
@@ -10665,16 +10568,6 @@ async function loadConfigFile(params) {
       } else {
         newConfiguration.filterDuplicateTweets = true;
       }
-    }
-
-    if (loadedConfigObj.UNCAT_USER_ID_CACHE_DEFAULT_TTL !== undefined) {
-      console.log(
-        MODULE_ID +
-          " | LOADED CATEGORIZE_CACHE_DEFAULT_TTL: " +
-          loadedConfigObj.CATEGORIZE_CACHE_DEFAULT_TTL
-      );
-      newConfiguration.categorizeCacheTtl =
-        loadedConfigObj.CATEGORIZE_CACHE_DEFAULT_TTL;
     }
 
     if (loadedConfigObj.ENABLE_IMAGE_ANALYSIS !== undefined) {

@@ -340,6 +340,134 @@ const threeceeConfig = {
   token_secret: process.env.TWITTER_TOKEN_SECRET
 };
 
+
+const statsObj = {};
+
+statsObj.slack = {};
+statsObj.slack.webClient = {};
+statsObj.slack.webClient.ready = false;
+statsObj.slack.webClient.error = false;
+
+statsObj.slack.rtmClient = {};
+statsObj.slack.rtmClient.ready = false;
+statsObj.slack.rtmClient.error = false;
+
+statsObj.bots = {};
+statsObj.bots.numOfBots = 0;
+
+statsObj.pubSub = {};
+statsObj.pubSub.subscriptions = {};
+statsObj.pubSub.subscriptions.errors = [];
+statsObj.pubSub.messagesSent = 0;
+statsObj.pubSub.messagesReceived = 0;
+
+statsObj.commandLineArgsLoaded = false;
+
+statsObj.threeceeUsersConfiguredFlag = false;
+statsObj.twitNotReadyWarning = false;
+statsObj.initSetsComplete = false;
+
+statsObj.dbuChildReady = false;
+
+let dbuChildReady = false;
+statsObj.tssChildReady = false;
+
+statsObj.hashtag = {};
+statsObj.hashtag.added = 0;
+statsObj.hashtag.deleted = 0;
+statsObj.hashtag.categoryChanged = 0;
+statsObj.hashtag.categoryAutoChanged = 0;
+statsObj.hashtag.categorizeNetworkChanged = 0;
+statsObj.hashtag.categoryVerifiedChanged = 0;
+statsObj.hashtag.auto = {};
+statsObj.hashtag.auto.left = 0;
+statsObj.hashtag.auto.negative = 0;
+statsObj.hashtag.auto.neutral = 0;
+statsObj.hashtag.auto.none = 0;
+statsObj.hashtag.auto.positive = 0;
+statsObj.hashtag.auto.right = 0;
+statsObj.hashtag.categorizedAuto = 0;
+statsObj.hashtag.categorizedManual = 0;
+statsObj.hashtag.categorizedTotal = 0;
+statsObj.hashtag.manual = {};
+statsObj.hashtag.manual.left = 0;
+statsObj.hashtag.manual.negative = 0;
+statsObj.hashtag.manual.neutral = 0;
+statsObj.hashtag.manual.none = 0;
+statsObj.hashtag.manual.positive = 0;
+statsObj.hashtag.manual.right = 0;
+statsObj.hashtag.matched = 0;
+statsObj.hashtag.mismatched = 0;
+statsObj.hashtag.total = 0;
+statsObj.hashtag.uncategorized = {};
+statsObj.hashtag.uncategorized.all = 0;
+statsObj.hashtag.uncategorized.left = 0;
+statsObj.hashtag.uncategorized.negative = 0;
+statsObj.hashtag.uncategorized.neutral = 0;
+statsObj.hashtag.uncategorized.none = 0;
+statsObj.hashtag.uncategorized.positive = 0;
+statsObj.hashtag.uncategorized.right = 0;
+statsObj.hashtag.uncategorizedAuto = 0;
+statsObj.hashtag.uncategorizedManual = 0;
+statsObj.hashtag.uncategorizedTotal = 0;
+
+statsObj.traffic = {};
+statsObj.traffic.users = {};
+statsObj.traffic.users.bots = 0;
+statsObj.traffic.users.percentBots = 0;
+statsObj.traffic.users.total = 0;
+
+statsObj.user = {};
+statsObj.user.categorizedBy = {};
+
+for (const user of threeceeAuthorizedUsers){
+  statsObj.user.categorizedBy[user] = {};
+  statsObj.user.categorizedBy[user].total = 0;
+  statsObj.user.categorizedBy[user].today = 0;
+  statsObj.user.categorizedBy[user].periodCurrent = 0;
+  statsObj.user.categorizedBy[user].periodLast = 0;
+}
+
+statsObj.user.total = 0;
+statsObj.user.dbUncat = 0;
+statsObj.user.added = 0;
+statsObj.user.deleted = 0;
+statsObj.user.categoryChanged = 0;
+statsObj.user.categoryAutoChanged = 0;
+statsObj.user.categorizeNetworkChanged = 0;
+statsObj.user.categoryVerifiedChanged = 0;
+statsObj.user.matched = 0;
+statsObj.user.mismatched = 0;
+statsObj.user.following = 0;
+statsObj.user.notFollowing = 0;
+statsObj.user.autoFollow = 0;
+statsObj.user.categorizedAuto = 0;
+statsObj.user.categorizedManual = 0;
+statsObj.user.categorizedTotal = 0;
+statsObj.user.categoryVerified = 0;
+statsObj.user.auto = {};
+statsObj.user.auto.left = 0;
+statsObj.user.auto.negative = 0;
+statsObj.user.auto.neutral = 0;
+statsObj.user.auto.none = 0;
+statsObj.user.auto.positive = 0;
+statsObj.user.auto.right = 0;
+statsObj.user.manual = {};
+statsObj.user.manual.left = 0;
+statsObj.user.manual.negative = 0;
+statsObj.user.manual.neutral = 0;
+statsObj.user.manual.none = 0;
+statsObj.user.manual.positive = 0;
+statsObj.user.manual.right = 0;
+
+statsObj.user.uncategorized = {};
+statsObj.user.uncategorized.all = 0;
+statsObj.user.uncategorized.left = 0;
+statsObj.user.uncategorized.neutral = 0;
+statsObj.user.uncategorized.right = 0;
+statsObj.user.uncategorizedAuto = 0;
+statsObj.user.uncategorizedTotal = 0;
+
 function dnsReverse(params) {
   return new Promise(function (resolve, reject) {
     let ipCacheObj = ipCache.get(params.ipAddress);
@@ -1192,133 +1320,6 @@ configEvents.on("newListener", function (data) {
   debug("*** NEW CONFIG EVENT LISTENER: " + data);
 });
 
-const statsObj = {};
-
-statsObj.slack = {};
-statsObj.slack.webClient = {};
-statsObj.slack.webClient.ready = false;
-statsObj.slack.webClient.error = false;
-
-statsObj.slack.rtmClient = {};
-statsObj.slack.rtmClient.ready = false;
-statsObj.slack.rtmClient.error = false;
-
-statsObj.bots = {};
-statsObj.bots.numOfBots = 0;
-
-statsObj.pubSub = {};
-statsObj.pubSub.subscriptions = {};
-statsObj.pubSub.subscriptions.errors = [];
-statsObj.pubSub.messagesSent = 0;
-statsObj.pubSub.messagesReceived = 0;
-
-statsObj.commandLineArgsLoaded = false;
-
-statsObj.threeceeUsersConfiguredFlag = false;
-statsObj.twitNotReadyWarning = false;
-statsObj.initSetsComplete = false;
-
-statsObj.dbuChildReady = false;
-
-let dbuChildReady = false;
-statsObj.tssChildReady = false;
-
-statsObj.hashtag = {};
-statsObj.hashtag.added = 0;
-statsObj.hashtag.deleted = 0;
-statsObj.hashtag.categoryChanged = 0;
-statsObj.hashtag.categoryAutoChanged = 0;
-statsObj.hashtag.categorizeNetworkChanged = 0;
-statsObj.hashtag.categoryVerifiedChanged = 0;
-statsObj.hashtag.auto = {};
-statsObj.hashtag.auto.left = 0;
-statsObj.hashtag.auto.negative = 0;
-statsObj.hashtag.auto.neutral = 0;
-statsObj.hashtag.auto.none = 0;
-statsObj.hashtag.auto.positive = 0;
-statsObj.hashtag.auto.right = 0;
-statsObj.hashtag.categorizedAuto = 0;
-statsObj.hashtag.categorizedManual = 0;
-statsObj.hashtag.categorizedTotal = 0;
-statsObj.hashtag.manual = {};
-statsObj.hashtag.manual.left = 0;
-statsObj.hashtag.manual.negative = 0;
-statsObj.hashtag.manual.neutral = 0;
-statsObj.hashtag.manual.none = 0;
-statsObj.hashtag.manual.positive = 0;
-statsObj.hashtag.manual.right = 0;
-statsObj.hashtag.matched = 0;
-statsObj.hashtag.mismatched = 0;
-statsObj.hashtag.total = 0;
-statsObj.hashtag.uncategorized = {};
-statsObj.hashtag.uncategorized.all = 0;
-statsObj.hashtag.uncategorized.left = 0;
-statsObj.hashtag.uncategorized.negative = 0;
-statsObj.hashtag.uncategorized.neutral = 0;
-statsObj.hashtag.uncategorized.none = 0;
-statsObj.hashtag.uncategorized.positive = 0;
-statsObj.hashtag.uncategorized.right = 0;
-statsObj.hashtag.uncategorizedAuto = 0;
-statsObj.hashtag.uncategorizedManual = 0;
-statsObj.hashtag.uncategorizedTotal = 0;
-
-statsObj.traffic = {};
-statsObj.traffic.users = {};
-statsObj.traffic.users.bots = 0;
-statsObj.traffic.users.percentBots = 0;
-statsObj.traffic.users.total = 0;
-
-statsObj.user = {};
-statsObj.user.categorizedBy = {};
-
-for (const user of threeceeAuthorizedUsers){
-  statsObj.user.categorizedBy[user] = {};
-  statsObj.user.categorizedBy[user].total = 0;
-  statsObj.user.categorizedBy[user].today = 0;
-  statsObj.user.categorizedBy[user].periodCurrent = 0;
-  statsObj.user.categorizedBy[user].periodLast = 0;
-}
-
-statsObj.user.total = 0;
-statsObj.user.dbUncat = 0;
-statsObj.user.added = 0;
-statsObj.user.deleted = 0;
-statsObj.user.categoryChanged = 0;
-statsObj.user.categoryAutoChanged = 0;
-statsObj.user.categorizeNetworkChanged = 0;
-statsObj.user.categoryVerifiedChanged = 0;
-statsObj.user.matched = 0;
-statsObj.user.mismatched = 0;
-statsObj.user.following = 0;
-statsObj.user.notFollowing = 0;
-statsObj.user.autoFollow = 0;
-statsObj.user.categorizedAuto = 0;
-statsObj.user.categorizedManual = 0;
-statsObj.user.categorizedTotal = 0;
-statsObj.user.categoryVerified = 0;
-statsObj.user.auto = {};
-statsObj.user.auto.left = 0;
-statsObj.user.auto.negative = 0;
-statsObj.user.auto.neutral = 0;
-statsObj.user.auto.none = 0;
-statsObj.user.auto.positive = 0;
-statsObj.user.auto.right = 0;
-statsObj.user.manual = {};
-statsObj.user.manual.left = 0;
-statsObj.user.manual.negative = 0;
-statsObj.user.manual.neutral = 0;
-statsObj.user.manual.none = 0;
-statsObj.user.manual.positive = 0;
-statsObj.user.manual.right = 0;
-
-statsObj.user.uncategorized = {};
-statsObj.user.uncategorized.all = 0;
-statsObj.user.uncategorized.left = 0;
-statsObj.user.uncategorized.neutral = 0;
-statsObj.user.uncategorized.right = 0;
-statsObj.user.uncategorizedAuto = 0;
-statsObj.user.uncategorizedTotal = 0;
-
 let defaultConfiguration = {}; // general configuration
 let hostConfiguration = {}; // host-specific configuration
 
@@ -1347,8 +1348,7 @@ configuration.pubSub.subscriptions = {};
 
 configuration.slackChannel = {};
 
-configuration.heartbeatInterval =
-  process.env.WAS_HEARTBEAT_INTERVAL || 10*ONE_SECOND;
+configuration.heartbeatInterval = process.env.WAS_HEARTBEAT_INTERVAL || 10*ONE_SECOND;
 
 configuration.maxUserSearchSkipCount = DEFAULT_MAX_USER_SEARCH_SKIP_COUNT;
 configuration.filterVerifiedUsers = true;
@@ -1356,7 +1356,6 @@ configuration.twitterBearerToken = process.env.TWITTER_BEARER_TOKEN;
 configuration.verbose = false;
 configuration.userProfileOnlyFlag = DEFAULT_USER_PROFILE_ONLY_FLAG;
 configuration.binaryMode = DEFAULT_BINARY_MODE;
-// configuration.ignoreCategoryRight = DEFAULT_IGNORE_CATEGORY_RIGHT;
 
 configuration.maxTransmitNodeQueue = DEFAULT_MAX_TRANSMIT_NODE_QUEUE;
 configuration.maxTweetRxQueue = DEFAULT_MAX_TWEET_RX_QUEUE;
@@ -3438,11 +3437,71 @@ configEvents.on("CHILD_ERROR", function childError(childObj) {
   }
 });
 
+const initHeartbeatInterval = async (p) => {
+
+  try{
+
+    clearInterval(heartbeatInterval)
+
+    const params = p || {};
+    const interval = params.interval || configuration.heartbeatInterval;
+
+    statsObj.heartbeat = {};
+    statsObj.heartbeat.start = getTimeStamp();
+    statsObj.heartbeat.sent = 0;
+    statsObj.heartbeat.interval = interval;
+    
+    heartbeatInterval = setInterval(function () {
+      
+      statsObj.serverTime = moment().valueOf();
+      statsObj.runTime = moment().valueOf() - statsObj.startTime;
+      statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
+      statsObj.timeStamp = getTimeStamp();
+      statsObj.upTime = os.uptime() * 1000;
+      statsObj.nodesPerMin = parseInt(globalNodeMeter.toJSON()[metricsRate]);
+
+      if (statsObj.nodesPerMin > statsObj.maxNodesPerMin) {
+        statsObj.maxNodesPerMin = statsObj.nodesPerMin;
+        statsObj.maxNodesPerMinTime = moment().valueOf();
+      }
+
+      statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
+
+      if (statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin) {
+        statsObj.twitter.maxTweetsPerMin = statsObj.twitter.tweetsPerMin;
+        statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
+      }
+
+      if (statsObj.internetReady && statsObj.ioReady) {
+
+        statsObj.configuration = configuration;
+
+        viewNameSpace.emit("action", { type: "heartbeat", data: statsObj });
+
+        statsObj.heartbeat.sent += 1;
+
+        if (statsObj.heartbeat.sent % 60 == 0) {
+          logHeartbeat();
+        }
+      } else {
+        if (moment().seconds() % 10 == 0) {
+          debug(chalkError(`${MODULE_ID_PREFIX} | !!!! INTERNET DOWN?? !!!!!  | ${getTimeStamp()} | INTERNET READY: ${statsObj.internetReady} | I/O READY: ${statsObj.ioReady}`));
+        }
+      }
+    }, interval);
+
+    return;
+
+  }
+  catch(err){
+    console.log(chalkError(`${MODULE_ID_PREFIX} | *** initHeartbeatInterval ERROR: ${err}`))
+    throw err;
+  }
+}
+
 configEvents.on("INTERNET_READY", function internetReady() {
 
   console.log(chalkInfo(`${getTimeStamp()} | SERVER_READY EVENT | PORT: ${configServer.port}`));
-
-  clearInterval(heartbeatInterval);
 
   if (!httpServer.listening) {
     httpServer.on("reconnect", function serverReconnect() {
@@ -3509,110 +3568,6 @@ configEvents.on("INTERNET_READY", function internetReady() {
       }
     });
 
-    const heartbeatObj = {};
-
-    heartbeatObj.admins = [];
-    heartbeatObj.servers = [];
-    heartbeatObj.viewers = [];
-    heartbeatObj.children = {};
-    heartbeatObj.children.childrenHashMap = {};
-
-    heartbeatObj.twitter = {};
-    heartbeatObj.memory = {};
-    heartbeatObj.bestNetwork = {};
-    heartbeatObj.bestNetwork = statsObj.bestNetwork;
-
-    let tempAdminArray = [];
-    let tempServerArray = [];
-    let tempViewerArray = [];
-
-    heartbeatInterval = setInterval(function () {
-      
-      statsObj.serverTime = moment().valueOf();
-      statsObj.runTime = moment().valueOf() - statsObj.startTime;
-      statsObj.elapsed = msToTime(
-        moment().valueOf() - statsObj.startTime
-      );
-      statsObj.timeStamp = getTimeStamp();
-      statsObj.upTime = os.uptime() * 1000;
-
-      heartbeatObj.bestNetwork = statsObj.bestNetwork;
-
-      tempAdminArray = adminHashMap.entries();
-      heartbeatObj.admins = tempAdminArray;
-
-      tempServerArray = [];
-
-      async.each(
-        serverCache.keys(),
-        function (serverCacheKey, cb) {
-          const serverObj = serverCache.get(serverCacheKey);
-          if (serverObj !== undefined) {
-            tempServerArray.push([serverCacheKey, serverObj]);
-          }
-          cb();
-        },
-        function () {
-          heartbeatObj.servers = tempServerArray;
-        }
-      );
-
-      tempViewerArray = [];
-
-      async.each(
-        viewerCache.keys(),
-        function (viewerCacheKey, cb) {
-          const viewerObj = viewerCache.get(viewerCacheKey);
-          if (viewerObj !== undefined) {
-            tempViewerArray.push([viewerCacheKey, viewerObj]);
-          }
-          cb();
-        },
-        function () {
-          heartbeatObj.viewers = tempViewerArray;
-        }
-      );
-
-      statsObj.nodesPerMin = parseInt(globalNodeMeter.toJSON()[metricsRate]);
-
-      if (statsObj.nodesPerMin > statsObj.maxNodesPerMin) {
-        statsObj.maxNodesPerMin = statsObj.nodesPerMin;
-        statsObj.maxNodesPerMinTime = moment().valueOf();
-      }
-
-      statsObj.twitter.tweetsPerMin = parseInt(
-        tweetMeter.toJSON()[metricsRate]
-      );
-
-      if (statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin) {
-        statsObj.twitter.maxTweetsPerMin = statsObj.twitter.tweetsPerMin;
-        statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
-      }
-
-      if (statsObj.internetReady && statsObj.ioReady) {
-        statsObj.configuration = configuration;
-
-        viewNameSpace.emit("action", { type: "heartbeat", data: statsObj });
-
-        heartbeatsSent += 1;
-        if (heartbeatsSent % 60 == 0) {
-          logHeartbeat();
-        }
-      } else {
-        if (moment().seconds() % 10 == 0) {
-          debug(
-            chalkError(
-              "!!!! INTERNET DOWN?? !!!!! " +
-                getTimeStamp() +
-                " | INTERNET READY: " +
-                statsObj.internetReady +
-                " | I/O READY: " +
-                statsObj.ioReady
-            )
-          );
-        }
-      }
-    }, configuration.heartbeatInterval);
   }
 
   initAppRouting(function initAppRoutingComplete() {});
@@ -7829,14 +7784,12 @@ async function transmitNodes(tw) {
   return;
 }
 
-let heartbeatsSent = 0;
-
 function logHeartbeat() {
   console.log(
     chalkLog(
       MODULE_ID +
         " | HB " +
-        heartbeatsSent +
+        statsObj.heartbeat.sent +
         " | " +
         getTimeStamp() +
         " | ST: " +
@@ -10373,6 +10326,12 @@ async function loadConfigFile(params) {
     newConfiguration.metrics = {};
     // newConfiguration.threeceeUsers = [];
 
+    
+    if (loadedConfigObj.WAS_HEARTBEAT_INTERVAL !== undefined) {
+      console.log(`${MODULE_ID} | LOADED WAS_HEARTBEAT_INTERVAL: ${loadedConfigObj.WAS_HEARTBEAT_INTERVAL}`);
+      newConfiguration.heartbeatInterval = loadedConfigObj.WAS_HEARTBEAT_INTERVAL;
+    }
+
     if (loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG !== undefined) {
       console.log(
         MODULE_ID +
@@ -11983,6 +11942,9 @@ setTimeout(async function () {
       tweetVersion2: configuration.tweetVersion2,
       threeceeUser: threeceeUser,
     });
+
+    await initHeartbeatInterval();
+
   } catch (err) {
     console.trace(
       chalkError(

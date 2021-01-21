@@ -30,6 +30,7 @@
     "express-rate-limit": "^5.2.3",
     "express-session": "^1.17.1",
     "hashmap": "^2.4.0",
+    "immer": "^8.0.1",
     "is-plain-object": "^5.0.0",
     "languagedetect": "^2.0.0",
     "measured-core": "^2.0.0",

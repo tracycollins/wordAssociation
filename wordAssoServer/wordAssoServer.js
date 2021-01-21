@@ -827,6 +827,11 @@ const nodeSetPropsResultHandler = async function (message) {
 
           delete messageObj.node._id;
 
+          if (messageObj.node.tweetHistograms && messageObj.node.tweetHistograms.friends){
+            console.log(chalkAlert(`${MODULE_ID_PREFIX} | !!! nodeSetPropsResultHandler tweetHistograms.friends | NID: ${messageObj.node.nodeId} | @${messageObj.node.screenName}`))
+            console.log(messageObj.node.tweetHistograms.friends)
+          }
+
           await global.wordAssoDb.User.findOneAndUpdate(
             { nodeId: messageObj.node.nodeId },
             messageObj.node,
@@ -8762,6 +8767,7 @@ async function initTweetParserMessageRxQueueInterval(interval) {
           );
           tweetParserMessageRxQueueReady = true;
         } else {
+
           if (
             dbuChild &&
             dbuChildReady &&
@@ -11248,6 +11254,7 @@ async function initDbUserChangeStream() {
   let catObj = {};
 
   userChangeStream.on("change", function (change) {
+
     catChangeFlag = false;
     catAutoChangeFlag = false;
     catNetworkChangeFlag = false;
@@ -11271,8 +11278,8 @@ async function initDbUserChangeStream() {
         : statsObj.user.categoryVerifiedChanged;
 
     if (change && change.operationType === "insert") {
-      addedUsersSet.add(change.fullDocument.nodeId);
 
+      addedUsersSet.add(change.fullDocument.nodeId);
       statsObj.user.added = addedUsersSet.size;
 
       printUserObj(
@@ -11280,6 +11287,11 @@ async function initDbUserChangeStream() {
         change.fullDocument,
         chalkLog
       );
+
+      if (change.fullDocument.tweetHistograms && change.fullDocument.tweetHistograms.friends){
+        console.log(chalkAlert(`${MODULE_ID_PREFIX} | !!! USER INSERT tweetHistograms.friends | NID: ${change.fullDocument.nodeId} | @${change.fullDocument.screenName}`))
+        console.log(change.fullDocument.tweetHistograms.friends)
+      }
     }
 
     if (change && change.operationType === "delete") {
@@ -11315,9 +11327,14 @@ async function initDbUserChangeStream() {
         }
       }
 
-
       if (changedArray.includes("category")) {
         categoryChanges.manual = change.fullDocument.category;
+      }
+      if (changedArray.includes("tweetHistograms")) {
+        if (change.fullDocument.tweetHistograms.friends){
+          console.log(chalkAlert(`${MODULE_ID_PREFIX} | *** USER CHG tweetHistograms.friends | NID: ${change.fullDocument.nodeId} | @${change.fullDocument.screenName}`))
+          console.log(change.fullDocument.tweetHistograms.friends)
+        }
       }
       if (changedArray.includes("categoryAuto")) {
         categoryChanges.auto = change.fullDocument.categoryAuto;

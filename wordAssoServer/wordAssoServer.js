@@ -1864,6 +1864,7 @@ const adminHashMap = new HashMap();
 
 const tweetMeter = new Measured.Meter({ rateUnit: 60000 });
 const globalNodeMeter = new Measured.Meter({ rateUnit: 60000 });
+const globalNodeCounter = new Measured.Counter();
 
 let nodeMeter = {};
 const nodeMeterType = {};
@@ -3004,6 +3005,7 @@ function showStats(options) {
   statsObj.timeStamp = getTimeStamp();
   statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
   statsObj.nodesPerMin = parseInt(globalNodeMeter.toJSON()[metricsRate]);
+  statsObj.nodeCount = parseInt(globalNodeCounter.toJSON());
 
   if (statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin) {
     statsObj.twitter.maxTweetsPerMin = statsObj.twitter.tweetsPerMin;
@@ -3437,6 +3439,25 @@ configEvents.on("CHILD_ERROR", function childError(childObj) {
   }
 });
 
+const heartbeatPickArray = [
+  "bestNetwork",
+  "bots",
+  "elapsed",
+  "hashtag",
+  "heartbeat",
+  "maxNodesPerMin",
+  "maxNodesPerMinTime",
+  "nodeCount",
+  "nodesPerMin",
+  "runTime",
+  "serverTime",
+  "startTime",
+  "traffic",
+  "twitter",
+  "upTime",
+  "user",
+]
+
 const initHeartbeatInterval = async (p) => {
 
   try{
@@ -3445,6 +3466,8 @@ const initHeartbeatInterval = async (p) => {
 
     const params = p || {};
     const interval = params.interval || configuration.heartbeatInterval;
+
+    let heartbeatObj = {};
 
     statsObj.heartbeat = {};
     statsObj.heartbeat.start = getTimeStamp();
@@ -3459,13 +3482,19 @@ const initHeartbeatInterval = async (p) => {
       statsObj.timeStamp = getTimeStamp();
       statsObj.upTime = os.uptime() * 1000;
       statsObj.nodesPerMin = parseInt(globalNodeMeter.toJSON()[metricsRate]);
+      statsObj.nodeCount = parseInt(globalNodeCounter.toJSON());
 
       if (statsObj.nodesPerMin > statsObj.maxNodesPerMin) {
         statsObj.maxNodesPerMin = statsObj.nodesPerMin;
         statsObj.maxNodesPerMinTime = moment().valueOf();
       }
 
+      statsObj.twitter.tweetsReceived = tweetsReceived;
       statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
+      statsObj.twitter.quotedTweetsReceived = quotedTweetsReceived;
+      statsObj.twitter.retweetsReceived = retweetsReceived;
+      statsObj.twitter.duplicateTweetsReceived = duplicateTweetsReceived;
+      statsObj.errors.twitter.maxRxQueue = maxRxQueue;
 
       if (statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin) {
         statsObj.twitter.maxTweetsPerMin = statsObj.twitter.tweetsPerMin;
@@ -3476,7 +3505,9 @@ const initHeartbeatInterval = async (p) => {
 
         statsObj.configuration = configuration;
 
-        viewNameSpace.emit("action", { type: "heartbeat", data: statsObj });
+        heartbeatObj = pick(statsObj, heartbeatPickArray)
+
+        viewNameSpace.emit("action", { type: "heartbeat", data: heartbeatObj });
 
         statsObj.heartbeat.sent += 1;
 
@@ -6228,6 +6259,7 @@ async function updateNodeMeter(node) {
       nodeMeter[meterNodeId].mark();
       nodeMeterType[nodeType][meterNodeId].mark();
       globalNodeMeter.mark();
+      globalNodeCounter.inc();
 
       nodeObj.rate = parseFloat(nodeMeter[meterNodeId].toJSON()[metricsRate]);
       nodeObj.mentions = nodeObj.mentions ? nodeObj.mentions + 1 : 1;
@@ -6243,6 +6275,7 @@ async function updateNodeMeter(node) {
       
       nodeMeter[meterNodeId].mark();
       globalNodeMeter.mark();
+      globalNodeCounter.inc();
 
       if (empty(nodeMeterType[nodeType][meterNodeId])) {
         nodeMeterType[nodeType][meterNodeId] = new Measured.Meter({
@@ -8180,6 +8213,7 @@ function initAppRouting(callback) {
     statsObj.timeStamp = getTimeStamp();
     statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
     statsObj.nodesPerMin = parseInt(globalNodeMeter.toJSON()[metricsRate]);
+    statsObj.nodeCount = parseInt(globalNodeCounter.toJSON());
 
     if (statsObj.nodesPerMin > statsObj.maxNodesPerMin) {
       statsObj.maxNodesPerMin = statsObj.nodesPerMin;

@@ -1,14 +1,17 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 // import clsx from 'clsx';
 import { green, grey } from '@material-ui/core/colors';
 
+import Box from '@material-ui/core/Box';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 
 import Grid from '@material-ui/core/Grid';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import Slider from '@material-ui/core/Slider';
 import Typography from '@material-ui/core/Typography';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
@@ -255,6 +258,30 @@ const useStyles = makeStyles((theme) => ({
 
 }));
 
+
+function LinearProgressWithLabel(props) {
+  return (
+    <Box display="flex" alignItems="center">
+      <Box width="100%" mr={1}>
+        <LinearProgress variant="determinate" {...props} />
+      </Box>
+      <Box minWidth={35}>
+        <Typography variant="body2" color="textSecondary">{`${Math.round(
+          props.value,
+        )}`}</Typography>
+      </Box>
+    </Box>
+  );
+}
+
+LinearProgressWithLabel.propTypes = {
+  /**
+   * The value of the progress indicator for the determinate and buffer variants.
+   * Value between 0 and 100.
+   */
+  value: PropTypes.number.isRequired,
+};
+
 const formatDate = (dateInput) => {
   return new Date(dateInput).toLocaleDateString(
     'en-gb',
@@ -291,29 +318,72 @@ const Stats = (props) => {
   return (
     <>
       <Grid className={classes.grid}>
-          <Grid item className={classes.gridItem} xs={6}>
+          <Grid item className={classes.gridItem} xs={4}>
             <Card className={classes.card} variant="outlined">
               <CardContent >
-                  <Typography>BEST NN: {props.heartbeat.bestNetwork.networkId}</Typography>
+                <Typography variant="h6" id="neuralNetworks" name="neuralNetworks" gutterBottom>
+                  NEURAL NETWORKS
+                </Typography>
+                  <Typography>BEST: {props.heartbeat.bestNetwork.networkId}</Typography>
+                  <Typography>LIVE RATE: {props.heartbeat.bestNetwork.runtimeMatchRate.toFixed(2)}%</Typography>
+                  <Typography>SUCCESS RATE: {props.heartbeat.bestNetwork.successRate.toFixed(2)}%</Typography>
               </CardContent>              
+            </Card>
+          </Grid>
+          <Grid item className={classes.gridItem} xs={4}>
+            <Card className={classes.card} variant="outlined">
               <CardContent >
+                <Typography variant="h6" id="tweets" name="tweets" gutterBottom>
+                  TWITTER
+                </Typography>
+                <Typography id="tweetsReceived" name="tweetsReceived" gutterBottom>
+                  <span><b>{props.heartbeat.twitter.tweetsReceived}</b> TWEETS RCVD</span>
+                </Typography>
                 <Typography id="tweetsPerMin" name="tweetsPerMin" gutterBottom>
-                  {`TWITTER | ${props.heartbeat.twitter.tweetsPerMin} TPM | ${props.heartbeat.twitter.tweetsReceived} RCVD | ${props.heartbeat.twitter.maxTweetsPerMin} MAX TPM`}
+                  <span><b>{props.heartbeat.twitter.tweetsPerMin}</b> TWEETS/MIN</span>
                 </Typography>
-                <LinearProgress variant="determinate" value={(100.0 * props.heartbeat.twitter.tweetsPerMin / props.heartbeat.twitter.maxTweetsPerMin)}>
-                </LinearProgress>
-              </CardContent>
-              <CardContent >
-                <Typography className={classes.range} id="nodesPerMin" name="nodesPerMin" gutterBottom>
-                  {`NODE RATE: ${props.heartbeat.nodesPerMin} | ${props.heartbeat.maxNodesPerMin} MAX`}
+                <Typography id="maxTweetsPerMin" name="maxTweetsPerMin" gutterBottom>
+                  <span><b>{props.heartbeat.twitter.maxTweetsPerMin}</b> MAX TWEETS/MIN</span>
                 </Typography>
-                <LinearProgress variant="determinate" value={(100.0 * props.heartbeat.nodesPerMin / props.heartbeat.maxNodesPerMin)}>
-                </LinearProgress>
-                
+
+                <LinearProgressWithLabel 
+                  variant="determinate" 
+                  value={(100.0 * props.heartbeat.twitter.tweetsPerMin / props.heartbeat.twitter.maxTweetsPerMin)}
+                >
+                </LinearProgressWithLabel>
+
               </CardContent>
             </Card>
           </Grid>
-          <Grid item className={classes.gridItem} xs={6}>
+          <Grid item className={classes.gridItem} xs={4}>
+            <Card className={classes.card} variant="outlined">
+              <CardContent >
+                <Typography variant="h6" id="nodes" name="nodes" gutterBottom>
+                  NODES
+                </Typography>
+
+                <Typography className={classes.range} id="nodeCount" name="nodeCount" gutterBottom>
+                  <span><b>{props.heartbeat.nodeCount}</b> NODES</span>
+                </Typography>
+                <Typography className={classes.range} id="nodesPerMin" name="nodesPerMin" gutterBottom>
+                  <span><b>{props.heartbeat.nodesPerMin}</b> NODES/MIN</span>
+                </Typography>
+                <Typography className={classes.range} id="maxNodesPerMin" name="maxNodesPerMin" gutterBottom>
+                  <span><b>{props.heartbeat.maxNodesPerMin}</b> MAX NODES/MIN</span>
+                </Typography>
+
+
+                <LinearProgressWithLabel 
+                  variant="determinate" 
+                  value={(100.0 * props.heartbeat.nodesPerMin / props.heartbeat.maxNodesPerMin)}
+                >
+                </LinearProgressWithLabel>
+
+
+                {/* <LinearProgress variant="determinate" value={(100.0 * props.heartbeat.nodesPerMin / props.heartbeat.maxNodesPerMin)}>
+                </LinearProgress> */}
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
     </>

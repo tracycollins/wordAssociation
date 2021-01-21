@@ -14,7 +14,7 @@ import StatsView from './StatsView.js';
 
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
-// const LOCAL_SOURCE = "http://mbp3:3000";
+const MBP3_SOURCE = "http://mbp3:3000";
 
 const DEFAULT_SOURCE = PRODUCTION_SOURCE;
 

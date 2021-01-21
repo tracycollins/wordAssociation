@@ -20,6 +20,7 @@ import App from './App';
 //   </Typography>
 
 const defaultHeartbeat = {
+  nodeCount: 0,
   nodesPerMin: 0,
   maxNodesPerMin: 0,
   maxNodesPerMinTime: 1610097731559,

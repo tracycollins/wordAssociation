@@ -186,9 +186,10 @@ setTimeout(async function(){
     ]
 
     for(const indexObj of defaultUserIndexes){
-      console.log(`${MODULE_ID_PREFIX} | ... CREATING USER INDEX: ${Object.keys(indexObj)}`)
+      console.log(chalk.blue(`${MODULE_ID_PREFIX} | ... CREATING USER INDEX: ${Object.keys(indexObj)}`))
       try{
         await usersCollection.createIndex(indexObj, {background: true})
+        console.log(chalk.green(`${MODULE_ID_PREFIX} | +++ CREATED USER INDEX: ${Object.keys(indexObj)}`))
       }
       catch(e){
         if (e.code === 85){

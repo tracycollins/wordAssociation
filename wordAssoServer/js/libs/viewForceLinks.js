@@ -1941,7 +1941,8 @@ function ViewForceLinks (inputConfig) {
     console.log(`initD3timer`)
 
     simulation = d3.forceSimulation(nodeArray)
-      .force("link", d3.forceLink(linkArray).distance(linkDistance).strength(linkStrength))
+      .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength))
+      // .force("link", d3.forceLink(linkArray).distance(linkDistance).strength(linkStrength))
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX()
         .x((d) => {
@@ -2089,7 +2090,8 @@ function ViewForceLinks (inputConfig) {
 
         simulation
           .force("charge", d3.forceManyBody().strength(charge))
-          .force("link", d3.forceLink().distance(linkDistance).strength(linkStrength))
+          .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength))
+          // .force("link", d3.forceLink().distance(linkDistance).strength(linkStrength))
           .force("forceX", d3.forceX()
               .x(function forceXfunc(d) {
                 if (

@@ -242,6 +242,14 @@ const customizerComm = (event) => {
 
       switch (event.data.id) {
 
+        case "linkStrength":
+          currentSessionView.setLinkStrength(event.data.value);
+          break;
+
+        case "linkDistance":
+          currentSessionView.setLinkDistance(event.data.value);
+          break;
+
         case "velocityDecay":
           currentSessionView.setVelocityDecay(event.data.value);
           break;

@@ -1,10 +1,10 @@
 let config = {
   defaults: {
-    linkStrength: 1.47,
+    linkStrength: 0.5,
     linkStrengthRange: {
       min: 0,
-      max: 5,
-      step: 0.01
+      max: 1,
+      step: 0.001
     },    
     linkDistance: 10,
     linkDistanceRange: {

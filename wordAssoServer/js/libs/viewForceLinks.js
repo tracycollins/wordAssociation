@@ -736,6 +736,7 @@ function ViewForceLinks (inputConfig) {
     config.settings.linkStrength = value;
     linkStrength = value;
     simulation.force("link").strength(value);
+    simulation.alpha(1).restart();
   };
 
   self.setLinkDistance = function (value) {
@@ -743,6 +744,7 @@ function ViewForceLinks (inputConfig) {
     config.settings.linkDistance = value;
     linkDistance = value;
     simulation.force("link").distance(value);
+    simulation.alpha(1).restart();
   };
 
   self.setNodeRadiusRatioMin = function (value) {
@@ -1795,8 +1797,9 @@ function ViewForceLinks (inputConfig) {
       await ageNodes();
       linkArray = await processLinks();
 
-      simulation.force("link", d3.forceLink(linkArray));
+      // simulation.force("link", d3.forceLink(linkArray));
       simulation.nodes(nodeArray);
+      simulation.force("link").links(linkArray));
 
       updateSimulationReady = true;
     }

@@ -6,7 +6,7 @@ let config = {
       max: 5,
       step: 0.01
     },    
-    linkDistance: 1047,
+    linkDistance: 10,
     linkDistanceRange: {
       min: 0,
       max: 1000,

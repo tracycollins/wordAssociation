@@ -6,7 +6,7 @@ const config = {
       max: 10,
       step: 0.01
     },
-    linkDistance: 1,
+    linkDistance: 10,
     linkDistanceRange: {
       min: 0,
       max: 1000,

@@ -1,5 +1,17 @@
 let config = {
   defaults: {
+    linkStrength: 1.47,
+    linkStrengthRange: {
+      min: 0,
+      max: 5,
+      step: 0.01
+    },    
+    linkDistance: 1047,
+    linkDistanceRange: {
+      min: 0,
+      max: 1000,
+      step: 1
+    },  
     maxNodesLimit: 50,
     maxNodesLimitRange: {
       min: 0,

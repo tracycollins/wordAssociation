@@ -118,9 +118,9 @@ const Settings = (props) => {
               id="linkStrength"
               name="linkStrength"
               value={props.settings.linkStrength}
-              min={props.defaults.linkStrength.min}
-              max={props.defaults.linkStrength.max}
-              step={props.defaults.linkStrength.step}
+              min={props.defaults.linkStrengthRange.min}
+              max={props.defaults.linkStrengthRange.max}
+              step={props.defaults.linkStrengthRange.step}
               onChange={handleChangeSettings("linkStrength")}
               valueLabelDisplay="auto"
               aria-labelledby="slider"
@@ -137,9 +137,9 @@ const Settings = (props) => {
               id="linkDistance"
               name="linkDistance"
               value={props.settings.linkDistance}
-              min={props.defaults.linkDistance.min}
-              max={props.defaults.linkDistance.max}
-              step={props.defaults.linkDistance.step}
+              min={props.defaults.linkDistanceRange.min}
+              max={props.defaults.linkDistanceRange.max}
+              step={props.defaults.linkDistanceRange.step}
               onChange={handleChangeSettings("linkDistance")}
               valueLabelDisplay="auto"
               aria-labelledby="slider"

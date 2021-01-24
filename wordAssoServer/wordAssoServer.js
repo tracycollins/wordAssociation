@@ -197,7 +197,7 @@ const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = Number(ONE_SECOND);
 
 const DEFAULT_TWEET_VERSION_2 = false;
 
-const DEFAULT_INTERVAL = 5;
+const DEFAULT_INTERVAL = 2;
 const DEFAULT_MIN_FOLLOWERS_AUTO_CATEGORIZE = 5000;
 const DEFAULT_MIN_FOLLOWERS_AUTO_FOLLOW = 20000;
 
@@ -236,7 +236,7 @@ const DEFAULT_AUTO_OFFLINE_MODE = true; // if network connection is down, will a
 const DEFAULT_IO_PING_INTERVAL = ONE_MINUTE;
 const DEFAULT_IO_PING_TIMEOUT = 3 * ONE_MINUTE;
 
-const DEFAULT_NODE_TYPES = ["hashtag", "user"];
+const DEFAULT_NODE_TYPES = ["hashtag", "user", "tweet"];
 
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
@@ -956,8 +956,7 @@ const nodeSetPropsResultHandler = async function (message) {
           delete messageObj.node._id;
 
           if (messageObj.node.tweetHistograms && messageObj.node.tweetHistograms.friends){
-            console.log(chalkAlert(`${MODULE_ID_PREFIX} | !!! nodeSetPropsResultHandler tweetHistograms.friends | NID: ${messageObj.node.nodeId} | @${messageObj.node.screenName}`))
-            console.log(messageObj.node.tweetHistograms.friends)
+            console.log(chalkAlert(`${MODULE_ID_PREFIX} | !!! nodeSetPropsResultHandler tweetHistograms.friends ${typeof messageObj.node.tweetHistograms.friends} | NID: ${messageObj.node.nodeId} | @${messageObj.node.screenName}`))
           }
 
           await global.wordAssoDb.User.findOneAndUpdate(
@@ -1673,6 +1672,14 @@ const fieldsTransmit = {
   nodeType: 1,
   profileImageUrl: 1,
   rate: 1,
+  tweeterId: 1, // tweet
+  retweetCount: 1, // tweet
+  quotedId: 1, // tweet
+  quoteCount: 1, // tweet
+  replyCount: 1, // tweet
+  favoriteCount: 1, // tweet
+  userMentions: 1, // tweet entities array
+  hashtags: 1, // tweet entities array
   screenName: 1,
   screenNameLower: 1,
   statusesCount: 1,
@@ -3310,6 +3317,8 @@ process.on("unhandledRejection", async function (err, promise) {
       " | ERROR: " +
       err
   );
+  console.log(promise)
+
   const slackText =
     MODULE_ID +
     " | *** Unhandled rejection | PROMISE: " +
@@ -3452,6 +3461,7 @@ const heartbeatPickArray = [
   "runTime",
   "serverTime",
   "startTime",
+  "timeStamp",
   "traffic",
   "twitter",
   "upTime",
@@ -7588,15 +7598,15 @@ function initTransmitNodeQueueInterval(interval) {
 
         node.updateLastSeen = true;
 
-        if (empty(node.category)) {
+        if (node.nodeType !== "tweet" && empty(node.category)) {
           node.category = "none";
         }
 
-        if (empty(node.categoryAuto)) {
+        if (node.nodeType !== "tweet" && empty(node.categoryAuto)) {
           node.categoryAuto = "none";
         }
         
-        if (empty(node.categoryVerified)) {
+        if (node.nodeType !== "tweet" && empty(node.categoryVerified)) {
           node.categoryVerified = false;
         }
 
@@ -7696,11 +7706,6 @@ function initTransmitNodeQueueInterval(interval) {
 
           try {
 
-            // if (!statsObj.dbConnectionReady) {
-            //   transmitNodeQueueReady = true;
-            //   return;
-            // }
-
             node = await updateNodeMeter(node);
               
             let dbHashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: node.nodeId });
@@ -7743,6 +7748,21 @@ function initTransmitNodeQueueInterval(interval) {
           }
         }
 
+        if (node.nodeType == "tweet") {
+
+          try{
+            viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
+            transmitNodeQueueReady = true;
+            return;
+          }
+          catch(e){
+            console.log(chalkError(MODULE_ID + " | findOneAndUpdate HT ERROR\n" + jsonPrint(e)));
+            viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
+            transmitNodeQueueReady = true;
+            return;
+          }
+        }
+
         viewNameSpace.volatile.emit("node", node);
         transmitNodeQueueReady = true;
 
@@ -7758,6 +7778,7 @@ function initTransmitNodeQueueInterval(interval) {
 }
 
 async function transmitNodes(tw) {
+
   if (
     !tw.user ||
     tw.user.screenName === undefined ||
@@ -7771,14 +7792,24 @@ async function transmitNodes(tw) {
   if (botNodeIdSet.has(tw.user.nodeId)) { 
     tw.user.isBot = true;
     statsObj.traffic.users.bots += 1;
-    statsObj.traffic.users.percentBots =
-      100 *
-      (statsObj.traffic.users.bots / statsObj.traffic.users.total);
-
+    statsObj.traffic.users.percentBots = 100 *(statsObj.traffic.users.bots / statsObj.traffic.users.total);
     printBotStats({ user: tw.user, modulo: 100 });
   }
 
-  tw.user.isTweeter = false;
+  const tweetNode = {
+    nodeType: "tweet",
+    nodeId: tw.tweetId,
+    tweeterId: tw.user.nodeId,
+    retweetCount: 0,
+    quotedId: false,
+    quoteCount: 0,
+    replyCount: 0,
+    favoriteCount: 0,
+    userMentions: [],
+    hashtags: [],
+  }
+
+  tw.user.isTweeter = true;
   transmitNodeQueue.push(tw.user);
 
   for (const user of tw.userMentions) {
@@ -7793,26 +7824,26 @@ async function transmitNodes(tw) {
       if (botNodeIdSet.has(user.nodeId)) { 
         user.isBot = true; 
         statsObj.traffic.users.bots += 1;
-        statsObj.traffic.users.percentBots =
-          100 *
-          (statsObj.traffic.users.bots / statsObj.traffic.users.total);
-
+        statsObj.traffic.users.percentBots = 100 * (statsObj.traffic.users.bots / statsObj.traffic.users.total);
         printBotStats({ user: tw.user, modulo: 100 });
       }
+      tweetNode.userMentions.push(user.nodeId);
       transmitNodeQueue.push(user);
     }
   }
 
   for (const hashtagId of tw.hashtags) {
     if (
-      hashtagId &&
-      configuration.enableTransmitHashtag &&
+      hashtagId && configuration.enableTransmitHashtag &&
       !ignoredHashtagSet.has(hashtagId) &&
       !ignoredHashtagRegex.test(hashtagId)
     ) {
+      tweetNode.hashtags.push(hashtagId);
       transmitNodeQueue.push({ nodeType: "hashtag", nodeId: hashtagId });
     }
   }
+
+  transmitNodeQueue.push(tweetNode);
 
   return;
 }
@@ -7841,13 +7872,6 @@ function initAppRouting(callback) {
   );
 
   let domainName;
-
-  // app.use(function(req, res, next) {
-  //   console.log({req})
-  //   res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
-  //   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  //   next();
-  // });
 
   app.use(methodOverride());
 
@@ -8744,14 +8768,7 @@ async function initTweetParserMessageRxQueueInterval(interval) {
         tweetObj = tweetParserMessage.tweetObj;
 
         if (!tweetObj.user) {
-          console.log(
-            chalkAlert(
-              MODULE_ID +
-                " | parsedTweet -- TW USER UNDEFINED" +
-                " | " +
-                tweetObj.tweetId
-            )
-          );
+          console.log(chalkAlert(MODULE_ID + " | parsedTweet -- TW USER UNDEFINED" + " | " + tweetObj.tweetId));
           tweetParserMessageRxQueueReady = true;
         } else {
 
@@ -9999,38 +10016,20 @@ function initRateQinterval(interval) {
       if (updateTimeSeriesCount % configuration.rateQueueIntervalModulo == 0) {
         cacheObjKeys.forEach(function statsCachesUpdate(cacheName) {
           if (cacheName == "nodesPerMinuteTopTermNodeTypeCache") {
-            DEFAULT_NODE_TYPES.forEach(function (nodeType) {
-              statsObj.caches[cacheName][nodeType].stats.keys = cacheObj[
-                cacheName
-              ][nodeType].getStats().keys;
 
-              if (
-                statsObj.caches[cacheName][nodeType].stats.keys >
-                statsObj.caches[cacheName][nodeType].stats.keysMax
-              ) {
-                statsObj.caches[cacheName][nodeType].stats.keysMax =
-                  statsObj.caches[cacheName][nodeType].stats.keys;
-                statsObj.caches[cacheName][
-                  nodeType
-                ].stats.keysMaxTime = moment().valueOf();
-                console.log(
-                  chalkInfo(
-                    MODULE_ID +
-                      " | MAX CACHE" +
-                      " | " +
-                      cacheName +
-                      " - " +
-                      nodeType +
-                      " | Ks: " +
-                      statsObj.caches[cacheName][nodeType].stats.keys
-                  )
-                );
+            DEFAULT_NODE_TYPES.forEach(function (nodeType) {
+
+              statsObj.caches[cacheName][nodeType].stats.keys = cacheObj[cacheName][nodeType].getStats().keys;
+
+              if (statsObj.caches[cacheName][nodeType].stats.keys > statsObj.caches[cacheName][nodeType].stats.keysMax) {
+                statsObj.caches[cacheName][nodeType].stats.keysMax = statsObj.caches[cacheName][nodeType].stats.keys;
+                statsObj.caches[cacheName][nodeType].stats.keysMaxTime = moment().valueOf();
+                console.log(chalkInfo(`${MODULE_ID} | MAX CACHE | ${cacheName} - ${nodeType} | Ks + ${statsObj.caches[cacheName][nodeType].stats.keys}`));
               }
             });
+
           } else {
-            statsObj.caches[cacheName].stats.keys = cacheObj[
-              cacheName
-            ].getStats().keys;
+            statsObj.caches[cacheName].stats.keys = cacheObj[cacheName].getStats().keys;
 
             if (
               statsObj.caches[cacheName].stats.keys >
@@ -10054,9 +10053,7 @@ function initRateQinterval(interval) {
         });
 
         if (adminNameSpace) {
-          // statsObj.admin.connected = Object.keys(
-          //   adminNameSpace.connected
-          // ).length; // userNameSpace.sockets.length ;
+
           if (statsObj.admin.connected > statsObj.admin.connectedMax) {
             statsObj.admin.connectedMaxTime = moment().valueOf();
             statsObj.admin.connectedMax = statsObj.admin.connected;
@@ -10074,9 +10071,7 @@ function initRateQinterval(interval) {
         }
 
         if (utilNameSpace) {
-          // statsObj.entity.util.connected = Object.keys(
-          //   utilNameSpace.connected
-          // ).length; // userNameSpace.sockets.length ;
+
           if (
             statsObj.entity.util.connected > statsObj.entity.util.connectedMax
           ) {
@@ -11933,7 +11928,7 @@ setTimeout(async function () {
     await initAllowLocations();
     await initIgnoreLocations();
     await initIgnoredProfileWords();
-    await initUpdateUserSetsInterval();
+    // await initUpdateUserSetsInterval();
     await initUpdateHashtagSetsInterval();
     await loadBestRuntimeNetwork();
     await initNodeSetPropsQueueInterval(configuration.nodeSetPropsQueueInterval);
@@ -11978,6 +11973,7 @@ setTimeout(async function () {
     });
 
     await initHeartbeatInterval();
+    await initUpdateUserSetsInterval();
 
   } catch (err) {
     console.trace(

@@ -735,14 +735,14 @@ function ViewForceLinks (inputConfig) {
     console.debug("UPDATE LINK STRENGTH: " + value);
     config.settings.linkStrength = value;
     linkStrength = value;
-    simulation.force("link", d3.forceLink(linkArray).distance(linkDistance).strength(linkStrength))
+    simulation.force("link").strength(value);
   };
 
   self.setLinkDistance = function (value) {
     console.debug("UPDATE LINK DISTANCE: " + value);
     config.settings.linkDistance = value;
     linkDistance = value;
-    simulation.force("link", d3.forceLink(linkArray).distance(linkDistance).strength(linkStrength))
+    simulation.force("link").distance(value);
   };
 
   self.setNodeRadiusRatioMin = function (value) {
@@ -1827,14 +1827,14 @@ function ViewForceLinks (inputConfig) {
     console.debug("SET LINK STRENGTH: " + value);
     config.settings.linkStrength = value;
     linkStrength = value;
-    simulation.force("link", d3.forceLink(forceLink).distance(linkDistance).strength(linkStrength))
+    simulation.force("link").strength(value);
   };
 
   self.setLinkDistanceSliderValue = function (value) {
     console.debug("SET LINK DISTANCE: " + value);
     config.settings.linkDistance = value;
     linkDistance = value;
-    simulation.force("link", d3.forceLink(forceLink).distance(linkDistance).strength(linkStrength))
+    simulation.force("link").distance(value);
   };
 
   self.addNode = function (n) {

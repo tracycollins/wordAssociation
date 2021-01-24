@@ -2,7 +2,7 @@
 
 function ViewForceLinks (inputConfig) {
 
-  const LINK_DISTANCE = 1600;
+  const LINK_DISTANCE = 10;
   const LINK_STRENGTH = 1;
 
   console.log("@@@@@@@ ViewForceLinks @@@@@@@@");

@@ -127,6 +127,25 @@ const Settings = (props) => {
               getAriaValueText={valuetext}
             />
 
+            <Typography className={classes.range} id="linkDistance" name="linkDistance" gutterBottom>
+              LINK DISTANCE
+            </Typography>
+            <Typography className={classes.range} gutterBottom>
+              {`${props.settings.linkDistance} LINK DISTANCE`}
+            </Typography>
+            <Slider
+              id="linkDistance"
+              name="linkDistance"
+              value={props.settings.linkDistance}
+              min={props.defaults.linkDistance.min}
+              max={props.defaults.linkDistance.max}
+              step={props.defaults.linkDistance.step}
+              onChange={handleChangeSettings("linkDistance")}
+              valueLabelDisplay="auto"
+              aria-labelledby="slider"
+              getAriaValueText={valuetext}
+            />
+
             <Typography className={classes.range} id="velocityDecay" name="velocityDecay" gutterBottom>
               VELOCITY DECAY
             </Typography>

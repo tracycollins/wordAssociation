@@ -1,9 +1,9 @@
 const config = {
   defaults: {
-    linkStrength: 1,
+    linkStrength: 0.2,
     linkStrengthRange: {
       min: 0,
-      max: 10,
+      max: 1.0,
       step: 0.01
     },
     linkDistance: 10,

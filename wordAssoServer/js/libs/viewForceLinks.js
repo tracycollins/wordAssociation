@@ -1799,7 +1799,7 @@ function ViewForceLinks (inputConfig) {
 
       // simulation.force("link", d3.forceLink(linkArray));
       simulation.nodes(nodeArray);
-      simulation.force("link").links(linkArray));
+      simulation.force("link").links(linkArray);
 
       updateSimulationReady = true;
     }

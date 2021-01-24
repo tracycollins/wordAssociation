@@ -52,15 +52,6 @@ function ViewForceLinks (inputConfig) {
   config.settings = config.settings || {};
   config.defaults = config.defaults || {};
 
-  config.settings.metricMode = "rate";
-  config.settings.enableLinks = true;
-
-  config.settings.panzoom = {}
-  config.settings.panzoom.transform = {}
-  config.settings.panzoom.transform.ratio = 1.0;
-  config.settings.panzoom.transform.scale = 0.6;
-  config.settings.panzoom.transform.x = 0.5 * width;
-  config.settings.panzoom.transform.y = 0.2 * height;
 
   config.settings.linkDistance = LINK_DISTANCE;
   config.settings.linkStrength = LINK_STRENGTH;
@@ -73,14 +64,6 @@ function ViewForceLinks (inputConfig) {
 
   config.settings.minRateMetricChange = config.settings.minRateMetricChange || 0.5;
 
-  config.settings.nodeRadiusRatio = {};
-  config.settings.nodeRadiusRatio.min = 0.01;
-  config.settings.nodeRadiusRatio.max = 0.2;
-
-  config.settings.fontSizeRatio = {};
-  config.settings.fontSizeRatio.min = 0.01;
-  config.settings.fontSizeRatio.max = 0.2;
-  
   config.settings.focus = config.settings.focus || {};
 
   config.settings.focus.leftRatio = {};
@@ -221,7 +204,6 @@ function ViewForceLinks (inputConfig) {
 
   let simulation;
 
-  let enableLinks = false;
   let enableAgeNodes = true;
   let newCurrentMaxMentionsMetricFlag = true;
   let newCurrentMaxRateMetricFlag = true;
@@ -612,11 +594,6 @@ function ViewForceLinks (inputConfig) {
   self.setEnableAgeNodes = function (enabled) {
     enableAgeNodes = enabled;
     config.settings.enableAgeNodes = enabled;
-  };
-
-  self.setEnableLinks = function (enabled) {
-    enableLinks = enabled;
-    config.settings.enableLinks = enabled;
   };
 
   self.setMaxNodesLimit = function (mNodesLimit) {
@@ -1400,14 +1377,14 @@ function ViewForceLinks (inputConfig) {
 
     nodeCircles = nodeSvgGroup.selectAll("circle").data(
       nodeArray,
-      function (d) { return d.nodeId; }
+      function (d) { return d.nodePoolId; }
     );
 
     // ENTER
     nodeCircles
       .enter()
       .append("circle")
-      // .attr("id", function (d) { return d.nodePoolId; })
+      .attr("id", function (d) { return d.nodePoolId; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .style("display", function (d) {
         if (!d.isValid) { return "none"; }
@@ -1427,7 +1404,7 @@ function ViewForceLinks (inputConfig) {
 
     // UPDATE
     nodeCircles
-      // .attr("id", function (d) { return d.nodePoolId; })
+      .attr("id", function (d) { return d.nodePoolId; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .style("display", function (d) {
         if (d.isValid) { return "unset"; }
@@ -1732,7 +1709,7 @@ function ViewForceLinks (inputConfig) {
     try{
       updateNodeCircles();
       updateNodeLabels();
-      // updateLinks();
+      updateLinks();
 
       if ((metricMode === "rate" && newCurrentMaxRateMetricFlag && Math.abs(currentMaxRateMetric - previousMaxRateMetric) / currentMaxRateMetric > config.settings.minRateMetricChange)
         || (metricMode === "mentions" && newCurrentMaxMentionsMetricFlag)) {
@@ -1771,7 +1748,7 @@ function ViewForceLinks (inputConfig) {
 
     try{
 
-      linkArray = []
+      const links = []
 
       // for(const node of localNodeHashMap.values()){
       for(const node of nodeArray){
@@ -1788,7 +1765,7 @@ function ViewForceLinks (inputConfig) {
 
             if (targetNode !== undefined){
 
-              linkArray.push({
+              links.push({
                 linkId: `${node.nodeId}_target_${targetNodeId}`,
                 // isValid: true,
                 source: node,
@@ -1798,7 +1775,7 @@ function ViewForceLinks (inputConfig) {
           }
         }
       }
-      return;
+      return links;
     }
     catch(err){
       console.error(err)
@@ -1816,11 +1793,9 @@ function ViewForceLinks (inputConfig) {
 
       await processNodeAddQ();
       await ageNodes();
-      // if (enableLinks){
-      //   await processLinks();
-      //   simulation.force("link", d3.forceLink(linkArray));
-      // }
+      linkArray = await processLinks();
 
+      simulation.force("link", d3.forceLink(linkArray));
       simulation.nodes(nodeArray);
 
       updateSimulationReady = true;

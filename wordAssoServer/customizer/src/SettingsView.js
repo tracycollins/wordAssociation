@@ -108,6 +108,25 @@ const Settings = (props) => {
               getAriaValueText={valuetext}
             />
 
+            <Typography className={classes.range} id="linkStrength" name="linkStrength" gutterBottom>
+              LINK STRENGTH
+            </Typography>
+            <Typography className={classes.range} gutterBottom>
+              {`${props.settings.linkStrength} LINK STRENGTH`}
+            </Typography>
+            <Slider
+              id="linkStrength"
+              name="linkStrength"
+              value={props.settings.linkStrength}
+              min={props.defaults.linkStrength.min}
+              max={props.defaults.linkStrength.max}
+              step={props.defaults.linkStrength.step}
+              onChange={handleChangeSettings("linkStrength")}
+              valueLabelDisplay="auto"
+              aria-labelledby="slider"
+              getAriaValueText={valuetext}
+            />
+
             <Typography className={classes.range} id="velocityDecay" name="velocityDecay" gutterBottom>
               VELOCITY DECAY
             </Typography>

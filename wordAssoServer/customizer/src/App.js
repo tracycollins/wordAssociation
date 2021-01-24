@@ -148,6 +148,8 @@ const App = (props) => {
         setSettings(tempSettings)
         break
 
+      case "linkStrength":
+      case "linkDistance":
       case "nodeMaxAge":
       case "maxNodesLimit":
       case "charge":

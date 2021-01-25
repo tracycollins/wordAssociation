@@ -11928,7 +11928,7 @@ setTimeout(async function () {
     await initAllowLocations();
     await initIgnoreLocations();
     await initIgnoredProfileWords();
-    // await initUpdateUserSetsInterval();
+    await initUpdateUserSetsInterval();
     await initUpdateHashtagSetsInterval();
     await loadBestRuntimeNetwork();
     await initNodeSetPropsQueueInterval(configuration.nodeSetPropsQueueInterval);
@@ -11973,7 +11973,7 @@ setTimeout(async function () {
     });
 
     await initHeartbeatInterval();
-    await initUpdateUserSetsInterval();
+    // await initUpdateUserSetsInterval();
 
   } catch (err) {
     console.trace(

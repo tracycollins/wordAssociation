@@ -1023,7 +1023,7 @@ function initSearchStream(){
 
             statsObj.filtered.languages += 1;
 
-            console.log(chalkLog(MODULE_ID + " | XXX PROFILE LANG | SKIPPING"
+            debug(chalkLog(MODULE_ID + " | XXX PROFILE LANG | SKIPPING"
               + " [" + statsObj.filtered.languages + "]"
               + " | LANG DES: " + userLangDescription[0]
               + " | LANG SCORE: " + userLangDescription[1].toFixed(4)

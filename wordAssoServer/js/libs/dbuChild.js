@@ -329,13 +329,13 @@ async function tweetUpdateDb(params){
         hashtag.mentions += 1;
         hashtag.lastSeen = Date.now();
         await hashtag.save();
-        printHashtagObj("DBU | +++ HT DB HIT", hashtag);
+        // printHashtagObj("DBU | +++ HT DB HIT", hashtag);
       }
       else{
-        console.log("DBU | --- HT DB MISS | " + ht);
+        // console.log("DBU | --- HT DB MISS | " + ht);
         const newHashtag = new global.wordAssoDb.Hashtag({nodeId: ht, mentions: 1});
         await newHashtag.save();
-        printHashtagObj("DBU | ==> HT DB NEW", newHashtag);
+        // printHashtagObj("DBU | ==> HT DB NEW", newHashtag);
       }
     }
 

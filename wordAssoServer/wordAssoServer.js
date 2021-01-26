@@ -11218,8 +11218,6 @@ async function initDbUserChangeStream() {
   let catNetworkChangeFlag = false;
   let catVerifiedChangeFlag = false;
 
-  let chalkType = chalkLog;
-
   const userChangeFilter = {
     $match: {
       $or: [
@@ -11270,12 +11268,6 @@ async function initDbUserChangeStream() {
       addedUsersSet.add(change.fullDocument.nodeId);
       statsObj.user.added = addedUsersSet.size;
 
-      printUserObj(
-        MODULE_ID + " | DB CHG | + USR [" + statsObj.user.added + "]",
-        change.fullDocument,
-        chalkLog
-      );
-
       if (change.fullDocument.tweetHistograms && change.fullDocument.tweetHistograms.friends){
         console.log(chalkAlert(`${MODULE_ID_PREFIX} | !!! USER INSERT tweetHistograms.friends | NID: ${change.fullDocument.nodeId} | @${change.fullDocument.screenName}`))
         console.log(change.fullDocument.tweetHistograms.friends)
@@ -11284,16 +11276,8 @@ async function initDbUserChangeStream() {
 
     if (change && change.operationType === "delete") {
       // change obj doesn't contain userDoc, so use DB BSON ID
-
       deletedUsersSet.add(change._id._data);
-
       statsObj.user.deleted = deletedUsersSet.size;
-
-      console.log(chalkLog(
-        MODULE_ID + " | DB CHG"
-        + " | X USR [" + statsObj.user.deleted + "]"
-        + " | DB _id: " + change._id._data
-      ));
     }
 
     if (
@@ -11335,52 +11319,34 @@ async function initDbUserChangeStream() {
       }
 
       if (categoryChanges.auto || categoryChanges.manual || categoryChanges.network || categoryChanges.verified) {
-        let textAppend = "";
 
         catObj = categorizedUserHashMap.get(change.fullDocument.nodeId);
 
         if (categoryChanges.manual && formatCategory(catObj.manual) !== formatCategory(categoryChanges.manual)) {
-          textAppend += " | M: " + formatCategory(catObj.manual) + " -> " + formatCategory(categoryChanges.manual);
           catObj.manual = categoryChanges.manual;
           catChangeFlag = true;
           statsObj.user.categoryChanged += 1;
         }
 
         if (categoryChanges.auto && formatCategory(catObj.auto) !== formatCategory(categoryChanges.auto)) {
-          textAppend += " A: " + formatCategory(catObj.auto) + " -> " + formatCategory(categoryChanges.auto);
           catObj.auto = categoryChanges.auto;
           catAutoChangeFlag = true;
           statsObj.user.categoryAutoChanged += 1;
         }
 
         if (categoryChanges.network && catObj.network && catObj.network !== categoryChanges.network) {
-          textAppend += " | CN: " + catObj.network + " -> " + categoryChanges.network;
           catObj.network = categoryChanges.network;
           catNetworkChangeFlag = true;
           statsObj.user.categorizeNetworkChanged += 1;
         }
 
         if (categoryChanges.verified && catObj.verified && catObj.verified !== categoryChanges.verified) {
-          textAppend += " | V: " + formatBoolean(catObj.verified) + " -> " + formatCategory(categoryChanges.verified);
           catObj.verified = categoryChanges.verified;
           catVerifiedChangeFlag = true;
           statsObj.user.categoryVerifiedChanged += 1;
         }
 
         if (catChangeFlag || catAutoChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {
-
-          chalkType = chalkLog;
-
-          if (catChangeFlag && catObj.manual !== "none" && categoryChanges.manual === "none") {
-            chalkType = chalkAlert;
-          }
-
-          const text = MODULE_ID + " | DB CHG | CAT USR"
-            + " [ M: " + statsObj.user.categoryChanged + " A: " + statsObj.user.categoryAutoChanged + " N: " + statsObj.user.categorizeNetworkChanged + "]" +
-            " | " + change.fullDocument.nodeId + " | @" + change.fullDocument.screenName + textAppend;
-
-          console.log(chalkType(text));
-
           categorizedUserHashMap.set(catObj.nodeId, catObj);
           uncategorizeableUserSet.delete(catObj.nodeId);
         }
@@ -11429,14 +11395,7 @@ async function initDbHashtagChangeStream() {
 
     if (change && change.operationType === "insert") {
       addedHashtagsSet.add(change.fullDocument.nodeId);
-
       statsObj.hashtag.added = addedHashtagsSet.size;
-
-      console.log(chalkLog(MODULE_ID +
-        " | DB CHG | + HT [" + statsObj.hashtag.added + "]" + 
-        " | CAT: " + formatCategory(change.fullDocument.category) +
-        " | #" + change.fullDocument.nodeId
-      ));
     }
 
     if (change && change.operationType === "delete") {
@@ -11444,16 +11403,6 @@ async function initDbHashtagChangeStream() {
 
       deletedHashtagsSet.add(change._id._data);
       statsObj.hashtag.deleted = deletedHashtagsSet.size;
-      console.log(
-        chalkLog(
-          MODULE_ID +
-            " | DB CHG | X HT [" +
-            statsObj.hashtag.deleted +
-            "]" +
-            " | DB _id: " +
-            change._id._data
-        )
-      );
     }
 
     if (
@@ -11477,32 +11426,12 @@ async function initDbHashtagChangeStream() {
           catObj.manual = change.fullDocument.category;
         }
 
-        if (
-          categoryChanges.manual &&
-          formatCategory(catObj.manual) !==
-            formatCategory(categoryChanges.manual)
-        ) {
+        if (categoryChanges.manual && formatCategory(catObj.manual) !== formatCategory(categoryChanges.manual)) {
           catChangeFlag = true;
           statsObj.hashtag.categoryChanged += 1;
         }
 
         if (catChangeFlag || catNetworkChangeFlag || catVerifiedChangeFlag) {
-          console.log(
-            chalkLog(
-              MODULE_ID +
-                " | DB CHG | CAT HT" +
-                " [ M: " +
-                statsObj.hashtag.categoryChanged +
-                " ]" +
-                " | M: " +
-                formatCategory(catObj.manual) +
-                " -> " +
-                formatCategory(categoryChanges.manual) +
-                " | #" +
-                change.fullDocument.nodeId
-            )
-          );
-
           catObj.manual = categoryChanges.manual || catObj.manual;
           categorizedHashtagHashMap.set(catObj.nodeId, catObj);
         }
@@ -11533,9 +11462,7 @@ function initStdIn() {
           break;
         case "t":
           configuration.testMode = !configuration.testMode;
-          console.log(
-            chalkAlert(MODULE_ID + " | TEST MODE: " + configuration.testMode)
-          );
+          console.log(chalkAlert(MODULE_ID + " | TEST MODE: " + configuration.testMode));
           break;
         case "x":
           saveSampleTweetFlag = true;
@@ -11543,9 +11470,7 @@ function initStdIn() {
           break;
         case "v":
           configuration.verbose = !configuration.verbose;
-          console.log(
-            chalkAlert(MODULE_ID + " | VERBOSE: " + configuration.verbose)
-          );
+          console.log(chalkAlert(MODULE_ID + " | VERBOSE: " + configuration.verbose));
           break;
         case "q":
           await quit();

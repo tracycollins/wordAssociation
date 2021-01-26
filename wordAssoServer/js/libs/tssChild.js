@@ -960,18 +960,7 @@ function initSearchStream(){
         statsObj.tweets.total += 1;
 
         if (filterRetweets && (tweetStatus.retweeted_status || tweetStatus.is_quote_status)){
-
           statsObj.filtered.retweets += 1;
-
-          if (configuration.verbose) {
-            console.log(chalkLog(MODULE_ID + " | XXX FILTER RETWEETS | SKIPPING"
-              + " [" + statsObj.filtered.retweets + "]"
-              + " | TWID: " + tweetStatus.id_str
-              + " | UID: " + tweetStatus.user.id_str
-              + " | @" + tweetStatus.user.screen_name
-              + " | NAME: " + tweetStatus.user.name
-            ));
-          }
           return;
         }
 
@@ -980,16 +969,6 @@ function initSearchStream(){
           && ignoredUserSet.has(tweetStatus.user.userId)){
 
           statsObj.filtered.users += 1;
-
-          if (configuration.verbose) {
-            console.log(chalkLog(MODULE_ID + " | XXX IGNORE USER | SKIPPING"
-              + " [" + statsObj.filtered.users + "]"
-              + " | TWID: " + tweetStatus.id_str
-              + " | UID: " + tweetStatus.user.id_str
-              + " | @" + tweetStatus.user.screen_name
-              + " | NAME: " + tweetStatus.user.name
-            ));
-          }
           return;
         }
 
@@ -998,17 +977,6 @@ function initSearchStream(){
           && (tweetStatus.user.lang != "en")){ 
 
           statsObj.filtered.languages += 1;
-
-          if (configuration.verbose) {
-            console.log(chalkLog(MODULE_ID + " | XXX IGNORE LANG | SKIPPING"
-              + " [" + statsObj.filtered.languages + "]"
-              + " | TWID: " + tweetStatus.id_str
-              + " | LANG: " + tweetStatus.user.lang
-              + " | UID: " + tweetStatus.user.id_str
-              + " | @" + tweetStatus.user.screen_name
-              + " | NAME: " + tweetStatus.user.name
-            ));
-          }
           return;
         }
 
@@ -1022,17 +990,6 @@ function initSearchStream(){
           ){
 
             statsObj.filtered.languages += 1;
-
-            debug(chalkLog(MODULE_ID + " | XXX PROFILE LANG | SKIPPING"
-              + " [" + statsObj.filtered.languages + "]"
-              + " | LANG DES: " + userLangDescription[0]
-              + " | LANG SCORE: " + userLangDescription[1].toFixed(4)
-              + " | TWID: " + tweetStatus.id_str
-              + " | UID: " + tweetStatus.user.id_str
-              + " | @" + tweetStatus.user.screen_name
-              + " | N: " + tweetStatus.user.name
-            ))
-
             return;
           }
 
@@ -1041,18 +998,6 @@ function initSearchStream(){
             ignoredUserSet.add(tweetStatus.user.userId);
 
             statsObj.filtered.words += 1;
-
-            if (configuration.verbose || (statsObj.filtered.words % 100 === 0)){
-              console.log(chalkLog(MODULE_ID + " | XXX IGNORE PROFILE WORD | SKIPPING"
-                + " [" + statsObj.filtered.words + " FILTERED]"
-                + " | IGNORE USER SET: " + ignoredUserSet.size
-                + " | TWID: " + tweetStatus.id_str
-                + " | UID: " + tweetStatus.user.id_str
-                + " | @" + tweetStatus.user.screen_name
-                + " | NAME: " + tweetStatus.user.name
-              ));
-            }
-            
             return;
           }
         }
@@ -1068,34 +1013,11 @@ function initSearchStream(){
           ){
 
             statsObj.filtered.languages += 1;
-
-            console.log(chalkLog(MODULE_ID + " | XXX PROFILE LANG | SKIPPING"
-              + " [" + statsObj.filtered.languages + "]"
-              + " | LANG LOC: " + userLangLocation[0]
-              + " | LANG SCORE: " + userLangLocation[1].toFixed(4)
-              + " | TWID: " + tweetStatus.id_str
-              + " | UID: " + tweetStatus.user.id_str
-              + " | @" + tweetStatus.user.screen_name
-              + " | N: " + tweetStatus.user.name
-            ))
-
             return;
           }
 
           if (ignoreLocationsRegEx.test(tweetStatus.user.location)) {
-
             statsObj.filtered.locations += 1;
-
-            if (configuration.verbose) {
-              console.log(chalkLog(MODULE_ID + " | XXX IGNORE LOCATION | SKIPPING"
-                + " [" + statsObj.filtered.locations + "]"
-                + " | TWID: " + tweetStatus.id_str
-                + " | LOC: " + tweetStatus.user.location
-                + " | UID: " + tweetStatus.user.id_str
-                + " | @" + tweetStatus.user.screen_name
-                + " | NAME: " + tweetStatus.user.name
-              ));
-            }
             return;
           }
         }
@@ -1105,17 +1027,6 @@ function initSearchStream(){
           && (tweetStatus.user.lang != "en")){ 
 
           statsObj.filtered.languages += 1;
-
-          if (configuration.verbose) {
-            console.log(chalkLog(MODULE_ID + " | XXX IGNORE LANG | SKIPPING"
-              + " [" + statsObj.filtered.languages + "]"
-              + " | TWID: " + tweetStatus.id_str
-              + " | LANG: " + tweetStatus.user.lang
-              + " | UID: " + tweetStatus.user.id_str
-              + " | @" + tweetStatus.user.screen_name
-              + " | NAME: " + tweetStatus.user.name
-            ));
-          }
           return;
         }
 
@@ -1136,16 +1047,6 @@ function initSearchStream(){
             if (ignoredHashtagSet.has(ht.text.toLowerCase())) {
 
               statsObj.filtered.hashtags += 1;
-
-              if (statsObj.filtered.hashtags % 100 === 0){
-                console.log(chalkLog(MODULE_ID + " | XXX FILTER TWEET"
-                  + " [" + statsObj.filtered.hashtags + "]"
-                  + " IGNORED HASHTAG: " + ht.text.toLowerCase()
-                  + " | TWEET " + tweetStatus.id_str
-                  + " | USER @" + tweetStatus.user.screen_name
-                ));
-              }
-
               return;
             }
           }
@@ -1159,18 +1060,7 @@ function initSearchStream(){
 
           for(const ht of tweetStatus.entities.hashtags){
             if (ignoredHashtagSet.has(ht.text.toLowerCase())) {
-
               statsObj.filtered.hashtags += 1;
-
-              if (statsObj.filtered.hashtags % 100 === 0){
-                console.log(chalkLog(MODULE_ID + " | XXX FILTER TWEET"
-                  + " [" + statsObj.filtered.hashtags + "]"
-                  + " IGNORED HASHTAG: " + ht.text.toLowerCase()
-                  + " | TWEET " + tweetStatus.id_str
-                  + " | USER @" + tweetStatus.user.screen_name
-                ));
-              }
-
               return;
             }
           }
@@ -1552,7 +1442,6 @@ async function initialize(cnf){
 
   console.log(chalkLog(MODULE_ID + " | TSS | INITIALIZE"
     + " | @" + cnf.threeceeUser
-    // + "\n" + jsonPrint(cnf)
   ));
 
   if (debug.enabled || debugCache.enabled || debugQ.enabled){

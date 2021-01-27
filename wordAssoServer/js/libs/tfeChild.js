@@ -1375,6 +1375,7 @@ async function generateAutoCategory(p) {
 
     const activateNetworkResults = await nnTools.activate({
       user: user,
+      useDatumCacheFlag: true,
       userProfileOnlyFlag: userProfileOnlyFlag,
       convertDatumFlag: true, 
       verbose: configuration.verbose

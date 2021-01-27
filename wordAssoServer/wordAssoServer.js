@@ -11567,18 +11567,21 @@ async function initThreeceeTwitterUser(threeceeUser) {
     return threeceeUser;
 
   } catch (err) {
+    if (err.code == "88") {
+      console.log(chalkError(MODULE_ID +
+        " | !!! TWITTER RATE LIMIT" +
+        " | " + threeceeUser
+      ));
+      return;
+    } 
     if (err.code == "ENOTFOUND") {
-      console.log(
-        chalkError(
-          MODULE_ID +
-            " | *** LOAD TWITTER CONFIG ERROR: FILE NOT FOUND" +
-            " | " +
-            twitterConfigFolder +
-            "/" +
-            configFile
-        )
-      );
-    } else {
+      console.log(chalkError(MODULE_ID +
+        " | *** LOAD TWITTER CONFIG ERROR: FILE NOT FOUND" +
+        " | " + twitterConfigFolder + "/" + configFile
+      ));
+
+    } 
+    else {
       console.log(
         chalkError(MODULE_ID + " | *** LOAD TWITTER CONFIG ERROR: " + err)
       );

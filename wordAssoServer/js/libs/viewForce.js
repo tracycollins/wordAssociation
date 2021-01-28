@@ -768,8 +768,6 @@ function ViewForce (inputConfig) {
 
   function resetNode(n){
 
-    // console.debug(`==> RESET NODE | ID: ${n.nodeId}`)
-
     n.age = 1e-6;
     n.ageMaxRatio = 1e-6;
     n.ageUpdated = Date.now();
@@ -926,7 +924,6 @@ function ViewForce (inputConfig) {
     }
 
     resumeTimeStamp = 0;
-    // totalHashmap = tempTotalHashmap;
     return tempNodeArray;
 
   }
@@ -1014,11 +1011,6 @@ function ViewForce (inputConfig) {
     } else {
       self.toolTipVisibility(false);
     }
-
-    // d3.select(this).style("fill", palette.white);
-    // d3.select(this).style("fill-opacity", 1);
-    // d3.select(this).style("stroke-opacity", 1);
-    // d3.select(this).style("display", "unset");
 
     d3.select("#" + d.nodePoolId)
       .style("fill-opacity", 1)

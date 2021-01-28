@@ -377,17 +377,11 @@ function ViewForceLinks (inputConfig) {
   const localNodeHashMap = new HashMap();
   const nodeIdToPoolIdHashMap = new HashMap();
 
-  // const linkIdToPoolIdHashMap = new HashMap(); // linkId -> linkPoolId, linkId = ${sourceNodeId}_target_${targetNodeId}
-  // const localLinkHashMap = new HashMap(); // linkPoolId -> link object
-  // const targetNodeIdToSourceNodeIdsHashMap = new HashMap(); // nodeId -> [linkId] , all links attached to node
-  // const tweetIdToTargetNodeIdsMap = new HashMap(); // tweetNodeId -> nodeLinksObj, nodeLinksObj = { users: [], hashtags: []}
-
+  const nodeAddQ = [];
   let maxNodeAddQ = 0;
   let maxNodes = 0;
 
   let runningFlag = false;
-
-  const nodeAddQ = [];
 
   self.getWidth = function () {
     return width;
@@ -1280,7 +1274,7 @@ function ViewForceLinks (inputConfig) {
       .attr("y1", function (d) { return d.source.y })
       .attr("x2", function (d) { return d.target.x })
       .attr("y2", function (d) { return d.target.y });
-      // .style("stroke-opacity", linkStrokeOpacity);
+      .style("stroke-opacity", linkStrokeOpacity);
 
     // EXIT
     linkLines.exit().remove();

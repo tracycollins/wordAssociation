@@ -11855,23 +11855,23 @@ setTimeout(async function () {
 
 
     // pubSubClient = await initPubSub();
-    // await initIgnoreWordsHashMap();
-    // await initAllowLocations();
-    // await initIgnoreLocations();
-    // await initIgnoredProfileWords();
-    // await initUpdateUserSetsInterval();
-    // await initUpdateHashtagSetsInterval();
-    // await loadBestRuntimeNetwork();
-    // await initNodeSetPropsQueueInterval(configuration.nodeSetPropsQueueInterval);
-    // await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
-    // await initRateQinterval(configuration.rateQueueInterval);
-    // await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);
-    // await initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
-    // await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
-    // await initDbuChild({ childId: DEFAULT_DBU_CHILD_ID });
-    // await initDbHashtagChangeStream();
-    // await initTweetParser({ childId: DEFAULT_TWP_CHILD_ID });
-    // await initWatchConfig();
+    await initIgnoreWordsHashMap();
+    await initAllowLocations();
+    await initIgnoreLocations();
+    await initIgnoredProfileWords();
+    await initUpdateUserSetsInterval();
+    await initUpdateHashtagSetsInterval();
+    await loadBestRuntimeNetwork();
+    await initNodeSetPropsQueueInterval(configuration.nodeSetPropsQueueInterval);
+    await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
+    await initRateQinterval(configuration.rateQueueInterval);
+    await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);
+    await initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
+    await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
+    await initDbuChild({ childId: DEFAULT_DBU_CHILD_ID });
+    await initDbHashtagChangeStream();
+    await initTweetParser({ childId: DEFAULT_TWP_CHILD_ID });
+    await initWatchConfig();
 
     // if (pubSubClient) {
     //   const [topics] = await pubSubClient.getTopics();

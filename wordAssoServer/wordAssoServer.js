@@ -689,10 +689,19 @@ function dnsReverse(params) {
 }
 
 async function initPubSub(p) {
-  const params = p || {};
-  const projectId = params.projectId || configuration.pubSub.projectId;
-  const psClient = new PubSub({ projectId });
-  return psClient;
+
+  try{
+    const params = p || {};
+    const projectId = params.projectId || configuration.pubSub.projectId;
+    console.log(chalkBlue(`${MODULE_ID_PREFIX} | initPubSub | projectId: ${projectId}`))
+    const psClient = new PubSub({ projectId });
+    console.log(chalkBlue(`${MODULE_ID_PREFIX} | END initPubSub`));
+    return psClient;
+  }
+  catch(err){
+    console.log(chalkError(`${MODULE_ID_PREFIX} | *** initPubSub ERROR: ${err}`))
+    throw err;
+  }
 }
 
 const subscriptionHashMap = {};
@@ -1069,6 +1078,7 @@ const pubSubErrorHandler = function (params) {
 };
 
 async function initNodeOpHandler(params) {
+
   const subscription = await pubSubClient.subscription(params.subscribeName);
 
   subscription.on("error", function (err) {
@@ -1203,13 +1213,6 @@ const slackChannelAdmin = MODULE_ID_PREFIX.toLowerCase() + "-admin";
 
 let slackText = "";
 const channelsHashMap = new HashMap();
-
-// const slackOAuthAccessToken = process.env.SLACK_OAUTH_ACCESS_TOKEN;
-// const slackRtmToken = process.env.SLACK_RTM_TOKEN;
-// const slackRtmToken = process.env.SLACK_APP_TOKEN;
-
-// let slackRtmClient;
-// let slackWebClient;
 
 async function slackSendWebMessage(msgObj){
   try{
@@ -11851,41 +11854,43 @@ setTimeout(async function () {
     await initThreeceeTwitterUser("altthreecee00");
 
 
-    pubSubClient = await initPubSub();
-    await initIgnoreWordsHashMap();
-    await initAllowLocations();
-    await initIgnoreLocations();
-    await initIgnoredProfileWords();
-    await initUpdateUserSetsInterval();
-    await initUpdateHashtagSetsInterval();
-    await loadBestRuntimeNetwork();
-    await initNodeSetPropsQueueInterval(configuration.nodeSetPropsQueueInterval);
-    await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
-    await initRateQinterval(configuration.rateQueueInterval);
-    await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);
-    await initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
-    await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
-    await initDbuChild({ childId: DEFAULT_DBU_CHILD_ID });
-    await initDbHashtagChangeStream();
-    await initTweetParser({ childId: DEFAULT_TWP_CHILD_ID });
-    await initWatchConfig();
+    // pubSubClient = await initPubSub();
+    // await initIgnoreWordsHashMap();
+    // await initAllowLocations();
+    // await initIgnoreLocations();
+    // await initIgnoredProfileWords();
+    // await initUpdateUserSetsInterval();
+    // await initUpdateHashtagSetsInterval();
+    // await loadBestRuntimeNetwork();
+    // await initNodeSetPropsQueueInterval(configuration.nodeSetPropsQueueInterval);
+    // await initTransmitNodeQueueInterval(configuration.transmitNodeQueueInterval);
+    // await initRateQinterval(configuration.rateQueueInterval);
+    // await initTwitterRxQueueInterval(configuration.twitterRxQueueInterval);
+    // await initTweetParserMessageRxQueueInterval(configuration.tweetParserMessageRxQueueInterval);
+    // await initSorterMessageRxQueueInterval(configuration.sorterMessageRxQueueInterval);
+    // await initDbuChild({ childId: DEFAULT_DBU_CHILD_ID });
+    // await initDbHashtagChangeStream();
+    // await initTweetParser({ childId: DEFAULT_TWP_CHILD_ID });
+    // await initWatchConfig();
 
-    const [topics] = await pubSubClient.getTopics();
-    topics.forEach((topic) =>
-      console.log(chalkLog(MODULE_ID + " | PUBSUB TOPIC: " + topic.name))
-    );
+    // if (pubSubClient) {
+    //   const [topics] = await pubSubClient.getTopics();
+    //   topics.forEach((topic) =>
+    //     console.log(chalkLog(MODULE_ID + " | PUBSUB TOPIC: " + topic.name))
+    //   );
 
-    const [subscriptions] = await pubSubClient.getSubscriptions();
-    subscriptions.forEach((subscription) =>
-      console.log(chalkLog(MODULE_ID + " | PUBSUB SUB: " + subscription.name))
-    );
+    //   const [subscriptions] = await pubSubClient.getSubscriptions();
+    //   subscriptions.forEach((subscription) =>
+    //     console.log(chalkLog(MODULE_ID + " | PUBSUB SUB: " + subscription.name))
+    //   );
+    // }
 
-    await initNodeOpHandler({
-      subscribeName: "node-search-result" + configuration.primaryHostSuffix,
-    });
-    await initNodeOpHandler({
-      subscribeName: "node-setprops-result" + configuration.primaryHostSuffix,
-    });
+    // await initNodeOpHandler({
+    //   subscribeName: "node-search-result" + configuration.primaryHostSuffix,
+    // });
+    // await initNodeOpHandler({
+    //   subscribeName: "node-setprops-result" + configuration.primaryHostSuffix,
+    // });
 
     await initDbUserChangeStream();
 

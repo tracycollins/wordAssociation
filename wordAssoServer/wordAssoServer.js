@@ -5,11 +5,11 @@ if (envConfig.error) {
   throw envConfig.error
 }
  
+console.log("WAS | +++ ENV CONFIG LOADED")
+
 const DEFAULT_BEST_NETWORK_FILE = "bestRuntimeNetwork.json";
 const bestRuntimeNetworkFileName = DEFAULT_BEST_NETWORK_FILE;
 
-console.log("WAS | ENV CONFIG")
-console.log(envConfig.parsed)
 
 const threeceeAuthorizedUsers = ["threecee", "altthreecee00", "ninjathreecee"];
 const threeceeUser = "altthreecee00"; // for TSS
@@ -193,7 +193,6 @@ let filterDuplicateTweets = true;
 let filterRetweets = false;
 
 const DEFAULT_TWITTER_THREECEE_USER = "altthreecee00";
-const DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT = Number(ONE_SECOND);
 
 const DEFAULT_TWEET_VERSION_2 = false;
 
@@ -693,10 +692,14 @@ async function initPubSub(p) {
   try{
     const params = p || {};
     const projectId = params.projectId || configuration.pubSub.projectId;
+
     console.log(chalkBlue(`${MODULE_ID_PREFIX} | initPubSub | projectId: ${projectId}`))
+
     const psClient = new PubSub({ projectId });
+
     console.log(chalkBlue(`${MODULE_ID_PREFIX} | END initPubSub`));
     return psClient;
+
   }
   catch(err){
     console.log(chalkError(`${MODULE_ID_PREFIX} | *** initPubSub ERROR: ${err}`))
@@ -1202,7 +1205,7 @@ async function pubSubPublishMessage(params) {
 //=========================================================================
 const { WebClient } = require('@slack/web-api');
 
-console.log("process.env.SLACK_BOT_TOKEN: ", process.env.SLACK_BOT_TOKEN)
+// console.log("process.env.SLACK_BOT_TOKEN: ", process.env.SLACK_BOT_TOKEN)
 const slackBotToken = process.env.SLACK_BOT_TOKEN;
 
 const slackWebClient = new WebClient(slackBotToken);
@@ -1396,8 +1399,6 @@ configuration.forceGeoCode = DEFAULT_FORCE_GEOCODE;
 configuration.threeceeUser = DEFAULT_TWITTER_THREECEE_USER;
 configuration.threeceeInfoUsersArray = DEFAULT_THREECEE_INFO_USERS;
 
-configuration.dropboxWebhookChangeTimeout = DEFAULT_DROPBOX_WEBHOOK_CHANGE_TIMEOUT;
-
 configuration.nodeCacheDeleteQueueInterval = DEFAULT_NODE_CACHE_DELETE_QUEUE_INTERVAL;
 configuration.tssInterval = DEFAULT_TSS_TWITTER_QUEUE_INTERVAL;
 configuration.tweetParserMessageRxQueueInterval = DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL;
@@ -1412,10 +1413,6 @@ configuration.rateQueueIntervalModulo = DEFAULT_RATE_QUEUE_INTERVAL_MODULO;
 configuration.statsUpdateIntervalTime = DEFAULT_STATS_UPDATE_INTERVAL;
 configuration.updateUserSetsInterval = DEFAULT_UPDATE_USER_SETS_INTERVAL;
 configuration.updateHashtagSetsInterval = DEFAULT_UPDATE_HASHTAG_SETS_INTERVAL;
-
-// configuration.DROPBOX = {};
-// configuration.DROPBOX.DROPBOX_WAS_CONFIG_FILE = process.env.DROPBOX_CONFIG_FILE || "wordAssoServerConfig.json";
-// configuration.DROPBOX.DROPBOX_WAS_STATS_FILE = process.env.DROPBOX_STATS_FILE || "wordAssoServerStats.json";
 
 configuration.twitterRxQueueInterval = DEFAULT_TWITTER_RX_QUEUE_INTERVAL;
 configuration.categoryHashmapsUpdateInterval = DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL;
@@ -6418,39 +6415,6 @@ async function userCategorizeable(params) {
 
   return followable(node);
 
-  // if (!node.description || node.description === undefined) {
-  //   node.description = "";
-  // }
-  // if (!node.screenName || node.screenName === undefined) {
-  //   node.screenName = "";
-  // }
-  // if (!node.name || node.name === undefined) {
-  //   node.name = "";
-  // }
-
-  // if (node.name !== "") {
-  //   hitSearchTerm = await followable(node.name);
-
-  //   if (hitSearchTerm) {
-  //     return true;
-  //   }
-  // }
-
-  // if (node.description !== "") {
-  //   hitSearchTerm = await followable(node.description);
-
-  //   if (hitSearchTerm) {
-  //     return true;
-  //   }
-  // }
-
-  // if (node.screenName !== "") {
-  //   hitSearchTerm = await followable(node.screenName);
-  //   if (hitSearchTerm) {
-  //     return true;
-  //   }
-  // }
-  // return false;
 }
 
 let botSetInterval
@@ -7999,14 +7963,6 @@ function initAppRouting(callback) {
 
         res.sendStatus(200);
       }
-    } else if (req.path == "/dropbox_webhook") {
-      if (configuration.verbose) {
-        console.log(chalkInfo(MODULE_ID + " | R< DROPBOX WEB HOOK | /dropbox_webhook"));
-      }
-
-      res.send(escape(req.query.challenge));
-
-      next();
     } else if (req.path == "/googleccd19766bea2dfd2.html") {
       console.log(chalk.green(MODULE_ID + " | R< googleccd19766bea2dfd2.html"));
 
@@ -8134,7 +8090,7 @@ function initAppRouting(callback) {
   app.use(express.static(path.join(__dirname, "/")));
   app.use(express.static(path.join(__dirname, "/js")));
   app.use(express.static(path.join(__dirname, "/css")));
-  app.use(express.static(path.join(__dirname, "/node_modules")));
+  // app.use(express.static(path.join(__dirname, "/node_modules")));
   app.use(express.static(path.join(__dirname, "/public/assets/images")));
   app.use(express.static(path.join(__dirname, "/categorizer")));
   app.use(express.static(path.join(__dirname, "/categorizer/static/js")));
@@ -10751,16 +10707,6 @@ async function loadConfigFile(params) {
       newConfiguration.cursorBatchSize = loadedConfigObj.CURSOR_BATCH_SIZE;
     }
 
-    if (loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT !== undefined) {
-      console.log(
-        MODULE_ID +
-          " | LOADED DROPBOX_WEBHOOK_CHANGE_TIMEOUT: " +
-          loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT
-      );
-      newConfiguration.dropboxWebhookChangeTimeout =
-        loadedConfigObj.DROPBOX_WEBHOOK_CHANGE_TIMEOUT;
-    }
-
     if (loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT !== undefined) {
       console.log(
         MODULE_ID +
@@ -11553,13 +11499,7 @@ async function initThreeceeTwitterUser(threeceeUser) {
     twitterClient = await tcUtils.initTwitter({ twitterConfig: threeceeTwitter.twitterConfig });
     await tcUtils.getTwitterAccountSettings();
 
-    console.log(chalkTwitter(MODULE_ID +
-      " | +++ TWITTER INITIALIZED" +
-      " | 3C @" +
-      threeceeUser +
-      "\nCONFIG\n" +
-      jsonPrint(threeceeTwitter.twitterConfig)
-    ));
+    console.log(chalkTwitter(`${MODULE_ID} | +++ TWITTER INITIALIZED | @${threeceeUser}`));
 
     threeceeTwitter.ready = true;
     threeceeTwitter.status = false;
@@ -11571,23 +11511,14 @@ async function initThreeceeTwitterUser(threeceeUser) {
 
   } catch (err) {
     if (err.code == "88") {
-      console.log(chalkError(MODULE_ID +
-        " | !!! TWITTER RATE LIMIT" +
-        " | " + threeceeUser
-      ));
+      console.log(chalkError(`${MODULE_ID} | !!! TWITTER RATE LIMIT | @${threeceeUser}`));
       return;
     } 
     if (err.code == "ENOTFOUND") {
-      console.log(chalkError(MODULE_ID +
-        " | *** LOAD TWITTER CONFIG ERROR: FILE NOT FOUND" +
-        " | " + twitterConfigFolder + "/" + configFile
-      ));
-
+      console.log(chalkError(`${MODULE_ID} | *** LOAD TWITTER CONFIG ERROR: FILE NOT FOUND: ${twitterConfigFolder}/${configFile}`));
     } 
     else {
-      console.log(
-        chalkError(MODULE_ID + " | *** LOAD TWITTER CONFIG ERROR: " + err)
-      );
+      console.log(chalkError(`${MODULE_ID} | *** LOAD TWITTER CONFIG ERROR: ${err}`));
     }
 
     threeceeTwitter.error = "CONFIG LOAD ERROR: " + err;
@@ -11814,6 +11745,7 @@ setTimeout(async function () {
 
     global.dbConnection = await mgUtils.connectDb()
 
+
     await initSlackWebClient();
 
     configEvents.emit("DB_CONNECT");
@@ -11847,6 +11779,9 @@ setTimeout(async function () {
 
     await killAll();
     await allTrue();
+
+    pubSubClient = await initPubSub();
+
     await initMongoIndexChild({childId: DEFAULT_MGI_CHILD_ID});
     await initKeySortInterval(configuration.keySortInterval);
     await tcUtils.initSaveFileQueue({ interval: 100 });

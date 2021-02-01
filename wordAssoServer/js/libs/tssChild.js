@@ -1,12 +1,3 @@
-// const dotenv = require("dotenv");
-// const envConfig = dotenv.config()
-
-// if (envConfig.error) {
-//   throw envConfig.error
-// }
- 
-// console.log("TSS | ENV CONFIG")
-// console.log(envConfig.parsed)
 
 const MODULE_ID_PREFIX = "TSS";
 

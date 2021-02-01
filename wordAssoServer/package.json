@@ -17,7 +17,7 @@
     "@threeceelabs/mongoose-twitter": "^1.0.371",
     "@threeceelabs/mongoose-utilities": "^1.0.12",
     "@threeceelabs/session-view": "^1.0.2",
-    "@threeceelabs/threecee-utilities": "^1.0.451",
+    "@threeceelabs/threecee-utilities": "^1.0.452",
     "axios": "^0.21.1",
     "command-line-args": "^5.1.1",
     "connect-mongo": "^3.2.0",

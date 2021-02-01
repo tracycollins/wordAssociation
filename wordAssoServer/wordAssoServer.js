@@ -11443,9 +11443,7 @@ let memStatsInterval;
 async function initThreeceeTwitterUser(threeceeUser) {
   console.log(chalkTwitter(MODULE_ID + " | ... INIT THREECEE TWITTER USER: " + threeceeUser));
 
-  console.log(
-    chalkTwitter(MODULE_ID + " | ... LOADING TWITTER CONFIG | @" + threeceeUser)
-  );
+  console.log(chalkTwitter(`${MODULE_ID} | ... LOADING TWITTER CONFIG | @${threeceeUser} | FILE: ${twitterConfigFolder}`));
 
   const configFile = threeceeUser + ".json";
 

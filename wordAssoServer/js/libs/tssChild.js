@@ -557,10 +557,6 @@ async function initTwit(){
 
   console.log(chalkLog(MODULE_ID + " | INIT TWIT USER @" + threeceeUser.screenName));
 
-  console.log(chalkInfo(MODULE_ID + " | INIT TWIT | TWITTER CONFIG " 
-    + "\n" + jsonPrint(threeceeUser.twitterConfig)
-  ));
-
   threeceeUser.stats = {};
   threeceeUser.stats.ready = false;
   threeceeUser.stats.error = false;
@@ -1737,8 +1733,6 @@ process.on("message", async function(m) {
       console.log(chalkInfo(MODULE_ID + " | INIT"
         + " | TITLE: " + m.title
         + " | 3C USER @" + configuration.threeceeUser
-        + "\nCONFIGURATION\n" + jsonPrint(configuration)
-        + "\nTWITTER CONFIG\n" + jsonPrint(m.twitterConfig)
       ));
 
       try {

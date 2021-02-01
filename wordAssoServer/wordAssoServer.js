@@ -297,8 +297,6 @@ const omit = require("object.omit");
 const pick = require("object.pick");
 const configServer = require("./config/configServer");
 
-console.log({configServer})
-
 const fs = require("fs");
 const path = require("path");
 const async = require("async");

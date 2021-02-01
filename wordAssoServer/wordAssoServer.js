@@ -1221,13 +1221,13 @@ async function initSlackWebClient(){
 
     const authTestResponse = await slackWebClient.auth.test()
 
-    console.log({authTestResponse})
+    debug({authTestResponse})
 
     const conversationsListResponse = await slackWebClient.conversations.list();
 
     conversationsListResponse.channels.forEach(async function(channel){
 
-      debug(chalkLog("TNN | SLACK CHANNEL | " + channel.id + " | " + channel.name));
+      debug(chalkLog("WAS | SLACK CHANNEL | " + channel.id + " | " + channel.name));
 
       if (channel.name === slackChannel) {
         configuration.slackChannel = channel;
@@ -10268,30 +10268,16 @@ async function loadConfigFile(params) {
     });
 
     if (empty(loadedConfigObj)) {
-      console.log(
-        chalkAlert(
-          MODULE_ID + " | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ??? "
-        )
-      );
+      console.log(chalkAlert(`${MODULE_ID} | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ???`));
       return;
-      // throw new Error("JSON UNDEFINED");
     }
 
-    console.log(
-      chalkInfo(
-        MODULE_ID +
-          " | LOADED CONFIG FILE: " +
-          params.file +
-          "\n" +
-          jsonPrint(loadedConfigObj)
-      )
-    );
+    console.log(chalkInfo(`${MODULE_ID} | LOADED CONFIG FILE: ${params.file}`));
 
     const newConfiguration = {};
 
     newConfiguration.pubSub = {};
     newConfiguration.metrics = {};
-    // newConfiguration.threeceeUsers = [];
 
     
     if (loadedConfigObj.WAS_HEARTBEAT_INTERVAL !== undefined) {
@@ -10300,11 +10286,7 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG !== undefined) {
-      console.log(
-        MODULE_ID +
-          " | LOADED WAS_USER_PROFILE_ONLY_FLAG: " +
-          loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG
-      );
+      console.log(`${MODULE_ID} | LOADED WAS_USER_PROFILE_ONLY_FLAG: ${loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG}`);
 
       if (
         loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG == false ||
@@ -10322,7 +10304,7 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.WAS_MAX_LAST_SEEN_DAYS_HASHTAGS !== undefined) {
-      console.log(MODULE_ID + " | LOADED WAS_MAX_LAST_SEEN_DAYS_HASHTAGS: " +loadedConfigObj.WAS_MAX_LAST_SEEN_DAYS_HASHTAGS);
+      console.log(`${MODULE_ID} | LOADED WAS_MAX_LAST_SEEN_DAYS_HASHTAGS: ${loadedConfigObj.WAS_MAX_LAST_SEEN_DAYS_HASHTAGS}`);
       newConfiguration.maxLastSeenDaysHashtags = loadedConfigObj.WAS_MAX_LAST_SEEN_DAYS_HASHTAGS;
     }
 
@@ -10890,6 +10872,7 @@ async function loadConfigFile(params) {
     }
 
     return newConfiguration;
+    
   } catch (err) {
     console.log(
       chalkError(
@@ -11765,6 +11748,19 @@ setTimeout(async function () {
     await initPassport();
     await initThreeceeTwitterUser("altthreecee00");
     pubSubClient = await initPubSub();
+
+    if (pubSubClient) {
+      const [topics] = await pubSubClient.getTopics();
+      topics.forEach((topic) =>
+        console.log(chalkLog(MODULE_ID + " | PUBSUB TOPIC: " + topic.name))
+      );
+
+      const [subscriptions] = await pubSubClient.getSubscriptions();
+      subscriptions.forEach((subscription) =>
+        console.log(chalkLog(MODULE_ID + " | PUBSUB SUB: " + subscription.name))
+      );
+    }
+
     await initIgnoreWordsHashMap();
     await initAllowLocations();
     await initIgnoreLocations();
@@ -11783,17 +11779,17 @@ setTimeout(async function () {
     await initTweetParser({ childId: DEFAULT_TWP_CHILD_ID });
     await initWatchConfig();
 
-    if (pubSubClient) {
-      const [topics] = await pubSubClient.getTopics();
-      topics.forEach((topic) =>
-        console.log(chalkLog(MODULE_ID + " | PUBSUB TOPIC: " + topic.name))
-      );
+    // if (pubSubClient) {
+    //   const [topics] = await pubSubClient.getTopics();
+    //   topics.forEach((topic) =>
+    //     console.log(chalkLog(MODULE_ID + " | PUBSUB TOPIC: " + topic.name))
+    //   );
 
-      const [subscriptions] = await pubSubClient.getSubscriptions();
-      subscriptions.forEach((subscription) =>
-        console.log(chalkLog(MODULE_ID + " | PUBSUB SUB: " + subscription.name))
-      );
-    }
+    //   const [subscriptions] = await pubSubClient.getSubscriptions();
+    //   subscriptions.forEach((subscription) =>
+    //     console.log(chalkLog(MODULE_ID + " | PUBSUB SUB: " + subscription.name))
+    //   );
+    // }
 
     await initNodeOpHandler({
       subscribeName: "node-search-result" + configuration.primaryHostSuffix,

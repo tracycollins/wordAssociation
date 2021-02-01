@@ -1,5 +1,5 @@
 const dotenv = require("dotenv");
-const envConfig = dotenv.config()
+const envConfig = dotenv.config({ path: process.env.WORD_ENV_VARS_FILE })
 
 if (envConfig.error) {
   throw envConfig.error
@@ -336,7 +336,6 @@ const threeceeConfig = {
   token: process.env.TWITTER_TOKEN,
   token_secret: process.env.TWITTER_TOKEN_SECRET
 };
-
 
 const statsObj = {};
 
@@ -2045,9 +2044,7 @@ function initPassport() {
 
     const sessionId = btoa("threecee");
 
-    console.log(
-      chalk.green(MODULE_ID + " | PASSPORT SESSION ID: " + sessionId)
-    );
+    console.log(chalk.green(MODULE_ID + " | PASSPORT SESSION ID: " + sessionId));
 
     app.use(
       expressSession({

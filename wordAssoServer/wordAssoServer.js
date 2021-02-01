@@ -1181,7 +1181,6 @@ async function pubSubPublishMessage(params) {
 //=========================================================================
 const { WebClient } = require('@slack/web-api');
 
-// console.log("process.env.SLACK_BOT_TOKEN: ", process.env.SLACK_BOT_TOKEN)
 const slackBotToken = process.env.SLACK_BOT_TOKEN;
 
 const slackWebClient = new WebClient(slackBotToken);
@@ -11742,18 +11741,6 @@ setTimeout(async function () {
     await initThreeceeTwitterUser("altthreecee00");
     pubSubClient = await initPubSub();
 
-    if (pubSubClient) {
-      const [topics] = await pubSubClient.getTopics();
-      topics.forEach((topic) =>
-        console.log(chalkLog(MODULE_ID + " | PUBSUB TOPIC: " + topic.name))
-      );
-
-      const [subscriptions] = await pubSubClient.getSubscriptions();
-      subscriptions.forEach((subscription) =>
-        console.log(chalkLog(MODULE_ID + " | PUBSUB SUB: " + subscription.name))
-      );
-    }
-
     await initIgnoreWordsHashMap();
     await initAllowLocations();
     await initIgnoreLocations();
@@ -11772,17 +11759,17 @@ setTimeout(async function () {
     await initTweetParser({ childId: DEFAULT_TWP_CHILD_ID });
     await initWatchConfig();
 
-    // if (pubSubClient) {
-    //   const [topics] = await pubSubClient.getTopics();
-    //   topics.forEach((topic) =>
-    //     console.log(chalkLog(MODULE_ID + " | PUBSUB TOPIC: " + topic.name))
-    //   );
+    if (pubSubClient) {
+      const [topics] = await pubSubClient.getTopics();
+      topics.forEach((topic) =>
+        console.log(chalkLog(MODULE_ID + " | PUBSUB TOPIC: " + topic.name))
+      );
 
-    //   const [subscriptions] = await pubSubClient.getSubscriptions();
-    //   subscriptions.forEach((subscription) =>
-    //     console.log(chalkLog(MODULE_ID + " | PUBSUB SUB: " + subscription.name))
-    //   );
-    // }
+      const [subscriptions] = await pubSubClient.getSubscriptions();
+      subscriptions.forEach((subscription) =>
+        console.log(chalkLog(MODULE_ID + " | PUBSUB SUB: " + subscription.name))
+      );
+    }
 
     await initNodeOpHandler({
       subscribeName: "node-search-result" + configuration.primaryHostSuffix,

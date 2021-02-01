@@ -57,7 +57,7 @@ const DEFAULT_BINARY_MODE = true;
 
 let saveSampleTweetFlag = true;
 
-const escape = require("escape-html");
+// const escape = require("escape-html");
 const cors = require("cors")
 const os = require("os");
 const https = require("https");
@@ -1068,15 +1068,7 @@ const nodeIgnoreHandler = async function (message) {
 };
 
 const pubSubErrorHandler = function (params) {
-  console.log(
-    chalkError(
-      MODULE_ID +
-        " | *** PUBSUB ERROR | SUBSCRIPTION: " +
-        params.subscribeName +
-        " | " +
-        params.err
-    )
-  );
+  console.log(chalkError(`${MODULE_ID} | *** PUBSUB ERROR | SUBSCRIPTION: ${params.subscribeName} | ${params.err}`));
   statsObj.pubSub.subscriptions.errors.push(params.err);
 };
 
@@ -1090,18 +1082,10 @@ async function initNodeOpHandler(params) {
 
   const [metadata] = await subscription.getMetadata();
 
-  console.log(
-    chalkBlueBold(
-      MODULE_ID +
-        " | INIT PUBSUB NODE OP SUBSCRIPTION HANDLER" +
-        " | SUBSCRIBE NAME: " +
-        params.subscribeName +
-        " | SUBSCRIBE TOPIC: " +
-        metadata.topic
-    )
-  );
+  console.log(chalkBlueBold(`${MODULE_ID} | INIT PUBSUB NODE OP SUB HANDLER | SUB: ${params.subscribeName} | TOPIC: ${metadata.topic}`));
 
   switch (params.subscribeName) {
+
     case "node-search-result":
     case "node-search-result-primary":
       statsObj.pubSub.subscriptions.nodeSearchResult = {};
@@ -1113,6 +1097,7 @@ async function initNodeOpHandler(params) {
       subscriptionHashMap.nodeSearchResult = subscription;
       subscription.on("message", nodeSearchResultHandler);
       break;
+
     case "node-setprops-result":
     case "node-setprops-result-primary":
       statsObj.pubSub.subscriptions.nodeSetPropsResult = {};
@@ -1125,6 +1110,7 @@ async function initNodeOpHandler(params) {
       subscriptionHashMap.nodeSetPropsResult = subscription;
       subscription.on("message", nodeSetPropsResultHandler);
       break;
+
     case "node-ignore":
     case "node-ignore-primary":
       statsObj.pubSub.subscriptions.nodeIgnoreResult = {};
@@ -1137,17 +1123,10 @@ async function initNodeOpHandler(params) {
       subscriptionHashMap.nodeIgnoreResult = subscription;
       subscription.on("message", nodeIgnoreHandler);
       break;
+
     default:
-      console.log(
-        chalkError(
-          MODULE_ID +
-            " | *** initNodeOpHandler ERROR: UNKNOWN subscribeName: " +
-            params.subscribeName
-        )
-      );
-      throw new Error(
-        "initNodeOpHandler UNKNOWN subscribeName: " + params.subscribeName
-      );
+      console.log(chalkError(`${MODULE_ID} | initNodeOpHandler ERROR: UNKNOWN SUBSCRIPTION: ${params.subscribeName}`));
+      throw new Error("initNodeOpHandler UNKNOWN subscribeName: " + params.subscribeName);
   }
 
   return;
@@ -11780,16 +11759,12 @@ setTimeout(async function () {
     await killAll();
     await allTrue();
 
-    pubSubClient = await initPubSub();
-
     await initMongoIndexChild({childId: DEFAULT_MGI_CHILD_ID});
     await initKeySortInterval(configuration.keySortInterval);
     await tcUtils.initSaveFileQueue({ interval: 100 });
     await initPassport();
     await initThreeceeTwitterUser("altthreecee00");
-
-
-    // pubSubClient = await initPubSub();
+    pubSubClient = await initPubSub();
     await initIgnoreWordsHashMap();
     await initAllowLocations();
     await initIgnoreLocations();
@@ -11808,24 +11783,24 @@ setTimeout(async function () {
     await initTweetParser({ childId: DEFAULT_TWP_CHILD_ID });
     await initWatchConfig();
 
-    // if (pubSubClient) {
-    //   const [topics] = await pubSubClient.getTopics();
-    //   topics.forEach((topic) =>
-    //     console.log(chalkLog(MODULE_ID + " | PUBSUB TOPIC: " + topic.name))
-    //   );
+    if (pubSubClient) {
+      const [topics] = await pubSubClient.getTopics();
+      topics.forEach((topic) =>
+        console.log(chalkLog(MODULE_ID + " | PUBSUB TOPIC: " + topic.name))
+      );
 
-    //   const [subscriptions] = await pubSubClient.getSubscriptions();
-    //   subscriptions.forEach((subscription) =>
-    //     console.log(chalkLog(MODULE_ID + " | PUBSUB SUB: " + subscription.name))
-    //   );
-    // }
+      const [subscriptions] = await pubSubClient.getSubscriptions();
+      subscriptions.forEach((subscription) =>
+        console.log(chalkLog(MODULE_ID + " | PUBSUB SUB: " + subscription.name))
+      );
+    }
 
-    // await initNodeOpHandler({
-    //   subscribeName: "node-search-result" + configuration.primaryHostSuffix,
-    // });
-    // await initNodeOpHandler({
-    //   subscribeName: "node-setprops-result" + configuration.primaryHostSuffix,
-    // });
+    await initNodeOpHandler({
+      subscribeName: "node-search-result" + configuration.primaryHostSuffix,
+    });
+    await initNodeOpHandler({
+      subscribeName: "node-setprops-result" + configuration.primaryHostSuffix,
+    });
 
     await initDbUserChangeStream();
 

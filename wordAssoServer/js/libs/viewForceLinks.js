@@ -2,6 +2,7 @@
 
 function ViewForceLinks (inputConfig) {
 
+  const DISPLAY_LINKS = false;
   const LINK_DISTANCE = 10;
   const LINK_STRENGTH = 0.2;
 
@@ -49,10 +50,11 @@ function ViewForceLinks (inputConfig) {
   let linkArray = [];
 
   const config = inputConfig || {};
+
   config.settings = config.settings || {};
   config.defaults = config.defaults || {};
 
-
+  config.settings.displayLinks = DISPLAY_LINKS;
   config.settings.linkDistance = LINK_DISTANCE;
   config.settings.linkStrength = LINK_STRENGTH;
   config.settings.adjustedAgeRateScaleRange = {};
@@ -316,6 +318,7 @@ function ViewForceLinks (inputConfig) {
   let linkStrength = config.settings.linkStrength;
   let linkDistance = config.settings.linkDistance;
   let gravity = config.settings.gravity;
+  let displayLinks = config.settings.displayLinks;
 
   const forceXmultiplier = config.settings.forceXmultiplier;
   const forceYmultiplier = config.settings.forceYmultiplier;
@@ -389,6 +392,13 @@ function ViewForceLinks (inputConfig) {
 
   self.getHeight = function () {
     return height;
+  };
+
+  self.displayLinks = function (value) {
+    console.debug("DISPLAY LINKS: " + value);
+    config.settings.displayLinks = value;
+    displayLinks = value;
+    return displayLinks;
   };
 
   const keysForSort = [];

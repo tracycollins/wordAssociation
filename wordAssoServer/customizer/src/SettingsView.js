@@ -1,6 +1,25 @@
 import React from 'react';
+import { green, grey } from '@material-ui/core/colors';
+import Duration from 'duration';
+import clsx from 'clsx';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import CardMedia from '@material-ui/core/CardMedia';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControl from '@material-ui/core/FormControl';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormGroup from '@material-ui/core/FormGroup';
 import Grid from '@material-ui/core/Grid';
+import MenuItem from '@material-ui/core/MenuItem';
+import Paper from '@material-ui/core/Paper';
+import Select from '@material-ui/core/Select';
 import Slider from '@material-ui/core/Slider';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -9,9 +28,47 @@ const useStyles = makeStyles((theme) => ({
     border: 0,
     flexGrow: 2,
   },
+  grid: {
+    border: 0,
+    display: 'flex',
+    alignItems: 'stretch',
+  },
+  gridItem: {
+    border: 0,
+    margin: theme.spacing(1),
+  },
+  gridHeader: {
+    padding: theme.spacing(1),
+    border: 0,
+    marginBottom: theme.spacing(1),
+  },
+  paper: {
+    padding: theme.spacing(1),
+    outlined: true,
+    variant: 'outlined',
+  },
+  radioGroupCategory: {
+    maxWidth: "90%",
+    fontSize: '0.5rem',
+    padding: theme.spacing(2),
+    marginBottom: theme.spacing(1),
+  },
+  checkbox: {
+    color: green[400],
+    '&$checked': {
+      color: green[600],
+    },
+  },
+  checked: {},
+  radioButtonLabel: {
+    fontSize: '0.9rem'
+  },
+  radioButton: {
+  },
   range: {
     color: 'white',
   }
+
 }));
 
 function valuetext(value) {
@@ -30,6 +87,34 @@ const Settings = (props) => {
   return (
     <>
       <Grid className={classes.grid}>
+          <Grid item className={classes.gridItem} xs={2}>
+            <Paper className={classes.paper}  elevation={0} variant="outlined">
+              <Typography
+                className={classes.gridHeader} 
+              >
+                SETTINGS
+              </Typography>
+              <FormGroup  align="center">
+
+                <FormControl component="fieldset" className={classes.radioGroupCategory} size="small">
+                  <FormControlLabel
+                    control={
+                      <Checkbox 
+                        id="displayLinks"
+                        name="displayLinks"
+                        className={classes.checkbox} 
+                        size="small" 
+                        value={props.settings.displayLinks} 
+                        onChange={handleChangeSettings("displayLinks")}
+                      />
+                    }
+                    label={<Typography className={classes.radioButtonLabel}>LINKS</Typography>}
+                  />
+                </FormControl>
+
+              </FormGroup>
+            </Paper>
+          </Grid>
           <Grid item className={classes.gridItem} xs={6}>
 
             <Typography className={classes.range} id="nodeRadiusRatio" name="nodeRadiusRatio" gutterBottom>

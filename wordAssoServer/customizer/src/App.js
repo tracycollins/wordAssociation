@@ -16,7 +16,7 @@ const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
 const MBP3_SOURCE = "http://mbp3:3000";
 
-const DEFAULT_SOURCE = PRODUCTION_SOURCE;
+const DEFAULT_SOURCE = LOCAL_SOURCE;
 
 const parentWindow = window.opener;
 
@@ -129,6 +129,24 @@ const App = (props) => {
     let tempSettings = {}
 
     switch (changeObj.name){
+
+      case "displayLinks":
+
+        if (parentWindow){
+          parentWindow.postMessage(
+            {
+              op: "UPDATE", 
+              id: changeObj.name,
+              value: changeObj.value,
+            }, 
+            DEFAULT_SOURCE
+          );
+        }
+
+        tempSettings = Object.assign({}, settingsRef.current, {[changeObj.name]: changeObj.value})
+        setSettings(tempSettings)    
+
+        break;
 
       case "nodeRadiusRatio":
       case "fontSizeRatio":

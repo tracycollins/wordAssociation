@@ -1,5 +1,6 @@
 const config = {
   defaults: {
+    displayLinks: false,
     linkStrength: 0.2,
     linkStrengthRange: {
       min: 0,

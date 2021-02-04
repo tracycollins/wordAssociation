@@ -1662,6 +1662,7 @@ const fieldsTransmit = {
   text: 1,
   threeceeFollowing: 1,
   tweetsPerDay: 1,
+  user: 1,
 };
 
 const fieldsTransmitKeys = Object.keys(fieldsTransmit);
@@ -7739,6 +7740,10 @@ async function transmitNodes(tw) {
   const tweetNode = {
     nodeType: "tweet",
     nodeId: tw.tweetId,
+    user: { 
+      nodeId: tw.user.nodeId,
+      screenName: tw.user.screenName.toLowerCase(),
+    },
     tweeterId: tw.user.nodeId,
     retweetCount: 0,
     quotedId: false,

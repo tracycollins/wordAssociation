@@ -971,49 +971,34 @@ function ViewForceLinks (inputConfig) {
 
     switch (d.nodeType) {
       case "tweet":
+        tooltipString =
+          "TW ID" + d.nodeId +
+          "<br>@" + d.user.screenName +
+          "<br>" + d.rate.toFixed(3) + " NPM"
         break;
       case "user":
         tooltipString =
-          "@" +
-          d.screenName +
-          "<br>" +
-          d.name +
-          "<br>AGE (DAYS): " +
-          d.ageDays.toFixed(3) +
-          "<br>TPD: " +
-          d.tweetsPerDay.toFixed(3) +
-          "<br>FLWRs: " +
-          d.followersCount +
-          "<br>FRNDs: " +
-          d.friendsCount +
-          "<br>FMs: " +
-          d.followersMentions +
-          "<br>Ms: " +
-          d.mentions +
-          "<br>Ts: " +
-          d.statusesCount +
-          "<br>" +
-          d.rate.toFixed(3) +
-          " WPM" +
-          "<br>C: " +
-          d.category +
-          "<br>CA: " +
-          d.categoryAuto;
+          "@" + d.screenName +
+          "<br>" + d.name +
+          "<br>AGE (DAYS): " + d.ageDays.toFixed(3) +
+          "<br>TPD: " + d.tweetsPerDay.toFixed(3) +
+          "<br>FLWRs: " + d.followersCount +
+          "<br>FRNDs: " + d.friendsCount +
+          "<br>FMs: " + d.followersMentions +
+          "<br>Ms: " + d.mentions +
+          "<br>Ts: " + d.statusesCount +
+          "<br>" + d.rate.toFixed(3) + " NPM" +
+          "<br>C: " + d.category +
+          "<br>CA: " + d.categoryAuto;
         break;
 
       case "hashtag":
         tooltipString =
-          "#" +
-          d.nodeId +
-          "<br>Ms: " +
-          d.mentions +
-          "<br>" +
-          d.rate.toFixed(3) +
-          " MPM" +
-          "<br>C: " +
-          d.category +
-          "<br>CA: " +
-          d.categoryAuto;
+          "#" + d.nodeId +
+          "<br>Ms: " + d.mentions +
+          "<br>" + d.rate.toFixed(3) + " MPM" +
+          "<br>C: " + d.category +
+          "<br>CA: " + d.categoryAuto;
         break;
       default:
         tooltipString = ""
@@ -1205,11 +1190,13 @@ function ViewForceLinks (inputConfig) {
   function nodeClick(event, d) {
 
     document.dispatchEvent(new CustomEvent("nodeSearch", { detail: { node: d }}));
+
+    const url = "https://twitter.com/";
     
     switch (d.nodeType) {
 
       case "tweet":
-        window.open("https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId, "_blank");
+        window.open(`${url}/${d.user ? d.user.screenName : "twitter"}/status/${d.nodeId ? d.nodeId : ""}`, "_blank");
         break;
       case "user":
         if (d.isFixedNode){
@@ -1217,17 +1204,17 @@ function ViewForceLinks (inputConfig) {
           break;
         }
         if (d.lastTweetId && d.lastTweetId !== undefined) {
-          console.debug("LOADING TWITTER USER: https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId);
-          window.open("https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId, "_blank");
+          console.debug(`LOADING TWITTER USER: ${url}/${d.screenName}/status/${d.lastTweetId}`);
+          window.open(`${url}/${d.screenName}/status/${d.lastTweetId}`, "_blank");
         } 
         else {
-          console.debug("LOADING TWITTER USER: https://twitter.com/" + d.screenName);
-          window.open("https://twitter.com/" + d.screenName, "_blank");
+          console.debug(`LOADING TWITTER USER: ${url}/${d.screenName}`);
+          window.open(`${url}/${d.screenName}`, "_blank");
         }
         break;
 
       case "hashtag":
-        window.open("https://twitter.com/search?f=tweets&q=%23" + d.nodeId, "_blank");
+          window.open(`${url}/search?f=tweets&q=%23${d.nodeId}`, "_blank");
         break;
 
       default:

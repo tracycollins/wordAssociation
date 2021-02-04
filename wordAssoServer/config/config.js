@@ -1,5 +1,6 @@
 let config = {
   defaults: {
+    displayLinks: false,
     linkStrength: 0.5,
     linkStrengthRange: {
       min: 0,

@@ -409,10 +409,10 @@ function ViewForceLinks (inputConfig) {
   let nodeMaxAge = 60000;
   let maxAgeRate = 1e-6;
 
-  const defaultStrokeWidth = "0.5em";
-  const topTermStrokeWidth = "0.6em";
+  const defaultStrokeWidth = "0.4em";
+  const topTermStrokeWidth = "0.5em";
 
-  const botStrokeWidth = "0.6em";
+  const botStrokeWidth = "0.5em";
   const botCircleFillColor = palette.black;
   const botLabelFillColor = palette.white;
 
@@ -420,9 +420,9 @@ function ViewForceLinks (inputConfig) {
   const fixedNodeStrokeColor = palette.blue;
 
   const categoryMatchColor = palette.green;
-  const categoryMatchStrokeWidth = "0.6em";
-  const categoryMismatchStrokeWidth = "0.7em";
-  const categoryAutoStrokeWidth = "0.3em";
+  const categoryMatchStrokeWidth = "0.5em";
+  const categoryMismatchStrokeWidth = "0.6em";
+  const categoryAutoStrokeWidth = "0.2em";
 
   const divTooltip = d3
     .select("body")
@@ -1209,6 +1209,7 @@ function ViewForceLinks (inputConfig) {
     switch (d.nodeType) {
 
       case "tweet":
+        window.open("https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId, "_blank");
         break;
       case "user":
         if (d.isFixedNode){

@@ -71,12 +71,12 @@ function ViewForceLinks (inputConfig) {
   // config.settings.adjustedAgeRateScaleRange.min = 1.0;
   // config.settings.adjustedAgeRateScaleRange.max = 20.0;
   
-  config.settings.initialXposition = config.settings.initialXposition || 0.5;
-  config.settings.initialYposition = config.settings.initialYposition || 0.9;
+  // config.settings.initialXposition = config.settings.initialXposition || 0.5;
+  // config.settings.initialYposition = config.settings.initialYposition || 0.9;
 
   config.settings.minRateMetricChange = config.settings.minRateMetricChange || 0.5;
 
-  config.settings.panzoom = config.settings.panzoom || {};
+  // config.settings.panzoom = config.settings.panzoom || {};
 
   config.settings.focus = config.settings.focus || {};
 

@@ -1698,9 +1698,9 @@ function ViewForceLinks (inputConfig) {
       updateNodeCircles();
       updateNodeLabels();
 
-      if (updateLinks){
+      // if (updateLinks){
         updateLinks();
-      }
+      // }
 
       if ((metricMode === "rate" && newCurrentMaxRateMetricFlag && Math.abs(currentMaxRateMetric - previousMaxRateMetric) / currentMaxRateMetric > config.settings.minRateMetricChange)
         || (metricMode === "mentions" && newCurrentMaxMentionsMetricFlag)) {

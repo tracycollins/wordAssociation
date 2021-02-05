@@ -130,24 +130,6 @@ const App = (props) => {
 
     switch (changeObj.name){
 
-      case "displayLinks":
-
-        if (parentWindow){
-          parentWindow.postMessage(
-            {
-              op: "UPDATE", 
-              id: changeObj.name,
-              value: changeObj.value,
-            }, 
-            DEFAULT_SOURCE
-          );
-        }
-
-        tempSettings = Object.assign({}, settingsRef.current, {[changeObj.name]: changeObj.value})
-        setSettings(tempSettings)    
-
-        break;
-
       case "nodeRadiusRatio":
       case "fontSizeRatio":
         if (parentWindow){
@@ -166,6 +148,8 @@ const App = (props) => {
         setSettings(tempSettings)
         break
 
+      case "displayTweets":
+      case "displayLinks":
       case "linkStrength":
       case "linkDistance":
       case "nodeMaxAge":

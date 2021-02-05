@@ -10,7 +10,7 @@ console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
 console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`)
 
-const STORED_CONFIG_VERSION = "2.2.7";
+const STORED_CONFIG_VERSION = "2.2.8";
 const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
 const globalStoredSettingsName = STORED_CONFIG_NAME;
 

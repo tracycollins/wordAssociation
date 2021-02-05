@@ -38,9 +38,9 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(1),
   },
   gridHeader: {
-    padding: theme.spacing(1),
+    // padding: theme.spacing(1),
     border: 0,
-    marginBottom: theme.spacing(1),
+    // marginBottom: theme.spacing(1),
   },
   paper: {
     padding: theme.spacing(1),
@@ -48,10 +48,10 @@ const useStyles = makeStyles((theme) => ({
     variant: 'outlined',
   },
   radioGroupCategory: {
-    maxWidth: "90%",
+    maxWidth: "80%",
     fontSize: '0.5rem',
-    padding: theme.spacing(2),
-    marginBottom: theme.spacing(1),
+    // padding: theme.spacing(1),
+    // marginBottom: theme.spacing(1),
   },
   checkbox: {
     color: green[400],
@@ -90,25 +90,24 @@ const Settings = (props) => {
           <Grid item className={classes.gridItem} xs={3}>
             <Paper className={classes.paper}  elevation={0} variant="outlined">
 
-              <Typography
-                className={classes.gridHeader} 
-              >
-                SETTINGS
-              </Typography>
-
-              {/* <Checkbox 
-                id="displayLinks"
-                name="displayLinks"
-                className={classes.checkbox} 
-                size="small"
-                checked={props.settings.displayLinks}
-                // value={props.settings.displayLinks} 
-                onChange={handleChangeSettings("displayLinks")}
-              /> */}
+              <Typography className={classes.gridHeader}>DISPLAY</Typography>
 
               <FormGroup  align="center">
 
                 <FormControl component="fieldset" className={classes.radioGroupCategory} size="small">
+                  <FormControlLabel
+                    control={
+                      <Checkbox 
+                        id="displayTweets"
+                        name="displayTweets"
+                        className={classes.checkbox} 
+                        size="small" 
+                        checked={props.settings.displayTweets}
+                        onChange={handleChangeSettings("displayTweets")}
+                      />
+                    }
+                    label={<Typography className={classes.radioButtonLabel}>TWEETS</Typography>}
+                  />
                   <FormControlLabel
                     control={
                       <Checkbox 
@@ -120,11 +119,11 @@ const Settings = (props) => {
                         onChange={handleChangeSettings("displayLinks")}
                       />
                     }
-                    label={<Typography className={classes.radioButtonLabel}>DISPLAY LINKS</Typography>}
+                    label={<Typography className={classes.radioButtonLabel}>LINKS</Typography>}
                   />
                 </FormControl>
                 
-                <FormControl component="fieldset" className={classes.radioGroupCategory} size="small">
+                {/* <FormControl component="fieldset" className={classes.radioGroupCategory} size="small">
                   <FormControlLabel
                     control={
                       <Checkbox 
@@ -139,7 +138,7 @@ const Settings = (props) => {
                     label={<Typography className={classes.radioButtonLabel}>DISPLAY TWEETS</Typography>}
                   />
                 </FormControl>
-                
+                 */}
               </FormGroup>
 
             </Paper>

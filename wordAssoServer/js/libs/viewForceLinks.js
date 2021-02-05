@@ -2,13 +2,13 @@
 
 function ViewForceLinks (inputConfig) {
 
-  const DISPLAY_USER = true;
-  const DISPLAY_HASHTAG = true;
-  const DISPLAY_TWEET = false;
-  const DISPLAY_LINK = false;
+  // const DISPLAY_USER = true;
+  // const DISPLAY_HASHTAG = true;
+  // const DISPLAY_TWEET = false;
+  // const DISPLAY_LINK = false;
 
-  const LINK_DISTANCE = 10;
-  const LINK_STRENGTH = 0.2;
+  // const LINK_DISTANCE = 10;
+  // const LINK_STRENGTH = 0.2;
 
   console.log("@@@@@@@ ViewForceLinks @@@@@@@@");
   console.log({inputConfig})
@@ -406,7 +406,12 @@ function ViewForceLinks (inputConfig) {
     console.debug(`DISPLAY ${entity}: ${value}`);
     config.settings.display[entity] = value;
     if (entity === "link"){
-      simulation.force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength));
+      if (value){
+        simulation.force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength));
+      }
+      else{
+        linkArray = []
+      }
     }
     return config.settings.display[entity];
   };

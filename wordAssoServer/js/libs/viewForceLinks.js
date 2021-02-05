@@ -3,7 +3,7 @@
 function ViewForceLinks (inputConfig) {
 
   const DISPLAY_TWEETS = false;
-  const DISPLAY_LINKS = true;
+  const DISPLAY_LINKS = false;
   const LINK_DISTANCE = 10;
   const LINK_STRENGTH = 0.2;
 
@@ -412,7 +412,7 @@ function ViewForceLinks (inputConfig) {
     if (!displayLinks){
       linkArray = [];
     }
-    
+
     return displayLinks;
   };
 

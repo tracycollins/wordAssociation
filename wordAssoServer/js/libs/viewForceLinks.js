@@ -1952,7 +1952,7 @@ function ViewForceLinks (inputConfig) {
 
     simulation = d3.forceSimulation(nodeArray);
 
-    if (config.settings.display.tweet){
+    if (config.settings.display.link){
       simulation.force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength));
     }
 

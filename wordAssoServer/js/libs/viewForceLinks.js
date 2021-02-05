@@ -58,47 +58,48 @@ function ViewForceLinks (inputConfig) {
   config.settings = config.settings || {};
   config.defaults = config.defaults || {};
 
-  config.settings.display.tweet = DISPLAY_TWEET;
-  config.settings.display.link = DISPLAY_LINK;
-  config.settings.display.user = DISPLAY_USER;
-  config.settings.display.hashtag = DISPLAY_HASHTAG;
+  // config.settings.display.tweet = config.settings.display.tweet === undefined ? DISPLAY_TWEET : config.settings.display.tweet;
+  // config.settings.display.link = config.settings.display.link === undefined ? DISPLAY_TWEET : config.settings.display.link;
+  // config.settings.display.user = config.settings.display.user === undefined ? DISPLAY_TWEET : config.settings.display.user;
+  // config.settings.display.hashtag = config.settings.display.hashtag === undefined ? DISPLAY_TWEET : config.settings.display.hashtag;
 
-  config.settings.linkDistance = LINK_DISTANCE;
-  config.settings.linkStrength = LINK_STRENGTH;
-  config.settings.adjustedAgeRateScaleRange = {};
-  config.settings.adjustedAgeRateScaleRange.min = 1.0;
-  config.settings.adjustedAgeRateScaleRange.max = 20.0;
+
+  // config.settings.linkDistance = LINK_DISTANCE;
+  // config.settings.linkStrength = LINK_STRENGTH;
+  // config.settings.adjustedAgeRateScaleRange = {};
+  // config.settings.adjustedAgeRateScaleRange.min = 1.0;
+  // config.settings.adjustedAgeRateScaleRange.max = 20.0;
   
-  config.settings.initialXposition = config.settings.initialXposition || 0.5;
-  config.settings.initialYposition = config.settings.initialYposition || 0.9;
+  // config.settings.initialXposition = config.settings.initialXposition || 0.5;
+  // config.settings.initialYposition = config.settings.initialYposition || 0.9;
 
-  config.settings.minRateMetricChange = config.settings.minRateMetricChange || 0.5;
+  // config.settings.minRateMetricChange = config.settings.minRateMetricChange || 0.5;
 
   config.settings.focus = config.settings.focus || {};
 
-  config.settings.focus.leftRatio = {};
-  config.settings.focus.leftRatio.x = 0.2;
-  config.settings.focus.leftRatio.y = 0.4;
+  config.settings.focus.leftRatio = config.settings.focus.leftRatio || {};
+  // config.settings.focus.leftRatio.x = 0.2;
+  // config.settings.focus.leftRatio.y = 0.4;
   
-  config.settings.focus.rightRatio = {};
-  config.settings.focus.rightRatio.x = 0.8;
-  config.settings.focus.rightRatio.y = 0.4;
+  config.settings.focus.rightRatio = config.settings.focus.rightRatio || {};
+  // config.settings.focus.rightRatio.x = 0.8;
+  // config.settings.focus.rightRatio.y = 0.4;
   
-  config.settings.focus.positiveRatio = {};
-  config.settings.focus.positiveRatio.x = 0.5;
-  config.settings.focus.positiveRatio.y = 0.2;
+  config.settings.focus.positiveRatio = config.settings.focus.positiveRatio || {};
+  // config.settings.focus.positiveRatio.x = 0.5;
+  // config.settings.focus.positiveRatio.y = 0.2;
   
-  config.settings.focus.negativeRatio = {};
-  config.settings.focus.negativeRatio.x = 0.5;
-  config.settings.focus.negativeRatio.y = 0.85;
+  config.settings.focus.negativeRatio = config.settings.focus.negativeRatio || {};
+  // config.settings.focus.negativeRatio.x = 0.5;
+  // config.settings.focus.negativeRatio.y = 0.85;
   
-  config.settings.focus.neutralRatio = {};
-  config.settings.focus.neutralRatio.x = 0.5;
-  config.settings.focus.neutralRatio.y = 0.4;
+  config.settings.focus.neutralRatio = config.settings.focus.neutralRatio || {};
+  // config.settings.focus.neutralRatio.x = 0.5;
+  // config.settings.focus.neutralRatio.y = 0.4;
   
-  config.settings.focus.defaultRatio = {};
-  config.settings.focus.defaultRatio.x = 0.5;
-  config.settings.focus.defaultRatio.y = 0.4;
+  config.settings.focus.defaultRatio = config.settings.focus.defaultRatio || {};
+  // config.settings.focus.defaultRatio.x = 0.5;
+  // config.settings.focus.defaultRatio.y = 0.4;
   
   let foci = {
     left: { 

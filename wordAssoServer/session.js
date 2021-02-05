@@ -14,6 +14,8 @@ const STORED_CONFIG_VERSION = "2.2.5";
 const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
 const globalStoredSettingsName = STORED_CONFIG_NAME;
 
+let currentConfig = {};
+
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 
 // const DEFAULT_WINDOW_HEIGHT = 1080;
@@ -57,15 +59,15 @@ status.bestNetwork.numInputs = 0;
 status.maxNodes = 0;
 status.maxNodeAddQ = 0;
 
-config.defaults.app_name = "Session View";
-config.defaults.sessionViewType = "treepack"; // options: force, histogram ??
-config.defaults.storedConfigName = STORED_CONFIG_NAME;
-config.defaults.rxNodeQueueMax = DEFAULT_RX_NODE_QUEUE_MAX;
-config.defaults.rxNodeQueueInterval = DEFAULT_RX_NODE_QUEUE_INTERVAL;
-config.defaults.keepaliveInterval = DEFAULT_KEEPALIVE_INTERVAL;
-config.defaults.viewerReadyInterval = 10000;
+currentConfig.defaults.app_name = "Session View";
+currentConfig.defaults.sessionViewType = "treepack"; // options: force, histogram ??
+currentConfig.defaults.storedConfigName = STORED_CONFIG_NAME;
+currentConfig.defaults.rxNodeQueueMax = DEFAULT_RX_NODE_QUEUE_MAX;
+currentConfig.defaults.rxNodeQueueInterval = DEFAULT_RX_NODE_QUEUE_INTERVAL;
+currentConfig.defaults.keepaliveInterval = DEFAULT_KEEPALIVE_INTERVAL;
+currentConfig.defaults.viewerReadyInterval = 10000;
 
-config.settings = Object.assign({}, config.defaults)
+currentConfig.settings = Object.assign({}, config.defaults)
 
 const palette = {
   black: "#000000",
@@ -169,30 +171,14 @@ const resetConfigUpdateTimeOut = () => {
 }
 
 const saveConfig = () => {
-  config.defaults.storedConfigName = globalStoredSettingsName
-  store.set(config.defaults.storedConfigName, config);
-  console.debug("STORED CONFIG" + " | " + config.defaults.storedConfigName);
+  currentConfig.defaults.storedConfigName = globalStoredSettingsName
+  store.set(currentConfig.defaults.storedConfigName, currentConfig);
+  console.debug("STORED CONFIG" + " | " + currentConfig.defaults.storedConfigName);
   return;
 }
 
 const infoDivElement = document.getElementById("infoDiv");
 const controlDivElement = document.getElementById("controlDiv");
-
-// let serverActiveTimeout;
-// const serverActiveTimeoutEventObj = new CustomEvent("serverActiveTimeoutEvent");
-
-// const resetServerActiveTimer = () => {
-
-//   if (currentSessionView !== undefined) {
-//     currentSessionView.setEnableAgeNodes(true);
-//   }
-
-//   clearTimeout(serverActiveTimeout);
-
-//   serverActiveTimeout = setTimeout(function () {
-//     document.dispatchEvent(serverActiveTimeoutEventObj);
-//   }, config.settings.serverActiveTimeoutInterval);
-// }
 
 let customizerWindow;
 const customizerComm = (event) => {
@@ -203,8 +189,6 @@ const customizerComm = (event) => {
     console.info("RX> CONTROL PANEL | DisableHTML5Autoplay_Initialize ... IGNORING ...");
     return;
   }
-
-  let entity;
 
   switch (event.data.op) {
 
@@ -433,7 +417,7 @@ const addCustomizeButton = () => {
   customizeButton.className = "button";
   customizeButton.setAttribute("id", "customizeButton");
   customizeButton.onclick = toggleCustomize;
-  customizeButton.innerHTML = config.settings.customizeMode
+  customizeButton.innerHTML = currentConfig.settings.customizeMode
     ? "EXIT CUSTOMIZE"
     : "CUSTOMIZE";
   controlDivElement.appendChild(customizeButton);
@@ -445,7 +429,7 @@ const addFullscreenButton = () => {
   fullscreenButton.className = "button";
   fullscreenButton.setAttribute("id", "fullscreenButton");
   fullscreenButton.onclick = toggleFullScreen
-  fullscreenButton.innerHTML = config.fullscreenMode
+  fullscreenButton.innerHTML = currentConfig.fullscreenMode
     ? "EXIT FULLSCREEN"
     : "FULLSCREEN";
   controlDivElement.appendChild(fullscreenButton);
@@ -574,7 +558,7 @@ let socket;
 
 const rxNode = function (node) {
   
-  if (rxNodeQueue.length >= config.settings.rxNodeQueueMax) {
+  if (rxNodeQueue.length >= currentConfig.settings.rxNodeQueueMax) {
     return;
   }
 
@@ -628,16 +612,16 @@ function initSocketHandler () {
     status.viewerSessionKey = vSesKey;
     viewerObj.viewerSessionKey = vSesKey;
 
-    if (config.settings.VIEWER_OBJ === undefined) {
-      config.settings.VIEWER_OBJ = {};
+    if (currentConfig.settings.VIEWER_OBJ === undefined) {
+      currentConfig.settings.VIEWER_OBJ = {};
     }
 
-    config.settings.VIEWER_OBJ = viewerObj;
+    currentConfig.settings.VIEWER_OBJ = viewerObj;
 
     console.debug("STORE CONFIG ON VIEWER_READY_ACK");
     saveConfig();
 
-    initKeepalive(viewerObj, config.settings.keepaliveInterval);
+    initKeepalive(viewerObj, currentConfig.settings.keepaliveInterval);
   });
 
   socket.on("USER_AUTHENTICATED", function (userObj) {
@@ -724,7 +708,7 @@ function initSocketHandler () {
     status.userReadyTransmitted = false;
     status.userReadyAck = false;
     console.log("CONNECTED TO HOST | ID: " + socket.id);
-    initViewerReadyInterval(config.settings.viewerReadyInterval);
+    initViewerReadyInterval(currentConfig.settings.viewerReadyInterval);
   });
 
   const sSmall = {};
@@ -772,13 +756,13 @@ function initSocketSessionUpdateRx() {
 
     viewNodeAddQlength = currentSessionView.getNodeAddQlength();
 
-    if (rxNodeQueueReady && rxNodeQueue.length > 0 && viewNodeAddQlength <= 1.5 * config.settings.rxNodeQueueMax) {
+    if (rxNodeQueueReady && rxNodeQueue.length > 0 && viewNodeAddQlength <= 1.5 * currentConfig.settings.rxNodeQueueMax) {
 
       rxNodeQueueReady = false;
 
       newNode = rxNodeQueue.shift();
 
-      if (config.autoCategoryFlag && newNode.categoryAuto) {
+      if (currentConfig.autoCategoryFlag && newNode.categoryAuto) {
         category = newNode.categoryAuto;
       } 
       else {
@@ -816,7 +800,7 @@ function initSocketSessionUpdateRx() {
 
     }
 
-  }, config.settings.rxNodeQueueInterval);
+  }, currentConfig.settings.rxNodeQueueInterval);
 
   return;
 }
@@ -883,7 +867,7 @@ function resetMouseMoveTimer() {
     currentSessionView.toolTipVisibility(false);
     currentSessionView.mouseMoving(false);
 
-    if (config.settings.pauseOnMouseMove && !config.settings.pauseFlag) {
+    if (currentConfig.settings.pauseOnMouseMove && !currentConfig.settings.pauseFlag) {
       currentSessionView.simulationControl("RESUME");
     }
 
@@ -910,7 +894,7 @@ document.addEventListener(visibilityEvent, function () {
 
 document.addEventListener("mousemove", function () {
     if (currentSessionView) {
-      if (config.settings.pauseOnMouseMove) {
+      if (currentConfig.settings.pauseOnMouseMove) {
         currentSessionView.simulationControl("PAUSE");
       }
       // mouseMovingFlag = true;
@@ -924,7 +908,7 @@ document.addEventListener("mousemove", function () {
 
 document.addEventListener("panzoomEvent", function () {
     if (currentSessionView) {
-      config.settings.panzoom.transform = currentSessionView.getPanzoomTransform();
+      currentConfig.settings.panzoom.transform = currentSessionView.getPanzoomTransform();
       saveConfig();
     }
   },
@@ -935,52 +919,6 @@ const loadStoredSettings = () => {
   console.log("LOADING STORED SETTINGS: " + globalStoredSettingsName);
   return store.get(globalStoredSettingsName);
 }
-
-// function Node() {
-//   this.isFixedNode = false;
-//   this.disableAging = false;
-//   this.age = 1e-6;
-//   this.ageMaxRatio = 1e-6;
-//   this.ageUpdated = Date.now();
-//   this.category = "none";
-//   this.categoryAuto = "none";
-//   this.categoryColor = "#FFFFFF";
-//   this.categoryMatch = false;
-//   this.categoryMismatch = false;
-//   this.following = false;
-//   this.followersCount = 0;
-//   this.followersMentions = 0;
-//   this.friendsCount = 0;
-//   this.fullName = 0;
-//   this.hashtagId = false;
-//   this.index = 0;
-//   this.isBot = false;
-//   this.isTweeter = false;
-//   this.isDead = true;
-//   this.isIgnored = false;
-//   this.isMaxNode = false;
-//   this.isTopTerm = false;
-//   this.isTrendingTopic = false;
-//   this.isValid = false;
-//   this.lastTweetId = false;
-//   this.mentions = 0;
-//   this.mouseHoverFlag = false;
-//   this.name = "";
-//   this.newFlag = true;
-//   this.nodeId = "";
-//   this.nodeType = "user";
-//   this.rank = -1;
-//   this.rate = 1e-6;
-//   this.screenName = "";
-//   this.statusesCount = 0;
-//   this.text = "";
-//   this.fx = null;
-//   this.fy = null;
-//   this.vx = 1e-6;
-//   this.vy = 1e-6;
-//   this.x = 1e-6;
-//   this.y = 1e-6;
-// }
 
 function getWindowDimensions () {
 
@@ -1029,10 +967,10 @@ window.addEventListener("load",
     width = getWindowDimensions().width;
     height = getWindowDimensions().height;
 
-    config.settings.panzoom.transform.x = 0.5 * width;
-    config.defaults.panzoom.transform.x = 0.5 * width;
-    config.settings.panzoom.transform.y = 0.5 * height;
-    config.defaults.panzoom.transform.y = 0.5 * height;
+    currentConfig.settings.panzoom.transform.x = 0.5 * width;
+    currentConfig.defaults.panzoom.transform.x = 0.5 * width;
+    currentConfig.settings.panzoom.transform.y = 0.5 * height;
+    currentConfig.defaults.panzoom.transform.y = 0.5 * height;
 
   },
 
@@ -1073,7 +1011,7 @@ setTimeout(function(){
     if (storedSettings) {
       console.log(`LOADED STORED SETTINGS`)
       console.log({storedSettings}) 
-      config = Object.assign({}, config, storedSettings)
+      currentConfig = Object.assign({}, currentConfig, storedSettings)
     }
     else{
       console.log(`*** LOAD STORED SETTINGS FAILED: ${globalStoredSettingsName}`)

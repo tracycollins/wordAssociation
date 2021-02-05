@@ -410,28 +410,6 @@ function ViewForceLinks (inputConfig) {
     return config.settings.display[entity];
   };
 
-  // self.displayTweets = function (value) {
-  //   console.debug("DISPLAY TWEETS: " + value);
-  //   config.settings.displayTweets = value;
-  //   displayTweets = value;
-  //   return displayTweets;
-  // };
-
-  // self.displayLinks = function (value) {
-  //   console.debug("DISPLAY LINKS: " + value);
-  //   config.settings.displayLinks = value;
-  //   displayLinks = value;
-
-  //   if (!displayLinks){
-  //     linkArray = [];
-  //   }
-  //   else if (simulation){
-  //     simulation.force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength));
-  //   }
-
-  //   return displayLinks;
-  // };
-
   const keysForSort = [];
 
   self.getSortedKeys = function (hmap, sortProperty) {

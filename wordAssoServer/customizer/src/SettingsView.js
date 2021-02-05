@@ -105,7 +105,8 @@ const Settings = (props) => {
                         className={classes.checkbox} 
                         size="small" 
                         value={props.settings.displayLinks} 
-                        onChange={handleChangeSettings("displayLinks")}
+                        // onChange={handleChangeSettings("displayLinks")}
+                        onChange={(event) => handleChangeSettings("displayLinks")}
                       />
                     }
                     label={<Typography className={classes.radioButtonLabel}>LINKS</Typography>}

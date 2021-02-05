@@ -2,35 +2,35 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 // import clsx from 'clsx';
-import { green, grey } from '@material-ui/core/colors';
+import { green } from '@material-ui/core/colors';
 
 import Box from '@material-ui/core/Box';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
-import CardMedia from '@material-ui/core/CardMedia';
+// import CardMedia from '@material-ui/core/CardMedia';
 
 import Grid from '@material-ui/core/Grid';
 import LinearProgress from '@material-ui/core/LinearProgress';
-import Slider from '@material-ui/core/Slider';
+// import Slider from '@material-ui/core/Slider';
 import Typography from '@material-ui/core/Typography';
-import TableCell from '@material-ui/core/TableCell';
-import TableRow from '@material-ui/core/TableRow';
+// import TableCell from '@material-ui/core/TableCell';
+// import TableRow from '@material-ui/core/TableRow';
 
-import { makeStyles, withStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 
-const StyledTableCell = withStyles((theme) => ({
-  head: {
-  },
-  body: {
-    fontSize: 11,
-  },
-}))(TableCell);
+// const StyledTableCell = withStyles((theme) => ({
+//   head: {
+//   },
+//   body: {
+//     fontSize: 11,
+//   },
+// }))(TableCell);
 
-const StyledTableRow = withStyles((theme) => ({
-  root: {
-    backgroundColor: grey,
-  },
-}))(TableRow);
+// const StyledTableRow = withStyles((theme) => ({
+//   root: {
+//     backgroundColor: grey,
+//   },
+// }))(TableRow);
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -282,16 +282,16 @@ LinearProgressWithLabel.propTypes = {
   value: PropTypes.number.isRequired,
 };
 
-const formatDate = (dateInput) => {
-  return new Date(dateInput).toLocaleDateString(
-    'en-gb',
-    {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    }
-  );
-}
+// const formatDate = (dateInput) => {
+//   return new Date(dateInput).toLocaleDateString(
+//     'en-gb',
+//     {
+//       year: 'numeric',
+//       month: 'short',
+//       day: 'numeric'
+//     }
+//   );
+// }
 
 // const useStyles = makeStyles((theme) => ({
 //   root: {

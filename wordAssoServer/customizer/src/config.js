@@ -1,5 +1,6 @@
 const config = {
   defaults: {
+    rxNodeQueueMax: 100,
     keepaliveInterval: 15000,
     display: {
       hashtag: true,

@@ -1,5 +1,6 @@
 const config = {
   defaults: {
+    keepaliveInterval: 15000,
     display: {
       hashtag: true,
       user: true,

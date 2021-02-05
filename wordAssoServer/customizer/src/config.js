@@ -1,7 +1,11 @@
 const config = {
   defaults: {
-    displayTweets: false,
-    displayLinks: false,
+    display: {
+      hashtag: true,
+      user: true,
+      tweet: false,
+      link: false
+    },
     linkStrength: 0.2,
     linkStrengthRange: {
       min: 0,

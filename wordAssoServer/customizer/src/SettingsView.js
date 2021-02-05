@@ -6,7 +6,7 @@ import { green } from '@material-ui/core/colors';
 // import CardContent from '@material-ui/core/CardContent';
 // import CardMedia from '@material-ui/core/CardMedia';
 import Checkbox from '@material-ui/core/Checkbox';
-import FormControl from '@material-ui/core/FormControl';
+// import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import Grid from '@material-ui/core/Grid';
@@ -84,6 +84,35 @@ const Settings = (props) => {
     props.handleChange({name: name, value: value})
   };
 
+  function renderDisplayCheckboxes(){
+
+    const entityTypes = ["tweet", "user", "hashtag", "link"];
+
+    return (
+      <FormGroup  align="center">
+        {
+          entityTypes.map((entityType) => (
+            <FormControlLabel
+              key={`display_${entityType}`}
+              control={
+                <Checkbox
+                  key={`display_${entityType}`}
+                  id={`display_${entityType}`}
+                  name={`display_${entityType}`}
+                  className={classes.checkbox} 
+                  size="small" 
+                  checked={props.settings.display[entityType]}
+                  onChange={handleChangeSettings(`display_${entityType}`)}
+                />
+              }
+              label={<Typography key={`display_${entityType}`} className={classes.radioButtonLabel}>{entityType.toUpperCase()}</Typography>}
+            />
+          ))
+        }
+      </FormGroup>
+    )
+  }
+
   return (
     <>
       <Grid className={classes.grid}>
@@ -92,8 +121,8 @@ const Settings = (props) => {
 
               <Typography className={classes.gridHeader}>DISPLAY</Typography>
 
-              <FormGroup  align="center">
-
+              {renderDisplayCheckboxes()}
+              {/* <FormGroup  align="center">
                 <FormControl component="fieldset" className={classes.radioGroupCategory} size="small">
                   <FormControlLabel
                     control={
@@ -122,24 +151,7 @@ const Settings = (props) => {
                     label={<Typography className={classes.radioButtonLabel}>LINKS</Typography>}
                   />
                 </FormControl>
-                
-                {/* <FormControl component="fieldset" className={classes.radioGroupCategory} size="small">
-                  <FormControlLabel
-                    control={
-                      <Checkbox 
-                        id="displayTweets"
-                        name="displayTweets"
-                        className={classes.checkbox} 
-                        size="small" 
-                        checked={props.settings.displayTweets}
-                        onChange={handleChangeSettings("displayTweets")}
-                      />
-                    }
-                    label={<Typography className={classes.radioButtonLabel}>DISPLAY TWEETS</Typography>}
-                  />
-                </FormControl>
-                 */}
-              </FormGroup>
+              </FormGroup> */}
 
             </Paper>
           </Grid>

@@ -1,7 +1,13 @@
 let config = {
   defaults: {
-    displayTweets: false,
-    displayLinks: false,
+    display: {
+      hashtag: true,
+      user: true,
+      tweet: false,
+      link: false
+    },
+    // displayTweets: false,
+    // displayLinks: false,
     linkStrength: 0.5,
     linkStrengthRange: {
       min: 0,

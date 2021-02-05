@@ -1,4 +1,4 @@
-const config = {
+let config = {
   defaults: {
     displayTweets: false,
     displayLinks: false,

@@ -404,6 +404,9 @@ function ViewForceLinks (inputConfig) {
   self.displayEntity = function (entity, value) {
     console.debug(`DISPLAY ${entity}: ${value}`);
     config.settings.display[entity] = value;
+    if (entity === "link"){
+      simulation.force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength));
+    }
     return config.settings.display[entity];
   };
 

@@ -4,7 +4,7 @@ const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
 const MBP3_SOURCE = "http://mbp3:3000";
 
-const DEFAULT_SOURCE = LOCAL_SOURCE;
+const DEFAULT_SOURCE = PRODUCTION_SOURCE;
 
 console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)

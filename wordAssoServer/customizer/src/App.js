@@ -148,8 +148,10 @@ const App = (props) => {
         setSettings(tempSettings)
         break
 
-      case "displayTweets":
-      case "displayLinks":
+      case "display_user":
+      case "display_hashtag":
+      case "display_tweet":
+      case "display_link":
       case "linkStrength":
       case "linkDistance":
       case "nodeMaxAge":
@@ -258,8 +260,7 @@ const App = (props) => {
       return (
         <SettingsView 
           defaults={defaultsRef.current} 
-          // settings={settingsRef.current} 
-          settings={settings} 
+          settings={settingsRef.current} 
           status={statusRef.current} 
           handleChange={handleChange}
         >

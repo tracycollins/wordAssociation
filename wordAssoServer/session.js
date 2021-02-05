@@ -10,7 +10,7 @@ console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
 console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`)
 
-const STORED_CONFIG_VERSION = "2.2.2";
+const STORED_CONFIG_VERSION = "2.2.3";
 const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
 const globalStoredSettingsName = STORED_CONFIG_NAME;
 
@@ -204,6 +204,8 @@ const customizerComm = (event) => {
     return;
   }
 
+  let entity;
+
   switch (event.data.op) {
 
     case "READY":
@@ -242,12 +244,12 @@ const customizerComm = (event) => {
 
       switch (event.data.id) {
 
-        case "displayLinks":
-          currentSessionView.displayLinks(event.data.value);
-          break;
-
-        case "displayTweets":
-          currentSessionView.displayTweets(event.data.value);
+        case "display_user":
+        case "display_hashtag":
+        case "display_tweet":
+        case "display_link":
+          entity = event.data.id.split("_")[1];
+          currentSessionView.displayEntity(entity, event.data.value);
           break;
 
         case "linkStrength":

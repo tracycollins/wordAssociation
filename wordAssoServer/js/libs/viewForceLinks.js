@@ -2,8 +2,11 @@
 
 function ViewForceLinks (inputConfig) {
 
-  const DISPLAY_TWEETS = false;
-  const DISPLAY_LINKS = false;
+  const DISPLAY_USER = true;
+  const DISPLAY_HASHTAG = true;
+  const DISPLAY_TWEET = false;
+  const DISPLAY_LINK = false;
+
   const LINK_DISTANCE = 10;
   const LINK_STRENGTH = 0.2;
 
@@ -55,8 +58,11 @@ function ViewForceLinks (inputConfig) {
   config.settings = config.settings || {};
   config.defaults = config.defaults || {};
 
-  config.settings.displayTweets = DISPLAY_TWEETS;
-  config.settings.displayLinks = DISPLAY_LINKS;
+  config.settings.display.tweet = DISPLAY_TWEET;
+  config.settings.display.link = DISPLAY_LINK;
+  config.settings.display.user = DISPLAY_USER;
+  config.settings.display.hashtag = DISPLAY_HASHTAG;
+
   config.settings.linkDistance = LINK_DISTANCE;
   config.settings.linkStrength = LINK_STRENGTH;
   config.settings.adjustedAgeRateScaleRange = {};
@@ -320,8 +326,6 @@ function ViewForceLinks (inputConfig) {
   let linkStrength = config.settings.linkStrength;
   let linkDistance = config.settings.linkDistance;
   let gravity = config.settings.gravity;
-  let displayTweets = config.settings.displayTweets;
-  let displayLinks = config.settings.displayLinks;
 
   const forceXmultiplier = config.settings.forceXmultiplier;
   const forceYmultiplier = config.settings.forceYmultiplier;
@@ -397,27 +401,33 @@ function ViewForceLinks (inputConfig) {
     return height;
   };
 
-  self.displayTweets = function (value) {
-    console.debug("DISPLAY TWEETS: " + value);
-    config.settings.displayTweets = value;
-    displayTweets = value;
-    return displayTweets;
+  self.displayEntity = function (entity, value) {
+    console.debug(`DISPLAY ${entity}: ${value}`);
+    config.settings.display[entity] = value;
+    return config.settings.display[entity];
   };
 
-  self.displayLinks = function (value) {
-    console.debug("DISPLAY LINKS: " + value);
-    config.settings.displayLinks = value;
-    displayLinks = value;
+  // self.displayTweets = function (value) {
+  //   console.debug("DISPLAY TWEETS: " + value);
+  //   config.settings.displayTweets = value;
+  //   displayTweets = value;
+  //   return displayTweets;
+  // };
 
-    if (!displayLinks){
-      linkArray = [];
-    }
-    else if (simulation){
-      simulation.force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength));
-    }
+  // self.displayLinks = function (value) {
+  //   console.debug("DISPLAY LINKS: " + value);
+  //   config.settings.displayLinks = value;
+  //   displayLinks = value;
 
-    return displayLinks;
-  };
+  //   if (!displayLinks){
+  //     linkArray = [];
+  //   }
+  //   else if (simulation){
+  //     simulation.force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength));
+  //   }
+
+  //   return displayLinks;
+  // };
 
   const keysForSort = [];
 
@@ -1796,13 +1806,13 @@ function ViewForceLinks (inputConfig) {
       await processNodeAddQ();
       await ageNodes();
 
-      if (displayLinks){
+      if (config.settings.display.link){
         linkArray = await processLinks();
       }
 
       simulation.nodes(nodeArray);
 
-      if (simulation.force("link") && displayLinks){
+      if (simulation.force("link") && config.settings.display.link){
         simulation.force("link").links(linkArray);
       }
 
@@ -1836,7 +1846,7 @@ function ViewForceLinks (inputConfig) {
     config.settings.linkStrength = value;
     linkStrength = value;
 
-    if (displayLinks){
+    if (config.settings.display.link){
       simulation.force("link").strength(value);
     }
   };
@@ -1846,14 +1856,14 @@ function ViewForceLinks (inputConfig) {
     config.settings.linkDistance = value;
     linkDistance = value;
     
-    if (displayLinks){
+    if (config.settings.display.link){
       simulation.force("link").distance(value);
     }
   };
 
   self.addNode = function (n) {
 
-    if (!displayTweets && n.nodeType === "tweet"){
+    if (!config.settings.display[n.nodeType]){
       return;
     }
 
@@ -1942,7 +1952,7 @@ function ViewForceLinks (inputConfig) {
 
     simulation = d3.forceSimulation(nodeArray);
 
-    if (displayLinks){
+    if (config.settings.display.tweet){
       simulation.force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength));
     }
 
@@ -2093,7 +2103,7 @@ function ViewForceLinks (inputConfig) {
 
         simulation.force("charge", d3.forceManyBody().strength(charge));
 
-        if (displayLinks) {
+        if (config.settings.display.) {
           simulation.force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength));
         }
 

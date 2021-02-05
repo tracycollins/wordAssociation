@@ -75,6 +75,8 @@ function ViewForceLinks (inputConfig) {
 
   // config.settings.minRateMetricChange = config.settings.minRateMetricChange || 0.5;
 
+  config.settings.panzoom = config.settings.panzoom || {};
+
   config.settings.focus = config.settings.focus || {};
 
   config.settings.focus.leftRatio = config.settings.focus.leftRatio || {};

@@ -93,21 +93,21 @@ const Settings = (props) => {
         <FormControl component="fieldset" className={classes.radioGroupCategory} size="small">
           {
             entityTypes.map((entityType) => (
-                <FormControlLabel
-                  key={`display_${entityType}`}
-                  control={
-                    <Checkbox
-                      key={`display_${entityType}`}
-                      id={`display_${entityType}`}
-                      name={`display_${entityType}`}
-                      className={classes.checkbox} 
-                      size="small" 
-                      checked={props.settings.display[entityType]}
-                      onChange={handleChangeSettings(`display_${entityType}`)}
-                    />
-                  }
-                  label={<Typography key={`display_${entityType}`} className={classes.radioButtonLabel}>{entityType.toUpperCase()}</Typography>}
-                />
+              <FormControlLabel
+                key={`display_${entityType}`}
+                control={
+                  <Checkbox
+                    key={`display_${entityType}`}
+                    id={`display_${entityType}`}
+                    name={`display_${entityType}`}
+                    className={classes.checkbox} 
+                    size="small" 
+                    checked={props.settings.display[entityType]}
+                    onChange={handleChangeSettings(`display_${entityType}`)}
+                  />
+                }
+                label={<Typography key={`display_${entityType}`} className={classes.radioButtonLabel}>{entityType.toUpperCase()}{entityType === "link" ? " (ONLY IF TWEETS DISPLAYED)" : ""}</Typography>}
+              />
             ))
           }
         </FormControl>
@@ -120,41 +120,8 @@ const Settings = (props) => {
       <Grid className={classes.grid}>
           <Grid item className={classes.gridItem} xs={3}>
             <Paper className={classes.paper}  elevation={0} variant="outlined">
-
               <Typography className={classes.gridHeader}>DISPLAY</Typography>
-
               {renderDisplayCheckboxes()}
-              {/* <FormGroup  align="center">
-                <FormControl component="fieldset" className={classes.radioGroupCategory} size="small">
-                  <FormControlLabel
-                    control={
-                      <Checkbox 
-                        id="displayTweets"
-                        name="displayTweets"
-                        className={classes.checkbox} 
-                        size="small" 
-                        checked={props.settings.displayTweets}
-                        onChange={handleChangeSettings("displayTweets")}
-                      />
-                    }
-                    label={<Typography className={classes.radioButtonLabel}>TWEETS</Typography>}
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox 
-                        id="displayLinks"
-                        name="displayLinks"
-                        className={classes.checkbox} 
-                        size="small"
-                        checked={props.settings.displayLinks}
-                        onChange={handleChangeSettings("displayLinks")}
-                      />
-                    }
-                    label={<Typography className={classes.radioButtonLabel}>LINKS</Typography>}
-                  />
-                </FormControl>
-              </FormGroup> */}
-
             </Paper>
           </Grid>
           <Grid item className={classes.gridItem} xs={6}>

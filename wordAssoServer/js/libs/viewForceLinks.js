@@ -2103,7 +2103,7 @@ function ViewForceLinks (inputConfig) {
 
         simulation.force("charge", d3.forceManyBody().strength(charge));
 
-        if (config.settings.display.) {
+        if (config.settings.display.link) {
           simulation.force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength));
         }
 

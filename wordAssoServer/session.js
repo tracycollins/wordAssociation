@@ -68,8 +68,6 @@ currentConfig.settings.rxNodeQueueInterval = DEFAULT_RX_NODE_QUEUE_INTERVAL;
 currentConfig.settings.keepaliveInterval = DEFAULT_KEEPALIVE_INTERVAL;
 currentConfig.settings.viewerReadyInterval = 10000;
 
-// currentConfig.settings = Object.assign({}, config.settings)
-
 const palette = {
   black: "#000000",
   white: "#FFFFFF",

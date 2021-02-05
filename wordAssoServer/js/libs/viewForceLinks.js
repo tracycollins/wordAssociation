@@ -924,7 +924,7 @@ function ViewForceLinks (inputConfig) {
         age = nNode.age + ageRate * (Date.now() - nNode.ageUpdated);
       }
 
-      if (!nNode.disableAging && (age >= nodeMaxAge)) {
+      if ((!config.display[nNode.nodeType]) || (!nNode.disableAging && (age >= nodeMaxAge))) {
 
         nNode.isValid = false;
 

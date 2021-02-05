@@ -88,7 +88,8 @@ module.exports = passport.use(new TwitterStrategy({
           });
           user.save(function(err) {
             if(err) {
-              console.log(err);  // handle errors!
+              console.log(`AUTHENTICATION ERROR: @${userObj.screenName}`)
+              console.log({err}); // handle errors!
             } else {
               console.log("saving user ...");
               done(null, user);

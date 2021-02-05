@@ -11742,7 +11742,6 @@ setTimeout(async function () {
     await initMongoIndexChild({childId: DEFAULT_MGI_CHILD_ID});
     await initKeySortInterval(configuration.keySortInterval);
     await tcUtils.initSaveFileQueue({ interval: 100 });
-    await initPassport();
     await initThreeceeTwitterUser("altthreecee00");
     pubSubClient = await initPubSub();
 
@@ -11798,6 +11797,8 @@ setTimeout(async function () {
 
     await initHeartbeatInterval();
     // await initUpdateUserSetsInterval();
+    await initPassport();
+
 
   } catch (err) {
     console.trace(

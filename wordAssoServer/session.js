@@ -65,10 +65,10 @@ currentConfig.defaults.sessionViewType = "treepack"; // options: force, histogra
 currentConfig.defaults.storedConfigName = STORED_CONFIG_NAME;
 currentConfig.defaults.rxNodeQueueMax = DEFAULT_RX_NODE_QUEUE_MAX;
 currentConfig.defaults.rxNodeQueueInterval = DEFAULT_RX_NODE_QUEUE_INTERVAL;
-currentConfig.defaults.keepaliveInterval = DEFAULT_KEEPALIVE_INTERVAL;
+currentConfig.settings.keepaliveInterval = DEFAULT_KEEPALIVE_INTERVAL;
 currentConfig.defaults.viewerReadyInterval = 10000;
 
-currentConfig.settings = Object.assign({}, config.settings)
+// currentConfig.settings = Object.assign({}, config.settings)
 
 const palette = {
   black: "#000000",

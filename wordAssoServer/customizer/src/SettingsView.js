@@ -87,13 +87,15 @@ const Settings = (props) => {
   return (
     <>
       <Grid className={classes.grid}>
-          <Grid item className={classes.gridItem} xs={2}>
+          <Grid item className={classes.gridItem} xs={3}>
             <Paper className={classes.paper}  elevation={0} variant="outlined">
+
               <Typography
                 className={classes.gridHeader} 
               >
                 SETTINGS
               </Typography>
+
               <FormGroup  align="center">
 
                 <FormControl component="fieldset" className={classes.radioGroupCategory} size="small">
@@ -105,15 +107,31 @@ const Settings = (props) => {
                         className={classes.checkbox} 
                         size="small" 
                         value={props.settings.displayLinks} 
-                        // onChange={handleChangeSettings("displayLinks")}
                         onChange={(event) => handleChangeSettings("displayLinks")}
                       />
                     }
-                    label={<Typography className={classes.radioButtonLabel}>LINKS</Typography>}
+                    label={<Typography className={classes.radioButtonLabel}>DISPLAY LINKS</Typography>}
                   />
                 </FormControl>
-
+                
+                <FormControl component="fieldset" className={classes.radioGroupCategory} size="small">
+                  <FormControlLabel
+                    control={
+                      <Checkbox 
+                        id="displayTweets"
+                        name="displayTweets"
+                        className={classes.checkbox} 
+                        size="small" 
+                        value={props.settings.displayTweets} 
+                        onChange={(event) => handleChangeSettings("displayTweets")}
+                      />
+                    }
+                    label={<Typography className={classes.radioButtonLabel}>DISPLAY TWEETS</Typography>}
+                  />
+                </FormControl>
+                
               </FormGroup>
+
             </Paper>
           </Grid>
           <Grid item className={classes.gridItem} xs={6}>

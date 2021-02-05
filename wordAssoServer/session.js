@@ -195,7 +195,6 @@ const customizerComm = (event) => {
 
     case "READY":
       console.warn("R< CUSTOMIZE PANEL READY");
-      // customizePanel = true;
       break;
 
     case "CLOSE":
@@ -374,7 +373,7 @@ const toggleCustomize = () => {
   console.warn("toggleCustomize");
   if (!customizePanelFlag) {
     customizePanelFlag = !customizePanelFlag;
-    openCustomizer(config)
+    openCustomizer(currentConfig)
   }
   else{
     if (customizerWindow) {
@@ -384,17 +383,17 @@ const toggleCustomize = () => {
   return;
 }
 
-const toggleInfo = () => {
+// const toggleInfo = () => {
 
-  console.warn("toggleInfo");
-  if (!infoPanelFlag) {
-    infoPanelFlag = !infoPanelFlag;
-  }
+//   console.warn("toggleInfo");
+//   if (!infoPanelFlag) {
+//     infoPanelFlag = !infoPanelFlag;
+//   }
 
-  infoDivElement.style.display = infoPanelFlag ? "unset" : "none";
+//   infoDivElement.style.display = infoPanelFlag ? "unset" : "none";
 
-  return;
-}
+//   return;
+// }
 
 const updateCustomizeButton = (customizePanelFlag) => {
   document.getElementById("customizeButton").innerHTML = customizePanelFlag
@@ -403,15 +402,15 @@ const updateCustomizeButton = (customizePanelFlag) => {
   return;
 }
 
-const addInfoButton = () => {
-  const infoButton = document.createElement("BUTTON");
-  infoButton.className = "button";
-  infoButton.setAttribute("id", "infoButton");
-  infoButton.onclick = toggleInfo;
-  infoButton.innerHTML = infoPanelFlag ? "EXIT INFO" : "INFO";
-  controlDivElement.appendChild(infoButton);
-  return;
-}
+// const addInfoButton = () => {
+//   const infoButton = document.createElement("BUTTON");
+//   infoButton.className = "button";
+//   infoButton.setAttribute("id", "infoButton");
+//   infoButton.onclick = toggleInfo;
+//   infoButton.innerHTML = infoPanelFlag ? "EXIT INFO" : "INFO";
+//   controlDivElement.appendChild(infoButton);
+//   return;
+// }
 
 const addCustomizeButton = () => {
   const customizeButton = document.createElement("BUTTON");

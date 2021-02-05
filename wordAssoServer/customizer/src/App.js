@@ -258,7 +258,8 @@ const App = (props) => {
       return (
         <SettingsView 
           defaults={defaultsRef.current} 
-          settings={settingsRef.current} 
+          // settings={settingsRef.current} 
+          settings={settings} 
           status={statusRef.current} 
           handleChange={handleChange}
         >

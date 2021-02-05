@@ -80,7 +80,7 @@ const Settings = (props) => {
   const classes = useStyles();
 
   const handleChangeSettings = name => (e, value) => {
-    e.preventDefault();
+    // e.preventDefault();
     props.handleChange({name: name, value: value})
   };
 
@@ -96,6 +96,16 @@ const Settings = (props) => {
                 SETTINGS
               </Typography>
 
+              {/* <Checkbox 
+                id="displayLinks"
+                name="displayLinks"
+                className={classes.checkbox} 
+                size="small"
+                checked={props.settings.displayLinks}
+                // value={props.settings.displayLinks} 
+                onChange={handleChangeSettings("displayLinks")}
+              /> */}
+
               <FormGroup  align="center">
 
                 <FormControl component="fieldset" className={classes.radioGroupCategory} size="small">
@@ -105,9 +115,8 @@ const Settings = (props) => {
                         id="displayLinks"
                         name="displayLinks"
                         className={classes.checkbox} 
-                        size="small" 
-                        value={props.settings.displayLinks} 
-                        // onChange={(event) => handleChangeSettings("displayLinks")}
+                        size="small"
+                        checked={props.settings.displayLinks}
                         onChange={handleChangeSettings("displayLinks")}
                       />
                     }
@@ -123,8 +132,7 @@ const Settings = (props) => {
                         name="displayTweets"
                         className={classes.checkbox} 
                         size="small" 
-                        value={props.settings.displayTweets} 
-                        // onChange={(event) => handleChangeSettings("displayTweets")}
+                        checked={props.settings.displayTweets}
                         onChange={handleChangeSettings("displayTweets")}
                       />
                     }

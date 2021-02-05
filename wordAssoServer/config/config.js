@@ -8,6 +8,7 @@ let config = {
     },
     // displayTweets: false,
     // displayLinks: false,
+    rxNodeQueueMax: 100,
     keepaliveInterval: 15000,
     linkStrength: 0.5,
     linkStrengthRange: {

@@ -413,7 +413,7 @@ function ViewForceLinks (inputConfig) {
       linkArray = [];
     }
     else if (simulation){
-      simulation.force("link").links(linkArray);
+      simulation.force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength));
     }
 
     return displayLinks;

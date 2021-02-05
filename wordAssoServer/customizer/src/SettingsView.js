@@ -107,7 +107,8 @@ const Settings = (props) => {
                         className={classes.checkbox} 
                         size="small" 
                         value={props.settings.displayLinks} 
-                        onChange={(event) => handleChangeSettings("displayLinks")}
+                        // onChange={(event) => handleChangeSettings("displayLinks")}
+                        onChange={handleChangeSettings("displayLinks")}
                       />
                     }
                     label={<Typography className={classes.radioButtonLabel}>DISPLAY LINKS</Typography>}
@@ -123,7 +124,8 @@ const Settings = (props) => {
                         className={classes.checkbox} 
                         size="small" 
                         value={props.settings.displayTweets} 
-                        onChange={(event) => handleChangeSettings("displayTweets")}
+                        // onChange={(event) => handleChangeSettings("displayTweets")}
+                        onChange={handleChangeSettings("displayTweets")}
                       />
                     }
                     label={<Typography className={classes.radioButtonLabel}>DISPLAY TWEETS</Typography>}

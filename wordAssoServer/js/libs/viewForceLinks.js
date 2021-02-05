@@ -408,6 +408,11 @@ function ViewForceLinks (inputConfig) {
     console.debug("DISPLAY LINKS: " + value);
     config.settings.displayLinks = value;
     displayLinks = value;
+
+    if (!displayLinks){
+      linkArray = [];
+    }
+    
     return displayLinks;
   };
 

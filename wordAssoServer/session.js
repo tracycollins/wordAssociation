@@ -15,8 +15,7 @@ const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
 const globalStoredSettingsName = STORED_CONFIG_NAME;
 
 let currentConfig = {};
-currentConfig.defaults = {};
-currentConfig.settings = {};
+currentConfig = Object.assign({}, config);
 
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 

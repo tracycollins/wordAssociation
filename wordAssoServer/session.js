@@ -246,6 +246,10 @@ const customizerComm = (event) => {
           currentSessionView.displayLinks(event.data.value);
           break;
 
+        case "displayTweets":
+          currentSessionView.displayTweets(event.data.value);
+          break;
+
         case "linkStrength":
           currentSessionView.setLinkStrength(event.data.value);
           break;

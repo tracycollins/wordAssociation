@@ -412,6 +412,9 @@ function ViewForceLinks (inputConfig) {
     if (!displayLinks){
       linkArray = [];
     }
+    else if (simulation){
+      simulation.force("link").links(linkArray);
+    }
 
     return displayLinks;
   };
@@ -738,16 +741,20 @@ function ViewForceLinks (inputConfig) {
     console.debug("UPDATE LINK STRENGTH: " + value);
     config.settings.linkStrength = value;
     linkStrength = value;
-    simulation.force("link").strength(value);
-    simulation.alpha(1).restart();
+    if (simulation){
+      simulation.force("link").strength(value);
+      simulation.alpha(1).restart();
+    }
   };
 
   self.setLinkDistance = function (value) {
     console.debug("UPDATE LINK DISTANCE: " + value);
     config.settings.linkDistance = value;
     linkDistance = value;
-    simulation.force("link").distance(value);
-    simulation.alpha(1).restart();
+    if (simulation){
+      simulation.force("link").distance(value);
+      simulation.alpha(1).restart();
+    }
   };
 
   self.setNodeRadiusRatioMin = function (value) {
@@ -1795,7 +1802,7 @@ function ViewForceLinks (inputConfig) {
 
       simulation.nodes(nodeArray);
 
-      if (displayLinks){
+      if (simulation.force("link") && displayLinks){
         simulation.force("link").links(linkArray);
       }
 

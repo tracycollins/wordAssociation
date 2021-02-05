@@ -1033,7 +1033,7 @@ setTimeout(function(){
       status.viewerReadyTransmitted = true;
     });
 
-    currentSessionView = ViewForceLinks(currentConfig);
+    currentSessionView = ViewForceLinks(config);
     currentSessionView.initD3timer();
     initSocketHandler()
     resetMouseMoveTimer()

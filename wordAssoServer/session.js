@@ -68,7 +68,7 @@ currentConfig.defaults.rxNodeQueueInterval = DEFAULT_RX_NODE_QUEUE_INTERVAL;
 currentConfig.defaults.keepaliveInterval = DEFAULT_KEEPALIVE_INTERVAL;
 currentConfig.defaults.viewerReadyInterval = 10000;
 
-currentConfig.settings = Object.assign({}, config.settings)
+// currentConfig.settings = Object.assign({}, config.settings)
 
 const palette = {
   black: "#000000",
@@ -1016,6 +1016,7 @@ setTimeout(function(){
     }
     else{
       console.log(`*** LOAD STORED SETTINGS FAILED: ${globalStoredSettingsName}`)
+      currentConfig = Object.assign({}, currentConfig, config)
     }
 
     socket = io("/view");

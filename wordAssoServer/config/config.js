@@ -94,5 +94,4 @@ let config = {
     collisionRadiusMultiplier: 1.0
   }
 }
-
 config.settings = Object.assign({}, config.defaults)

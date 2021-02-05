@@ -1,5 +1,6 @@
-let config = {
+const config = {
   defaults: {
+    displayTweets: false,
     displayLinks: false,
     linkStrength: 0.5,
     linkStrengthRange: {

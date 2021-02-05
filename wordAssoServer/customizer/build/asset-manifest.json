@@ -1,20 +1,20 @@
 {
   "files": {
     "main.css": "/customizer/build/static/css/main.087e4d04.chunk.css",
-    "main.js": "/customizer/build/static/js/main.17256678.chunk.js",
-    "main.js.map": "/customizer/build/static/js/main.17256678.chunk.js.map",
+    "main.js": "/customizer/build/static/js/main.dd8f242c.chunk.js",
+    "main.js.map": "/customizer/build/static/js/main.dd8f242c.chunk.js.map",
     "runtime-main.js": "/customizer/build/static/js/runtime-main.507ccfca.js",
     "runtime-main.js.map": "/customizer/build/static/js/runtime-main.507ccfca.js.map",
-    "static/js/2.4b5f03d9.chunk.js": "/customizer/build/static/js/2.4b5f03d9.chunk.js",
-    "static/js/2.4b5f03d9.chunk.js.map": "/customizer/build/static/js/2.4b5f03d9.chunk.js.map",
+    "static/js/2.314ac25d.chunk.js": "/customizer/build/static/js/2.314ac25d.chunk.js",
+    "static/js/2.314ac25d.chunk.js.map": "/customizer/build/static/js/2.314ac25d.chunk.js.map",
     "index.html": "/customizer/build/index.html",
     "static/css/main.087e4d04.chunk.css.map": "/customizer/build/static/css/main.087e4d04.chunk.css.map",
-    "static/js/2.4b5f03d9.chunk.js.LICENSE.txt": "/customizer/build/static/js/2.4b5f03d9.chunk.js.LICENSE.txt"
+    "static/js/2.314ac25d.chunk.js.LICENSE.txt": "/customizer/build/static/js/2.314ac25d.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.507ccfca.js",
-    "static/js/2.4b5f03d9.chunk.js",
+    "static/js/2.314ac25d.chunk.js",
     "static/css/main.087e4d04.chunk.css",
-    "static/js/main.17256678.chunk.js"
+    "static/js/main.dd8f242c.chunk.js"
   ]
 }

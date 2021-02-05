@@ -6,7 +6,7 @@ import { green } from '@material-ui/core/colors';
 // import CardContent from '@material-ui/core/CardContent';
 // import CardMedia from '@material-ui/core/CardMedia';
 import Checkbox from '@material-ui/core/Checkbox';
-// import FormControl from '@material-ui/core/FormControl';
+import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
 import Grid from '@material-ui/core/Grid';
@@ -90,25 +90,27 @@ const Settings = (props) => {
 
     return (
       <FormGroup  align="center">
-        {
-          entityTypes.map((entityType) => (
-            <FormControlLabel
-              key={`display_${entityType}`}
-              control={
-                <Checkbox
+        <FormControl component="fieldset" className={classes.radioGroupCategory} size="small">
+          {
+            entityTypes.map((entityType) => (
+                <FormControlLabel
                   key={`display_${entityType}`}
-                  id={`display_${entityType}`}
-                  name={`display_${entityType}`}
-                  className={classes.checkbox} 
-                  size="small" 
-                  checked={props.settings.display[entityType]}
-                  onChange={handleChangeSettings(`display_${entityType}`)}
+                  control={
+                    <Checkbox
+                      key={`display_${entityType}`}
+                      id={`display_${entityType}`}
+                      name={`display_${entityType}`}
+                      className={classes.checkbox} 
+                      size="small" 
+                      checked={props.settings.display[entityType]}
+                      onChange={handleChangeSettings(`display_${entityType}`)}
+                    />
+                  }
+                  label={<Typography key={`display_${entityType}`} className={classes.radioButtonLabel}>{entityType.toUpperCase()}</Typography>}
                 />
-              }
-              label={<Typography key={`display_${entityType}`} className={classes.radioButtonLabel}>{entityType.toUpperCase()}</Typography>}
-            />
-          ))
-        }
+            ))
+          }
+        </FormControl>
       </FormGroup>
     )
   }

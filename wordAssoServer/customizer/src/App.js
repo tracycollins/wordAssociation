@@ -127,6 +127,8 @@ const App = (props) => {
   const handleChange = (changeObj) => {
 
     let tempSettings = {}
+    let entity;
+    let tempDisplay = {}
 
     switch (changeObj.name){
 
@@ -152,6 +154,27 @@ const App = (props) => {
       case "display_hashtag":
       case "display_tweet":
       case "display_link":
+
+        entity = changeObj.name.split("_")[1];
+        
+        if (parentWindow){
+          parentWindow.postMessage(
+            {
+              op: "UPDATE", 
+              id: "display",
+              entity: entity,
+              value: changeObj.value,
+            }, 
+            DEFAULT_SOURCE
+          );
+        }
+
+        tempDisplay = Object.assign({}, settingsRef.current.display, { [entity]: changeObj.value});
+        tempSettings = Object.assign({}, settingsRef.current, { display: tempDisplay})
+        setSettings(tempSettings)
+
+        break
+
       case "linkStrength":
       case "linkDistance":
       case "nodeMaxAge":

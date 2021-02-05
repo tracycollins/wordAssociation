@@ -244,12 +244,8 @@ const customizerComm = (event) => {
 
       switch (event.data.id) {
 
-        case "display_user":
-        case "display_hashtag":
-        case "display_tweet":
-        case "display_link":
-          entity = event.data.id.split("_")[1];
-          currentSessionView.displayEntity(entity, event.data.value);
+        case "display":
+          currentSessionView.displayEntity(event.data.entity, event.data.value);
           break;
 
         case "linkStrength":

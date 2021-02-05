@@ -2,7 +2,8 @@
 
 function ViewForceLinks (inputConfig) {
 
-  const DISPLAY_LINKS = false;
+  const DISPLAY_TWEETS = false;
+  const DISPLAY_LINKS = true;
   const LINK_DISTANCE = 10;
   const LINK_STRENGTH = 0.2;
 
@@ -54,6 +55,7 @@ function ViewForceLinks (inputConfig) {
   config.settings = config.settings || {};
   config.defaults = config.defaults || {};
 
+  config.settings.displayTweets = DISPLAY_TWEETS;
   config.settings.displayLinks = DISPLAY_LINKS;
   config.settings.linkDistance = LINK_DISTANCE;
   config.settings.linkStrength = LINK_STRENGTH;
@@ -318,6 +320,7 @@ function ViewForceLinks (inputConfig) {
   let linkStrength = config.settings.linkStrength;
   let linkDistance = config.settings.linkDistance;
   let gravity = config.settings.gravity;
+  let displayTweets = config.settings.displayTweets;
   let displayLinks = config.settings.displayLinks;
 
   const forceXmultiplier = config.settings.forceXmultiplier;
@@ -392,6 +395,13 @@ function ViewForceLinks (inputConfig) {
 
   self.getHeight = function () {
     return height;
+  };
+
+  self.displayTweets = function (value) {
+    console.debug("DISPLAY TWEETS: " + value);
+    config.settings.displayTweets = value;
+    displayTweets = value;
+    return displayTweets;
   };
 
   self.displayLinks = function (value) {
@@ -683,48 +693,32 @@ function ViewForceLinks (inputConfig) {
     config.settings.gravity = value;
     gravity = value;
 
-    simulation
-      .force("forceX", d3.forceX()
-          .x(function (d) {
-            if (
-              (autoCategoryFlag && isCategorized(d.categoryAuto)) ||
-              (!isCategorized(d.category) && isCategorized(d.categoryAuto))
-            ) {
-              return foci[d.categoryAuto].x;
-            }
-            if (isCategorized(d.category)) {
-              return foci[d.category].x;
-            }
-            return foci.default.x;
-          })
-          .strength(function () {
-            return forceXmultiplier * gravity;
-          })
-      )
-      .force(
-        "forceY",
-        d3
-          .forceY()
-          .y(function (d) {
-            if (
-              (autoCategoryFlag && isCategorized(d.categoryAuto)) ||
-              (!isCategorized(d.category) && isCategorized(d.categoryAuto))
-            ) {
-              return foci[d.categoryAuto].y;
-            }
-            if (isCategorized(d.category)) {
-              return foci[d.category].y;
-            }
-            return foci.default.y;
-          })
-          .strength(function () {
-            return forceYmultiplier * gravity;
-          })
-      );
+    simulation.force("forceX", d3.forceX()
+      .x(function (d) {
+        if ((autoCategoryFlag && isCategorized(d.categoryAuto)) || (!isCategorized(d.category) && isCategorized(d.categoryAuto))) { 
+          return foci[d.categoryAuto].x; 
+        }
+        if (isCategorized(d.category)) { return foci[d.category].x; }
+        return foci.default.x;
+      })
+      .strength(function () { return forceXmultiplier * gravity; })
+    );
+
+    simulation.force("forceY",d3.forceY()
+      .y(function (d) {
+        if ((autoCategoryFlag && isCategorized(d.categoryAuto)) || (!isCategorized(d.category) && isCategorized(d.categoryAuto))
+        ) {
+          return foci[d.categoryAuto].y;
+        }
+        if (isCategorized(d.category)) { return foci[d.category].y; }
+        return foci.default.y;
+      })
+      .strength(function () { return forceYmultiplier * gravity; })
+    );
   };
+
   self.setTransitionDuration = function (value) {
     console.debug("UPDATE TRANSITION DURATION: " + value);
-    // transitionDuration = value;
     config.settings.transitionDuration = value;
   };
 
@@ -1703,7 +1697,10 @@ function ViewForceLinks (inputConfig) {
     try{
       updateNodeCircles();
       updateNodeLabels();
-      updateLinks();
+
+      if (updateLinks){
+        updateLinks();
+      }
 
       if ((metricMode === "rate" && newCurrentMaxRateMetricFlag && Math.abs(currentMaxRateMetric - previousMaxRateMetric) / currentMaxRateMetric > config.settings.minRateMetricChange)
         || (metricMode === "mentions" && newCurrentMaxMentionsMetricFlag)) {
@@ -1744,7 +1741,6 @@ function ViewForceLinks (inputConfig) {
 
       const links = []
 
-      // for(const node of localNodeHashMap.values()){
       for(const node of nodeArray){
 
         if (node.nodeType === "tweet"){
@@ -1787,11 +1783,16 @@ function ViewForceLinks (inputConfig) {
 
       await processNodeAddQ();
       await ageNodes();
-      linkArray = await processLinks();
 
-      // simulation.force("link", d3.forceLink(linkArray));
+      if (displayLinks){
+        linkArray = await processLinks();
+      }
+
       simulation.nodes(nodeArray);
-      simulation.force("link").links(linkArray);
+
+      if (displayLinks){
+        simulation.force("link").links(linkArray);
+      }
 
       updateSimulationReady = true;
     }
@@ -1822,17 +1823,27 @@ function ViewForceLinks (inputConfig) {
     console.debug("SET LINK STRENGTH: " + value);
     config.settings.linkStrength = value;
     linkStrength = value;
-    simulation.force("link").strength(value);
+
+    if (displayLinks){
+      simulation.force("link").strength(value);
+    }
   };
 
   self.setLinkDistanceSliderValue = function (value) {
     console.debug("SET LINK DISTANCE: " + value);
     config.settings.linkDistance = value;
     linkDistance = value;
-    simulation.force("link").distance(value);
+    
+    if (displayLinks){
+      simulation.force("link").distance(value);
+    }
   };
 
   self.addNode = function (n) {
+
+    if (!displayTweets && n.nodeType === "tweet"){
+      return;
+    }
 
     if (!n.isFixedNode && !n.isTweeter && nodeAddQ.length >= config.settings.maxNodesLimit) {
       return;
@@ -1854,24 +1865,6 @@ function ViewForceLinks (inputConfig) {
     n.ageMaxRatio = 1e-6;
     n.rank = -1;
     n.ageDays = n.ageDays ? n.ageDays : 0;
-
-    // if (n.nodeType === "tweet") {
-
-    //   n.userMentions = n.userMentions !== undefined ? n.userMentions : [];
-    //   n.hashtags = n.hashtags !== undefined ? n.hashtags : [];
-
-    //   const mapObj = {};
-    //   mapObj.users = [ n.tweeterId ].concat(n.userMentions);
-    //   mapObj.hashtags = [].concat(n.hashtags);
-
-    //   // for(const targetNodeId of [...mapObj.users, ...mapObj.hashtags]){
-    //   //   const sourceIdsSet = targetNodeIdToSourceNodeIdsHashMap.get(targetNodeId) || new Set();
-    //   //   sourceIdsSet.add(n.nodeId)
-    //   //   targetNodeIdToSourceNodeIdsHashMap.set(targetNodeId, sourceIdsSet)
-    //   // }
-
-    //   // tweetIdToTargetNodeIdsMap.set(n.nodeId, mapObj)
-    // }
 
     if (n.nodeType === "user" || n.nodeType === "hashtag") {
       n.mentions = n.mentions ? parseInt(n.mentions) : 0;
@@ -1935,11 +1928,14 @@ function ViewForceLinks (inputConfig) {
 
     console.log(`initD3timer`)
 
-    simulation = d3.forceSimulation(nodeArray)
-      .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength))
-      // .force("link", d3.forceLink(linkArray).distance(linkDistance).strength(linkStrength))
-      .force("charge", d3.forceManyBody().strength(charge))
-      .force("forceX", d3.forceX()
+    simulation = d3.forceSimulation(nodeArray);
+
+    if (displayLinks){
+      simulation.force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength));
+    }
+
+    simulation.force("charge", d3.forceManyBody().strength(charge));
+    simulation.force("forceX", d3.forceX()
         .x((d) => {
           if ((autoCategoryFlag && isCategorized(d.categoryAuto)) || (!isCategorized(d.category) && isCategorized(d.categoryAuto))) {
             return foci[d.categoryAuto].x;
@@ -1948,8 +1944,9 @@ function ViewForceLinks (inputConfig) {
           return foci.default.x;
         })
         .strength(() => forceXmultiplier * gravity)
-      )
-      .force("forceY", d3.forceY()
+      );
+
+    simulation.force("forceY", d3.forceY()
         .y((d) => {
           if ((autoCategoryFlag && isCategorized(d.categoryAuto)) || (!isCategorized(d.category) && isCategorized(d.categoryAuto))) {
             return foci[d.categoryAuto].y;
@@ -1958,20 +1955,20 @@ function ViewForceLinks (inputConfig) {
           return foci.default.y;
         })
         .strength(() => forceYmultiplier * gravity)
-      )
-      .force("collide", d3.forceCollide()
+      );
+
+    simulation.force("collide", d3.forceCollide()
         .radius((d) => {
           if (metricMode === "rate") { return (collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate))); }
           if (metricMode === "mentions") { return (collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions))); }
         })
         .iterations(collisionIterations)
-        .strength(1.0)
-      )
+        .strength(1.0))
       .velocityDecay(velocityDecay)
       .on("tick", ticked)
       .alphaTarget(0.7);
 
-    simulation.on("end", console.log("*** END"))
+    simulation.on("end", console.log("*** END"));
 
     // *** NEEDED FOR SIM TO RUN FOREVER: alphaTarget > alphaMin (default 0.001)
     // simulation.alphaTarget(0.7).restart();
@@ -2081,62 +2078,65 @@ function ViewForceLinks (inputConfig) {
 
 
       if (simulation) {
-        // var linkForce  = d3.forceLink(linkArray).distance(400).strength(2);
 
-        simulation
-          .force("charge", d3.forceManyBody().strength(charge))
-          .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength))
-          // .force("link", d3.forceLink().distance(linkDistance).strength(linkStrength))
-          .force("forceX", d3.forceX()
-              .x(function forceXfunc(d) {
-                if (
-                  (autoCategoryFlag && isCategorized(d.categoryAuto)) ||
-                  (!isCategorized(d.category) && isCategorized(d.categoryAuto))
-                ) {
-                  return foci[d.categoryAuto].x;
-                }
-                if (isCategorized(d.category)) {
-                  return foci[d.category].x;
-                }
-                return foci.default.x;
-              })
-              .strength(function strengthFunc() {
-                return forceXmultiplier * gravity;
-              })
-          )
-          .force("forceY", d3.forceY()
-              .y(function forceYfunc(d) {
-                if (
-                  (autoCategoryFlag && isCategorized(d.categoryAuto)) ||
-                  (!isCategorized(d.category) && isCategorized(d.categoryAuto))
-                ) {
-                  return foci[d.categoryAuto].y;
-                }
-                if (isCategorized(d.category)) {
-                  return foci[d.category].y;
-                }
-                return foci.default.y;
-              })
-              .strength(function strengthFunc() {
-                return forceYmultiplier * gravity;
-              })
-          )
-          .force("collide", d3.forceCollide()
-              .radius(function forceCollideFunc(d) {
-                if (metricMode === "rate") {
-                  return (
-                    collisionRadiusMultiplier *
-                    defaultRadiusScale(Math.sqrt(d.rate))
-                  );
-                }
-                if (metricMode === "mentions") {
-                  return (
-                    collisionRadiusMultiplier *
-                    defaultRadiusScale(Math.sqrt(d.mentions))
-                  );
-                }
-              })
-              .iterations(collisionIterations)
+        simulation.force("charge", d3.forceManyBody().strength(charge));
+
+        if (displayLinks) {
+          simulation.force("link", d3.forceLink().id(function(d) { return d.id; }).distance(linkDistance).strength(linkStrength));
+        }
+
+        simulation.force("forceX", d3.forceX()
+          .x(function forceXfunc(d) {
+            if (
+              (autoCategoryFlag && isCategorized(d.categoryAuto)) ||
+              (!isCategorized(d.category) && isCategorized(d.categoryAuto))
+            ) {
+              return foci[d.categoryAuto].x;
+            }
+            if (isCategorized(d.category)) {
+              return foci[d.category].x;
+            }
+            return foci.default.x;
+          })
+          .strength(function strengthFunc() {
+            return forceXmultiplier * gravity;
+          })
+        );
+
+        simulation.force("forceY", d3.forceY()
+          .y(function forceYfunc(d) {
+            if (
+              (autoCategoryFlag && isCategorized(d.categoryAuto)) ||
+              (!isCategorized(d.category) && isCategorized(d.categoryAuto))
+            ) {
+              return foci[d.categoryAuto].y;
+            }
+            if (isCategorized(d.category)) {
+              return foci[d.category].y;
+            }
+            return foci.default.y;
+          })
+          .strength(function strengthFunc() {
+            return forceYmultiplier * gravity;
+          })
+        );
+
+        simulation.force("collide", d3.forceCollide()
+            .radius(function forceCollideFunc(d) {
+              if (metricMode === "rate") {
+                return (
+                  collisionRadiusMultiplier *
+                  defaultRadiusScale(Math.sqrt(d.rate))
+                );
+              }
+              if (metricMode === "mentions") {
+                return (
+                  collisionRadiusMultiplier *
+                  defaultRadiusScale(Math.sqrt(d.mentions))
+                );
+              }
+            })
+            .iterations(collisionIterations)
           )
           .velocityDecay(velocityDecay);
       }

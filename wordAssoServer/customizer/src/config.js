@@ -1,5 +1,6 @@
 const config = {
   defaults: {
+    displayTweets: false,
     displayLinks: false,
     linkStrength: 0.2,
     linkStrengthRange: {

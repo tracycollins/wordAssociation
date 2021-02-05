@@ -60,13 +60,13 @@ status.bestNetwork.numInputs = 0;
 status.maxNodes = 0;
 status.maxNodeAddQ = 0;
 
-currentConfig.defaults.app_name = "Session View";
-currentConfig.defaults.sessionViewType = "treepack"; // options: force, histogram ??
-currentConfig.defaults.storedConfigName = STORED_CONFIG_NAME;
-currentConfig.defaults.rxNodeQueueMax = DEFAULT_RX_NODE_QUEUE_MAX;
-currentConfig.defaults.rxNodeQueueInterval = DEFAULT_RX_NODE_QUEUE_INTERVAL;
+currentConfig.settings.app_name = "Session View";
+currentConfig.settings.sessionViewType = "treepack"; // options: force, histogram ??
+currentConfig.settings.storedConfigName = STORED_CONFIG_NAME;
+currentConfig.settings.rxNodeQueueMax = DEFAULT_RX_NODE_QUEUE_MAX;
+currentConfig.settings.rxNodeQueueInterval = DEFAULT_RX_NODE_QUEUE_INTERVAL;
 currentConfig.settings.keepaliveInterval = DEFAULT_KEEPALIVE_INTERVAL;
-currentConfig.defaults.viewerReadyInterval = 10000;
+currentConfig.settings.viewerReadyInterval = 10000;
 
 // currentConfig.settings = Object.assign({}, config.settings)
 

@@ -33,7 +33,7 @@ body {
     width: 100%;
     height: auto;
     /*max-width: 1000px;*/
-    margin: 0 auto;
+    margin: 0;
     /*margin-top: 10px;*/
     /*margin: 10%;*/
     /*margin-top: 10px;*/
@@ -80,8 +80,7 @@ table {
 .container {
     width: 80%;
     max-width: 1000px;
-    margin: 0 auto;
-    margin-top: 10px;
+    margin: 0;
 }
 
 @media all and (max-width: 500px) {
@@ -96,7 +95,7 @@ table {
 }
 
 #graphic {
-    margin: 0 auto;
+    margin: 0;
 }
 
 

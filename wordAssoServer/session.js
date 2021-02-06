@@ -301,7 +301,7 @@ const openCustomizer = (cnf) => {
   console.debug("openCustomizer");
   console.debug({cnf})
 
-  const customizerWindowFeatures = "resizable,scrollbars,status";
+  const customizerWindowFeatures = "width=1000,height=auto,resizable,scrollbars,status";
 
   if (customizerWindow === null || customizerWindow.closed){
     customizerWindow = window.open(
@@ -309,7 +309,6 @@ const openCustomizer = (cnf) => {
       "CUSTOMIZE",
       customizerWindowFeatures
     );
-    customizerWindow.document.body.style.background = "#000000";
 
   }
   else{

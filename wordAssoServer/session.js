@@ -309,6 +309,8 @@ const openCustomizer = (cnf) => {
       "CUSTOMIZE",
       customizerWindowFeatures
     );
+    customizerWindow.document.body.style.background = "#000000";
+
   }
   else{
     customizerWindow.focus();

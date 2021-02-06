@@ -92,8 +92,3 @@ hr {
 svg:focus {
   outline: none;
 }
-
-iframe {
-    border: 1px solid white;
-    width: 100%;
-}

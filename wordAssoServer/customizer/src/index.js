@@ -38,7 +38,7 @@ const defaultHeartbeat = {
   },
   twitter: {
     tweetsPerMin: 0,
-    maxTweetsPerMin: 1,
+    maxTweetsPerMin: 0,
     tweetsReceived: 0,
     maxTweetsPerMinTime: 1610098221597
   }

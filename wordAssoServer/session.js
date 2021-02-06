@@ -4,7 +4,8 @@ const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
 const MBP3_SOURCE = "http://mbp3:3000";
 
-const DEFAULT_SOURCE = PRODUCTION_SOURCE;
+// const DEFAULT_SOURCE = PRODUCTION_SOURCE;
+const DEFAULT_SOURCE = REPLACE_SOURCE;
 
 console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
@@ -176,7 +177,7 @@ const saveConfig = () => {
   return;
 }
 
-const infoDivElement = document.getElementById("infoDiv");
+// const infoDivElement = document.getElementById("infoDiv");
 const controlDivElement = document.getElementById("controlDiv");
 
 let customizerWindow;
@@ -721,7 +722,7 @@ function initSocketHandler () {
         status.serverConnected = true;
         status.socket.connected = true;
 
-        // console.log(`<R HB | ${action.data.timeStamp}`);
+        console.log(`<R HB | ${action.data.timeStamp}`);
 
         if (customizerWindow) {
           customizerWindow.postMessage({ op: "HEARTBEAT", status: action.data }, DEFAULT_SOURCE);

@@ -282,37 +282,11 @@ LinearProgressWithLabel.propTypes = {
   value: PropTypes.number.isRequired,
 };
 
-// const formatDate = (dateInput) => {
-//   return new Date(dateInput).toLocaleDateString(
-//     'en-gb',
-//     {
-//       year: 'numeric',
-//       month: 'short',
-//       day: 'numeric'
-//     }
-//   );
-// }
-
-// const useStyles = makeStyles((theme) => ({
-//   root: {
-//     border: 0,
-//     flexGrow: 2,
-//   },
-//   range: {
-//     color: 'blue',
-//   }
-// }));
 
 const Stats = (props) => {
 
-  // const { heartbeat } = props;
   console.log(props)
   
-  // statsObj.nodesPerSec = 0.0;
-  // statsObj.nodesPerMin = 0.0;
-  // statsObj.maxNodesPerMin = 0.0;
-  // statsObj.maxNodesPerMinTime = moment().valueOf();
-
   const classes = useStyles();
 
   return (
@@ -322,11 +296,17 @@ const Stats = (props) => {
             <Card className={classes.card} variant="outlined">
               <CardContent >
                 <Typography variant="h6" id="neuralNetworks" name="neuralNetworks" gutterBottom>
-                  NEURAL NETWORKS
+                  BEST NEURAL NETWORK
                 </Typography>
-                  <Typography>BEST: {props.heartbeat.bestNetwork.networkId}</Typography>
-                  <Typography>LIVE RATE: {props.heartbeat.bestNetwork.runtimeMatchRate.toFixed(2)}%</Typography>
-                  <Typography>SUCCESS RATE: {props.heartbeat.bestNetwork.successRate.toFixed(2)}%</Typography>
+                  <Typography>
+                    {props.heartbeat.bestNetwork.networkId}
+                  </Typography>
+                  <Typography>
+                    <span><b>{props.heartbeat.bestNetwork.runtimeMatchRate.toFixed(2)}</b>% LIVE RATE</span>
+                  </Typography>
+                  <Typography>
+                    <span><b>{props.heartbeat.bestNetwork.successRate.toFixed(2)}</b>% SUCCESS RATE</span>
+                  </Typography>
               </CardContent>              
             </Card>
           </Grid>
@@ -348,7 +328,7 @@ const Stats = (props) => {
 
                 <LinearProgressWithLabel 
                   variant="determinate" 
-                  value={(100.0 * props.heartbeat.twitter.tweetsPerMin / props.heartbeat.twitter.maxTweetsPerMin)}
+                  value={props.heartbeat.twitter.tweetsPerMin && props.heartbeat.twitter.maxTweetsPerMin ? (100.0 * props.heartbeat.twitter.tweetsPerMin / props.heartbeat.twitter.maxTweetsPerMin) : 0}
                 >
                 </LinearProgressWithLabel>
 
@@ -372,16 +352,11 @@ const Stats = (props) => {
                   <span><b>{props.heartbeat.maxNodesPerMin}</b> MAX NODES/MIN</span>
                 </Typography>
 
-
                 <LinearProgressWithLabel 
                   variant="determinate" 
-                  value={(100.0 * props.heartbeat.nodesPerMin / props.heartbeat.maxNodesPerMin)}
+                  value={props.heartbeat.nodesPerMin && props.heartbeat.maxNodesPerMin ? (100.0 * props.heartbeat.nodesPerMin / props.heartbeat.maxNodesPerMin) : 0}
                 >
                 </LinearProgressWithLabel>
-
-
-                {/* <LinearProgress variant="determinate" value={(100.0 * props.heartbeat.nodesPerMin / props.heartbeat.maxNodesPerMin)}>
-                </LinearProgress> */}
               </CardContent>
             </Card>
           </Grid>

@@ -112,8 +112,8 @@ tcUtils.on("error", function (err) {
   console.log(chalkError(MODULE_ID + " | *** TCU ERROR | " + err));
 });
 
-tcUtils.on("ready", function (appname) {
-  console.log(chalk.green(MODULE_ID + " | TCU READY | " + appname));
+tcUtils.on("ready", function () {
+  console.log(chalk.green(`${MODULE_ID} | TCU READY | ${MODULE_ID}_TCU`));
 });
 
 const mguAppName = MODULE_ID_PREFIX + "_MGU";
@@ -581,26 +581,15 @@ function dnsReverse(params) {
         hostnames[0] &&
         hostnames[0].endsWith(DEFAULT_GOOGLE_COMPUTE_DOMAIN)
       ) {
-        const googleComputeEngineExternalIpAddress = hostnames[0].replace(
-          "." + DEFAULT_GOOGLE_COMPUTE_DOMAIN,
-          ""
-        );
+        const googleComputeEngineExternalIpAddress = hostnames[0].replace("." + DEFAULT_GOOGLE_COMPUTE_DOMAIN,"");
 
-        console.log(
-          chalk.black(
-            MODULE_ID +
-              " | DOMAIN | DNS REVERSE" +
-              " | GCP IP: " +
-              params.ipAddress +
-              " | REAL IP: " +
-              googleComputeEngineExternalIpAddress +
-              " | " +
-              hostnames.length +
-              " HOST NAMES" +
-              " | HOST: " +
-              hostnames[0]
-          )
-        );
+        console.log(chalk.black(MODULE_ID +
+          " | DOMAIN | DNS REVERSE" +
+          " | GCP IP: " + params.ipAddress +
+          " | REAL IP: " + googleComputeEngineExternalIpAddress +
+          " | " + hostnames.length + " HOST NAMES" +
+          " | HOST: " + hostnames[0]
+        ));
 
         dnsReverse({ ipAddress: googleComputeEngineExternalIpAddress })
           .then(function (domainName) {
@@ -3507,7 +3496,7 @@ const initHeartbeatInterval = async (p) => {
         }
       } else {
         if (moment().seconds() % 10 == 0) {
-          debug(chalkError(`${MODULE_ID_PREFIX} | !!!! INTERNET DOWN?? !!!!!  | ${getTimeStamp()} | INTERNET READY: ${statsObj.internetReady} | I/O READY: ${statsObj.ioReady}`));
+          console.log(chalkError(`${MODULE_ID_PREFIX} | !!!! INTERNET DOWN?? !!!!!  | ${getTimeStamp()} | INTERNET READY: ${statsObj.internetReady} | I/O READY: ${statsObj.ioReady}`));
         }
       }
     }, interval);
@@ -3523,68 +3512,41 @@ const initHeartbeatInterval = async (p) => {
 
 configEvents.on("INTERNET_READY", function internetReady() {
 
-  console.log(chalkInfo(`${getTimeStamp()} | SERVER_READY EVENT | PORT: ${configServer.port}`));
+  console.log(chalkInfo(`${MODULE_ID} | ${getTimeStamp()} | SERVER_READY EVENT | PORT ${configServer.port}`));
 
   if (!httpServer.listening) {
     httpServer.on("reconnect", function serverReconnect() {
       statsObj.internetReady = true;
-      debug(chalkConnect(getTimeStamp() + " | PORT RECONNECT: " + configServer.port));
+      debug(chalkLog(`${MODULE_ID} | ${getTimeStamp()} | RECONNECT PORT ${configServer.port}`));
     });
 
     httpServer.on("connect", function serverConnect() {
       statsObj.socket.connects += 1;
       statsObj.internetReady = true;
-      debug(chalkConnect(getTimeStamp() + " | PORT CONNECT: " + configServer.port));
+      debug(chalkLog(`${MODULE_ID} | ${getTimeStamp()} | CONNECT PORT ${configServer.port}`));
 
       httpServer.on("disconnect", function serverDisconnect() {
         statsObj.internetReady = false;
-        console.log(
-          chalkError(
-            MODULE_ID +
-              " | *** PORT DISCONNECTED | " +
-              getTimeStamp() +
-              " | " +
-              configServer.port
-          )
-        );
+        console.log(chalkError(`${MODULE_ID} | *** PORT DISCONNECTED | ${getTimeStamp()} | ${configServer.port}`));
       });
     });
 
     httpServer.listen(configServer.port, function serverListen() {
-      debug(
-        chalkInfo(
-          MODULE_ID +
-            " | " +
-            getTimeStamp() +
-            " | LISTENING ON PORT " +
-            configServer.port
-        )
-      );
+      debug(chalkLog(`${MODULE_ID} | ${getTimeStamp()} | LISTENING ON PORT ${configServer.port}`));
     });
 
     httpServer.on("error", function serverError(err) {
       statsObj.socket.errors.httpServer_errors += 1;
       statsObj.internetReady = false;
 
-      debug(
-        chalkError(
-          MODULE_ID + " | *** HTTP ERROR | " + getTimeStamp() + "\n" + err
-        )
-      );
+      debug(chalkError(`${MODULE_ID} | ${getTimeStamp()} | *** HTTP ERROR | PORT ${configServer.port} | ERROR: ${err}`));
 
       if (err.code == "EADDRINUSE") {
-        debug(
-          chalkError(
-            MODULE_ID +
-              " | *** HTTP ADDRESS IN USE: " +
-              configServer.port +
-              " ... RETRYING..."
-          )
-        );
+      debug(chalkError(`${MODULE_ID} | ${getTimeStamp()} | *** HTTP ADDRESS IN USE | PORT ${configServer.port} | ... RETRYING...`));
 
         setTimeout(function serverErrorTimeout() {
           httpServer.listen(configServer.port, function serverErrorListen() {
-            debug(MODULE_ID + " | LISTENING ON PORT " + configServer.port);
+            debug(chalkInfo(`${MODULE_ID} | ${getTimeStamp()} | LISTENING ON PORT ${configServer.port}`));
           });
         }, 5000);
       }
@@ -5932,6 +5894,7 @@ async function initSocketHandler(socketObj) {
 }
 
 async function initSocketNamespaces() {
+
   try {
     const timeStamp = moment().valueOf();
 
@@ -6123,10 +6086,6 @@ async function initSocketNamespaces() {
             data.timeStamp = moment().valueOf();
 
             authenticatedSocketCache.set(socket.id, data);
-
-            // statsObj.entity.viewer.connected = Object.keys(
-            //   viewNameSpace.connected
-            // ).length; // viewNameSpace.sockets.length ;
 
             await initSocketHandler({ namespace: "view", socket: socket });
 
@@ -7785,27 +7744,17 @@ async function transmitNodes(tw) {
 }
 
 function logHeartbeat() {
-  console.log(
-    chalkLog(
-      MODULE_ID +
-        " | HB " +
-        statsObj.heartbeat.sent +
-        " | " +
-        getTimeStamp() +
-        " | ST: " +
-        getTimeStamp(parseInt(statsObj.startTime)) +
-        " | UP: " +
-        msToTime(statsObj.upTime) +
-        " | RN: " +
-        msToTime(statsObj.runTime)
-    )
-  );
+  console.log(chalkLog(MODULE_ID + 
+    " | HB " + statsObj.heartbeat.sent + 
+    " | " + getTimeStamp() + 
+    " | ST: " + getTimeStamp(parseInt(statsObj.startTime)) +
+    " | UP: " + msToTime(statsObj.upTime) +
+    " | RN: " + msToTime(statsObj.runTime)
+  ));
 }
 
 function initAppRouting(callback) {
-  console.log(
-    chalkInfo(MODULE_ID + " | " + getTimeStamp() + " | INIT APP ROUTING")
-  );
+  console.log(chalkInfo(MODULE_ID + " | " + getTimeStamp() + " | INIT APP ROUTING"));
 
   let domainName;
 
@@ -7814,22 +7763,14 @@ function initAppRouting(callback) {
   app.use(async function requestLog(req, res, next) {
     if (req.path == "/json") {
       if (!ignoreIpSet.has(req.ip)) {
-        console.log(
-          chalkInfo(
-            MODULE_ID +
-              " | R< REJECT: /json" +
-              " | " +
-              getTimeStamp() +
-              " | IP: " +
-              req.ip +
-              " | HOST: " +
-              req.hostname +
-              " | METHOD: " +
-              req.method +
-              " | PATH: " +
-              req.path
-          )
-        );
+        console.log(chalkInfo(MODULE_ID +
+          " | R< REJECT: /json" +
+          " | " + getTimeStamp() +
+          " | IP: " + req.ip +
+          " | HOST: " + req.hostname +
+          " | METHOD: " + req.method +
+          " | PATH: " + req.path
+        ));
         ignoreIpSet.add(req.ip);
       }
       res.sendStatus(404);
@@ -7966,11 +7907,11 @@ function initAppRouting(callback) {
     } else if (
       req.path == "/profiles.js" ||
       req.path == "/session.js" ||
+      req.path.includes("/customizer/build") ||
       req.path == "/js/libs/controlPanel.js"
     ) {
       const fullPath = path.join(__dirname, req.path);
-      const defaultSource =
-        hostname == "google" ? "PRODUCTION_SOURCE" : "LOCAL_SOURCE";
+      const defaultSource = hostname == "google" ? "PRODUCTION_SOURCE" : "LOCAL_SOURCE";
 
       console.log(
         chalkAlert(
@@ -11689,8 +11630,6 @@ setTimeout(async function () {
 
     await initSlackWebClient();
 
-    configEvents.emit("DB_CONNECT");
-
     const cnf = await initConfig();
 
     configuration = deepcopy(cnf);
@@ -11705,6 +11644,8 @@ setTimeout(async function () {
     statsObj.configuration = configuration;
 
     cacheObjKeys = Object.keys(statsObj.caches);
+
+    configEvents.emit("DB_CONNECT");
 
     console.log(chalkTwitter(MODULE_ID + " | PROCESS NAME: " + configuration.processName));
 

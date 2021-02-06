@@ -16,7 +16,10 @@ const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
 const MBP3_SOURCE = "http://mbp3:3000";
 
-const DEFAULT_SOURCE = PRODUCTION_SOURCE;
+// may get replaced when page is served if local or mbp3 host
+const REPLACE_SOURCE = "https://word.threeceelabs.com";
+
+const DEFAULT_SOURCE = REPLACE_SOURCE;
 
 const parentWindow = window.opener;
 
@@ -209,10 +212,12 @@ const App = (props) => {
 
     // Do we trust the sender of this message?
 
-    if (event.origin !== DEFAULT_SOURCE){
+    if (event.origin !== DEFAULT_SOURCE && event.origin !== LOCAL_SOURCE && event.origin !== PRODUCTION_SOURCE){
       console.error("RX MESSAGE | NOT TRUSTED SOURCE"
         + " | ORIGIN: " + event.origin 
         + " | DEFAULT_SOURCE: " + DEFAULT_SOURCE
+        + " | PRODUCTION_SOURCE: " + PRODUCTION_SOURCE
+        + " | LOCAL_SOURCE: " + LOCAL_SOURCE
       );
       return;
     }

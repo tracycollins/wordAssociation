@@ -309,6 +309,8 @@ const openCustomizer = (cnf) => {
       "CUSTOMIZE",
       customizerWindowFeatures
     );
+    customizerWindow.resizeTo(800,600)
+
 
   }
   else{

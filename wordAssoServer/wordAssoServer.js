@@ -368,6 +368,16 @@ statsObj.dbuChildReady = false;
 let dbuChildReady = false;
 statsObj.tssChildReady = false;
 
+statsObj.twitter = {}
+statsObj.twitter.tweetsReceived = 0;
+statsObj.twitter.duplicateTweetsReceived = 0;
+statsObj.twitter.retweetsReceived = 0;
+statsObj.twitter.quotedTweetsReceived = 0;
+statsObj.twitter.tweetsPerMin = 0;
+statsObj.twitter.maxTweetsPerMin = 0;
+statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
+statsObj.twitter.aaSubs = {};
+
 statsObj.hashtag = {};
 statsObj.hashtag.added = 0;
 statsObj.hashtag.deleted = 0;
@@ -2046,18 +2056,6 @@ function initPassport() {
 
     console.log(chalk.green(MODULE_ID + " | PASSPORT SESSION ID: " + sessionId));
 
-    app.use(
-      expressSession({
-        sessionId: sessionId,
-        secret: "three cee labs 47",
-        resave: false,
-        saveUninitialized: false,
-        store: new MongoStore({ mongooseConnection: global.dbConnection }),
-      })
-    );
-
-    app.use(passport.initialize());
-
     console.log({threeceeConfig})
 
     passport.use(
@@ -2143,24 +2141,6 @@ function initPassport() {
       )
     );
 
-    app.get("/auth/twitter", passport.authenticate("twitter"));
-
-    app.get(
-      "/auth/twitter/callback",
-      passport.authenticate("twitter", {
-        successReturnToOrRedirect: "/after-auth.html",
-        failureRedirect: "/login",
-      })
-    );
-
-    app.get(
-      "/login_auth",
-      passport.authenticate("local", {
-        successReturnToOrRedirect: "/after-auth.html",
-        failureRedirect: "/login",
-      })
-    );
-
     passport.serializeUser(async function (user, done) {
       const sessionUser = {
         _id: user._id,
@@ -2193,6 +2173,36 @@ function initPassport() {
 
       done(null, sessionUser);
     });
+
+
+    app.use(
+      expressSession({
+        sessionId: sessionId,
+        secret: "three cee labs 47",
+        resave: false,
+        saveUninitialized: false,
+        store: new MongoStore({ mongooseConnection: global.dbConnection }),
+      })
+    );
+    
+    app.use(passport.initialize());
+    app.use(passport.session());
+
+    app.get("/auth/twitter", passport.authenticate("twitter"));
+
+    app.get("/auth/twitter/callback",
+      passport.authenticate("twitter", {
+        successReturnToOrRedirect: "/after-auth.html",
+        failureRedirect: "/login",
+      })
+    );
+
+    app.get("/login_auth",
+      passport.authenticate("local", {
+        successReturnToOrRedirect: "/after-auth.html",
+        failureRedirect: "/login",
+      })
+    );
 
     resolve();
   });
@@ -2667,26 +2677,20 @@ const nodeCacheDeleteQueueInterval = setInterval(function () {
 }, configuration.nodeCacheDeleteQueueInterval);
 
 let nodesPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
+
 if (empty(nodesPerMinuteTopTermTtl)) {
   nodesPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL;
 }
-console.log(
-  MODULE_ID +
-    " | TOP TERMS WPM CACHE TTL: " +
-    nodesPerMinuteTopTermTtl +
-    " SECONDS"
-);
+
+console.log(MODULE_ID + " | TOP TERMS WPM CACHE TTL: " + nodesPerMinuteTopTermTtl + " SECONDS");
 
 let nodesPerMinuteTopTermCheckPeriod = process.env.TOPTERMS_CACHE_CHECK_PERIOD;
+
 if (empty(nodesPerMinuteTopTermCheckPeriod)) {
   nodesPerMinuteTopTermCheckPeriod = TOPTERMS_CACHE_CHECK_PERIOD;
 }
-console.log(
-  MODULE_ID +
-    " | TOP TERMS WPM CACHE CHECK PERIOD: " +
-    nodesPerMinuteTopTermCheckPeriod +
-    " SECONDS"
-);
+
+console.log(MODULE_ID + " | TOP TERMS WPM CACHE CHECK PERIOD: " + nodesPerMinuteTopTermCheckPeriod + " SECONDS");
 
 const nodesPerMinuteTopTermCache = new NodeCache({
   stdTTL: nodesPerMinuteTopTermTtl,
@@ -2739,7 +2743,6 @@ const ioConfig = {
 };
 
 const io = require("socket.io")(httpServer, ioConfig);
-// const net = require("net");
 
 const cp = require("child_process");
 const { error } = require("console");
@@ -2765,14 +2768,13 @@ const statsBestNetworkPickArray = [
 
 let tweetParserReady = false;
 
-function initStats(callback) {
+function initStats() {
+
   console.log(chalk.bold.black(MODULE_ID + " | INIT STATS"));
 
   statsObj.ioReady = false;
   statsObj.internetReady = false;
   statsObj.internetTestError = false;
-
-  // statsObj.dbConnectionReady = false;
 
   statsObj.tweetParserReady = false;
   tweetParserReady = false;
@@ -2972,10 +2974,11 @@ function initStats(callback) {
 
   statsObj.utilities = {};
 
-  callback();
+  return;
 }
 
 function showStats(options) {
+
   statsObj.twitter.quotedTweetsReceived = quotedTweetsReceived;
   statsObj.twitter.retweetsReceived = retweetsReceived;
   statsObj.twitter.tweetsReceived = tweetsReceived;
@@ -3043,6 +3046,8 @@ function showStats(options) {
         transmitNodeQueueReady
     )
   );
+
+  return;
 }
 
 function loadCommandLineArgs() {
@@ -6305,21 +6310,6 @@ function checkFollowableSearchTerm(searchTerm, text) {
   return false;
 }
 
-// function followable(text) {
-
-//   return new Promise(function (resolve) {
-    
-//     let hitSearchTerm = false;
-
-//     followableSearchTermsArray.some(function (searchTerm) {
-//       hitSearchTerm = checkFollowableSearchTerm(searchTerm, text);
-//       return hitSearchTerm;
-//     });
-
-//     resolve(hitSearchTerm);
-//   });
-// }
-
 function followable(node) {
 
   // return new Promise(function (resolve) {
@@ -6799,7 +6789,6 @@ const setUpdateHashtagCountsTimeout = () => {
 
   return;
 }
-
 
 async function updateUserCounts() {
 
@@ -10954,15 +10943,12 @@ async function loadAllConfigFiles() {
 }
 
 function initStatsUpdate() {
+
   return new Promise(function (resolve, reject) {
+
     try {
-      console.log(
-        chalkTwitter(
-          MODULE_ID +
-            " | INIT STATS UPDATE INTERVAL | " +
-            msToTime(configuration.statsUpdateIntervalTime)
-        )
-      );
+
+      console.log(chalkTwitter(MODULE_ID + " | INIT STATS UPDATE INTERVAL | " + msToTime(configuration.statsUpdateIntervalTime)));
 
       showStats(true);
 
@@ -10973,6 +10959,7 @@ function initStatsUpdate() {
       statsInterval = setInterval(async function updateStats() {
 
         try {
+
           childArray = await getChildProcesses({ searchTerm: "ALL" });
 
           if (configuration.verbose) {
@@ -11005,9 +10992,7 @@ function initStatsUpdate() {
 
           statsObj.bots.numOfBots = botNodeIdSet.size;
 
-          if (
-            statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin
-          ) {
+          if (statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin) {
             statsObj.twitter.maxTweetsPerMin = statsObj.twitter.tweetsPerMin;
             statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
           }
@@ -11038,6 +11023,7 @@ function initStatsUpdate() {
       }, configuration.statsUpdateIntervalTime);
 
       resolve();
+      
     } catch (err) {
       reject(err);
     }
@@ -11107,8 +11093,8 @@ async function initConfig() {
       await initStdIn();
     }
 
-    await initStatsUpdate(configuration);
-    statsObj.configuration = configuration;
+    // await initStatsUpdate(configuration);
+    // statsObj.configuration = configuration;
 
     return configuration;
 
@@ -11527,9 +11513,9 @@ async function deleteUser(params) {
   return;
 }
 
-initStats(function setCacheObjKeys() {
-  cacheObjKeys = Object.keys(statsObj.caches);
-});
+// initStats(function setCacheObjKeys() {
+//   cacheObjKeys = Object.keys(statsObj.caches);
+// });
 
 function allTrue(p) {
   return new Promise(function (resolve) {
@@ -11694,18 +11680,12 @@ async function initWatchConfig() {
 }
 
 setTimeout(async function () {
-  console.log(
-    chalkBlue(
-      MODULE_ID +
-        " | ... WAIT START TIMEOUT: " +
-        msToTime(DEFAULT_START_TIMEOUT)
-    )
-  );
+
+  console.log(chalkBlue(`${MODULE_ID} | ... WAIT START TIMEOUT: ${msToTime(DEFAULT_START_TIMEOUT)}`));
 
   try {
 
     global.dbConnection = await mgUtils.connectDb()
-
 
     await initSlackWebClient();
 
@@ -11714,11 +11694,19 @@ setTimeout(async function () {
     const cnf = await initConfig();
 
     configuration = deepcopy(cnf);
+
     if (empty(configuration.twitter)) {
       configuration.twitter = {};
     }
 
-    console.log(chalkTwitter(MODULE_ID + " | " + configuration.processName));
+    await initStats();
+
+    await initStatsUpdate(configuration);
+    statsObj.configuration = configuration;
+
+    cacheObjKeys = Object.keys(statsObj.caches);
+
+    console.log(chalkTwitter(MODULE_ID + " | PROCESS NAME: " + configuration.processName));
 
     configuration.isPrimaryHost = hostname === configuration.primaryHost;
     configuration.isDatabaseHost = hostname === configuration.databaseHost;
@@ -11733,7 +11721,6 @@ setTimeout(async function () {
     ));
 
     statsObj.status = "START";
-
 
     slackText = "*WAS START*";
     await slackSendWebMessage({ channel: slackChannel, text: slackText });

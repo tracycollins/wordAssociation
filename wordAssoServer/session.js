@@ -180,7 +180,8 @@ const saveConfig = () => {
 // const infoDivElement = document.getElementById("infoDiv");
 const controlDivElement = document.getElementById("controlDiv");
 
-let customizerWindow;
+let customizerWindow = null;
+
 const customizerComm = (event) => {
 
   console.debug("CUSTOMIZE PANEL: " + event.origin);
@@ -300,13 +301,19 @@ const openCustomizer = (cnf) => {
   console.debug("openCustomizer");
   console.debug({cnf})
 
-  const customizerWindowFeatures = "menubar=no,location=yes,resizable=yes,scrollbars=yes,status=yes";
+  const customizerWindowFeatures = "resizable,scrollbars,status";
 
-  customizerWindow = window.open(
-    DEFAULT_SOURCE + "/customize",
-    "CUSTOMIZE",
-    customizerWindowFeatures
-  );
+  if (customizerWindow === null || customizerWindow.closed){
+    customizerWindow = window.open(
+      DEFAULT_SOURCE + "/customize",
+      "CUSTOMIZE",
+      customizerWindowFeatures
+    );
+  }
+  else{
+    customizerWindow.focus();
+  }
+
 
   window.addEventListener("message", customizerComm, false);
 

@@ -300,10 +300,12 @@ const openCustomizer = (cnf) => {
   console.debug("openCustomizer");
   console.debug({cnf})
 
+  const customizerWindowFeatures = "menubar=no,location=yes,resizable=yes,scrollbars=yes,status=yes";
+
   customizerWindow = window.open(
     DEFAULT_SOURCE + "/customize",
     "CUSTOMIZE",
-    "width=1000,height=100%"
+    customizerWindowFeatures
   );
 
   window.addEventListener("message", customizerComm, false);

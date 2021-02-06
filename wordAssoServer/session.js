@@ -301,7 +301,7 @@ const openCustomizer = (cnf) => {
   console.debug("openCustomizer");
   console.debug({cnf})
 
-  const customizerWindowFeatures = "width=1000,height=auto,resizable,scrollbars,status";
+  const customizerWindowFeatures = "width=1000,height=800,resizable,scrollbars,status";
 
   if (customizerWindow === null || customizerWindow.closed){
     customizerWindow = window.open(

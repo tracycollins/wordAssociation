@@ -2058,6 +2058,8 @@ function initPassport() {
 
     app.use(passport.initialize());
 
+    console.log({threeceeConfig})
+
     passport.use(
       new TwitterStrategy({
           consumerKey: threeceeConfig.consumer_key,

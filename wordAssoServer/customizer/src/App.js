@@ -28,6 +28,7 @@ console.log({parentWindow})
 const useStyles = makeStyles((theme) => ({
   root: {
     width: "100%",
+    height: "100%",
     flexGrow: 1,
     background: 'black',
     boxShadow: 0,

@@ -34,7 +34,7 @@ let rxNodeQueueReady = false;
 const rxNodeQueue = [];
 
 let customizePanelFlag = false;
-let infoPanelFlag = false;
+// let infoPanelFlag = false;
 
 const status = {};
 
@@ -303,7 +303,7 @@ const openCustomizer = (cnf) => {
   customizerWindow = window.open(
     DEFAULT_SOURCE + "/customize",
     "CUSTOMIZE",
-    "width=1000,height=800"
+    // "width=1000,height=800"
   );
 
   window.addEventListener("message", customizerComm, false);

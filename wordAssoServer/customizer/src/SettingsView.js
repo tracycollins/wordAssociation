@@ -109,7 +109,7 @@ const Settings = (props) => {
                     onChange={handleChangeSettings(`display_${entityType}`)}
                   />
                 }
-                label={<Typography key={`display_${entityType}`} className={classes.radioButtonLabel}>{entityType.toUpperCase()}{entityType === "link" ? " (ONLY IF TWEETS DISPLAYED)" : ""}</Typography>}
+                label={<Typography key={`display_${entityType}`} className={classes.radioButtonLabel}>{entityType.toUpperCase()}</Typography>}
               />
             ))
           }

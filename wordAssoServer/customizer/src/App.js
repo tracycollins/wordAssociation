@@ -31,6 +31,7 @@ const useStyles = makeStyles((theme) => ({
     height: "100%",
     flexGrow: 1,
     background: 'black',
+    backgroundColor: 'black',
     boxShadow: 0,
   },
   appBar: {

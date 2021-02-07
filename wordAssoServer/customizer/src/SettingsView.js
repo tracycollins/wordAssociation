@@ -1,5 +1,5 @@
 import React from 'react';
-import { green } from '@material-ui/core/colors';
+import { green, grey, blue, red } from '@material-ui/core/colors';
 // import Duration from 'duration';
 // import clsx from 'clsx';
 // import Card from '@material-ui/core/Card';
@@ -21,11 +21,15 @@ import Slider from '@material-ui/core/Slider';
 // import TableHead from '@material-ui/core/TableHead';
 // import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
-import { makeStyles } from '@material-ui/core/styles';
+import { withStyles, makeStyles } from '@material-ui/core/styles';
+
+const lightGray = '#202020';
 
 const useStyles = makeStyles((theme) => ({
   root: {
     border: 0,
+    margin: 0,
+    padding: 0,
     flexGrow: 2,
   },
   grid: {
@@ -34,32 +38,30 @@ const useStyles = makeStyles((theme) => ({
     alignItems: 'stretch',
   },
   gridItem: {
+    background: lightGray,
     border: 0,
     margin: theme.spacing(1),
+    padding: theme.spacing(2),
   },
   gridHeader: {
-    // padding: theme.spacing(1),
     border: 0,
-    // marginBottom: theme.spacing(1),
   },
   paper: {
-    padding: theme.spacing(1),
+    color: 'white',
+    backgroundColor: lightGray,
+    // padding: theme.spacing(1),
     outlined: true,
     variant: 'outlined',
   },
   radioGroupCategory: {
     maxWidth: "80%",
     fontSize: '0.5rem',
-    // padding: theme.spacing(1),
-    // marginBottom: theme.spacing(1),
   },
   checkbox: {
-    color: green[400],
-    '&$checked': {
-      color: green[600],
-    },
+    color: grey[400],
+    '&$checked': { color: grey[600],},
   },
-  checked: {},
+  // checked: {},
   radioButtonLabel: {
     fontSize: '0.9rem'
   },
@@ -118,20 +120,18 @@ const Settings = (props) => {
   return (
     <>
       <Grid className={classes.grid}>
-          <Grid item className={classes.gridItem} xs={3}>
-            <Paper className={classes.paper}  elevation={0} variant="outlined">
+          <Grid item className={classes.gridItem} xs={4}>
+            <Paper className={classes.paper} elevation={0} variant="outlined">
               <Typography className={classes.gridHeader}>DISPLAY</Typography>
               {renderDisplayCheckboxes()}
             </Paper>
           </Grid>
-          <Grid item className={classes.gridItem} xs={6}>
+          <Grid item className={classes.gridItem} xs={8}>
 
-            <Typography className={classes.range} id="nodeRadiusRatio" name="nodeRadiusRatio" gutterBottom>
-              NODE RADIUS RATIO
+            <Typography className={classes.range} id="nodeRadiusRatio" name="nodeRadiusRatio">
+              NODE RADIUS RATIO | {`${props.settings.nodeRadiusRatio.min} min | ${props.settings.nodeRadiusRatio.max} max`}
             </Typography>
-            <Typography className={classes.range} gutterBottom>
-              {`${props.settings.nodeRadiusRatio.min} min | ${props.settings.nodeRadiusRatio.max} max`}
-            </Typography>
+
             <Slider
               id="nodeRadiusRatio"
               name="nodeRadiusRatio"
@@ -140,17 +140,15 @@ const Settings = (props) => {
               max={props.defaults.nodeRadiusRatioRange.max}
               step={props.defaults.nodeRadiusRatioRange.step}
               onChange={handleChangeSettings("nodeRadiusRatio")}
-              valueLabelDisplay="auto"
+              valueLabelDisplay="off"
               aria-labelledby="range-slider"
               getAriaValueText={valuetext}
             />
 
-            <Typography className={classes.range} id="fontSizeRatio" name="fontSizeRatio" gutterBottom>
-              FONT SIZE RATIO min/max
+            <Typography className={classes.range} id="fontSizeRatio" name="fontSizeRatio">
+              FONT SIZE RATIO | {`${props.settings.fontSizeRatio.min} min | ${props.settings.fontSizeRatio.max} max`}
             </Typography>
-            <Typography className={classes.range} gutterBottom>
-              {`${props.settings.fontSizeRatio.min} min | ${props.settings.fontSizeRatio.max} max`}
-            </Typography>
+
             <Slider
               id="fontSizeRatio"
               name="fontSizeRatio"
@@ -159,16 +157,16 @@ const Settings = (props) => {
               max={props.defaults.fontSizeRatioRange.max}
               step={props.defaults.fontSizeRatioRange.step}
               onChange={handleChangeSettings("fontSizeRatio")}
-              valueLabelDisplay="auto"
+              valueLabelDisplay="off"
               aria-labelledby="range-slider"
               getAriaValueText={valuetext}
             />
 
-            <Typography className={classes.range} id="setMaxNodesLimit" name="setMaxNodesLimit" gutterBottom>
-              MAX NODES
+            <Typography className={classes.range} id="setMaxNodesLimit" name="setMaxNodesLimit">
+              MAX NODES | {`${props.settings.maxNodesLimit}`}
             </Typography>
             <Typography className={classes.range} gutterBottom>
-              {`${props.settings.maxNodesLimit} MAX NODES`}
+              
             </Typography>
              <Slider
               id="maxNodesLimit"
@@ -178,17 +176,15 @@ const Settings = (props) => {
               max={props.defaults.maxNodesLimitRange.max}
               step={props.defaults.maxNodesLimitRange.step}
               onChange={handleChangeSettings("maxNodesLimit")}
-              valueLabelDisplay="auto"
+              valueLabelDisplay="off"
               aria-labelledby="slider"
               getAriaValueText={valuetext}
             />
 
-            <Typography className={classes.range} id="nodeMaxAge" name="nodeMaxAge" gutterBottom>
-              MAX AGE (seconds)
+            <Typography className={classes.range} id="nodeMaxAge" name="nodeMaxAge">
+              MAX AGE | {`${props.settings.nodeMaxAge/1000} sec`}
             </Typography>
-            <Typography className={classes.range} gutterBottom>
-              {`${props.settings.nodeMaxAge} MAX NODE AGE (ms)`}
-            </Typography>
+
             <Slider
               id="nodeMaxAge"
               name="nodeMaxAge"
@@ -197,16 +193,13 @@ const Settings = (props) => {
               max={props.defaults.nodeMaxAgeRange.max}
               step={props.defaults.nodeMaxAgeRange.step}
               onChange={handleChangeSettings("nodeMaxAge")}
-              valueLabelDisplay="auto"
+              valueLabelDisplay="off"
               aria-labelledby="slider"
               getAriaValueText={valuetext}
             />
 
-            <Typography className={classes.range} id="linkStrength" name="linkStrength" gutterBottom>
-              LINK STRENGTH
-            </Typography>
-            <Typography className={classes.range} gutterBottom>
-              {`${props.settings.linkStrength} LINK STRENGTH`}
+            <Typography className={classes.range} id="linkStrength" name="linkStrength">
+              LINK STRENGTH | {`${props.settings.linkStrength}`}
             </Typography>
             <Slider
               id="linkStrength"
@@ -216,16 +209,12 @@ const Settings = (props) => {
               max={props.defaults.linkStrengthRange.max}
               step={props.defaults.linkStrengthRange.step}
               onChange={handleChangeSettings("linkStrength")}
-              valueLabelDisplay="auto"
+              valueLabelDisplay="off"
               aria-labelledby="slider"
               getAriaValueText={valuetext}
             />
-
-            <Typography className={classes.range} id="linkDistance" name="linkDistance" gutterBottom>
-              LINK DISTANCE
-            </Typography>
-            <Typography className={classes.range} gutterBottom>
-              {`${props.settings.linkDistance} LINK DISTANCE`}
+            <Typography className={classes.range} id="linkDistance" name="linkDistance">
+              LINK DISTANCE | {`${props.settings.linkDistance}`}
             </Typography>
             <Slider
               id="linkDistance"
@@ -235,16 +224,12 @@ const Settings = (props) => {
               max={props.defaults.linkDistanceRange.max}
               step={props.defaults.linkDistanceRange.step}
               onChange={handleChangeSettings("linkDistance")}
-              valueLabelDisplay="auto"
+              valueLabelDisplay="off"
               aria-labelledby="slider"
               getAriaValueText={valuetext}
             />
-
-            <Typography className={classes.range} id="velocityDecay" name="velocityDecay" gutterBottom>
-              VELOCITY DECAY
-            </Typography>
-            <Typography className={classes.range} gutterBottom>
-              {`${props.settings.velocityDecay}/1.0`}
+            <Typography className={classes.range} id="velocityDecay" name="velocityDecay">
+              VELOCITY DECAY | {`${props.settings.velocityDecay}/1.0`}
             </Typography>
             <Slider
               id="velocityDecay"
@@ -254,16 +239,13 @@ const Settings = (props) => {
               max={props.defaults.velocityDecayRange.max}
               step={props.defaults.velocityDecayRange.step}
               onChange={handleChangeSettings("velocityDecay")}
-              valueLabelDisplay="auto"
+              valueLabelDisplay="off"
               aria-labelledby="slider"
               getAriaValueText={valuetext}
             />
 
-            <Typography className={classes.range} id="charge" name="charge" gutterBottom>
-              CHARGE
-            </Typography>
-            <Typography className={classes.range} gutterBottom>
-              {`${props.settings.charge}`}
+            <Typography className={classes.range} id="charge" name="charge">
+              CHARGE | {`${props.settings.charge}`}
             </Typography>
             <Slider
               id="charge"
@@ -273,16 +255,13 @@ const Settings = (props) => {
               max={props.defaults.chargeRange.max}
               step={props.defaults.chargeRange.step}
               onChange={handleChangeSettings("charge")}
-              valueLabelDisplay="auto"
+              valueLabelDisplay="off"
               aria-labelledby="slider"
               getAriaValueText={valuetext}
             />
 
-            <Typography className={classes.range} id="gravity" name="gravity" gutterBottom>
-              GRAVITY
-            </Typography>
-            <Typography className={classes.range} gutterBottom>
-              {`${props.settings.gravity}`}
+            <Typography className={classes.range} id="gravity" name="gravity">
+              GRAVITY | {`${props.settings.gravity}`}
             </Typography>
             <Slider
               id="gravity"
@@ -292,7 +271,7 @@ const Settings = (props) => {
               max={props.defaults.gravityRange.max}
               step={props.defaults.gravityRange.step}
               onChange={handleChangeSettings("gravity")}
-              valueLabelDisplay="auto"
+              valueLabelDisplay="off"
               aria-labelledby="slider"
               getAriaValueText={valuetext}
             />

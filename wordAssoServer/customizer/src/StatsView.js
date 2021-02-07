@@ -119,11 +119,11 @@ const useStyles = makeStyles((theme) => ({
 function LinearProgressWithLabel(props) {
   return (
     <Box display="flex" alignItems="center">
-      <Box width="100%" mr={1}>
+      <Box width="90%" mr={1}>
         <LinearProgress variant="determinate" {...props} />
       </Box>
       <Box minWidth={35}>
-        <Typography variant="body2" {...props}>{`${Math.round(props.value,)}`}</Typography>
+        <Typography {...props}>{`${Math.round(props.value)}% MAX`}</Typography>
       </Box>
     </Box>
   );

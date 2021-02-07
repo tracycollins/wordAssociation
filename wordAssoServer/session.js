@@ -423,25 +423,19 @@ const updateCustomizeButton = (customizePanelFlag) => {
 // }
 
 const addCustomizeButton = () => {
-  const customizeButton = document.createElement("BUTTON");
-  customizeButton.className = "button";
+  const customizeButton = new Image(30, 30);
+  customizeButton.src = "noun_Settings_480988.svg";
   customizeButton.setAttribute("id", "customizeButton");
   customizeButton.onclick = toggleCustomize;
-  customizeButton.innerHTML = currentConfig.settings.customizeMode
-    ? "EXIT CUSTOMIZE"
-    : "CUSTOMIZE";
   controlDivElement.appendChild(customizeButton);
   return;
 }
 
 const addFullscreenButton = () => {
-  const fullscreenButton = document.createElement("BUTTON");
-  fullscreenButton.className = "button";
+  const fullscreenButton = new Image(30, 30);
+  fullscreenButton.src = "noun_Fullscreen_2271556.svg";
   fullscreenButton.setAttribute("id", "fullscreenButton");
-  fullscreenButton.onclick = toggleFullScreen
-  fullscreenButton.innerHTML = currentConfig.fullscreenMode
-    ? "EXIT FULLSCREEN"
-    : "FULLSCREEN";
+  fullscreenButton.onclick = toggleFullScreen;
   controlDivElement.appendChild(fullscreenButton);
   return;
 }

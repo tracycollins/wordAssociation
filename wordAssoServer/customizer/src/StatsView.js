@@ -95,7 +95,7 @@ const useStyles = makeStyles((theme) => ({
     color: textLightGray,
   },
   settingValue: {
-    fontSize: '1.8rem',
+    fontSize: '1.5rem',
     marginBottom: theme.spacing(2),
     color: textLightGray,
   },

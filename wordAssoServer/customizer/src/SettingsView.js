@@ -1,5 +1,5 @@
 import React from 'react';
-import { green, grey, blue, red } from '@material-ui/core/colors';
+import { grey } from '@material-ui/core/colors';
 // import Duration from 'duration';
 // import clsx from 'clsx';
 // import Card from '@material-ui/core/Card';
@@ -21,9 +21,10 @@ import Slider from '@material-ui/core/Slider';
 // import TableHead from '@material-ui/core/TableHead';
 // import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
-import { withStyles, makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 
 const lightGray = '#202020';
+const textLightGray = '#CCCCCC';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -41,13 +42,13 @@ const useStyles = makeStyles((theme) => ({
     background: lightGray,
     border: 0,
     margin: theme.spacing(1),
-    padding: theme.spacing(2),
+    padding: theme.spacing(4),
   },
   gridHeader: {
     border: 0,
   },
   paper: {
-    color: 'white',
+    color: textLightGray,
     backgroundColor: lightGray,
     // padding: theme.spacing(1),
     outlined: true,
@@ -68,7 +69,7 @@ const useStyles = makeStyles((theme) => ({
   radioButton: {
   },
   range: {
-    color: 'white',
+    color: textLightGray,
   }
 
 }));

@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/customizer/build/static/css/main.b28609ac.chunk.css",
-    "main.js": "/customizer/build/static/js/main.80e1d370.chunk.js",
-    "main.js.map": "/customizer/build/static/js/main.80e1d370.chunk.js.map",
+    "main.js": "/customizer/build/static/js/main.cee224a4.chunk.js",
+    "main.js.map": "/customizer/build/static/js/main.cee224a4.chunk.js.map",
     "runtime-main.js": "/customizer/build/static/js/runtime-main.507ccfca.js",
     "runtime-main.js.map": "/customizer/build/static/js/runtime-main.507ccfca.js.map",
     "static/js/2.cd5d0d79.chunk.js": "/customizer/build/static/js/2.cd5d0d79.chunk.js",
@@ -15,6 +15,6 @@
     "static/js/runtime-main.507ccfca.js",
     "static/js/2.cd5d0d79.chunk.js",
     "static/css/main.b28609ac.chunk.css",
-    "static/js/main.80e1d370.chunk.js"
+    "static/js/main.cee224a4.chunk.js"
   ]
 }

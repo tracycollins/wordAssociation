@@ -100,7 +100,7 @@ const useStyles = makeStyles((theme) => ({
     color: textLightGray,
   },
   slider: {
-    // margin: theme.spacing(1),
+    marginBottom: theme.spacing(2),
   },
   settingLabel: {
     fontSize: '0.8rem',
@@ -108,8 +108,7 @@ const useStyles = makeStyles((theme) => ({
     color: textLightGray,
   },
   settingValue: {
-    fontSize: '1.5rem',
-    // margin: theme.spacing(1),
+    fontSize: '1.8rem',
     color: textLightGray,
   },
   textField: {

@@ -113,6 +113,11 @@ const useStyles = makeStyles((theme) => ({
     // margin: theme.spacing(1),
     color: textLightGray,
   },
+  settingValueSmall: {
+    fontSize: '1.0rem',
+    // margin: theme.spacing(1),
+    color: textLightGray,
+  },
   textField: {
     color: textLightGray,
     '& input:valid + fieldset': {
@@ -415,7 +420,7 @@ const Stats = (props) => {
                 INPUTS ID
               </Typography>
               <Grid item xs={8}>
-                <Typography className={classes.settingValue} gutterBottom>
+                <Typography className={classes.settingValueSmall} gutterBottom>
                   {props.heartbeat.bestNetwork.inputsId || '---'}
                 </Typography>
               </Grid>

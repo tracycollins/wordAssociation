@@ -36,21 +36,17 @@ const useStyles = makeStyles((theme) => ({
   grid: {
     border: 0,
     display: 'flex',
-    // alignItems: 'stretch',
+
   },
   gridSetting: {
-    // border: 0,
     flexFlow: 'column',
     display: 'flex',
-    // margin: theme.spacing(1),
-    // alignItems: 'flexStart',
+
   },
   gridSubSetting: {
-    // border: 0,
     flexFlow: 'row',
     display: 'flex',
-    // margin: theme.spacing(1),
-    // alignItems: 'flexStart',
+    marginBottom: theme.spacing(2),
   },
   gridItem: {
     background: lightGray,
@@ -64,7 +60,6 @@ const useStyles = makeStyles((theme) => ({
   paper: {
     color: textLightGray,
     backgroundColor: lightGray,
-    // padding: theme.spacing(1),
     outlined: true,
     variant: 'outlined',
   },
@@ -83,15 +78,11 @@ const useStyles = makeStyles((theme) => ({
   radioButton: {
   },
   range: {
-    // width: 'fit-content',
     border: `1px solid ${theme.palette.divider}`,
     borderRadius: theme.shape.borderRadius,
-    // backgroundColor: theme.palette.background.paper,
-    // color: theme.palette.text.secondary,
     color: textLightGray,
   },
   slider: {
-    // margin: theme.spacing(1),
   },
   sectionLabel: {
     fontSize: '1.4rem',
@@ -113,11 +104,13 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(2),
     color: textLightGray,
   },
+  progress: {
+    color: textLightGray,
+  },
   textField: {
     color: textLightGray,
     '& input:valid + fieldset': {
       borderColor: textLightGray,
-      // borderWidth: 2,
     }
   },
 }));
@@ -130,9 +123,7 @@ function LinearProgressWithLabel(props) {
         <LinearProgress variant="determinate" {...props} />
       </Box>
       <Box minWidth={35}>
-        <Typography variant="body2" color="textSecondary">{`${Math.round(
-          props.value,
-        )}`}</Typography>
+        <Typography variant="body2" {...props}>{`${Math.round(props.value,)}`}</Typography>
       </Box>
     </Box>
   );
@@ -270,6 +261,14 @@ const Stats = (props) => {
               </Grid>
 
             </Grid>
+
+            <LinearProgressWithLabel
+              className={classes.progress}
+              variant="determinate" 
+              value={props.heartbeat.twitter.tweetsPerMin && props.heartbeat.twitter.maxTweetsPerMin ? (100.0 * props.heartbeat.twitter.tweetsPerMin / props.heartbeat.twitter.maxTweetsPerMin) : 0}
+            >
+            </LinearProgressWithLabel>
+
           </Grid>
         </Grid>
 
@@ -332,6 +331,14 @@ const Stats = (props) => {
               </Grid>
 
             </Grid>
+
+            <LinearProgressWithLabel
+              className={classes.progress}
+              variant="determinate" 
+              value={props.heartbeat.nodesPerMin && props.heartbeat.maxNodesPerMin ? (100.0 * props.heartbeat.nodesPerMin / props.heartbeat.maxNodesPerMin) : 0}
+            >
+            </LinearProgressWithLabel>
+
           </Grid>
         </Grid>
 

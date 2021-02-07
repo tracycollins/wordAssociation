@@ -46,7 +46,7 @@ const defaultHeartbeat = {
 
 ReactDOM.render(
   <Router>
-    <div class="full-height">
+    <div className="full-height">
       <Switch>
         <Route path="/customize/settings">
           <App defaults={config.defaults} settings={config.settings} status={{}} heartbeat={defaultHeartbeat}/>

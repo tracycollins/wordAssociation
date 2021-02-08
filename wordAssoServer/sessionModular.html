@@ -32,6 +32,7 @@
 
   style-src 'self' 'unsafe-inline' http://*.twimg.com/ https://*.twimg.com/ http://*.googleapis.com/ https://*.unpkg.com/ https://unpkg.com/ https://*.twitter.com/ http://*.twitter.com/" />
 
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
   <link rel="stylesheet" href="/css/base.css" />
   <link rel="icon" type="image/png" href="favicon.png" />
 
@@ -50,17 +51,27 @@
       /* position: relative; */
     }
 
-    #controlDiv {
-      background-color: #000000;
-      border: 1px solid #aaaaaa;
-      color: #cccccc;
-      margin: 20px;
-      padding: 10px;
-      overflow: hidden;
+    #infoDiv {
+      width: 100%;
+      height: 100%;
       position: absolute;
-      bottom: 0%;
+      top: 0;
       left: 0;
       z-index: 10;
+    }
+
+
+    #controlDiv {
+      /* background-color: #000000; */
+      /* border: 1px solid #aaaaaa; */
+      /* color: #cccccc; */
+      /* margin: 20px;
+      padding: 10px; */
+      /* overflow: hidden; */
+      position: absolute;
+      bottom: 5%;
+      left: 2%;
+      z-index: 20;
     }
 
     .tooltip {
@@ -75,7 +86,13 @@
       z-index: 20;
     }
   </style>
+  <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+  <!-- <script src="https://unpkg.com/react@17/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js" crossorigin></script> -->
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js" crossorigin></script>
 
+  <script src="https://unpkg.com/@material-ui/core@latest/umd/material-ui.production.min.js"></script>
   <script src="https://d3js.org/d3.v6.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/async/3.2.0/async.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
@@ -87,14 +104,16 @@
   <script src="node_modules/deepool/deePool.js"></script>
   <script src="config/config.js"></script>
   <script src="js/libs/viewForceLinks.js"></script>
+  <!-- <script type="text/babel" data-type="module" src="js/libs/info.js"></script> -->
+  <!-- <script src="js/libs/test.js"></script> -->
+  <script src="js/libs/control.js" type="text/babel"></script>
+  <script src="js/libs/info.js" type="text/babel"></script>
   <script defer src="session.js"></script>
 </head>
 
 <body style="overflow: hidden">
-  <div id="infoDiv" style="overflow: hidden"></div>
-  <div id="controlDiv" style="overflow: hidden">
-    <!-- <img id="settings-icon" src="noun_Settings_480988.svg" width="30" height="30"></img> -->
-  </div>
+  <div class="info" id="infoDiv" style="overflow: hidden"></div>
+  <div id="controlDiv" id="controlDiv" style="overflow: hidden"></div>
   <div id="d3group"></div>
 </body>
 

@@ -342,33 +342,6 @@ const Stats = (props) => {
           </Grid>
         </Grid>
 
-{/* 
-        <Grid item className={classes.gridItem} xs={4}>
-          <Card className={classes.card} variant="outlined">
-            <CardContent >
-              <Typography variant="h6" id="nodes" name="nodes" gutterBottom>
-                NODES
-              </Typography>
-
-              <Typography className={classes.range} id="nodeCount" name="nodeCount" gutterBottom>
-                <span><b>{props.heartbeat.nodeCount}</b> NODES</span>
-              </Typography>
-              <Typography className={classes.range} id="nodesPerMin" name="nodesPerMin" gutterBottom>
-                <span><b>{props.heartbeat.nodesPerMin}</b> NODES/MIN</span>
-              </Typography>
-              <Typography className={classes.range} id="maxNodesPerMin" name="maxNodesPerMin" gutterBottom>
-                <span><b>{props.heartbeat.maxNodesPerMin}</b> MAX NODES/MIN</span>
-              </Typography>
-
-              <LinearProgressWithLabel 
-                variant="determinate" 
-                value={props.heartbeat.nodesPerMin && props.heartbeat.maxNodesPerMin ? (100.0 * props.heartbeat.nodesPerMin / props.heartbeat.maxNodesPerMin) : 0}
-              >
-              </LinearProgressWithLabel>
-            </CardContent>
-          </Card>
-        </Grid> */}
-
       </Grid>
     </>
   );

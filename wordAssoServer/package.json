@@ -13,12 +13,17 @@
   "license": "ISC",
   "dependencies": {
     "@google-cloud/pubsub": "^2.8.0",
+    "@mdi/font": "^5.9.55",
     "@slack/web-api": "^6.0.0",
-    "@threeceelabs/mongoose-twitter": "^1.0.373",
+    "@threeceelabs/mongoose-twitter": "^1.0.375",
     "@threeceelabs/mongoose-utilities": "^1.0.12",
     "@threeceelabs/session-view": "^1.0.2",
     "@threeceelabs/threecee-utilities": "^1.0.470",
     "axios": "^0.21.1",
+    "babel-cli": "^6.26.0",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-react-app": "^3.1.2",
+    "babelify": "^10.0.0",
     "command-line-args": "^5.1.1",
     "connect-mongo": "^3.2.0",
     "cors": "^2.8.5",
@@ -40,6 +45,8 @@
     "panzoom": "^9.4.1",
     "passport": "^0.4.1",
     "passport-twitter": "^1.0.4",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
     "shelljs": "^0.8.4",
     "socket.io": "^3.1.1",
     "touch": "^3.1.0",
@@ -48,7 +55,6 @@
     "watch": "^1.0.2",
     "whois-json": "^2.0.4"
   },
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tracycollins/wordAssociation.git"

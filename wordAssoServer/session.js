@@ -1,4 +1,5 @@
-/* global config,d3,HashMap,store,moment,io,ViewForce */
+/* global config,d3,HashMap,store,moment,io,ViewForceLinks,React,ReactDOM,InfoPanel,ControlPanel */
+const e = React.createElement;
 
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
@@ -34,7 +35,7 @@ let rxNodeQueueReady = false;
 const rxNodeQueue = [];
 
 let customizePanelFlag = false;
-// let infoPanelFlag = false;
+let infoPanelFlag = false;
 
 const status = {};
 
@@ -177,7 +178,7 @@ const saveConfig = () => {
   return;
 }
 
-// const infoDivElement = document.getElementById("infoDiv");
+const infoDivElement = document.getElementById("infoDiv");
 const controlDivElement = document.getElementById("controlDiv");
 
 let customizerWindow = null;
@@ -393,17 +394,16 @@ const toggleCustomize = () => {
   return;
 }
 
-// const toggleInfo = () => {
+const toggleInfo = () => {
+  console.warn("toggleInfo");
+  infoPanelFlag = !infoPanelFlag;
+  infoDivElement.style.display = infoPanelFlag ? "unset" : "none";
 
-//   console.warn("toggleInfo");
-//   if (!infoPanelFlag) {
-//     infoPanelFlag = !infoPanelFlag;
-//   }
-
-//   infoDivElement.style.display = infoPanelFlag ? "unset" : "none";
-
-//   return;
-// }
+  if (infoPanelFlag) {
+    displayInfo();
+  }
+  return;
+}
 
 const updateCustomizeButton = (customizePanelFlag) => {
   document.getElementById("customizeButton").innerHTML = customizePanelFlag
@@ -412,33 +412,56 @@ const updateCustomizeButton = (customizePanelFlag) => {
   return;
 }
 
+const displayInfo = () => {
+  ReactDOM.render(e(InfoPanel), infoDivElement);
+}
+
+const displayControl = (isVisible) => {
+  if (isVisible){
+    controlDivElement.style.display = "unset";
+    ReactDOM.render(
+      e(
+        ControlPanel, 
+        {
+          infoButtonHandler: toggleInfo, 
+          settingsButtonHandler: toggleCustomize, 
+          fullscreenButtonHandler: toggleFullScreen
+        }
+      ), 
+      controlDivElement
+    );
+  }
+  else{
+    controlDivElement.style.display = "none";
+  }
+}
+
 // const addInfoButton = () => {
-//   const infoButton = document.createElement("BUTTON");
-//   infoButton.className = "button";
+//   const infoButton = new Image(30, 30);
+//   infoButton.src = "noun_info_446237.svg";
 //   infoButton.setAttribute("id", "infoButton");
 //   infoButton.onclick = toggleInfo;
-//   infoButton.innerHTML = infoPanelFlag ? "EXIT INFO" : "INFO";
 //   controlDivElement.appendChild(infoButton);
 //   return;
 // }
 
-const addCustomizeButton = () => {
-  const customizeButton = new Image(30, 30);
-  customizeButton.src = "noun_Settings_480988.svg";
-  customizeButton.setAttribute("id", "customizeButton");
-  customizeButton.onclick = toggleCustomize;
-  controlDivElement.appendChild(customizeButton);
-  return;
-}
+// const addCustomizeButton = () => {
+//   const customizeButton = new Image(30, 30);
+//   customizeButton.src = "noun_Settings_480988.svg";
+//   customizeButton.setAttribute("id", "customizeButton");
+//   customizeButton.onclick = toggleCustomize;
+//   controlDivElement.appendChild(customizeButton);
+//   return;
+// }
 
-const addFullscreenButton = () => {
-  const fullscreenButton = new Image(30, 30);
-  fullscreenButton.src = "noun_Fullscreen_2271556.svg";
-  fullscreenButton.setAttribute("id", "fullscreenButton");
-  fullscreenButton.onclick = toggleFullScreen;
-  controlDivElement.appendChild(fullscreenButton);
-  return;
-}
+// const addFullscreenButton = () => {
+//   const fullscreenButton = new Image(30, 30);
+//   fullscreenButton.src = "noun_Fullscreen_2271556.svg";
+//   fullscreenButton.setAttribute("id", "fullscreenButton");
+//   fullscreenButton.onclick = toggleFullScreen;
+//   controlDivElement.appendChild(fullscreenButton);
+//   return;
+// }
 
 let viewerReadyInterval;
 
@@ -727,7 +750,7 @@ function initSocketHandler () {
         status.serverConnected = true;
         status.socket.connected = true;
 
-        console.log(`<R HB | ${action.data.timeStamp}`);
+        // console.log(`<R HB | ${action.data.timeStamp}`);
 
         if (customizerWindow) {
           customizerWindow.postMessage({ op: "HEARTBEAT", status: action.data }, DEFAULT_SOURCE);
@@ -851,9 +874,12 @@ const hidden = hiddenProperty(prefix);
 const visibilityEvent = getVisibilityEvent(prefix);
 let windowVisible = true;
 
-function displayControl(isVisible) {
-  controlDivElement.style.display = isVisible ? "unset" : "none";
-}
+// function displayControl(isVisible) {
+//   controlDivElement.style.display = isVisible ? "unset" : "none";
+//   if (isVisible){
+//     displayControl();
+//   }
+// }
 
 const mouseMoveTimeoutEventObj = new CustomEvent("mouseMoveTimeoutEvent");
 let mouseMoveTimeout;
@@ -1024,9 +1050,9 @@ setTimeout(function(){
 
     socket = io("/view");
 
+    // addCustomizeButton();
+    // addFullscreenButton();
     // addInfoButton();
-    addCustomizeButton();
-    addFullscreenButton();
 
     console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 

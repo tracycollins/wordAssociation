@@ -1901,11 +1901,9 @@ configuration.userDataFolder = path.join(
 const botsFolder = path.join(configDefaultFolder, "bots");
 
 const statsHostFolder = path.join(DROPBOX_ROOT_FOLDER, "stats", hostname);
-const statsFile =
-  "wordAssoServerStats_" + moment().format(tinyDateTimeFormat) + ".json";
+const statsFile = "wordAssoServerStats.json";
 
 const twitterConfigFolder = path.join(DROPBOX_ROOT_FOLDER, "config/twitter");
-
 const bestNetworkFolder = path.join(DROPBOX_ROOT_FOLDER,"config/utility/best/neuralNetworks");
 
 const childPidFolderLocal = path.join(
@@ -10911,26 +10909,15 @@ function initStatsUpdate() {
           childArray = await getChildProcesses({ searchTerm: "ALL" });
 
           if (configuration.verbose) {
-            console.log(
-              chalkLog(
-                MODULE_ID + " | FOUND " + childArray.length + " CHILDREN"
-              )
-            );
+            console.log(chalkLog(MODULE_ID + " | FOUND " + childArray.length + " CHILDREN"));
           }
 
           childArray.forEach(function (childObj) {
-            console.log(
-              chalkLog(
-                MODULE_ID +
-                  " | CHILD" +
-                  " | PID: " +
-                  childObj.pid +
-                  " | " +
-                  childObj.childId +
-                  " | " +
-                  childrenHashMap[childObj.childId].status
-              )
-            );
+            console.log(chalkLog(MODULE_ID + " | CHILD" +
+              " | PID: " + childObj.pid +
+              " | " + childObj.childId +
+              " | " + childrenHashMap[childObj.childId].status
+            ));
           });
 
           statsObj.serverTime = moment().valueOf();
@@ -10963,10 +10950,9 @@ function initStatsUpdate() {
           if (statsObj.twitNotReadyWarning) {
             statsObj.twitNotReadyWarning = false;
           }
+
         } catch (err) {
-          console.log(
-            chalkError(MODULE_ID + " | *** STATS UPDATE ERROR: " + err)
-          );
+          console.log(chalkError(MODULE_ID + " | *** STATS UPDATE ERROR: " + err));
         }
       }, configuration.statsUpdateIntervalTime);
 

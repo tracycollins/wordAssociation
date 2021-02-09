@@ -1,11 +1,16 @@
-/*@import url(http://fonts.googleapis.com/css?family=Roboto+Slab:700|Exo+2:300,600);*/
+@import url(http://fonts.googleapis.com/css?family=Roboto+Slab:700|Exo+2:300,600);
+html, body {
+    border: 0;
+    font: inherit;
+    font-size: 100%;
+}
 body {
     margin: 0;
     padding: 0;
     height: 100%;
     width: 100%;
     background: black;
-    font-family: "Exo 2", "Helvetica Neue", Helvetica, sans-serif, monospace;
+    font-family: "Roboto Slab", "Exo 2", "Helvetica Neue", "Lucida Console", Monaco, Helvetica, sans-serif, monospace;
 }
 
 .admin, .tooltip {

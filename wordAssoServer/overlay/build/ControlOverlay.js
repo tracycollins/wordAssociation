@@ -1,5 +1,4 @@
 const ControlOverlay = function (props) {
-  // test
   const Box = MaterialUI.Box;
   const Icon = MaterialUI.Icon;
   const ButtonGroup = MaterialUI.ButtonGroup;

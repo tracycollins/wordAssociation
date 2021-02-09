@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx babel overlay/src --out-dir overlay/build"
   },
   "author": "tracy collins",
   "license": "ISC",
@@ -65,7 +66,7 @@
   "devDependencies": {
     "@babel/cli": "^7.12.13",
     "@babel/core": "^7.12.13",
-    "@babel/preset-react": "^7.12.1",
+    "@babel/preset-react": "^7.12.13",
     "babelify": "^10.0.0"
   }
 }

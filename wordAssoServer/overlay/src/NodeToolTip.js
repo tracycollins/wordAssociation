@@ -75,17 +75,17 @@ const NodeToolTip = function(props){
       case "user":
         return (
           <CardContent >
-            <Typography>{`TWEETS: ${node.statusesCount}`}</Typography>
+            <Typography>{`${node.statusesCount} tweets`}</Typography>
             <Typography>{`${node.tweetsPerDay.toFixed(0)} tweets/day`}</Typography>
-            <Typography>{`MENTIONS: ${node.mentions}`}</Typography>
-            <Typography>{`FOLLOWERS: ${node.followersCount}`}</Typography>
-            <Typography>{`FRIENDS: ${node.friendsCount}`}</Typography>
+            <Typography>{`${node.mentions} mentions`}</Typography>
+            <Typography>{`${node.followersCount} followers`}</Typography>
+            <Typography>{`${node.friendsCount} friends`}</Typography>
             <Typography>{`CREATED: ${node.createdAt}`}</Typography>
+            <Typography>{`${node.age.toFixed(1)} DAYS OLD`}</Typography>
             <Typography>{`LAST: ${node.lastSeen}`}</Typography>
-            <Typography>{`AGE: ${node.age.toFixed(1)} DAYS`}</Typography>
             <Typography>{`CAT: MANL: ${node.category}`}</Typography>
             <Typography>{`CAT: AUTO: ${node.categoryAuto}`}</Typography>
-            <Typography>{`RATE: ${node.rate.toFixed(3)} NPM`}</Typography>
+            <Typography>{`${node.rate.toFixed(3)} NPM`}</Typography>
             <Typography>{node.description || ""}</Typography>
           </CardContent>
         )
@@ -93,19 +93,19 @@ const NodeToolTip = function(props){
         return (
           <CardContent >
             <Typography>{`CAT: MANL: ${node.category}`}</Typography>
-            <Typography>{`MENTIONS: ${node.mentions}`}</Typography>
-            <Typography>{`RATE: ${node.rate.toFixed(3)} NPM`}</Typography>
+            <Typography>{`${node.mentions} mentions`}</Typography>
+            <Typography>{`${node.rate.toFixed(3)} NPM`}</Typography>
             <Typography>{`CREATED: ${node.createdAt}`}</Typography>
-            <Typography>{`AGE: ${node.age.toFixed(1)} DAYS`}</Typography>
+            <Typography>{`${node.age.toFixed(1)} DAYS OLD`}</Typography>
           </CardContent>
         )
       case "tweet":
         return (
           <CardContent >
-            <Typography>{`MENTIONS: ${node.mentions}`}</Typography>
+            <Typography>{`${node.mentions} mentions`}</Typography>
             <Typography>{`CREATED: ${node.createdAt}`}</Typography>
-            <Typography>{`AGE: ${node.age.toFixed(1)} DAYS`}</Typography>
-            <Typography>{`RATE: ${node.rate.toFixed(3)} NPM`}</Typography>
+            <Typography>{`${node.age.toFixed(1)} DAYS OLD`}</Typography>
+            <Typography>{`${node.rate.toFixed(3)} NPM`}</Typography>
             <Typography>{node.status || ""}</Typography>
           </CardContent>
         )

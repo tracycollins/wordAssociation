@@ -89,7 +89,7 @@ const NodeToolTip = function (props) {
     className: classes.card
   }, /*#__PURE__*/React.createElement(CardContent, null, /*#__PURE__*/React.createElement(Typography, {
     className: (classes.category, node.ignored ? getCategoryClass("ignored") : getCategoryClass(node.category))
-  }, node.name || node.nodeId), /*#__PURE__*/React.createElement(Typography, null, node.nodeType === "user" ? `@${node.screenName}` : node.nodeType === "hashtag" ? `#${node.nodeId}` : "tweet", " "), /*#__PURE__*/React.createElement(Typography, null, node.location !== undefined ? node.location : "", " ")), /*#__PURE__*/React.createElement(CardMedia, {
+  }, node.name || node.nodeId), /*#__PURE__*/React.createElement(Typography, null, node.nodeType === "user" ? `@${node.screenName}` : node.nodeType === "hashtag" ? `#${node.nodeId}` : "tweet", " "), /*#__PURE__*/React.createElement(Typography, null, node.location !== undefined ? node.location : "", " ")), generateCardContent(node), /*#__PURE__*/React.createElement(CardMedia, {
     className: classes.profileImage,
     src: node.profileImageUrl || null,
     component: "img",

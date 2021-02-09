@@ -141,8 +141,7 @@ const NodeToolTip = function(props){
           <Typography >{node.nodeType === "user" ? `@${node.screenName}` : node.nodeType === "hashtag" ? `#${node.nodeId}` : "tweet"} </Typography>
           <Typography>{node.location !== undefined ? node.location : ""} </Typography>
       </CardContent>
-
-
+        {generateCardContent(node)}
       <CardMedia
         className={classes.profileImage}
         src={node.profileImageUrl || null}

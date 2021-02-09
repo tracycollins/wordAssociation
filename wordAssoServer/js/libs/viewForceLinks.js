@@ -644,11 +644,11 @@ function ViewForceLinks (inputConfig) {
 
   self.toolTipVisibility = function (isVisible) {
     if (isVisible) {
+      ReactDOM.render(
+        reactElement(NodeToolTip, {node: currentToolTipNode}), 
+        nodeToolTipDivElement
+      );
       nodeToolTipDivElement.style.display = "unset";
-      // ReactDOM.render(
-      //   reactElement(NodeToolTip, {node: currentToolTipNode}), 
-      //   nodeToolTipDivElement
-      // );
     } else {
       nodeToolTipDivElement.style.display = "none";
     }
@@ -954,12 +954,12 @@ function ViewForceLinks (inputConfig) {
 
   const nodeMouseOver = function (event, d) {
 
-    ReactDOM.render(
-      reactElement(NodeToolTip, {node: d}), 
-      nodeToolTipDivElement
-    );
+    // ReactDOM.render(
+    //   reactElement(NodeToolTip, {node: d}), 
+    //   nodeToolTipDivElement
+    // );
     
-    // currentToolTipNode = d;
+    currentToolTipNode = d;
     d.mouseHoverFlag = true;
 
     if (mouseMovingFlag) {
@@ -983,6 +983,7 @@ function ViewForceLinks (inputConfig) {
 
   const labelMouseOver = function (event, d) {
 
+    currentToolTipNode = d;
     d.mouseHoverFlag = true;
 
     if (mouseMovingFlag) {

@@ -12,6 +12,15 @@ body {
     font-family: "Roboto Slab", "Exo 2", "Helvetica Neue", "Lucida Console", Monaco, Helvetica, sans-serif, monospace;
 }
 
+.center-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 95vh;
+}
+
 .admin, .tooltip {
     margin: 5%;
     font-family: "Lucida Console", Monaco, monospace;

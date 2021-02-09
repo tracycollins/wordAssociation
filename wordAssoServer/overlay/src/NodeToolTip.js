@@ -1,5 +1,5 @@
 /* global MaterialUI,config,d3,HashMap,store,moment,io,ViewForceLinks,React,ReactDOM,InfoOverlay,ControlOverlay */
-const useStyles = MaterialUI.makeStyles((theme) => ({
+const useStylesNode = MaterialUI.makeStyles((theme) => ({
   root: {
     border: 0,
     backgroundColor: 'red',
@@ -54,7 +54,7 @@ const NodeToolTip = function(props){
   const Icon = MaterialUI.Icon;
   const Typography = MaterialUI.Typography;
 
-  const classes = useStyles();
+  const classes = useStylesNode();
 
   const getCategoryClass = (category) => {
     switch (category){

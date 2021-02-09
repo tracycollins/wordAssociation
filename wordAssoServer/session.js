@@ -1,4 +1,4 @@
-/* global config,d3,HashMap,store,moment,io,ViewForceLinks,React,ReactDOM,InfoPanel,ControlPanel */
+/* global config,d3,HashMap,store,moment,io,ViewForceLinks,React,ReactDOM,InfoOverlay,ControlOverlay */
 const e = React.createElement;
 
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
@@ -35,7 +35,7 @@ let rxNodeQueueReady = false;
 const rxNodeQueue = [];
 
 let customizePanelFlag = false;
-let infoPanelFlag = false;
+let infoOverlayFlag = false;
 
 const status = {};
 
@@ -189,7 +189,7 @@ const customizerComm = (event) => {
   console.debug("CUSTOMIZE PANEL: " + event.origin);
 
   if (event.data === "DisableHTML5Autoplay_Initialize") {
-    console.info("RX> CONTROL PANEL | DisableHTML5Autoplay_Initialize ... IGNORING ...");
+    console.info("RX> CUSTOMIZE PANEL | DisableHTML5Autoplay_Initialize ... IGNORING ...");
     return;
   }
 
@@ -392,9 +392,9 @@ const toggleCustomize = () => {
 
 const toggleInfo = () => {
   console.warn("toggleInfo");
-  infoPanelFlag = !infoPanelFlag;
-  infoDivElement.style.display = infoPanelFlag ? "flex" : "none";
-  displayInfo(infoPanelFlag);
+  infoOverlayFlag = !infoOverlayFlag;
+  infoDivElement.style.display = infoOverlayFlag ? "flex" : "none";
+  displayInfo(infoOverlayFlag);
   return;
 }
 
@@ -402,7 +402,7 @@ const displayInfo = (isVisible) => {
   if (isVisible){
     infoDivElement.style.display = "flex";
     ReactDOM.render(
-      e(InfoPanel, {closeButtonHandler: toggleInfo}), 
+      e(InfoOverlay, {closeButtonHandler: toggleInfo}), 
       infoDivElement
     );
   }
@@ -415,7 +415,7 @@ const displayControl = (isVisible) => {
   if (isVisible){
     controlDivElement.style.display = "unset";
     ReactDOM.render(
-      e(ControlPanel, 
+      e(ControlOverlay, 
         {
           infoButtonHandler: toggleInfo, 
           settingsButtonHandler: toggleCustomize, 

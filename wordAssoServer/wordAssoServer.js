@@ -7171,6 +7171,8 @@ async function updateUserSets(p) {
 
   userSearchCursor = global.wordAssoDb.User.find(params.query)
     .select({
+      bannerImageUrl: 1,
+      profileImageUrl: 1,
       categorizeNetwork: 1,
       category: 1,
       categoryAuto: 1,

@@ -40,8 +40,8 @@ const useStylesNode = MaterialUI.makeStyles(theme => ({
 const NodeToolTip = function (props) {
   const {
     node
-  } = props;
-  console.log(props);
+  } = props; // console.log(props)
+
   const Grid = MaterialUI.Grid;
   const Container = MaterialUI.Container;
   const Card = MaterialUI.Card;

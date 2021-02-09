@@ -51,25 +51,36 @@
       /* position: relative; */
     }
 
+    .center-screen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      min-height: 95vh;
+    }
+
     #infoDiv {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
+      width: 80%;
+      margin: 0;
+      padding: 0;
+      background-color: transparent;
+      color: #cccccc;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       z-index: 10;
     }
 
 
     #controlDiv {
-      /* background-color: #000000; */
-      /* border: 1px solid #aaaaaa; */
-      /* color: #cccccc; */
-      /* margin: 20px;
-      padding: 10px; */
-      /* overflow: hidden; */
+      margin: 0;
+      padding: 0;
+      background-color: transparent;
+      color: #cccccc;
       position: absolute;
-      bottom: 5%;
+      bottom: 3%;
       left: 2%;
       z-index: 20;
     }
@@ -99,6 +110,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/store.js/2.0.12/store.legacy.min.js"></script>
   <script src='https://unpkg.com/panzoom@9.4.0/dist/panzoom.min.js'></script>
+  <script src="https://unpkg.com/react-force-graph-2d"></script>
 
   <script src="node_modules/hashmap/hashmap.js"></script>
   <script src="node_modules/deepool/deePool.js"></script>
@@ -112,8 +124,8 @@
 </head>
 
 <body style="overflow: hidden">
-  <div class="info" id="infoDiv" style="overflow: hidden"></div>
-  <div id="controlDiv" id="controlDiv" style="overflow: hidden"></div>
+  <div class="infoDiv" id="infoDiv"></div>
+  <div class="controlDiv" id="controlDiv"></div>
   <div id="d3group"></div>
 </body>
 

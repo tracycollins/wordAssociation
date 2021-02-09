@@ -180,6 +180,7 @@ const saveConfig = () => {
 
 const infoDivElement = document.getElementById("infoDiv");
 const controlDivElement = document.getElementById("controlDiv");
+controlDivElement.style.display = "unset";
 
 let customizerWindow = null;
 
@@ -310,13 +311,10 @@ const openCustomizer = (cnf) => {
       "CUSTOMIZE",
       customizerWindowFeatures
     );
-
-
   }
   else{
     customizerWindow.focus();
   }
-
 
   window.addEventListener("message", customizerComm, false);
 
@@ -325,7 +323,6 @@ const openCustomizer = (cnf) => {
     function () {
       console.log("CUSTOMIZE POP UP CLOSING...");
       customizePanelFlag = false;
-      updateCustomizeButton(customizePanelFlag);
     },
     false
   );
@@ -334,7 +331,6 @@ const openCustomizer = (cnf) => {
     "load",
     function () {
       customizePanelFlag = true;
-      updateCustomizeButton(customizePanelFlag);
       customizerWindow.postMessage({ op: "INIT", config: cnf, status: status }, DEFAULT_SOURCE);
       return;
     },
@@ -397,31 +393,29 @@ const toggleCustomize = () => {
 const toggleInfo = () => {
   console.warn("toggleInfo");
   infoPanelFlag = !infoPanelFlag;
-  infoDivElement.style.display = infoPanelFlag ? "unset" : "none";
+  infoDivElement.style.display = infoPanelFlag ? "flex" : "none";
+  displayInfo(infoPanelFlag);
+  return;
+}
 
-  if (infoPanelFlag) {
-    displayInfo();
+const displayInfo = (isVisible) => {
+  if (isVisible){
+    infoDivElement.style.display = "flex";
+    ReactDOM.render(
+      e(InfoPanel, {closeButtonHandler: toggleInfo}), 
+      infoDivElement
+    );
   }
-  return;
-}
-
-const updateCustomizeButton = (customizePanelFlag) => {
-  document.getElementById("customizeButton").innerHTML = customizePanelFlag
-    ? "CLOSE CUSTOMIZE"
-    : "CUSTOMIZE";
-  return;
-}
-
-const displayInfo = () => {
-  ReactDOM.render(e(InfoPanel), infoDivElement);
+  else{
+    infoDivElement.style.display = "none";
+  }
 }
 
 const displayControl = (isVisible) => {
   if (isVisible){
     controlDivElement.style.display = "unset";
     ReactDOM.render(
-      e(
-        ControlPanel, 
+      e(ControlPanel, 
         {
           infoButtonHandler: toggleInfo, 
           settingsButtonHandler: toggleCustomize, 
@@ -435,33 +429,6 @@ const displayControl = (isVisible) => {
     controlDivElement.style.display = "none";
   }
 }
-
-// const addInfoButton = () => {
-//   const infoButton = new Image(30, 30);
-//   infoButton.src = "noun_info_446237.svg";
-//   infoButton.setAttribute("id", "infoButton");
-//   infoButton.onclick = toggleInfo;
-//   controlDivElement.appendChild(infoButton);
-//   return;
-// }
-
-// const addCustomizeButton = () => {
-//   const customizeButton = new Image(30, 30);
-//   customizeButton.src = "noun_Settings_480988.svg";
-//   customizeButton.setAttribute("id", "customizeButton");
-//   customizeButton.onclick = toggleCustomize;
-//   controlDivElement.appendChild(customizeButton);
-//   return;
-// }
-
-// const addFullscreenButton = () => {
-//   const fullscreenButton = new Image(30, 30);
-//   fullscreenButton.src = "noun_Fullscreen_2271556.svg";
-//   fullscreenButton.setAttribute("id", "fullscreenButton");
-//   fullscreenButton.onclick = toggleFullScreen;
-//   controlDivElement.appendChild(fullscreenButton);
-//   return;
-// }
 
 let viewerReadyInterval;
 
@@ -873,13 +840,6 @@ const prefix = getBrowserPrefix();
 const hidden = hiddenProperty(prefix);
 const visibilityEvent = getVisibilityEvent(prefix);
 let windowVisible = true;
-
-// function displayControl(isVisible) {
-//   controlDivElement.style.display = isVisible ? "unset" : "none";
-//   if (isVisible){
-//     displayControl();
-//   }
-// }
 
 const mouseMoveTimeoutEventObj = new CustomEvent("mouseMoveTimeoutEvent");
 let mouseMoveTimeout;

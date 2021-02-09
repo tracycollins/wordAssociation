@@ -1,12 +1,97 @@
 /* global config,d3,HashMap,store,moment,io,ViewForceLinks,React,ReactDOM,InfoOverlay,ControlOverlay */
-const e = React.createElement;
+const testMode = false;
+
+const testNode = {
+  "ageDays": 4667.932989085648,
+  "bannerImageAnalyzed": "https://pbs.twimg.com/profile_banners/14607119/1559109295",
+  "bannerImageUrl": "https://pbs.twimg.com/profile_banners/14607119/1559109295",
+  "categorizeNetwork": "nn_20210205_140625_mms2_4",
+  "categorized": true,
+  "categorizedAuto": true,
+  "category": "left",
+  "categoryAuto": "right",
+  "categoryMismatch": false,
+  "categoryVerified": false,
+  "countHistory": [],
+  "createdAt": "2008-04-30T22:42:14.000Z",
+  "derived": false,
+  "description": "so much to learn, so little time",
+  "expandedUrl": "",
+  "followersCount": 341,
+  "following": true,
+  "friends": [],
+  "friendsCount": 551,
+  "geo": {},
+  "geoEnabled": true,
+  "geoValid": false,
+  "ignored": false,
+  "isBot": false,
+  "isTopTerm": false,
+  "isTweetSource": false,
+  "isTweeter": true,
+  "isTwitterUser": true,
+  "lang": null,
+  "languageAnalysis": {},
+  "languageAnalyzed": false,
+  "lastHistogramQuoteId": "",
+  "lastHistogramTweetId": "1347310377214894081",
+  "lastSeen": "2021-01-21T04:11:04.000Z",
+  "lastTweetId": "false",
+  "location": "Brooklyn, New York",
+  "mentions": 1247,
+  "name": "Tracy Collins",
+  "nodeId": "14607119",
+  "nodeType": "user",
+  "oauthID": 0,
+  "previousBannerImageUrl": "https://pbs.twimg.com/profile_banners/14607119/1559109295",
+  "previousDescription": "so much to learn, so little time",
+  "previousExpandedUrl": "",
+  "previousLocation": "Brooklyn, New York",
+  "previousName": "Tracy Collins",
+  "previousProfileImageUrl": "https://pbs.twimg.com/profile_images/1205585278565527559/GrTkBpzl.jpg",
+  "previousProfileUrl": "https://twitter.com/threecee",
+  "previousQuotedStatusId": "",
+  "previousScreenName": "threecee",
+  "previousStatusId": "1352106411338170370",
+  "previousUrl": "http://threeceemedia.com",
+  "profileImageAnalyzed": "https://pbs.twimg.com/profile_images/1205585278565527559/GrTkBpzl.jpg",
+  "profileImageUrl": "https://pbs.twimg.com/profile_images/1205585278565527559/GrTkBpzl.jpg",
+  "profileUrl": "https://twitter.com/threecee",
+  "quotedStatus": {},
+  "quotedStatusId": "",
+  "rate": 247,
+  "rateMax": 0,
+  "rateMaxTime": "2020-05-15T17:04:05.682Z",
+  "screenName": "threecee",
+  "screenNameLower": "threecee",
+  "status": {
+    "created_at": "Thu Jan 21 04:11:04 +0000 2021",
+    "id": 1352106411338170400,
+    "id_str": "1352106411338170370",
+    "text": "RT @CathyYan: Omg. https://t.co/kyf9holXKw",
+    "truncated": false
+  },
+  "statusId": "1352106411338170370",
+  "statusesCount": 4351,
+  "threeceeFollowing": "altthreecee00",
+  "tweetsPerDay": 0.932104211901352,
+  "url": "http://threeceemedia.com",
+  "userId": "14607119",
+  "verified": false,
+  "__v": 2,
+  "_id": "5f7e04b7777e5a535cba941f"
+}
+
+const reactElement = React.createElement;
 
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
+const LOCAL_NPX_SOURCE = "http://localhost:5000";
 const MBP3_SOURCE = "http://mbp3:3000";
 
 // const DEFAULT_SOURCE = PRODUCTION_SOURCE;
-const DEFAULT_SOURCE = REPLACE_SOURCE;
+// const DEFAULT_SOURCE = REPLACE_SOURCE;
+const DEFAULT_SOURCE = LOCAL_NPX_SOURCE;
 
 console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
 console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
@@ -402,7 +487,7 @@ const displayInfo = (isVisible) => {
   if (isVisible){
     infoDivElement.style.display = "flex";
     ReactDOM.render(
-      e(InfoOverlay, {closeButtonHandler: toggleInfo}), 
+      reactElement(InfoOverlay, {closeButtonHandler: toggleInfo}), 
       infoDivElement
     );
   }
@@ -415,7 +500,7 @@ const displayControl = (isVisible) => {
   if (isVisible){
     controlDivElement.style.display = "unset";
     ReactDOM.render(
-      e(ControlOverlay, 
+      reactElement(ControlOverlay, 
         {
           infoButtonHandler: toggleInfo, 
           settingsButtonHandler: toggleCustomize, 
@@ -723,6 +808,10 @@ function initSocketHandler () {
           customizerWindow.postMessage({ op: "HEARTBEAT", status: action.data }, DEFAULT_SOURCE);
         }
 
+        if (testMode && currentSessionView){
+          currentSessionView.addNode(testNode)
+        }
+
         break
 
       default:
@@ -991,6 +1080,7 @@ const nodeSearch = (event) => {
 
 document.addEventListener("nodeSearch", nodeSearch, false);
 
+let testModeAddNodeInterval;
 
 setTimeout(function(){
 
@@ -1028,8 +1118,14 @@ setTimeout(function(){
     resetMouseMoveTimer()
     initSocketSessionUpdateRx()
 
+    if (testMode && currentSessionView){
+      testModeAddNodeInterval = setInterval(() => {
+        currentSessionView.addNode(testNode)
+      }, 1047);
+    }
   }
   catch(err){
+    clearInterval(testModeAddNodeInterval)
     console.error({err})
   }
 

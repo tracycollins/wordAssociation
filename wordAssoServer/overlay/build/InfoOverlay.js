@@ -1,3 +1,4 @@
+/* global MaterialUI,config,d3,HashMap,store,moment,io,ViewForceLinks,React,ReactDOM,InfoOverlay,ControlOverlay */
 const useStyles = MaterialUI.makeStyles(theme => ({
   root: {
     border: 0,

@@ -1,10 +1,11 @@
 const ControlPanel = function(props){
 
+  const Box = MaterialUI.Box;
   const Icon = MaterialUI.Icon;
   const ButtonGroup = MaterialUI.ButtonGroup;
 
   return (
-    <ButtonGroup color="primary" aria-label="control panel">
+    <Box aria-label="outlined primary">
       <Icon
         onClick={props.settingsButtonHandler}
       >
@@ -20,6 +21,6 @@ const ControlPanel = function(props){
       >
         info
       </Icon>
-    </ButtonGroup>
+    </Box>
   );
 }

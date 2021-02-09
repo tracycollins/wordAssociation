@@ -193,7 +193,7 @@ setTimeout(async function(){
       }
       catch(e){
         if (e.code === 85){
-          console.log(chalkAlert(`${MODULE_ID_PREFIX} | !!! CREATING USER INDEX: ${Object.keys(indexObj)} EXISTS | SKIPPING ...`))
+          console.log(chalk.yellow(`${MODULE_ID_PREFIX} | !!! CREATING USER INDEX: ${Object.keys(indexObj)} EXISTS | SKIPPING ...`))
         }
         else{
           console.log(chalkAlert(`${MODULE_ID_PREFIX} | !!! CREATING USER INDEX ERROR: ${Object.keys(indexObj)} | ERR: ${e}`))

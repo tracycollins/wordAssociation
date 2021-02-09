@@ -9,6 +9,10 @@ const useStyles = MaterialUI.makeStyles((theme) => ({
   paragraph: {
     margin: theme.spacing(1),
     padding: theme.spacing(1)
+  },
+  legend: {
+    margin: theme.spacing(1),
+    padding: theme.spacing(1)
   }
 }));
 
@@ -17,6 +21,9 @@ const InfoPanel = function(props){
   console.log(props)
 
   const Container = MaterialUI.Container;
+  const Card = MaterialUI.Card;
+  const CardContent = MaterialUI.CardContent;
+  const CardMedia = MaterialUI.CardMedia;
   const Paper = MaterialUI.Paper;
   const TextField = MaterialUI.TextField;
   const Button = MaterialUI.Button;
@@ -39,9 +46,20 @@ const InfoPanel = function(props){
           cancel
         </Icon>
 
-        <Typography className={classes.paragraph}>
-          Information coming soon.
-        </Typography>
+          <Card className={classes.legend} variant="outlined">
+
+            <CardContent >
+                <Typography>LEGEND</Typography>
+            </CardContent>
+
+            <CardMedia
+              className={classes.profileImage}
+              src={"info_legend.png"}
+              component="img"
+              onError={e => {}}              
+            />
+
+          </Card>
 
       </Paper>
     </Container>

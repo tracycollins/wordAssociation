@@ -1,4 +1,4 @@
-
+/* global MaterialUI,config,d3,HashMap,store,moment,io,ViewForceLinks,React,ReactDOM,InfoOverlay,ControlOverlay */
 const useStyles = MaterialUI.makeStyles((theme) => ({
   root: {
     border: 0,
@@ -47,18 +47,15 @@ const InfoOverlay = function(props){
         </Icon>
 
           <Card className={classes.legend} variant="outlined">
-
             <CardContent >
                 <Typography>LEGEND</Typography>
             </CardContent>
-
             <CardMedia
               className={classes.profileImage}
               src={"info_legend.png"}
               component="img"
               onError={e => {}}              
             />
-
           </Card>
 
       </Paper>

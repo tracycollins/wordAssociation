@@ -1,14 +1,14 @@
-/* global d3, deePool, HashMap, panzoom, */
+/* global NodeToolTip, React, ReactDOM, d3, deePool, HashMap, panzoom, */
 
 function ViewForceLinks (inputConfig) {
 
-  // const DISPLAY_USER = true;
-  // const DISPLAY_HASHTAG = true;
-  // const DISPLAY_TWEET = false;
-  // const DISPLAY_LINK = false;
+  const nodeToolTipDivElement = document.getElementById("nodeToolTipDiv");
 
-  // const LINK_DISTANCE = 10;
-  // const LINK_STRENGTH = 0.2;
+  nodeToolTipDivElement.setAttribute("style","display:block;width:360px");
+  nodeToolTipDivElement.style.width='360px';
+
+  let currentToolTipNode = null;
+  const reactElement = React.createElement;
 
   console.log("@@@@@@@ ViewForceLinks @@@@@@@@");
   console.log({inputConfig})
@@ -57,15 +57,6 @@ function ViewForceLinks (inputConfig) {
 
   config.settings = config.settings || {};
   config.defaults = config.defaults || {};
-
-  // config.settings.display.tweet = config.settings.display.tweet === undefined ? DISPLAY_TWEET : config.settings.display.tweet;
-  // config.settings.display.link = config.settings.display.link === undefined ? DISPLAY_TWEET : config.settings.display.link;
-  // config.settings.display.user = config.settings.display.user === undefined ? DISPLAY_TWEET : config.settings.display.user;
-  // config.settings.display.hashtag = config.settings.display.hashtag === undefined ? DISPLAY_TWEET : config.settings.display.hashtag;
-
-
-  // config.settings.linkDistance = LINK_DISTANCE;
-  // config.settings.linkStrength = LINK_STRENGTH;
 
   config.settings.adjustedAgeRateScaleRange = config.settings.adjustedAgeRateScaleRange || {};
   config.settings.adjustedAgeRateScaleRange.min = config.settings.adjustedAgeRateScaleRange.min  || 1.0;
@@ -452,13 +443,6 @@ function ViewForceLinks (inputConfig) {
   const categoryMismatchStrokeWidth = "0.6em";
   const categoryAutoStrokeWidth = "0.2em";
 
-  const divTooltip = d3
-    .select("body")
-    .append("div")
-    .attr("id", "divTooltip")
-    .attr("class", "tooltip")
-    .style("display", "none");
-
   document.addEventListener(
     "mousemove",
     function mousemoveFunc() {
@@ -660,9 +644,13 @@ function ViewForceLinks (inputConfig) {
 
   self.toolTipVisibility = function (isVisible) {
     if (isVisible) {
-      divTooltip.style("display", "unset");
+      nodeToolTipDivElement.style.display = "unset";
+      // ReactDOM.render(
+      //   reactElement(NodeToolTip, {node: currentToolTipNode}), 
+      //   nodeToolTipDivElement
+      // );
     } else {
-      divTooltip.style("display", "none");
+      nodeToolTipDivElement.style.display = "none";
     }
   };
 
@@ -964,9 +952,14 @@ function ViewForceLinks (inputConfig) {
 
   }
 
-  let tooltipString;
-
   const nodeMouseOver = function (event, d) {
+
+    ReactDOM.render(
+      reactElement(NodeToolTip, {node: d}), 
+      nodeToolTipDivElement
+    );
+    
+    // currentToolTipNode = d;
     d.mouseHoverFlag = true;
 
     if (mouseMovingFlag) {
@@ -977,7 +970,8 @@ function ViewForceLinks (inputConfig) {
 
     d3.select("#" + d.nodePoolId)
       .style("fill-opacity", 1)
-      .style("stroke-opacity", 1);
+      .style("stroke-opacity", 1)
+      .style("display", "unset");
 
     d3.select("#" + d.nodePoolId + "_label")
       .style("stroke", "unset")
@@ -985,48 +979,10 @@ function ViewForceLinks (inputConfig) {
       .style("fill-opacity", 1)
       .style("display", "unset");
 
-    switch (d.nodeType) {
-      case "tweet":
-        tooltipString =
-          "TW ID" + d.nodeId +
-          "<br>@" + d.user.screenName +
-          "<br>" + d.rate.toFixed(3) + " NPM"
-        break;
-      case "user":
-        tooltipString =
-          "@" + d.screenName +
-          "<br>" + d.name +
-          "<br>AGE (DAYS): " + d.ageDays.toFixed(3) +
-          "<br>TPD: " + d.tweetsPerDay.toFixed(3) +
-          "<br>FLWRs: " + d.followersCount +
-          "<br>FRNDs: " + d.friendsCount +
-          "<br>FMs: " + d.followersMentions +
-          "<br>Ms: " + d.mentions +
-          "<br>Ts: " + d.statusesCount +
-          "<br>" + d.rate.toFixed(3) + " NPM" +
-          "<br>C: " + d.category +
-          "<br>CA: " + d.categoryAuto;
-        break;
-
-      case "hashtag":
-        tooltipString =
-          "#" + d.nodeId +
-          "<br>Ms: " + d.mentions +
-          "<br>" + d.rate.toFixed(3) + " MPM" +
-          "<br>C: " + d.category +
-          "<br>CA: " + d.categoryAuto;
-        break;
-      default:
-        tooltipString = ""
-    }
-
-    divTooltip.html(tooltipString);
-    divTooltip
-      .style("left", event.pageX - 40 + "px")
-      .style("top", event.pageY - 50 + "px");
   };
 
   const labelMouseOver = function (event, d) {
+
     d.mouseHoverFlag = true;
 
     if (mouseMovingFlag) {
@@ -1040,64 +996,10 @@ function ViewForceLinks (inputConfig) {
       .style("stroke", palette.white)
       .style("stroke-opacity", 1);
 
-    switch (d.nodeType) {
-      case "tweet":
-        break;
-      case "user":
-        tooltipString =
-          "@" +
-          d.screenName +
-          "<br>" +
-          d.name +
-          "<br>AGE (DAYS): " +
-          d.ageDays.toFixed(3) +
-          "<br>TPD: " +
-          d.tweetsPerDay.toFixed(3) +
-          "<br>FLWRs: " +
-          d.followersCount +
-          "<br>FRNDs: " +
-          d.friendsCount +
-          "<br>FMs: " +
-          d.followersMentions +
-          "<br>Ms: " +
-          d.mentions +
-          "<br>Ts: " +
-          d.statusesCount +
-          "<br>" +
-          d.rate.toFixed(3) +
-          " WPM" +
-          "<br>C: " +
-          d.category +
-          "<br>CA: " +
-          d.categoryAuto;
-        break;
-
-      case "hashtag":
-        tooltipString =
-          "#" +
-          d.nodeId +
-          "<br>Ms: " +
-          d.mentions +
-          "<br>" +
-          d.rate.toFixed(3) +
-          " MPM" +
-          "<br>C: " +
-          d.category +
-          "<br>CA: " +
-          d.categoryAuto;
-        break;
-      
-      default:
-        tooltipString = ""
-    }
-
-    divTooltip.html(tooltipString);
-    divTooltip
-      .style("left", event.pageX - 40 + "px")
-      .style("top", event.pageY - 50 + "px");
   };
 
   function labelMouseOut(event, d) {
+
     d.mouseHoverFlag = false;
 
     self.toolTipVisibility(false);
@@ -1113,6 +1015,7 @@ function ViewForceLinks (inputConfig) {
   }
 
   function nodeMouseOut(event, d) {
+
     d.mouseHoverFlag = false;
 
     self.toolTipVisibility(false);
@@ -1155,6 +1058,8 @@ function ViewForceLinks (inputConfig) {
         }
         return "none";
       });
+
+
   }
 
   function labelText(d) {

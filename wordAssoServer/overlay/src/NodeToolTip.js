@@ -88,6 +88,18 @@ const NodeToolTip = function(props){
             <Typography>{`${node.rate.toFixed(3)} NPM`}</Typography>
             <Typography>{node.description || ""}</Typography>
           </CardContent>
+          <CardMedia
+            className={classes.profileImage}
+            src={node.profileImageUrl || null}
+            component="img"
+            onError={e => {}}              
+          />
+          <CardMedia 
+            className={classes.bannerImage} 
+            src={node.bannerImageUrl || null} 
+            component="img"
+            onError={e => {}}              
+          />
         )
       case "hashtag":
         return (
@@ -142,18 +154,7 @@ const NodeToolTip = function(props){
           <Typography>{node.location !== undefined ? node.location : ""} </Typography>
       </CardContent>
         {generateCardContent(node)}
-      <CardMedia
-        className={classes.profileImage}
-        src={node.profileImageUrl || null}
-        component="img"
-        onError={e => {}}              
-      />
-      <CardMedia 
-        className={classes.bannerImage} 
-        src={node.bannerImageUrl || null} 
-        component="img"
-        onError={e => {}}              
-      />
+
     </Card>
   );
 }

@@ -88,7 +88,7 @@ const NodeToolTip = function (props) {
         return /*#__PURE__*/React.createElement(CardContent, null, /*#__PURE__*/React.createElement(Typography, null, `CAT: MANL: ${node.category}`), /*#__PURE__*/React.createElement(Typography, null, `${node.mentions} mentions`), /*#__PURE__*/React.createElement(Typography, null, `${node.rate.toFixed(3)} NPM`), /*#__PURE__*/React.createElement(Typography, null, `CREATED: ${node.createdAt}`), /*#__PURE__*/React.createElement(Typography, null, `${node.ageDays.toFixed(1)} DAYS OLD`));
 
       case "tweet":
-        return /*#__PURE__*/React.createElement(CardContent, null, /*#__PURE__*/React.createElement(Typography, null, `${node.mentions} mentions`), /*#__PURE__*/React.createElement(Typography, null, `CREATED: ${node.createdAt}`), /*#__PURE__*/React.createElement(Typography, null, `${node.ageDays.toFixed(1)} DAYS OLD`), /*#__PURE__*/React.createElement(Typography, null, `${node.rate.toFixed(3)} NPM`), /*#__PURE__*/React.createElement(Typography, null, node.status || ""));
+        return /*#__PURE__*/React.createElement(CardContent, null, /*#__PURE__*/React.createElement(Typography, null, `@${node.user.screenName}`), /*#__PURE__*/React.createElement(Typography, null, `${node.mentions} mentions`), /*#__PURE__*/React.createElement(Typography, null, `CREATED: ${node.createdAt}`), /*#__PURE__*/React.createElement(Typography, null, `${node.ageDays.toFixed(1)} DAYS OLD`), /*#__PURE__*/React.createElement(Typography, null, `${node.rate.toFixed(3)} NPM`), /*#__PURE__*/React.createElement(Typography, null, node.status || ""));
 
         defautlt: return /*#__PURE__*/React.createElement(CardContent, null);
 

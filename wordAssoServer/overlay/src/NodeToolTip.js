@@ -82,6 +82,18 @@ const NodeToolTip = function(props){
           <Typography>{node.location !== undefined ? node.location : ""} </Typography>
       </CardContent>
       <CardContent >
+          <Typography>{`TWEETS: ${node.statusesCount}`}</Typography>
+          <Typography>{`${node.tweetsPerDay.toFixed(0)} tweets/day`}</Typography>
+          <Typography>{`MENTIONS: ${node.mentions}`}</Typography>
+          <Typography>{`FOLLOWERS: ${node.followersCount}`}</Typography>
+          <Typography>{`FRIENDS: ${node.friendsCount}`}</Typography>
+          <Typography>{`CREATED: ${node.createdAt}`}</Typography>
+          <Typography>{`CREATED: ${node.createdAt}`}</Typography>
+          <Typography>{`AGE: ${node.age.toFixed(1)} DAYS`}</Typography>
+          <Typography>{`CAT: MANL: ${node.category}`}</Typography>
+          <Typography>{`CAT: MANL: ${node.category}`}</Typography>
+          <Typography>{`CAT: AUTO: ${node.categoryAuto}`}</Typography>
+          <Typography>{`RATE: ${node.rate.toFixed(3)} NPM`}</Typography>
           <Typography>{node.description || ""}</Typography>
       </CardContent>
 

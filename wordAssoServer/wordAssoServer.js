@@ -238,7 +238,7 @@ const DEFAULT_IO_PING_TIMEOUT = 3 * ONE_MINUTE;
 const DEFAULT_NODE_TYPES = ["hashtag", "user", "tweet"];
 
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
-const tinyDateTimeFormat = "YYYYMMDDHHmmss";
+// const tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
 const IP_CACHE_DEFAULT_TTL = 600; // seconds
 const IP_CACHE_CHECK_PERIOD = 15;
@@ -745,9 +745,11 @@ const nodeSearchResultHandler = async function (message) {
         }
 
         if (messageObj.node){
+
           const catUserObj = categorizedUserHashMap.get(messageObj.node.nodeId);
 
           if (catUserObj !== undefined) {
+
             if (isCategorized(messageObj.node)) {
               catUserObj.manual = messageObj.node.category;
             }
@@ -755,6 +757,9 @@ const nodeSearchResultHandler = async function (message) {
             if (isAutoCategorized(messageObj.node)) {
               catUserObj.auto = messageObj.node.categoryAuto;
             }
+
+            catUserObj.bannerImageUrl = messageObj.node.bannerImageUrl || catUserObj.bannerImageUrl;
+            catUserObj.profileImageUrl = messageObj.node.profileImageUrl || catUserObj.profileImageUrl;
 
             categorizedUserHashMap.set(catUserObj.nodeId, catUserObj);
           }
@@ -777,6 +782,9 @@ const nodeSearchResultHandler = async function (message) {
                 if (isAutoCategorized(node)) {
                   catObj.auto = node.categoryAuto;
                 }
+                    
+                catObj.bannerImageUrl = node.bannerImageUrl || catObj.bannerImageUrl;
+                catObj.profileImageUrl = node.profileImageUrl || catObj.profileImageUrl;
 
                 categorizedUserHashMap.set(catObj.nodeId, catObj);
             }
@@ -954,6 +962,8 @@ const nodeSetPropsResultHandler = async function (message) {
             categorizedUserHashMap.set(messageObj.node.nodeId, {
               nodeId: messageObj.node.nodeId,
               screenName: messageObj.node.screenName,
+              bannerImageUrl: messageObj.node.bannerImageUrl,
+              profileImageUrl: messageObj.node.profileImageUrl,
               manual: messageObj.node.category,
               auto: messageObj.node.categoryAuto,
               network: messageObj.node.categorizeNetwork,
@@ -3900,6 +3910,8 @@ async function pubSubNodeSetProps(params) {
         categorizedUserHashMap.set(node.nodeId, {
           nodeId: node.nodeId,
           screenName: node.screenName,
+          bannerImageUrl: node.bannerImageUrl,
+          profileImageUrl: node.profileImageUrl,
           manual: node.category,
           auto: node.categoryAuto,
           network: node.categorizeNetwork,
@@ -4351,6 +4363,8 @@ async function pubSubSearchNode(params) {
         categorizedUserHashMap.set(node.nodeId, {
           nodeId: node.nodeId,
           screenName: node.screenName,
+          bannerImageUrl: node.bannerImageUrl,
+          profileImageUrl: node.profileImageUrl,
           manual: node.category,
           auto: node.categoryAuto,
           network: node.categorizeNetwork,
@@ -4380,6 +4394,8 @@ async function pubSubSearchNode(params) {
         categorizedUserHashMap.set(node.nodeId, {
           nodeId: node.nodeId,
           screenName: node.screenName,
+          bannerImageUrl: node.bannerImageUrl,
+          profileImageUrl: node.profileImageUrl,
           manual: node.category,
           auto: node.categoryAuto,
           network: node.categorizeNetwork,
@@ -7041,6 +7057,8 @@ function cursorDataHandler(user) {
         categorizedUserHashMap.set(user.nodeId, {
           nodeId: user.nodeId,
           screenName: user.screenName,
+          bannerImageUrl: user.bannerImageUrl,
+          profileImageUrl: user.profileImageUrl,
           manual: user.category,
           auto: user.categoryAuto,
           network: user.categorizeNetwork,

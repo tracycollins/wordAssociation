@@ -1,4 +1,4 @@
-const ControlPanel = function(props){
+const ControlOverlay = function(props){
 
   const Box = MaterialUI.Box;
   const Icon = MaterialUI.Icon;

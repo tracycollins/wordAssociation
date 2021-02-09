@@ -16,7 +16,7 @@ const useStyles = MaterialUI.makeStyles((theme) => ({
   }
 }));
 
-const InfoPanel = function(props){
+const InfoOverlay = function(props){
 
   console.log(props)
 

@@ -7908,6 +7908,7 @@ function initAppRouting(callback) {
       req.path == "/profiles.js" ||
       req.path == "/session.js" ||
       req.path.includes("/customizer/build") ||
+      req.path.includes("/overlay/build") ||
       req.path == "/js/libs/controlPanel.js"
     ) {
       const fullPath = path.join(__dirname, req.path);
@@ -8000,8 +8001,8 @@ function initAppRouting(callback) {
   app.use(express.static(path.join(__dirname, "/")));
   app.use(express.static(path.join(__dirname, "/js")));
   app.use(express.static(path.join(__dirname, "/css")));
-  // app.use(express.static(path.join(__dirname, "/node_modules")));
   app.use(express.static(path.join(__dirname, "/public/assets/images")));
+
   app.use(express.static(path.join(__dirname, "/categorizer")));
   app.use(express.static(path.join(__dirname, "/categorizer/static/js")));
   app.use(express.static(path.join(__dirname, "/categorizer/static/css")));
@@ -8013,6 +8014,12 @@ function initAppRouting(callback) {
   app.use(express.static(path.join(__dirname, "/customizer/static/css")));
   app.use(express.static(path.join(__dirname, "/customizer/static")));
   app.use(express.static(path.join(__dirname, "/customizer/build")));
+
+  app.use(express.static(path.join(__dirname, "/overlay")));
+  app.use(express.static(path.join(__dirname, "/overlay/static/js")));
+  app.use(express.static(path.join(__dirname, "/overlay/static/css")));
+  app.use(express.static(path.join(__dirname, "/overlay/static")));
+  app.use(express.static(path.join(__dirname, "/overlay/build")));
 
   app.get("/onload.js", function (req, res) {
     console.log(chalkInfo(MODULE_ID + " | R< ONLOAD | /onload"));

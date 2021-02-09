@@ -11,13 +11,14 @@ const useStyles = MaterialUI.makeStyles(theme => ({
     padding: theme.spacing(1)
   },
   legend: {
+    width: "50%",
     margin: theme.spacing(1),
     padding: theme.spacing(1)
   }
 }));
 
 const InfoOverlay = function (props) {
-  console.log(props);
+  // console.log(props)
   const Container = MaterialUI.Container;
   const Card = MaterialUI.Card;
   const CardContent = MaterialUI.CardContent;
@@ -32,7 +33,7 @@ const InfoOverlay = function (props) {
     className: classes.root
   }, /*#__PURE__*/React.createElement(Paper, {
     varient: "outlined",
-    "aria-label": "outlined primary",
+    "aria-label": "outlined",
     component: "div"
   }, /*#__PURE__*/React.createElement(Icon, {
     className: classes.paragraph,
@@ -40,8 +41,8 @@ const InfoOverlay = function (props) {
   }, "cancel"), /*#__PURE__*/React.createElement(Card, {
     className: classes.legend,
     variant: "outlined"
-  }, /*#__PURE__*/React.createElement(CardContent, null, /*#__PURE__*/React.createElement(Typography, null, "LEGEND")), /*#__PURE__*/React.createElement(CardMedia, {
-    className: classes.profileImage,
+  }, /*#__PURE__*/React.createElement(CardMedia, {
+    className: classes.legend,
     src: "info_legend.png",
     component: "img",
     onError: e => {}

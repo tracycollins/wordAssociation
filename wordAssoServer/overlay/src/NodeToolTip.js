@@ -114,6 +114,7 @@ const NodeToolTip = function(props){
       case "tweet":
         return (
           <CardContent >
+            <Typography>{`@${node.user.screenName}`}</Typography>
             <Typography>{`${node.mentions} mentions`}</Typography>
             <Typography>{`CREATED: ${node.createdAt}`}</Typography>
             <Typography>{`${node.ageDays.toFixed(1)} DAYS OLD`}</Typography>

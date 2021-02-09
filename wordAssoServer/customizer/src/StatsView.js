@@ -7,8 +7,8 @@ import moment from 'moment';
 import { grey } from '@material-ui/core/colors';
 
 import Box from '@material-ui/core/Box';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
+// import Card from '@material-ui/core/Card';
+// import CardContent from '@material-ui/core/CardContent';
 // import CardMedia from '@material-ui/core/CardMedia';
 
 import Grid from '@material-ui/core/Grid';
@@ -117,13 +117,14 @@ const useStyles = makeStyles((theme) => ({
 
 
 function LinearProgressWithLabel(props) {
+  const classes = useStyles();
   return (
-    <Box display="flex" alignItems="center">
+    <Box display="flex" alignItems="center" className={classes.progress}>
       <Box width="90%" mr={1}>
         <LinearProgress variant="determinate" {...props} />
       </Box>
       <Box minWidth={35}>
-        <Typography {...props}>{`${Math.round(props.value)}% MAX`}</Typography>
+        <Typography >{`${Math.round(props.value)}% MAX`}</Typography>
       </Box>
     </Box>
   );

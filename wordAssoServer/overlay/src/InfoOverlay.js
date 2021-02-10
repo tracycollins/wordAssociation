@@ -40,14 +40,14 @@ const InfoOverlay = function(props){
         aria-label="outlined"
         component="div"
       >
-        <Icon
-          className={classes.paragraph}
-          onClick={props.closeButtonHandler}
-        >
-          cancel
-        </Icon>
 
         <Card className={classes.legend} variant="outlined">
+          <Icon
+            className={classes.paragraph}
+            onClick={props.closeButtonHandler}
+          >
+            cancel
+          </Icon>
           <CardMedia
             className={classes.legend}
             src={"info_legend.png"}

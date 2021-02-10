@@ -77,12 +77,10 @@ const useStyles = makeStyles((theme) => ({
     shadows: 0,
   },
   title: {
-    // flexGrow: 1,
     color: 'white',
     marginRight: theme.spacing(2),
   },
   progress: {
-    // flexGrow: 1,
     color: 'white',
     marginRight: theme.spacing(2),
   },
@@ -93,7 +91,6 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(1),
   },
   twitterAuth: {
-    // backgroundColor: 'black',
     fontSize: "1.2rem",
     fontWeight: 600,
     color: "green",
@@ -101,7 +98,6 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
   },  
   buttonLogin: {
-    // backgroundColor: "green",
     marginRight: theme.spacing(2),
   },
   statusBar: {
@@ -112,7 +108,6 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
   },
   search: {
-    // flexGrow: 1,
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
     backgroundColor: "white",
@@ -179,14 +174,14 @@ const App = () => {
         all: 0,
         mismatched: 0
       },
-      manual: {
+      category: {
         left: 0,
         neutral: 0,
         right: 0,
         positive: 0,
         negative: 0,
       },
-      auto: {
+      categoryAuto: {
         left: 0,
         neutral: 0,
         right: 0,
@@ -204,14 +199,14 @@ const App = () => {
         all: 0,
         mismatched: 0
       },
-      manual: {
+      category: {
         left: 0,
         neutral: 0,
         right: 0,
         positive: 0,
         negative: 0,
       },
-      auto: {
+      categoryAuto: {
         left: 0,
         neutral: 0,
         right: 0,

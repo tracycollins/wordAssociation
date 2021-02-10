@@ -1,5 +1,5 @@
 /* global config,d3,HashMap,store,moment,io,ViewForceLinks,React,ReactDOM,InfoOverlay,ControlOverlay */
-const testMode = true;
+const testMode = false;
 
 const testNode = {
   "ageDays": 4667.932989085648,
@@ -105,9 +105,6 @@ let currentConfig = {};
 currentConfig = Object.assign({}, config);
 
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
-
-// const DEFAULT_WINDOW_HEIGHT = 1080;
-// const DEFAULT_WINDOW_WIDTH = 1920;
 
 const DEFAULT_RX_NODE_QUEUE_MAX = 200;
 const DEFAULT_RX_NODE_QUEUE_INTERVAL = 5;
@@ -478,7 +475,6 @@ const toggleCustomize = () => {
 const toggleInfo = () => {
   console.warn("toggleInfo");
   infoOverlayFlag = !infoOverlayFlag;
-  // infoDivElement.style.display = infoOverlayFlag ? "unset" : "none";
   displayInfo(infoOverlayFlag);
   return;
 }

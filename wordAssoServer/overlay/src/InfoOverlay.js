@@ -11,7 +11,7 @@ const useStyles = MaterialUI.makeStyles((theme) => ({
     padding: theme.spacing(1)
   },
   legend: {
-    width: "50%",
+    // width: "50%",
     margin: theme.spacing(1),
     padding: theme.spacing(1)
   }
@@ -47,17 +47,14 @@ const InfoOverlay = function(props){
           cancel
         </Icon>
 
-          <Card className={classes.legend} variant="outlined">
-            {/* <CardContent >
-                <Typography>LEGEND</Typography>
-            </CardContent> */}
-            <CardMedia
-              className={classes.legend}
-              src={"info_legend.png"}
-              component="img"
-              onError={e => {}}              
-            />
-          </Card>
+        <Card className={classes.legend} variant="outlined">
+          <CardMedia
+            className={classes.legend}
+            src={"info_legend.png"}
+            component="img"
+            onError={e => {}}              
+          />
+        </Card>
 
       </Paper>
     </Container>

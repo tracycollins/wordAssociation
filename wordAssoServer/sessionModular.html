@@ -47,20 +47,18 @@
       padding: 0;
     }
 
-    #infoDiv,
-      {
+    #infoDiv {
       width: 80%;
       margin: 0;
       padding: 0;
       background-color: transparent;
       color: #cccccc;
-      position: fixed;
-      top: 50%;
+      position: absolute;
+      top: 5%;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translate(-50%, -5%);
       z-index: 10;
     }
-
 
     #controlDiv {
       margin: 0;
@@ -121,7 +119,6 @@
 </head>
 
 <body style="overflow: hidden">
-
   <div class="tooltip" id="nodeToolTipDiv"></div>
   <div class="infoDiv" id="infoDiv"></div>
   <div class="controlDiv" id="controlDiv"></div>

@@ -11,7 +11,7 @@ const useStyles = MaterialUI.makeStyles(theme => ({
     padding: theme.spacing(1)
   },
   legend: {
-    width: "50%",
+    // width: "50%",
     margin: theme.spacing(1),
     padding: theme.spacing(1)
   }

@@ -170,14 +170,10 @@ const useStyles = makeStyles((theme) => ({
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
     backgroundColor: "white",
-    '&:hover': {
-      backgroundColor: "#ddeeee",
-    },
+    '&:hover': { backgroundColor: "#ddeeee" },
     marginRight: theme.spacing(1),
     width: '100%',
-    [theme.breakpoints.up('sm')]: {
-      width: 'auto',
-    },
+    [theme.breakpoints.up('sm')]: { width: 'auto'},
   },
   searchIcon: {
     padding: theme.spacing(0, 2),
@@ -421,33 +417,33 @@ const User = (props) => {
                   <TableBody>
                     <StyledTableRow > 
                       <StyledTableCell>LEFT</StyledTableCell>
-                      <StyledTableCell align="right">{props.stats.user.manual.left}</StyledTableCell>
-                      <StyledTableCell align="right">{props.stats.user.auto.left}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.category.left}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.categoryAuto.left}</StyledTableCell>
                     </StyledTableRow>
                     <StyledTableRow>
                       <StyledTableCell >RIGHT</StyledTableCell>
-                      <StyledTableCell align="right">{props.stats.user.manual.right}</StyledTableCell>
-                      <StyledTableCell align="right">{props.stats.user.auto.right}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.category.right}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.categoryAuto.right}</StyledTableCell>
                     </StyledTableRow>
                     <StyledTableRow>
                       <StyledTableCell >NEUTRAL</StyledTableCell>
-                      <StyledTableCell align="right">{props.stats.user.manual.neutral}</StyledTableCell>
-                      <StyledTableCell align="right">{props.stats.user.auto.neutral}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.category.neutral}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.categoryAuto.neutral}</StyledTableCell>
                     </StyledTableRow>
                     <StyledTableRow>
                       <StyledTableCell >POSITIVE</StyledTableCell>
-                      <StyledTableCell align="right">{props.stats.user.manual.positive}</StyledTableCell>
-                      <StyledTableCell align="right">{props.stats.user.auto.positive}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.category.positive}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.categoryAuto.positive}</StyledTableCell>
                     </StyledTableRow>
                     <StyledTableRow>
                       <StyledTableCell >NEGATIVE</StyledTableCell>
-                      <StyledTableCell align="right">{props.stats.user.manual.negative}</StyledTableCell>
-                      <StyledTableCell align="right">{props.stats.user.auto.negative}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.category.negative}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.categoryAuto.negative}</StyledTableCell>
                     </StyledTableRow>
                     <StyledTableRow>
                       <StyledTableCell >NONE</StyledTableCell>
-                      <StyledTableCell align="right">{props.stats.user.manual.none}</StyledTableCell>
-                      <StyledTableCell align="right">{props.stats.user.auto.none}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.category.none}</StyledTableCell>
+                      <StyledTableCell align="right">{props.stats.user.categoryAuto.none}</StyledTableCell>
                     </StyledTableRow>
                   </TableBody>
                 </Table>
@@ -464,8 +460,8 @@ const User = (props) => {
               <FormGroup  align="center">
                 <FormControl align="center">
                   <Select
-                    labelId="category-manual-label"
-                    id="category-manual"
+                    labelId="category-label"
+                    id="category"
                     name="category"
                     className={clsx(classes.selectCategory, getCategoryClass(props.user.category))} 
                     value={props.user.category || "none"}

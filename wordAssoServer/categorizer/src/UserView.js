@@ -274,8 +274,6 @@ const defaultProfileImage = "logo192.png"
 const defaultBannerImage = "logo192.png"
 
 const User = (props) => {
-
-  // const [filterLowFollowersCount, setFilterLowFollowersCount] = useState(true)
   
   const classes = useStyles();
 

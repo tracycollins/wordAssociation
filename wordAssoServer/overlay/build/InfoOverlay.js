@@ -35,13 +35,13 @@ const InfoOverlay = function (props) {
     varient: "outlined",
     "aria-label": "outlined",
     component: "div"
+  }, /*#__PURE__*/React.createElement(Card, {
+    className: classes.legend,
+    variant: "outlined"
   }, /*#__PURE__*/React.createElement(Icon, {
     className: classes.paragraph,
     onClick: props.closeButtonHandler
-  }, "cancel"), /*#__PURE__*/React.createElement(Card, {
-    className: classes.legend,
-    variant: "outlined"
-  }, /*#__PURE__*/React.createElement(CardMedia, {
+  }, "cancel"), /*#__PURE__*/React.createElement(CardMedia, {
     className: classes.legend,
     src: "info_legend.png",
     component: "img",

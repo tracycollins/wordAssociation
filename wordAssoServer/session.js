@@ -1,5 +1,5 @@
 /* global config,d3,HashMap,store,moment,io,ViewForceLinks,React,ReactDOM,InfoOverlay,ControlOverlay */
-const testMode = false;
+const testMode = true;
 
 const testNode = {
   "ageDays": 4667.932989085648,
@@ -478,18 +478,15 @@ const toggleCustomize = () => {
 const toggleInfo = () => {
   console.warn("toggleInfo");
   infoOverlayFlag = !infoOverlayFlag;
-  infoDivElement.style.display = infoOverlayFlag ? "flex" : "none";
+  // infoDivElement.style.display = infoOverlayFlag ? "unset" : "none";
   displayInfo(infoOverlayFlag);
   return;
 }
 
 const displayInfo = (isVisible) => {
   if (isVisible){
-    infoDivElement.style.display = "flex";
-    ReactDOM.render(
-      reactElement(InfoOverlay, {closeButtonHandler: toggleInfo}), 
-      infoDivElement
-    );
+    infoDivElement.style.display = "unset";
+    ReactDOM.render(reactElement(InfoOverlay, {closeButtonHandler: toggleInfo}), infoDivElement);
   }
   else{
     infoDivElement.style.display = "none";

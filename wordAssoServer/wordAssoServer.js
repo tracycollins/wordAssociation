@@ -7752,6 +7752,7 @@ function logHeartbeat() {
 }
 
 function initAppRouting(callback) {
+
   console.log(chalkInfo(MODULE_ID + " | " + getTimeStamp() + " | INIT APP ROUTING"));
 
   let domainName;
@@ -7759,7 +7760,9 @@ function initAppRouting(callback) {
   app.use(methodOverride());
 
   app.use(async function requestLog(req, res, next) {
+
     if (req.path == "/json") {
+
       if (!ignoreIpSet.has(req.ip)) {
         console.log(chalkInfo(MODULE_ID +
           " | R< REJECT: /json" +
@@ -7772,7 +7775,10 @@ function initAppRouting(callback) {
         ignoreIpSet.add(req.ip);
       }
       res.sendStatus(404);
-    } else if (req.path == "callbacks/addsub") {
+    } 
+    
+    else if (req.path == "callbacks/addsub") {
+
       console.log(chalkAlert(MODULE_ID + " | R< TWITTER WEB HOOK | callbacks/addsub"));
 
       console.log(chalkAlert(MODULE_ID +
@@ -7782,6 +7788,7 @@ function initAppRouting(callback) {
         "\nreq.body\n" + jsonPrint(req.body)
       ));
     } 
+
     else if (req.path == "callbacks/removesub") {
       console.log(chalkAlert(MODULE_ID + " | R< TWITTER WEB HOOK | callbacks/removesub"));
 
@@ -7792,6 +7799,7 @@ function initAppRouting(callback) {
         "\nreq.body\n" + jsonPrint(req.body)
       ));
     } 
+
     else if (req.path == TWITTER_WEBHOOK_URL) {
       console.log(chalkAlert(MODULE_ID +
         " | R< TWITTER WEB HOOK | " + TWITTER_WEBHOOK_URL +
@@ -7871,7 +7879,10 @@ function initAppRouting(callback) {
 
         res.sendStatus(200);
       }
-    } else if (req.path == "/googleccd19766bea2dfd2.html") {
+    } 
+    
+    else if (req.path == "/googleccd19766bea2dfd2.html") {
+
       console.log(chalk.green(MODULE_ID + " | R< googleccd19766bea2dfd2.html"));
 
       const googleVerification = path.join(
@@ -7899,10 +7910,15 @@ function initAppRouting(callback) {
           console.log(chalkInfo(MODULE_ID + " | SENT:", googleVerification));
         }
       });
-    } else if (req.path == "/") {
+
+    } 
+    else if (req.path == "/") {
+
       console.log(chalkLog(MODULE_ID + " | R< REDIRECT /session"));
       res.redirect("/session");
-    } else if (
+
+    } 
+    else if (
       req.path == "/profiles.js" ||
       req.path == "/session.js" ||
       req.path.includes("/customizer/build") ||
@@ -8268,6 +8284,7 @@ function initAppRouting(callback) {
   const sessionHtml = path.join(__dirname, "/sessionModular.html");
 
   app.get("/session", async function requestSession(req, res, next) {
+    
     debug(chalkInfo("get next\n" + next));
 
     try {

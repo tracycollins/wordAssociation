@@ -13,7 +13,7 @@
   "author": "tracy collins",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/pubsub": "^2.8.0",
+    "@google-cloud/pubsub": "^2.9.0",
     "@mdi/font": "^5.9.55",
     "@slack/web-api": "^6.0.0",
     "@threeceelabs/mongoose-twitter": "^1.0.375",
@@ -38,7 +38,7 @@
     "hashmap": "^2.4.0",
     "immer": "^8.0.1",
     "is-plain-object": "^5.0.0",
-    "konva": "^7.2.2",
+    "konva": "^7.2.3",
     "languagedetect": "^2.0.0",
     "measured-core": "^2.0.0",
     "method-override": "^3.0.0",
@@ -68,8 +68,8 @@
   },
   "homepage": "https://github.com/tracycollins/wordAssociation#readme",
   "devDependencies": {
-    "@babel/cli": "^7.12.13",
-    "@babel/core": "^7.12.13",
+    "@babel/cli": "^7.12.16",
+    "@babel/core": "^7.12.16",
     "@babel/preset-react": "^7.12.13",
     "babelify": "^10.0.0"
   }

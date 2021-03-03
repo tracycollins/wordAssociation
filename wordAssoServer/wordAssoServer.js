@@ -7,6 +7,13 @@ if (envConfig.error) {
 
 console.log("WAS | +++ ENV CONFIG LOADED");
 
+const DEFAULT_MONGODB_SESSION_SECRET = process.env.MONGODB_SESSION_SECRET;
+const DEFAULT_MONGODB_USERNAME = process.env.MONGODB_USERNAME;
+const DEFAULT_MONGODB_PASSWORD = process.env.MONGODB_PASSWORD;
+const DEFAULT_MONGODB_IP_ADDRESS =
+  process.env.MONGODB_IP_ADDRESS || "localhost";
+const DEFAULT_MONGODB_URL = `mongodb://${DEFAULT_MONGODB_USERNAME}:${DEFAULT_MONGODB_PASSWORD}@${DEFAULT_MONGODB_IP_ADDRESS}:27017/wordAsso?replicaSet=rs0`;
+
 const DEFAULT_BEST_NETWORK_FILE = "bestRuntimeNetwork.json";
 const bestRuntimeNetworkFileName = DEFAULT_BEST_NETWORK_FILE;
 
@@ -2385,10 +2392,11 @@ function initPassport() {
     app.use(
       expressSession({
         sessionId: sessionId,
-        secret: "three cee labs 47",
+        secret: DEFAULT_MONGODB_SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
-        store: new MongoStore({ mongooseConnection: global.dbConnection }),
+        // store: new MongoStore({ mongooseConnection: global.dbConnection }),
+        store: MongoStore.create({ mongoUrl: DEFAULT_MONGODB_URL }),
       })
     );
 

@@ -19,7 +19,6 @@ const bestRuntimeNetworkFileName = DEFAULT_BEST_NETWORK_FILE;
 
 const threeceeAuthorizedUsers = ["threecee", "altthreecee00", "ninjathreecee"];
 const threeceeUser = "altthreecee00"; // for TSS
-// const DEFAULT_THREECEE_USERS = ["altthreecee00"];
 const DEFAULT_THREECEE_INFO_USERS = [
   "threecee",
   "threeceeinfo",
@@ -201,7 +200,7 @@ let twpChild;
 let filterDuplicateTweets = true;
 let filterRetweets = false;
 
-const DEFAULT_TWITTER_THREECEE_USER = "altthreecee00";
+const DEFAULT_TWITTER_THREECEE_USER = "threecee";
 
 const DEFAULT_TWEET_VERSION_2 = false;
 
@@ -1340,9 +1339,11 @@ async function pubSubPublishMessage(params) {
 //=========================================================================
 const { WebClient } = require("@slack/web-api");
 
+console.log("process.env.SLACK_BOT_TOKEN", process.env.SLACK_BOT_TOKEN);
+
 const slackBotToken = process.env.SLACK_BOT_TOKEN;
 
-const slackWebClient = new WebClient(slackBotToken);
+let slackWebClient;
 
 const slackChannel = MODULE_ID_PREFIX.toLowerCase();
 const slackChannelUserAuth = MODULE_ID_PREFIX.toLowerCase() + "-user-auth";
@@ -1371,6 +1372,8 @@ async function slackSendWebMessage(msgObj) {
 async function initSlackWebClient() {
   try {
     console.log(chalkLog(MODULE_ID + " | INIT SLACK WEB CLIENT"));
+
+    slackWebClient = new WebClient(slackBotToken);
 
     const authTestResponse = await slackWebClient.auth.test();
 
@@ -1409,7 +1412,11 @@ async function initSlackWebClient() {
 
     return;
   } catch (err) {
-    console.log(chalkError("TNN | *** INIT SLACK WEB CLIENT ERROR: " + err));
+    console.log(
+      chalkError(
+        `${MODULE_ID_PREFIX} | *** INIT SLACK WEB CLIENT ERROR: ${err}`
+      )
+    );
     throw err;
   }
 }
@@ -6733,7 +6740,7 @@ async function updateNodeMeter(node) {
 
     return node;
   } else {
-    if ((/TSS_/).test(meterNodeId) || nodeObj.isServer) {
+    if (/TSS_/.test(meterNodeId) || nodeObj.isServer) {
       return node;
     } else if (empty(nodeMeter[meterNodeId])) {
       nodeMeter[meterNodeId] = new Measured.Meter({ rateUnit: 60000 });
@@ -12717,6 +12724,7 @@ setTimeout(async function () {
     await initKeySortInterval(configuration.keySortInterval);
     await tcUtils.initSaveFileQueue({ interval: 100 });
     await initThreeceeTwitterUser("altthreecee00");
+    // await initThreeceeTwitterUser("threecee");
     pubSubClient = await initPubSub();
 
     await initIgnoreWordsHashMap();

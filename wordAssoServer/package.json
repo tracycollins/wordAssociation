@@ -39,6 +39,7 @@
     "hashmap": "^2.4.0",
     "hashtag-regex": "^2.1.0",
     "ioredis": "^4.23.0",
+    "is-plain-object": "^2.0.4",
     "is-url-superb": "^5.0.0",
     "keyword-extractor": "^0.0.19",
     "languagedetect": "^2.0.0",

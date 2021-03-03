@@ -3,19 +3,19 @@ process.title = "wa_node_child_dbu";
 const MODULE_ID_PREFIX = "DBU";
 
 const inputTypes = [
-  "emoji", 
+  "emoji",
   "friends",
-  "hashtags", 
-  "images", 
-  "locations", 
-  "media", 
-  "mentions", 
-  "ngrams", 
-  "places", 
-  "sentiment", 
-  "urls", 
-  "userMentions", 
-  "words"
+  "hashtags",
+  "images",
+  "locations",
+  "media",
+  "mentions",
+  "ngrams",
+  "places",
+  "sentiment",
+  "urls",
+  "userMentions",
+  "words",
 ];
 
 const DEFAULT_VERBOSE = false;
@@ -24,9 +24,9 @@ const DEFAULT_USER_UPDATE_QUEUE_INTERVAL = 100;
 const DEFAULT_MAX_UPDATE_QUEUE = 500;
 
 const ONE_SECOND = 1000;
-const ONE_MINUTE = ONE_SECOND*60;
-const ONE_HOUR = ONE_MINUTE*60;
-const ONE_DAY = ONE_HOUR*24;
+const ONE_MINUTE = ONE_SECOND * 60;
+const ONE_HOUR = ONE_MINUTE * 60;
+const ONE_DAY = ONE_HOUR * 24;
 
 const compactDateTimeFormat = "YYYYMMDD_HHmmss";
 
@@ -38,7 +38,7 @@ const debugQ = require("debug")("queue");
 const _ = require("lodash");
 const merge = require("deepmerge");
 
-const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
+const ThreeceeUtilities = require("@threeceelabs/threeceeutilities");
 const tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
 
 // const jsonPrint = tcUtils.jsonPrint;
@@ -47,11 +47,11 @@ const formatCategory = tcUtils.formatCategory;
 const getTimeStamp = tcUtils.getTimeStamp;
 const msToTime = tcUtils.msToTime;
 
-tcUtils.on("error", function(err){
+tcUtils.on("error", function (err) {
   console.log(chalkError(MODULE_ID_PREFIX + " | *** TCU ERROR | " + err));
 });
 
-tcUtils.on("ready", function(appname){
+tcUtils.on("ready", function (appname) {
   console.log(chalk.green(MODULE_ID_PREFIX + " | TCU READY | " + appname));
 });
 
@@ -93,20 +93,26 @@ statsObj.users = {};
 statsObj.errors = {};
 statsObj.errors.users = {};
 
-process.on("unhandledRejection", function(err, promise) {
-  console.trace("Unhandled rejection (promise: ", promise, ", reason: ", err, ").");
+process.on("unhandledRejection", function (err, promise) {
+  console.trace(
+    "Unhandled rejection (promise: ",
+    promise,
+    ", reason: ",
+    err,
+    ")."
+  );
   process.exit();
 });
 
-process.on("SIGHUP", function() {
+process.on("SIGHUP", function () {
   quit("SIGHUP");
 });
 
-process.on("SIGINT", function() {
+process.on("SIGINT", function () {
   quit("SIGINT");
 });
 
-process.on("disconnect", function() {
+process.on("disconnect", function () {
   quit("DISCONNECT");
 });
 
@@ -118,49 +124,60 @@ const mgUtils = new MongooseUtilities(mguAppName);
 
 mgUtils.on("ready", async () => {
   console.log(`${MODULE_ID_PREFIX} | +++ MONGOOSE UTILS READY: ${mguAppName}`);
-})
+});
 
 const configuration = {}; // merge of defaultConfiguration & hostConfiguration
-configuration.processName = process.env.DBU_PROCESS_NAME || "node_databaseUpdate";
+configuration.processName =
+  process.env.DBU_PROCESS_NAME || "node_databaseUpdate";
 configuration.verbose = DEFAULT_VERBOSE;
 configuration.testMode = DEFAULT_TEST_MODE; // per tweet test mode
 configuration.maxUserUpdateQueue = DEFAULT_MAX_UPDATE_QUEUE;
 configuration.inputTypes = inputTypes;
 
 console.log(
-  "\n\nDBU | ====================================================================================================\n" 
-  + "\nDBU | " + process.argv[1] 
-  + "\nDBU | PROCESS ID:    " + process.pid 
-  + "\nDBU | PROCESS TITLE: " + process.title 
-  + "\nDBU | " + "====================================================================================================\n" 
+  "\n\nDBU | ====================================================================================================\n" +
+    "\nDBU | " +
+    process.argv[1] +
+    "\nDBU | PROCESS ID:    " +
+    process.pid +
+    "\nDBU | PROCESS TITLE: " +
+    process.title +
+    "\nDBU | " +
+    "====================================================================================================\n"
 );
 
-function showStats(){
-
+function showStats() {
   statsObj.elapsed = moment().valueOf() - statsObj.startTime;
 
-  console.log(chalkLog("DBU | ============================================================"
-    + "\nDBU | S"
-    + " | STATUS: " + statsObj.status
-    + " | CPUs: " + statsObj.cpus
-    + " | CH: " + statsObj.numChildren
-    + " | S " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
-    + " | N " + moment().format(compactDateTimeFormat)
-    + " | E " + msToTime(statsObj.elapsed)
-    + "\nDBU | ============================================================"
-  ));
+  console.log(
+    chalkLog(
+      "DBU | ============================================================" +
+        "\nDBU | S" +
+        " | STATUS: " +
+        statsObj.status +
+        " | CPUs: " +
+        statsObj.cpus +
+        " | CH: " +
+        statsObj.numChildren +
+        " | S " +
+        moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat) +
+        " | N " +
+        moment().format(compactDateTimeFormat) +
+        " | E " +
+        msToTime(statsObj.elapsed) +
+        "\nDBU | ============================================================"
+    )
+  );
 }
 
-function quit(options){
-
-  console.log(chalkAlert( "DBU | ... QUITTING ..." ));
+function quit(options) {
+  console.log(chalkAlert("DBU | ... QUITTING ..."));
 
   clearInterval(tweetUpdateQueueInterval);
 
   statsObj.elapsed = moment().valueOf() - statsObj.startTime;
 
   if (options !== undefined) {
-
     if (options === "help") {
       process.exit();
     }
@@ -168,116 +185,174 @@ function quit(options){
 
   showStats();
 
-  setTimeout(function(){
+  setTimeout(function () {
     process.exit();
   }, 1000);
 }
 
-process.on( "SIGINT", function() {
+process.on("SIGINT", function () {
   quit("SIGINT");
 });
 
-process.on("exit", function() {
+process.on("exit", function () {
   quit("EXIT");
 });
 
-
-function initialize(){
-
-  return new Promise(function(resolve){
-
+function initialize() {
+  return new Promise(function (resolve) {
     statsObj.status = "INITIALIZE";
 
-    if (debug.enabled || debugCache.enabled || debugQ.enabled){
-      console.log("\nDBU | %%%%%%%%%%%%%%\nDBU |  DEBUG ENABLED \nDBU | %%%%%%%%%%%%%%\n");
+    if (debug.enabled || debugCache.enabled || debugQ.enabled) {
+      console.log(
+        "\nDBU | %%%%%%%%%%%%%%\nDBU |  DEBUG ENABLED \nDBU | %%%%%%%%%%%%%%\n"
+      );
     }
 
     resolve();
-
   });
 }
 
 function printUserObj(title, user) {
-  console.log(chalkUser(title
-    + " | " + user.userId
-    + " | @" + user.screenName
-    + " | " + user.name 
-    + " | FWs " + user.followersCount
-    + " | FDs " + user.friendsCount
-    + " | T " + user.statusesCount
-    + " | M  " + user.mentions
-    + " | LS " + getTimeStamp(user.lastSeen)
-    + " | FW: " + user.following 
-    + " | 3C " + user.threeceeFollowing 
-    + " | LHTID " + user.lastHistogramTweetId 
-    + " | LHQID " + user.lastHistogramQuoteId 
-    + " | CAT M " + user.category + " A " + user.categoryAuto
-  ));
+  console.log(
+    chalkUser(
+      title +
+        " | " +
+        user.userId +
+        " | @" +
+        user.screenName +
+        " | " +
+        user.name +
+        " | FWs " +
+        user.followersCount +
+        " | FDs " +
+        user.friendsCount +
+        " | T " +
+        user.statusesCount +
+        " | M  " +
+        user.mentions +
+        " | LS " +
+        getTimeStamp(user.lastSeen) +
+        " | FW: " +
+        user.following +
+        " | 3C " +
+        user.threeceeFollowing +
+        " | LHTID " +
+        user.lastHistogramTweetId +
+        " | LHQID " +
+        user.lastHistogramQuoteId +
+        " | CAT M " +
+        user.category +
+        " A " +
+        user.categoryAuto
+    )
+  );
 }
 
 function printHashtagObj(title, hashtag) {
-  console.log(chalkLog(title
-    + " | CR: " + getTimeStamp(hashtag.createdAt)
-    + " | LS: " + getTimeStamp(hashtag.lastSeen)
-    + " | CAT: " + formatCategory(hashtag.category)
-    + " | R: " + hashtag.rate.toFixed(2)
-    + " | Ms: " + hashtag.mentions
-    + " | #" + hashtag.nodeId
-  ));
+  console.log(
+    chalkLog(
+      title +
+        " | CR: " +
+        getTimeStamp(hashtag.createdAt) +
+        " | LS: " +
+        getTimeStamp(hashtag.lastSeen) +
+        " | CAT: " +
+        formatCategory(hashtag.category) +
+        " | R: " +
+        hashtag.rate.toFixed(2) +
+        " | Ms: " +
+        hashtag.mentions +
+        " | #" +
+        hashtag.nodeId
+    )
+  );
 }
 
 let tweetUpdateQueueInterval;
 let tweetUpdateQueueReady = false;
 const tweetUpdateQueue = [];
 
-function getNumKeys(obj){
-  if (!obj || obj === undefined || typeof obj !== "object" || obj === null) { return 0; }
+function getNumKeys(obj) {
+  if (!obj || obj === undefined || typeof obj !== "object" || obj === null) {
+    return 0;
+  }
   return Object.keys(obj).length;
 }
 
 // const update = { $inc: {mentions: 1} };
 // const options = { new: true, upsert: true };
 
-async function tweetUpdateDb(params){
-
-  try{
-
+async function tweetUpdateDb(params) {
+  try {
     statsObj.status = "TWEET UPDATE DB";
 
-    const user = await global.wordAssoDb.User.findOne({ nodeId: params.tweetObj.user.nodeId });
+    const user = await global.wordAssoDb.User.findOne({
+      nodeId: params.tweetObj.user.nodeId,
+    });
 
     if (!user) {
       // console.log(chalkLog("DBU | --- USER DB MISS: @" + params.tweetObj.user.screenName));
       return;
     }
 
-    if (user.tweets && user.tweets.tweetIds && user.tweets.tweetIds.includes(params.tweetObj.tweetId)){
-      console.log(chalkAlert("DBU | ??? TWEET ALREADY RCVD"
-        + " | TW: " + params.tweetObj.tweetId
-        + " | TW MAX ID: " + user.tweets.maxId
-        + " | TW SINCE ID: " + user.tweets.maxId
-        + " | @" + user.screenName
-      ));
+    if (
+      user.tweets &&
+      user.tweets.tweetIds &&
+      user.tweets.tweetIds.includes(params.tweetObj.tweetId)
+    ) {
+      console.log(
+        chalkAlert(
+          "DBU | ??? TWEET ALREADY RCVD" +
+            " | TW: " +
+            params.tweetObj.tweetId +
+            " | TW MAX ID: " +
+            user.tweets.maxId +
+            " | TW SINCE ID: " +
+            user.tweets.maxId +
+            " | @" +
+            user.screenName
+        )
+      );
       return;
     }
 
-    const newTweetHistograms = tcUtils.processTweetObj({tweetObj: params.tweetObj});
+    const newTweetHistograms = tcUtils.processTweetObj({
+      tweetObj: params.tweetObj,
+    });
 
     let tweetHistogramMerged = {};
 
-    if (!user.tweetHistograms || user.tweetHistograms === undefined || user.tweetHistograms === null) { 
-      console.log(chalkLog("DBU | USER TWEET HISTOGRAMS UNDEFINED"
-        + " | " + user.nodeId
-        + " | @" + user.screenName
-      ));
+    if (
+      !user.tweetHistograms ||
+      user.tweetHistograms === undefined ||
+      user.tweetHistograms === null
+    ) {
+      console.log(
+        chalkLog(
+          "DBU | USER TWEET HISTOGRAMS UNDEFINED" +
+            " | " +
+            user.nodeId +
+            " | @" +
+            user.screenName
+        )
+      );
       user.tweetHistograms = {};
     }
 
-    if (!user.profileHistograms || user.profileHistograms === undefined || user.profileHistograms === null) { 
-      console.log(chalkLog("DBU | USER PROFILE HISTOGRAMS UNDEFINED"
-        + " | " + user.nodeId
-        + " | @" + user.screenName
-      ));
+    if (
+      !user.profileHistograms ||
+      user.profileHistograms === undefined ||
+      user.profileHistograms === null
+    ) {
+      console.log(
+        chalkLog(
+          "DBU | USER PROFILE HISTOGRAMS UNDEFINED" +
+            " | " +
+            user.nodeId +
+            " | @" +
+            user.screenName
+        )
+      );
       user.profileHistograms = {};
     }
 
@@ -287,31 +362,54 @@ async function tweetUpdateDb(params){
     user.lastHistogramTweetId = user.statusId;
     user.lastHistogramQuoteId = user.quotedStatusId;
 
-    user.tweets.tweetIds = _.union(user.tweets.tweetIds, [params.tweetObj.tweetId]); 
+    user.tweets.tweetIds = _.union(user.tweets.tweetIds, [
+      params.tweetObj.tweetId,
+    ]);
 
-    if (configuration.verbose) { printUserObj("DBU | +++ USR DB HIT", user); }
+    if (configuration.verbose) {
+      printUserObj("DBU | +++ USR DB HIT", user);
+    }
 
-    debug(chalkInfo("DBU | USER MERGED HISTOGRAMS"
-      + " | " + user.nodeId
-      + " | @" + user.screenName
-      + " | LHTID" + user.lastHistogramTweetId
-      + " | LHQID" + user.lastHistogramQuoteId
-      + " | EJs: " + getNumKeys(user.tweetHistograms.emoji)
-      + " | Hs: " + getNumKeys(user.tweetHistograms.hashtags)
-      + " | IMs: " + getNumKeys(user.tweetHistograms.images)
-      + " | LCs: " + getNumKeys(user.tweetHistograms.locations)
-      + " | MEs: " + getNumKeys(user.tweetHistograms.media)
-      + " | Ms: " + getNumKeys(user.tweetHistograms.mentions)
-      + " | NGs: " + getNumKeys(user.tweetHistograms.ngrams)
-      + " | PLs: " + getNumKeys(user.tweetHistograms.places)
-      + " | STs: " + getNumKeys(user.tweetHistograms.sentiment)
-      + " | UMs: " + getNumKeys(user.tweetHistograms.userMentions)
-      + " | ULs: " + getNumKeys(user.tweetHistograms.urls)
-      + " | WDs: " + getNumKeys(user.tweetHistograms.words)
-    ));
+    debug(
+      chalkInfo(
+        "DBU | USER MERGED HISTOGRAMS" +
+          " | " +
+          user.nodeId +
+          " | @" +
+          user.screenName +
+          " | LHTID" +
+          user.lastHistogramTweetId +
+          " | LHQID" +
+          user.lastHistogramQuoteId +
+          " | EJs: " +
+          getNumKeys(user.tweetHistograms.emoji) +
+          " | Hs: " +
+          getNumKeys(user.tweetHistograms.hashtags) +
+          " | IMs: " +
+          getNumKeys(user.tweetHistograms.images) +
+          " | LCs: " +
+          getNumKeys(user.tweetHistograms.locations) +
+          " | MEs: " +
+          getNumKeys(user.tweetHistograms.media) +
+          " | Ms: " +
+          getNumKeys(user.tweetHistograms.mentions) +
+          " | NGs: " +
+          getNumKeys(user.tweetHistograms.ngrams) +
+          " | PLs: " +
+          getNumKeys(user.tweetHistograms.places) +
+          " | STs: " +
+          getNumKeys(user.tweetHistograms.sentiment) +
+          " | UMs: " +
+          getNumKeys(user.tweetHistograms.userMentions) +
+          " | ULs: " +
+          getNumKeys(user.tweetHistograms.urls) +
+          " | WDs: " +
+          getNumKeys(user.tweetHistograms.words)
+      )
+    );
 
-    user.ageDays = (moment().diff(user.createdAt))/ONE_DAY;
-    user.tweetsPerDay = user.statusesCount/user.ageDays;
+    user.ageDays = moment().diff(user.createdAt) / ONE_DAY;
+    user.tweetsPerDay = user.statusesCount / user.ageDays;
 
     user.markModified("tweets");
     user.markModified("tweetHistograms");
@@ -321,149 +419,137 @@ async function tweetUpdateDb(params){
 
     await user.save();
 
-    for(const ht of params.tweetObj.hashtags){
-
+    for (const ht of params.tweetObj.hashtags) {
       const hashtag = await global.wordAssoDb.Hashtag.findOne({ nodeId: ht });
 
-      if (hashtag) { 
+      if (hashtag) {
         hashtag.mentions += 1;
         hashtag.lastSeen = Date.now();
         await hashtag.save();
         // printHashtagObj("DBU | +++ HT DB HIT", hashtag);
-      }
-      else{
+      } else {
         // console.log("DBU | --- HT DB MISS | " + ht);
-        const newHashtag = new global.wordAssoDb.Hashtag({nodeId: ht, mentions: 1});
+        const newHashtag = new global.wordAssoDb.Hashtag({
+          nodeId: ht,
+          mentions: 1,
+        });
         await newHashtag.save();
         // printHashtagObj("DBU | ==> HT DB NEW", newHashtag);
       }
     }
 
     return;
-
-  }
-  catch(err){
+  } catch (err) {
     console.log(chalkError("DBU | *** ERROR tweetUpdateDb | " + err));
     throw err;
   }
 }
 
-function initUserUpdateQueueInterval(interval){
-
-  return new Promise(function(resolve, reject){
-
+function initUserUpdateQueueInterval(interval) {
+  return new Promise(function (resolve, reject) {
     try {
-
       clearInterval(tweetUpdateQueueInterval);
 
       tweetUpdateQueueReady = true;
 
-        tweetUpdateQueueInterval = setInterval(async function(){
-
-        if (tweetUpdateQueueReady && (tweetUpdateQueue.length > 0)) {
-
+      tweetUpdateQueueInterval = setInterval(async function () {
+        if (tweetUpdateQueueReady && tweetUpdateQueue.length > 0) {
           tweetUpdateQueueReady = false;
 
           try {
             const twObj = tweetUpdateQueue.shift();
-            await tweetUpdateDb({tweetObj: twObj});
+            await tweetUpdateDb({ tweetObj: twObj });
             tweetUpdateQueueReady = true;
-          }
-          catch(e){
+          } catch (e) {
             console.log(chalkError("DBU | *** TWEET UPDATE DB ERROR: " + e));
             tweetUpdateQueueReady = true;
           }
-
         }
-
       }, interval);
 
       resolve();
-    }
-    catch(err){
-      console.log(chalkError("DBU | *** INIT TWEET UPDATE QUEUE INTERVAL ERROR: ", err));
+    } catch (err) {
+      console.log(
+        chalkError("DBU | *** INIT TWEET UPDATE QUEUE INTERVAL ERROR: ", err)
+      );
       reject(err);
     }
   });
 }
 
-process.on("message", async function(m) {
-
-  debug(chalkAlert("DBU | RX MESSAGE"
-    + " | OP: " + m.op
-  ));
+process.on("message", async function (m) {
+  debug(chalkAlert("DBU | RX MESSAGE" + " | OP: " + m.op));
 
   switch (m.op) {
-
     case "INIT":
-
       process.title = m.title;
 
       configuration.verbose = m.verbose || DEFAULT_VERBOSE;
       configuration.testMode = m.testMode || DEFAULT_TEST_MODE;
-      configuration.tweetUpdateQueueInterval = m.interval || DEFAULT_USER_UPDATE_QUEUE_INTERVAL;
+      configuration.tweetUpdateQueueInterval =
+        m.interval || DEFAULT_USER_UPDATE_QUEUE_INTERVAL;
 
       await initUserUpdateQueueInterval(configuration.tweetUpdateQueueInterval);
 
-      console.log(chalkInfo("DBU | ==== INIT ====="
-        + " | TITLE: " + process.title
-      ));
+      console.log(
+        chalkInfo("DBU | ==== INIT =====" + " | TITLE: " + process.title)
+      );
 
-    break;
+      break;
 
     case "TWEET":
-
-      if (tweetUpdateQueue.length < configuration.maxUserUpdateQueue){
+      if (tweetUpdateQueue.length < configuration.maxUserUpdateQueue) {
         tweetUpdateQueue.push(m.tweetObj);
       }
 
       if (configuration.verbose) {
-        console.log(chalkLog("DBU | [" + tweetUpdateQueue.length + "]"
-          + " | TW " + m.tweetObj.tweetId 
-          + " | @" + m.tweetObj.user.screenName 
-        ));
+        console.log(
+          chalkLog(
+            "DBU | [" +
+              tweetUpdateQueue.length +
+              "]" +
+              " | TW " +
+              m.tweetObj.tweetId +
+              " | @" +
+              m.tweetObj.user.screenName
+          )
+        );
       }
 
       statsObj.tweetUpdateQueue = tweetUpdateQueue.length;
 
-    break;
+      break;
 
     case "PING":
-      debug(chalkLog("DBU | TWP | PING"
-        + " | PING ID: " + moment(m.pingId).format(compactDateTimeFormat)
-      ));
+      debug(
+        chalkLog(
+          "DBU | TWP | PING" +
+            " | PING ID: " +
+            moment(m.pingId).format(compactDateTimeFormat)
+        )
+      );
 
-      setTimeout(function(){
+      setTimeout(function () {
         process.send({ op: "PONG", pongId: m.pingId });
       }, 1000);
-    break;
+      break;
 
     default:
-      console.log(chalkError("DBU | *** DBU UNKNOWN OP"
-        + " | OP: " + m.op
-      ));
-
+      console.log(chalkError("DBU | *** DBU UNKNOWN OP" + " | OP: " + m.op));
   }
 });
 
-setTimeout(async function(){
-
+setTimeout(async function () {
   try {
-
     await initialize();
 
     console.log(chalkLog("DBU | " + configuration.processName + " STARTED"));
 
-    global.dbConnection = await mgUtils.connectDb()
+    global.dbConnection = await mgUtils.connectDb();
 
-    process.send({ op: "READY"});
-
-  }
-  catch(err){
+    process.send({ op: "READY" });
+  } catch (err) {
     console.log(chalkError("DBU | *** DBU INITIALIZE ERROR: " + err));
     quit(err);
   }
-
-
-}, 5*ONE_SECOND);
-
+}, 5 * ONE_SECOND);

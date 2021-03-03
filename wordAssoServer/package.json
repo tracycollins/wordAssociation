@@ -55,6 +55,7 @@
     "object-path": "^0.11.5",
     "object-sizeof": "^1.6.1",
     "object.defaults": "^1.1.0",
+    "object.omit": "^3.0.0",
     "parse-json": "^5.2.0",
     "passport": "^0.4.1",
     "passport-twitter": "^1.0.4",

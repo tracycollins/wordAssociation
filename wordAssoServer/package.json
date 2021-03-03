@@ -25,7 +25,7 @@
     "babel-preset-react-app": "^10.0.0",
     "chokidar": "^3.5.1",
     "command-line-args": "^5.1.1",
-    "connect-mongo": "^4.2.0",
+    "connect-mongo": "^4.2.2",
     "cors": "^2.8.5",
     "deepool": "^2.2.0",
     "dotenv": "^8.2.0",

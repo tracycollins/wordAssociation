@@ -50,6 +50,7 @@
     "natural": "^4.0.0",
     "node-cache": "^5.1.2",
     "node-emoji": "^1.10.0",
+    "oauth": "^0.9.15",
     "object-path": "^0.11.5",
     "object-sizeof": "^1.6.1",
     "parse-json": "^5.2.0",

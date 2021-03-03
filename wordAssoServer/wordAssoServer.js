@@ -112,7 +112,7 @@ if (hostname == "google") {
 
 global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
-const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
+const ThreeceeUtilities = require("@threeceelabs/threeceeutilities");
 const tcUtils = new ThreeceeUtilities(MODULE_ID + "_TCU");
 
 tcUtils.on("error", function (err) {

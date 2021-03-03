@@ -1,6 +1,6 @@
 {
   "name": "@threeceelabs/wordassoserver",
-  "version": "2.1.34",
+  "version": "2.2.0",
   "description": "word",
   "main": "wordAssoServer.js",
   "directories": {

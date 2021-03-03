@@ -26,7 +26,7 @@ const DEFAULT_THREECEE_INFO_USERS = [
   "ninjathreecee",
 ];
 
-// const MODULE_NAME = "wordAssoServer";
+const MODULE_NAME = "was";
 const MODULE_ID_PREFIX = "WAS";
 
 const DEFAULT_CURSOR_BATCH_SIZE = 32;
@@ -6733,7 +6733,7 @@ async function updateNodeMeter(node) {
 
     return node;
   } else {
-    if (/TSS_/.test(meterNodeId) || nodeObj.isServer) {
+    if ((/TSS_/).test(meterNodeId) || nodeObj.isServer) {
       return node;
     } else if (empty(nodeMeter[meterNodeId])) {
       nodeMeter[meterNodeId] = new Measured.Meter({ rateUnit: 60000 });
@@ -8787,15 +8787,15 @@ function initAppRouting(callback) {
       );
 
       if (req.path.includes("controlPanel")) {
-        // slackText = "*LOADING PAGE | CONTROL PANEL*";
-        // slackText = slackText + "\nIP: " + req.ip;
-        // slackText = slackText + "\nDOMAIN: " + domainName;
-        // slackText = slackText + "\nURL: " + req.url;
-        // slackText = slackText + "\nFILE: " + adminHtml;
-        // await slackSendWebMessage({
-        //   channel: slackChannelAdmin,
-        //   text: slackText,
-        // });
+        slackText = "*LOADING PAGE | CONTROL PANEL*";
+        slackText = slackText + "\nIP: " + req.ip;
+        slackText = slackText + "\nDOMAIN: " + domainName;
+        slackText = slackText + "\nURL: " + req.url;
+        slackText = slackText + "\nFILE: " + adminHtml;
+        await slackSendWebMessage({
+          channel: slackChannelAdmin,
+          text: slackText,
+        });
       }
 
       next();
@@ -9008,13 +9008,13 @@ function initAppRouting(callback) {
       )
     );
 
-    // slackText = "*LOADING PAGE | ADMIN*";
-    // slackText = slackText + "\nIP: " + req.ip;
-    // slackText = slackText + "\nURL: " + req.url;
-    // slackText = slackText + "\nDOMAIN: " + domainName;
-    // slackText = slackText + "\nFILE: " + adminHtml;
+    slackText = "*LOADING PAGE | ADMIN*";
+    slackText = slackText + "\nIP: " + req.ip;
+    slackText = slackText + "\nURL: " + req.url;
+    slackText = slackText + "\nDOMAIN: " + domainName;
+    slackText = slackText + "\nFILE: " + adminHtml;
 
-    // await slackSendWebMessage({ channel: slackChannelAdmin, text: slackText });
+    await slackSendWebMessage({ channel: slackChannelAdmin, text: slackText });
 
     res.sendFile(adminHtml, function responseAdmin(err) {
       if (err) {
@@ -12660,7 +12660,7 @@ setTimeout(async function () {
   try {
     global.dbConnection = await mgUtils.connectDb();
 
-    // await initSlackWebClient();
+    await initSlackWebClient();
 
     const cnf = await initConfig();
 

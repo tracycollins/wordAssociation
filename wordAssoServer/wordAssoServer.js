@@ -9917,7 +9917,7 @@ function initTssPingInterval(interval) {
   }
 }
 
-const initMongoIndexChild = async (params) => {
+const initMongoIndexChild = (params) => {
   statsObj.status = "INIT MGI CHILD";
 
   statsObj.mgiChildReady = false;

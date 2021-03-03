@@ -219,24 +219,6 @@ const threeceeUserObj = {};
 threeceeUserObj.twitterConfig = {};
 threeceeUserObj.twitterConfig.screenName = "altthreecee00";
 
-threeceeUserObj.twitterConfig.CONSUMER_KEY = "ex0jSXayxMOjNm4DZIiic9Nc0";
-threeceeUserObj.twitterConfig.consumer_key = "ex0jSXayxMOjNm4DZIiic9Nc0";
-
-threeceeUserObj.twitterConfig.CONSUMER_SECRET =
-  "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa";
-threeceeUserObj.twitterConfig.consumer_secret =
-  "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa";
-
-threeceeUserObj.twitterConfig.TOKEN =
-  "848591649575927810-2MYMejf0VeXwMkQELca6uDqXUkfxKow";
-threeceeUserObj.twitterConfig.access_token =
-  "848591649575927810-2MYMejf0VeXwMkQELca6uDqXUkfxKow";
-
-threeceeUserObj.twitterConfig.TOKEN_SECRET =
-  "NL5UBvP2QFPH9fYe7MUZleH24RoMoErfbDTrJNglrEidB";
-threeceeUserObj.twitterConfig.access_token_secret =
-  "NL5UBvP2QFPH9fYe7MUZleH24RoMoErfbDTrJNglrEidB";
-
 threeceeUserObj.screenName = "altthreecee00";
 
 threeceeUserObj.stats = {};
@@ -1250,10 +1232,6 @@ async function processTweet(params) {
 
   return tweetObj;
 }
-
-const consumer_key = "ex0jSXayxMOjNm4DZIiic9Nc0"; // Add your API key here
-const consumer_secret = "I3oGg27QcNuoReXi1UwRPqZsaK7W4ZEhTCBlNVL8l9GBIjgnxa"; // Add your API secret key here
-
 async function bearerToken() {
   const requestConfig = {
     url: bearerTokenURL,

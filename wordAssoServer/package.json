@@ -21,6 +21,7 @@
     "command-line-args": "^5.1.1",
     "connect-mongo": "^4.2.2",
     "cors": "^2.8.5",
+    "d3-scale": "^3.2.3",
     "eventemitter2": "^6.4.4",
     "express": "^4.17.1",
     "express-session": "^1.17.1",

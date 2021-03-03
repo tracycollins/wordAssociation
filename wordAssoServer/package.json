@@ -29,6 +29,7 @@
     "connect-mongo": "^4.2.2",
     "cors": "^2.8.5",
     "d3-scale": "^3.2.3",
+    "deepool": "^2.2.0",
     "dot-prop": "^6.0.1",
     "emoji-strip": "^1.0.1",
     "eventemitter2": "^6.4.4",

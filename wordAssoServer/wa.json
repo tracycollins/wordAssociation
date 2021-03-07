@@ -1,0 +1,45 @@
+{
+  "apps": [
+    {
+      "name": "wa",
+      "script": "wordAssoServer.js",
+      "cwd": "/Volumes/RAID1/wordAssociation/wordAssoServer",
+      "autorestart": true,
+      "restart_delay": 300000,
+      "node_args": "--max-old-space-size=10240",
+      "env": {
+        "TWITTER_WEBHOOK_ENV": "dev",
+        "PRIMARY_HOST": "google",
+        "DATABASE_HOST": "mms3",
+        "WA_VERBOSE_MODE": false,
+        "FORCE_COLOR": 1,
+        "NODE_ENV": "production",
+        "IGNORE_CATEGORY_RIGHT": false,
+        "THREECEE_USERS": [
+          "altthreecee00"
+        ],
+        "UPDATE_USER_SETS_INTERVAL": 600000,
+        "CATEGORY_HASHMAPS_UPDATE_INTERVAL": 300000,
+        "CHECK_TWITTER_RATE_LIMIT_INTERVAL": 60000,
+        "HEAPDUMP_ENABLED": false,
+        "HEAPDUMP_MODULO": 10,
+        "HEAPDUMP_THRESHOLD": 800,
+        "SOCKET_IDLE_TIMEOUT": 300,
+        "TWEET_ID_CACHE_DEFAULT_TTL": 10,
+        "NODE_CACHE_DEFAULT_TTL": 30,
+        "NODE_CACHE_CHECK_PERIOD": 1,
+        "MIN_FOLLOWERS_AUTO": 5000,
+        "TOPTERMS_CACHE_DEFAULT_TTL": 300,
+        "TOPTERMS_CACHE_CHECK_PERIOD": 60,
+        "TRENDING_CACHE_DEFAULT_TTL": 300,
+        "TRENDING_CACHE_CHECK_PERIOD": 60,
+        "DROPBOX_WEBHOOK_CHANGE_TIMEOUT": 1000,
+        "DEFAULT_TWITTER_CONFIG_FILE": "altthreecee00.json",
+        "AUTO_FOLLOW": false,
+        "TWITTER_THREECEE_AUTO_FOLLOW_USER": "altthreecee00",
+        "WA_STATS_FILE": "wordAssoServerStats.json",
+        "GOOGLE_METRICS_ENABLED": false
+      }
+    }
+  ]
+}

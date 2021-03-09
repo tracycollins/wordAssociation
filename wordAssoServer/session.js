@@ -824,16 +824,20 @@ function initSocketHandler() {
       case "heartbeat":
         status.serverConnected = true;
         status.socket.connected = true;
-        status.memory.jsHeapSizeLimit =
-          window.performance.memory.jsHeapSizeLimit;
-        status.memory.totalJSHeapSize =
-          window.performance.memory.totalJSHeapSize;
-        status.memory.usedJSHeapSize = window.performance.memory.usedJSHeapSize;
 
-        status.memory.heapMax = Math.max(
-          status.memory.heapMax,
-          window.performance.memory.usedJSHeapSize
-        );
+        if (window && window.performance) {
+          status.memory.jsHeapSizeLimit =
+            window.performance.memory.jsHeapSizeLimit;
+          status.memory.totalJSHeapSize =
+            window.performance.memory.totalJSHeapSize;
+          status.memory.usedJSHeapSize =
+            window.performance.memory.usedJSHeapSize;
+
+          status.memory.heapMax = Math.max(
+            status.memory.heapMax,
+            window.performance.memory.usedJSHeapSize
+          );
+        }
 
         // console.log(`<R HB | ${action.data.timeStamp}`);
 

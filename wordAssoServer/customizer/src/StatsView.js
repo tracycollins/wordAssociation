@@ -1,16 +1,16 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React from "react";
+import PropTypes from "prop-types";
 
-import moment from 'moment';
-import { grey } from '@material-ui/core/colors';
-import Box from '@material-ui/core/Box';
-import Grid from '@material-ui/core/Grid';
-import LinearProgress from '@material-ui/core/LinearProgress';
-import Typography from '@material-ui/core/Typography';
-import { makeStyles } from '@material-ui/core/styles';
+import moment from "moment";
+import { grey } from "@material-ui/core/colors";
+import Box from "@material-ui/core/Box";
+import Grid from "@material-ui/core/Grid";
+import LinearProgress from "@material-ui/core/LinearProgress";
+import Typography from "@material-ui/core/Typography";
+import { makeStyles } from "@material-ui/core/styles";
 
-const lightGray = '#202020';
-const textLightGray = '#CCCCCC';
+const lightGray = "#202020";
+const textLightGray = "#CCCCCC";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -19,22 +19,20 @@ const useStyles = makeStyles((theme) => ({
     padding: 0,
     flexGrow: 2,
   },
-  multilineColor:{
-    color: textLightGray
+  multilineColor: {
+    color: textLightGray,
   },
   grid: {
     border: 0,
-    display: 'flex',
-
+    display: "flex",
   },
   gridSetting: {
-    flexFlow: 'column',
-    display: 'flex',
-
+    flexFlow: "column",
+    display: "flex",
   },
   gridSubSetting: {
-    flexFlow: 'row',
-    display: 'flex',
+    flexFlow: "row",
+    display: "flex",
     marginBottom: theme.spacing(2),
   },
   gridItem: {
@@ -50,46 +48,44 @@ const useStyles = makeStyles((theme) => ({
     color: textLightGray,
     backgroundColor: lightGray,
     outlined: true,
-    variant: 'outlined',
+    variant: "outlined",
   },
   radioGroupCategory: {
     maxWidth: "80%",
-    fontSize: '0.5rem',
+    fontSize: "0.5rem",
   },
   checkbox: {
     color: grey[400],
-    '&$checked': { color: grey[600],},
+    "&$checked": { color: grey[600] },
   },
   checked: {},
   radioButtonLabel: {
-    fontSize: '0.9rem'
+    fontSize: "0.9rem",
   },
-  radioButton: {
-  },
+  radioButton: {},
   range: {
     border: `1px solid ${theme.palette.divider}`,
     borderRadius: theme.shape.borderRadius,
     color: textLightGray,
   },
-  slider: {
-  },
+  slider: {},
   sectionLabel: {
-    fontSize: '1.4rem',
-    fontWeight: '400',
+    fontSize: "1.2rem",
+    fontWeight: "400",
     color: textLightGray,
     marginBottom: theme.spacing(2),
   },
   settingLabel: {
-    fontSize: '0.8rem',
+    fontSize: "0.8rem",
     color: textLightGray,
   },
   settingValue: {
-    fontSize: '1.5rem',
+    fontSize: "1.2rem",
     marginBottom: theme.spacing(2),
     color: textLightGray,
   },
   settingValueSmall: {
-    fontSize: '1.0rem',
+    fontSize: "1.0rem",
     marginBottom: theme.spacing(2),
     color: textLightGray,
   },
@@ -98,12 +94,11 @@ const useStyles = makeStyles((theme) => ({
   },
   textField: {
     color: textLightGray,
-    '& input:valid + fieldset': {
+    "& input:valid + fieldset": {
       borderColor: textLightGray,
-    }
+    },
   },
 }));
-
 
 function LinearProgressWithLabel(props) {
   const classes = useStyles();
@@ -113,7 +108,7 @@ function LinearProgressWithLabel(props) {
         <LinearProgress variant="determinate" {...props} />
       </Box>
       <Box minWidth={35}>
-        <Typography >{`${Math.round(props.value)}% MAX`}</Typography>
+        <Typography>{`${Math.round(props.value)}% MAX`}</Typography>
       </Box>
     </Box>
   );
@@ -126,38 +121,93 @@ LinearProgressWithLabel.propTypes = {
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 
 const elapsed = (m) => {
-  return moment.duration(moment().diff(m))
-}
+  return moment.duration(moment().diff(m));
+};
 
 const Stats = (props) => {
+  console.log(props);
 
-  console.log(props)
-  
   const classes = useStyles();
+  // memory: MemoryInfo jsHeapSizeLimit: 2172649472 totalJSHeapSize: 19348658
+  // usedJSHeapSize: 18244770
+
+  const heapUsedPercent =
+    props.heartbeat.memory.totalJSHeapSize &&
+    props.heartbeat.memory.jsHeapSizeLimit
+      ? (100 * props.heartbeat.memory.totalJSHeapSize) /
+        props.heartbeat.memory.jsHeapSizeLimit
+      : 0;
 
   return (
     <>
       <Grid className={classes.grid}>
+        <Grid item className={classes.gridItem} xs={4}>
+          <Grid className={classes.gridSetting}>
+            <Typography className={classes.sectionLabel}>CLIENT</Typography>
 
+            <Grid className={classes.gridSubSetting}>
+              <Grid item xs={4}>
+                <Grid item xs={6}>
+                  <Typography className={classes.settingLabel}>
+                    HEAP USED (%)
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography className={classes.settingValue}>
+                    {heapUsedPercent.toFixed(2)}
+                  </Typography>
+                </Grid>
+              </Grid>
+
+              <Grid item xs={4}>
+                <Grid item xs={6}>
+                  <Typography className={classes.settingLabel}>
+                    HEAP USED (B)
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography className={classes.settingValue}>
+                    {props.heartbeat.memory.totalJSHeapSize}
+                  </Typography>
+                </Grid>
+              </Grid>
+
+              <Grid item xs={6}>
+                <Grid item xs={6}>
+                  <Typography className={classes.settingLabel}>
+                    MAX HEAP
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography className={classes.settingValue} margin={0}>
+                    {props.heartbeat.memory.jsHeapSizeLimit}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Grid>
+
+            <LinearProgressWithLabel
+              className={classes.progress}
+              variant="determinate"
+              value={heapUsedPercent}
+            ></LinearProgressWithLabel>
+          </Grid>
+        </Grid>
         <Grid item className={classes.gridItem} xs={4}>
           <Grid className={classes.gridSetting}>
             <Typography className={classes.sectionLabel}>
               BEST NEURAL NETWORK
             </Typography>
-            <Typography className={classes.settingLabel}>
-              NETWORK ID
-            </Typography>
+            <Typography className={classes.settingLabel}>NETWORK ID</Typography>
             <Grid item xs={8}>
               <Typography className={classes.settingValue}>
-                {props.heartbeat.bestNetwork.networkId || '---'}
+                {props.heartbeat.bestNetwork.networkId || "---"}
               </Typography>
             </Grid>
-            <Typography className={classes.settingLabel}>
-              INPUTS ID
-            </Typography>
+            <Typography className={classes.settingLabel}>INPUTS ID</Typography>
             <Grid item xs={8}>
               <Typography className={classes.settingValueSmall}>
-                {props.heartbeat.bestNetwork.inputsId || '---'}
+                {props.heartbeat.bestNetwork.inputsId || "---"}
               </Typography>
             </Grid>
 
@@ -170,7 +220,9 @@ const Stats = (props) => {
                 </Grid>
                 <Grid item xs={6}>
                   <Typography className={classes.settingValue}>
-                    {`${props.heartbeat.bestNetwork.runtimeMatchRate.toFixed(2)}%`}
+                    {`${props.heartbeat.bestNetwork.runtimeMatchRate.toFixed(
+                      2
+                    )}%`}
                   </Typography>
                 </Grid>
               </Grid>
@@ -189,18 +241,12 @@ const Stats = (props) => {
               </Grid>
             </Grid>
           </Grid>
-
         </Grid>
-
         <Grid item className={classes.gridItem} xs={4}>
-
           <Grid className={classes.gridSetting}>
-            <Typography className={classes.sectionLabel}>
-              TWITTER
-            </Typography>
+            <Typography className={classes.sectionLabel}>TWITTER</Typography>
 
             <Grid className={classes.gridSubSetting}>
-
               <Grid item xs={4}>
                 <Grid item xs={6}>
                   <Typography className={classes.settingLabel}>
@@ -229,9 +275,7 @@ const Stats = (props) => {
 
               <Grid item xs={6}>
                 <Grid item xs={6}>
-                  <Typography className={classes.settingLabel}>
-                    MAX
-                  </Typography>
+                  <Typography className={classes.settingLabel}>MAX</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography className={classes.settingValue} margin={0}>
@@ -240,42 +284,44 @@ const Stats = (props) => {
                 </Grid>
                 <Grid item xs={12}>
                   <Typography className={classes.settingLabel}>
-                    {`${moment(props.heartbeat.twitter.maxTweetsPerMinTime).format(defaultDateTimeFormat)}`}
+                    {`${moment(
+                      props.heartbeat.twitter.maxTweetsPerMinTime
+                    ).format(defaultDateTimeFormat)}`}
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
                   <Typography className={classes.settingLabel}>
-                    {`${elapsed(moment(props.heartbeat.twitter.maxTweetsPerMinTime)).as('days').toFixed(1)} DAYS AGO`}
+                    {`${elapsed(
+                      moment(props.heartbeat.twitter.maxTweetsPerMinTime)
+                    )
+                      .as("days")
+                      .toFixed(1)} DAYS AGO`}
                   </Typography>
                 </Grid>
               </Grid>
-
             </Grid>
 
             <LinearProgressWithLabel
               className={classes.progress}
-              variant="determinate" 
-              value={props.heartbeat.twitter.tweetsPerMin && props.heartbeat.twitter.maxTweetsPerMin ? (100.0 * props.heartbeat.twitter.tweetsPerMin / props.heartbeat.twitter.maxTweetsPerMin) : 0}
-            >
-            </LinearProgressWithLabel>
-
+              variant="determinate"
+              value={
+                props.heartbeat.twitter.tweetsPerMin &&
+                props.heartbeat.twitter.maxTweetsPerMin
+                  ? (100.0 * props.heartbeat.twitter.tweetsPerMin) /
+                    props.heartbeat.twitter.maxTweetsPerMin
+                  : 0
+              }
+            ></LinearProgressWithLabel>
           </Grid>
         </Grid>
-
         <Grid item className={classes.gridItem} xs={4}>
-
           <Grid className={classes.gridSetting}>
-            <Typography className={classes.sectionLabel}>
-              NODES
-            </Typography>
+            <Typography className={classes.sectionLabel}>NODES</Typography>
 
             <Grid className={classes.gridSubSetting}>
-
               <Grid item xs={4}>
                 <Grid item xs={6}>
-                  <Typography className={classes.settingLabel}>
-                    RCVD
-                  </Typography>
+                  <Typography className={classes.settingLabel}>RCVD</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography className={classes.settingValue}>
@@ -299,9 +345,7 @@ const Stats = (props) => {
 
               <Grid item xs={6}>
                 <Grid item xs={6}>
-                  <Typography className={classes.settingLabel}>
-                    MAX
-                  </Typography>
+                  <Typography className={classes.settingLabel}>MAX</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography className={classes.settingValue} margin={0}>
@@ -310,31 +354,36 @@ const Stats = (props) => {
                 </Grid>
                 <Grid item xs={12}>
                   <Typography className={classes.settingLabel}>
-                    {`${moment(props.heartbeat.maxNodesPerMinTime).format(defaultDateTimeFormat)}`}
+                    {`${moment(props.heartbeat.maxNodesPerMinTime).format(
+                      defaultDateTimeFormat
+                    )}`}
                   </Typography>
                 </Grid>
                 <Grid item xs={12}>
                   <Typography className={classes.settingLabel}>
-                    {`${elapsed(moment(props.heartbeat.maxNodesPerMinTime)).as('days').toFixed(1)} DAYS AGO`}
+                    {`${elapsed(moment(props.heartbeat.maxNodesPerMinTime))
+                      .as("days")
+                      .toFixed(1)} DAYS AGO`}
                   </Typography>
                 </Grid>
               </Grid>
-
             </Grid>
 
             <LinearProgressWithLabel
               className={classes.progress}
-              variant="determinate" 
-              value={props.heartbeat.nodesPerMin && props.heartbeat.maxNodesPerMin ? (100.0 * props.heartbeat.nodesPerMin / props.heartbeat.maxNodesPerMin) : 0}
-            >
-            </LinearProgressWithLabel>
-
+              variant="determinate"
+              value={
+                props.heartbeat.nodesPerMin && props.heartbeat.maxNodesPerMin
+                  ? (100.0 * props.heartbeat.nodesPerMin) /
+                    props.heartbeat.maxNodesPerMin
+                  : 0
+              }
+            ></LinearProgressWithLabel>
           </Grid>
         </Grid>
-
       </Grid>
     </>
   );
-}
+};
 
 export default Stats;

@@ -822,8 +822,9 @@ function initSocketHandler() {
         // console.log(`<R HB | ${action.data.timeStamp}`);
 
         if (customizerWindow) {
+          const status = Object.assign(window.performance, action.data);
           customizerWindow.postMessage(
-            { op: "HEARTBEAT", status: action.data },
+            { op: "HEARTBEAT", status: status },
             DEFAULT_SOURCE
           );
         }

@@ -131,6 +131,7 @@ status.viewerReadyTransmitted = false;
 status.viewerReadyAck = false;
 status.isAuthenticated = false || LOCAL_SOURCE === DEFAULT_SOURCE;
 
+status.memory = {};
 status.socket = {};
 status.socket.errors = 0;
 status.socket.error = false;
@@ -818,13 +819,20 @@ function initSocketHandler() {
       case "heartbeat":
         status.serverConnected = true;
         status.socket.connected = true;
-
+        status.memory.jsHeapSizeLimit =
+          window.performance.memory.jsHeapSizeLimit;
+        status.memory.totalJSHeapSize =
+          window.performance.memory.totalJSHeapSize;
+        status.memory.usedJSHeapSize = window.performance.memory.usedJSHeapSize;
         // console.log(`<R HB | ${action.data.timeStamp}`);
 
         if (customizerWindow) {
-          const status = Object.assign(window.performance, action.data);
+          const hbStats = Object.assign({}, status, action.data);
+
+          // memory: MemoryInfo jsHeapSizeLimit: 2172649472 totalJSHeapSize: 19348658
+          // usedJSHeapSize: 18244770
           customizerWindow.postMessage(
-            { op: "HEARTBEAT", status: status },
+            { op: "HEARTBEAT", status: hbStats },
             DEFAULT_SOURCE
           );
         }

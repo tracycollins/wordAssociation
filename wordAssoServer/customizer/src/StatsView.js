@@ -131,12 +131,10 @@ const Stats = (props) => {
   // memory: MemoryInfo jsHeapSizeLimit: 2172649472 totalJSHeapSize: 19348658
   // usedJSHeapSize: 18244770
 
+  const totalJSHeapSize = props.heartbeat.memory.totalJSHeapSize || 0;
+  const jsHeapSizeLimit = props.heartbeat.memory.jsHeapSizeLimit || 0;
   const heapUsedPercent =
-    props.heartbeat.memory.totalJSHeapSize &&
-    props.heartbeat.memory.jsHeapSizeLimit
-      ? (100 * props.heartbeat.memory.totalJSHeapSize) /
-        props.heartbeat.memory.jsHeapSizeLimit
-      : 0;
+    jsHeapSizeLimit > 0 ? (100 * totalJSHeapSize) / jsHeapSizeLimit : 0;
 
   return (
     <>
@@ -167,7 +165,7 @@ const Stats = (props) => {
                 </Grid>
                 <Grid item xs={6}>
                   <Typography className={classes.settingValue}>
-                    {props.heartbeat.memory.totalJSHeapSize}
+                    {totalJSHeapSize}
                   </Typography>
                 </Grid>
               </Grid>
@@ -180,7 +178,7 @@ const Stats = (props) => {
                 </Grid>
                 <Grid item xs={6}>
                   <Typography className={classes.settingValue} margin={0}>
-                    {props.heartbeat.memory.jsHeapSizeLimit}
+                    {jsHeapSizeLimit}
                   </Typography>
                 </Grid>
               </Grid>

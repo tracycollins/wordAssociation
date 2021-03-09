@@ -2,103 +2,108 @@
 const testMode = false;
 
 const testNode = {
-  "ageDays": 4667.932989085648,
-  "bannerImageAnalyzed": "https://pbs.twimg.com/profile_banners/14607119/1559109295",
-  "bannerImageUrl": "https://pbs.twimg.com/profile_banners/14607119/1559109295",
-  "categorizeNetwork": "nn_20210205_140625_mms2_4",
-  "categorized": true,
-  "categorizedAuto": true,
-  "category": "left",
-  "categoryAuto": "right",
-  "categoryMismatch": false,
-  "categoryVerified": false,
-  "countHistory": [],
-  "createdAt": "2008-04-30T22:42:14.000Z",
-  "derived": false,
-  "description": "so much to learn, so little time",
-  "expandedUrl": "",
-  "followersCount": 341,
-  "following": true,
-  "friends": [],
-  "friendsCount": 551,
-  "geo": {},
-  "geoEnabled": true,
-  "geoValid": false,
-  "ignored": false,
-  "isBot": false,
-  "isTopTerm": false,
-  "isTweetSource": false,
-  "isTweeter": true,
-  "isTwitterUser": true,
-  "lang": null,
-  "languageAnalysis": {},
-  "languageAnalyzed": false,
-  "lastHistogramQuoteId": "",
-  "lastHistogramTweetId": "1347310377214894081",
-  "lastSeen": "2021-01-21T04:11:04.000Z",
-  "lastTweetId": "false",
-  "location": "Brooklyn, New York",
-  "mentions": 1247,
-  "name": "Tracy Collins",
-  "nodeId": "14607119",
-  "nodeType": "user",
-  "oauthID": 0,
-  "previousBannerImageUrl": "https://pbs.twimg.com/profile_banners/14607119/1559109295",
-  "previousDescription": "so much to learn, so little time",
-  "previousExpandedUrl": "",
-  "previousLocation": "Brooklyn, New York",
-  "previousName": "Tracy Collins",
-  "previousProfileImageUrl": "https://pbs.twimg.com/profile_images/1205585278565527559/GrTkBpzl.jpg",
-  "previousProfileUrl": "https://twitter.com/threecee",
-  "previousQuotedStatusId": "",
-  "previousScreenName": "threecee",
-  "previousStatusId": "1352106411338170370",
-  "previousUrl": "http://threeceemedia.com",
-  "profileImageAnalyzed": "https://pbs.twimg.com/profile_images/1205585278565527559/GrTkBpzl.jpg",
-  "profileImageUrl": "https://pbs.twimg.com/profile_images/1205585278565527559/GrTkBpzl.jpg",
-  "profileUrl": "https://twitter.com/threecee",
-  "quotedStatus": {},
-  "quotedStatusId": "",
-  "rate": 247,
-  "rateMax": 0,
-  "rateMaxTime": "2020-05-15T17:04:05.682Z",
-  "screenName": "threecee",
-  "screenNameLower": "threecee",
-  "status": {
-    "created_at": "Thu Jan 21 04:11:04 +0000 2021",
-    "id": 1352106411338170400,
-    "id_str": "1352106411338170370",
-    "text": "RT @CathyYan: Omg. https://t.co/kyf9holXKw",
-    "truncated": false
+  ageDays: 4667.932989085648,
+  bannerImageAnalyzed:
+    "https://pbs.twimg.com/profile_banners/14607119/1559109295",
+  bannerImageUrl: "https://pbs.twimg.com/profile_banners/14607119/1559109295",
+  categorizeNetwork: "nn_20210205_140625_mms2_4",
+  categorized: true,
+  categorizedAuto: true,
+  category: "left",
+  categoryAuto: "right",
+  categoryMismatch: false,
+  categoryVerified: false,
+  countHistory: [],
+  createdAt: "2008-04-30T22:42:14.000Z",
+  derived: false,
+  description: "so much to learn, so little time",
+  expandedUrl: "",
+  followersCount: 341,
+  following: true,
+  friends: [],
+  friendsCount: 551,
+  geo: {},
+  geoEnabled: true,
+  geoValid: false,
+  ignored: false,
+  isBot: false,
+  isTopTerm: false,
+  isTweetSource: false,
+  isTweeter: true,
+  isTwitterUser: true,
+  lang: null,
+  languageAnalysis: {},
+  languageAnalyzed: false,
+  lastHistogramQuoteId: "",
+  lastHistogramTweetId: "1347310377214894081",
+  lastSeen: "2021-01-21T04:11:04.000Z",
+  lastTweetId: "false",
+  location: "Brooklyn, New York",
+  mentions: 1247,
+  name: "Tracy Collins",
+  nodeId: "14607119",
+  nodeType: "user",
+  oauthID: 0,
+  previousBannerImageUrl:
+    "https://pbs.twimg.com/profile_banners/14607119/1559109295",
+  previousDescription: "so much to learn, so little time",
+  previousExpandedUrl: "",
+  previousLocation: "Brooklyn, New York",
+  previousName: "Tracy Collins",
+  previousProfileImageUrl:
+    "https://pbs.twimg.com/profile_images/1205585278565527559/GrTkBpzl.jpg",
+  previousProfileUrl: "https://twitter.com/threecee",
+  previousQuotedStatusId: "",
+  previousScreenName: "threecee",
+  previousStatusId: "1352106411338170370",
+  previousUrl: "http://threeceemedia.com",
+  profileImageAnalyzed:
+    "https://pbs.twimg.com/profile_images/1205585278565527559/GrTkBpzl.jpg",
+  profileImageUrl:
+    "https://pbs.twimg.com/profile_images/1205585278565527559/GrTkBpzl.jpg",
+  profileUrl: "https://twitter.com/threecee",
+  quotedStatus: {},
+  quotedStatusId: "",
+  rate: 247,
+  rateMax: 0,
+  rateMaxTime: "2020-05-15T17:04:05.682Z",
+  screenName: "threecee",
+  screenNameLower: "threecee",
+  status: {
+    created_at: "Thu Jan 21 04:11:04 +0000 2021",
+    id: 1352106411338170400,
+    id_str: "1352106411338170370",
+    text: "RT @CathyYan: Omg. https://t.co/kyf9holXKw",
+    truncated: false,
   },
-  "statusId": "1352106411338170370",
-  "statusesCount": 4351,
-  "threeceeFollowing": "altthreecee00",
-  "tweetsPerDay": 0.932104211901352,
-  "url": "http://threeceemedia.com",
-  "userId": "14607119",
-  "verified": false,
-  "__v": 2,
-  "_id": "5f7e04b7777e5a535cba941f"
-}
+  statusId: "1352106411338170370",
+  statusesCount: 4351,
+  threeceeFollowing: "altthreecee00",
+  tweetsPerDay: 0.932104211901352,
+  url: "http://threeceemedia.com",
+  userId: "14607119",
+  verified: false,
+  __v: 2,
+  _id: "5f7e04b7777e5a535cba941f",
+};
 
 const reactElement = React.createElement;
 
 const PRODUCTION_SOURCE = "https://word.threeceelabs.com";
 const LOCAL_SOURCE = "http://localhost:9997";
-const LOCAL_NPX_SOURCE = "http://localhost:5000";
-const MBP3_SOURCE = "http://mbp3:3000";
+// const LOCAL_NPX_SOURCE = "http://localhost:5000";
+// const MBP3_SOURCE = "http://mbp3:3000";
 
 const DEFAULT_SOURCE = PRODUCTION_SOURCE;
 // const DEFAULT_SOURCE = REPLACE_SOURCE;
 // const DEFAULT_SOURCE = LOCAL_NPX_SOURCE;
 
-console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`)
-console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`)
-console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`)
+console.debug(`PRODUCTION_SOURCE: ${PRODUCTION_SOURCE}`);
+console.debug(`LOCAL_SOURCE: ${LOCAL_SOURCE}`);
+console.debug(`DEFAULT_SOURCE: ${DEFAULT_SOURCE}`);
 
 const STORED_CONFIG_VERSION = "2.2.9";
-const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`
+const STORED_CONFIG_NAME = `stored_config${"_" + STORED_CONFIG_VERSION}`;
 const globalStoredSettingsName = STORED_CONFIG_NAME;
 
 let currentConfig = {};
@@ -123,7 +128,7 @@ const status = {};
 
 status.serverConnected = false;
 status.viewerReadyTransmitted = false;
-status.viewerReadyAck = false
+status.viewerReadyAck = false;
 status.isAuthenticated = false || LOCAL_SOURCE === DEFAULT_SOURCE;
 
 status.socket = {};
@@ -209,7 +214,7 @@ const DEFAULT_VIEWER_OBJ = {
   tags: {
     entity: VIEWER_ID,
     type: "viewer",
-    mode: "stream"
+    mode: "stream",
   },
 };
 
@@ -243,7 +248,6 @@ let configUpdateTimeOut;
 const configUpdateTimeOutInverval = 3000;
 
 const resetConfigUpdateTimeOut = () => {
-
   clearTimeout(configUpdateTimeOut);
 
   configUpdateTimeOut = setTimeout(function () {
@@ -251,14 +255,16 @@ const resetConfigUpdateTimeOut = () => {
     saveConfig();
     return;
   }, configUpdateTimeOutInverval);
-}
+};
 
 const saveConfig = () => {
-  currentConfig.defaults.storedConfigName = globalStoredSettingsName
+  currentConfig.defaults.storedConfigName = globalStoredSettingsName;
   store.set(currentConfig.defaults.storedConfigName, currentConfig);
-  console.debug("STORED CONFIG" + " | " + currentConfig.defaults.storedConfigName);
+  console.debug(
+    "STORED CONFIG" + " | " + currentConfig.defaults.storedConfigName
+  );
   return;
-}
+};
 
 const infoDivElement = document.getElementById("infoDiv");
 const controlDivElement = document.getElementById("controlDiv");
@@ -267,16 +273,16 @@ controlDivElement.style.display = "unset";
 let customizerWindow = null;
 
 const customizerComm = (event) => {
-
   console.debug("CUSTOMIZE PANEL: " + event.origin);
 
   if (event.data === "DisableHTML5Autoplay_Initialize") {
-    console.info("RX> CUSTOMIZE PANEL | DisableHTML5Autoplay_Initialize ... IGNORING ...");
+    console.info(
+      "RX> CUSTOMIZE PANEL | DisableHTML5Autoplay_Initialize ... IGNORING ..."
+    );
     return;
   }
 
   switch (event.data.op) {
-
     case "READY":
       console.warn("R< CUSTOMIZE PANEL READY");
       break;
@@ -287,15 +293,13 @@ const customizerComm = (event) => {
       break;
 
     case "TOGGLE":
-
       console.warn("R< CUSTOMIZE PANEL TOGGLE");
 
       switch (event.data.id) {
-
         case "fullscreenToggleButton":
           toggleFullScreen();
           break;
-          
+
         default:
           console.error(
             "CUSTOMIZE PANEL UNKNOWN TOGGLE BUTTON | ID: " + event.data.id
@@ -307,11 +311,9 @@ const customizerComm = (event) => {
       break;
 
     case "UPDATE":
-
       console.warn("R< CONTROL PANEL UPDATE");
 
       switch (event.data.id) {
-
         case "display":
           currentSessionView.displayEntity(event.data.entity, event.data.value);
           break;
@@ -347,17 +349,26 @@ const customizerComm = (event) => {
         case "nodeRadiusRatio":
           currentSessionView.setNodeRadiusRatioMin(event.data.min);
           currentSessionView.setNodeRadiusRatioMax(event.data.max);
-          console.log(`CUSTOMIZER SET | setNodeRadiusRatio | min: ${event.data.min} max: ${event.data.max}`)
+          console.log(
+            `CUSTOMIZER SET | setNodeRadiusRatio | min: ${event.data.min} max: ${event.data.max}`
+          );
           break;
 
         case "fontSizeRatio":
           currentSessionView.setFontSizeRatioMin(event.data.min);
           currentSessionView.setFontSizeRatioMax(event.data.max);
-          console.log(`CUSTOMIZER SET | setFontSizeRatio | min: ${event.data.min} max: ${event.data.max}`)
+          console.log(
+            `CUSTOMIZER SET | setFontSizeRatio | min: ${event.data.min} max: ${event.data.max}`
+          );
           break;
 
         default:
-          console.error("UNKNOWN CUSTOMIZE PANEL ID: " + event.data.id + "\n" + jsonPrint(event.data));
+          console.error(
+            "UNKNOWN CUSTOMIZE PANEL ID: " +
+              event.data.id +
+              "\n" +
+              jsonPrint(event.data)
+          );
       }
       resetConfigUpdateTimeOut();
 
@@ -369,32 +380,37 @@ const customizerComm = (event) => {
 
     default:
       if (event.data["twttr.button"] !== undefined) {
-        console.log("R< CUSTOMIZE PANEL TWITTER" + " | " + event.data["twttr.button"].method);
-      } 
-      else if (event.data.settings !== undefined) {
-        console.log("R< CUSTOMIZE PANEL SETTINGS" + "\n" + jsonPrint(event.data.settings));
-      } 
-      else {
-        console.warn("R< ??? CUSTOMIZE PANEL OP UNDEFINED\n" + jsonPrint(event.data));
+        console.log(
+          "R< CUSTOMIZE PANEL TWITTER" +
+            " | " +
+            event.data["twttr.button"].method
+        );
+      } else if (event.data.settings !== undefined) {
+        console.log(
+          "R< CUSTOMIZE PANEL SETTINGS" + "\n" + jsonPrint(event.data.settings)
+        );
+      } else {
+        console.warn(
+          "R< ??? CUSTOMIZE PANEL OP UNDEFINED\n" + jsonPrint(event.data)
+        );
       }
   }
-}
+};
 
 const openCustomizer = (cnf) => {
-  
   console.debug("openCustomizer");
-  console.debug({cnf})
+  console.debug({ cnf });
 
-  const customizerWindowFeatures = "width=1000,height=600,resizable,scrollbars,status";
+  const customizerWindowFeatures =
+    "width=1000,height=600,resizable,scrollbars,status";
 
-  if (customizerWindow === null || customizerWindow.closed){
+  if (customizerWindow === null || customizerWindow.closed) {
     customizerWindow = window.open(
       DEFAULT_SOURCE + "/customize",
       "CUSTOMIZE",
       customizerWindowFeatures
     );
-  }
-  else{
+  } else {
     customizerWindow.focus();
   }
 
@@ -413,14 +429,17 @@ const openCustomizer = (cnf) => {
     "load",
     function () {
       customizePanelFlag = true;
-      customizerWindow.postMessage({ op: "INIT", config: cnf, status: status }, DEFAULT_SOURCE);
+      customizerWindow.postMessage(
+        { op: "INIT", config: cnf, status: status },
+        DEFAULT_SOURCE
+      );
       return;
     },
     false
   );
 
   return;
-}
+};
 
 function toggleFullScreen() {
   console.warn("toggleFullScreen");
@@ -458,55 +477,52 @@ function toggleFullScreen() {
 }
 
 const toggleCustomize = () => {
-
   console.warn("toggleCustomize");
   if (!customizePanelFlag) {
     customizePanelFlag = !customizePanelFlag;
-    openCustomizer(currentConfig)
-  }
-  else{
+    openCustomizer(currentConfig);
+  } else {
     if (customizerWindow) {
       customizerWindow.close();
     }
   }
   return;
-}
+};
 
 const toggleInfo = () => {
   console.warn("toggleInfo");
   infoOverlayFlag = !infoOverlayFlag;
   displayInfo(infoOverlayFlag);
   return;
-}
+};
 
 const displayInfo = (isVisible) => {
-  if (isVisible){
+  if (isVisible) {
     infoDivElement.style.display = "unset";
-    ReactDOM.render(reactElement(InfoOverlay, {closeButtonHandler: toggleInfo}), infoDivElement);
-  }
-  else{
+    ReactDOM.render(
+      reactElement(InfoOverlay, { closeButtonHandler: toggleInfo }),
+      infoDivElement
+    );
+  } else {
     infoDivElement.style.display = "none";
   }
-}
+};
 
 const displayControl = (isVisible) => {
-  if (isVisible){
+  if (isVisible) {
     controlDivElement.style.display = "unset";
     ReactDOM.render(
-      reactElement(ControlOverlay, 
-        {
-          infoButtonHandler: toggleInfo, 
-          settingsButtonHandler: toggleCustomize, 
-          fullscreenButtonHandler: toggleFullScreen
-        }
-      ), 
+      reactElement(ControlOverlay, {
+        infoButtonHandler: toggleInfo,
+        settingsButtonHandler: toggleCustomize,
+        fullscreenButtonHandler: toggleFullScreen,
+      }),
       controlDivElement
     );
-  }
-  else{
+  } else {
     controlDivElement.style.display = "none";
   }
-}
+};
 
 let viewerReadyInterval;
 
@@ -555,10 +571,14 @@ function initViewerReadyInterval(interval) {
     ) {
       if (status.userReadyAckWait > DEFAULT_MAX_READY_ACK_WAIT_COUNT) {
         status.viewerReadyTransmitted = false;
-        console.log(`*** RESENDING _READY AFTER | ${DEFAULT_MAX_READY_ACK_WAIT_COUNT} WAIT CYCLES`);
+        console.log(
+          `*** RESENDING _READY AFTER | ${DEFAULT_MAX_READY_ACK_WAIT_COUNT} WAIT CYCLES`
+        );
       } else {
         status.userReadyAckWait += 1;
-        console.log(`... WAITING FOR VIEWER_READY_ACK | ${DEFAULT_MAX_READY_ACK_WAIT_COUNT} WAIT CYCLES`);
+        console.log(
+          `... WAITING FOR VIEWER_READY_ACK | ${DEFAULT_MAX_READY_ACK_WAIT_COUNT} WAIT CYCLES`
+        );
       }
     } else if (!status.serverConnected) {
       console.log("... WAITING FOR SERVER CONNECTION ...");
@@ -601,9 +621,14 @@ let socketKeepaliveInterval;
 function initKeepalive(viewerObj, interval) {
   clearInterval(socketKeepaliveInterval);
 
-  console.log("START KEEPALIVE | READY ACK: " + status.viewerReadyAck +
-    " | SERVER CONNECTED: " + status.serverConnected +
-    " | INTERVAL: " + interval + " ms"
+  console.log(
+    "START KEEPALIVE | READY ACK: " +
+      status.viewerReadyAck +
+      " | SERVER CONNECTED: " +
+      status.serverConnected +
+      " | INTERVAL: " +
+      interval +
+      " ms"
   );
 
   sendKeepAlive(viewerObj, function (err) {
@@ -613,7 +638,6 @@ function initKeepalive(viewerObj, interval) {
   });
 
   socketKeepaliveInterval = setInterval(function () {
-
     status.elapsed = Date.now() - status.startTime;
     viewerObj.stats = status;
 
@@ -622,29 +646,29 @@ function initKeepalive(viewerObj, interval) {
         console.error("KEEPALIVE ERROR: " + err);
       }
     });
-
   }, interval);
 }
 
 let socket;
 
 const rxNode = function (node) {
-  
   if (rxNodeQueue.length >= currentConfig.settings.rxNodeQueueMax) {
     return;
   }
 
-  if (node.nodeType !== "tweet" && node.nodeType !== "user" && node.nodeType !== "hashtag") {
+  if (
+    node.nodeType !== "tweet" &&
+    node.nodeType !== "user" &&
+    node.nodeType !== "hashtag"
+  ) {
     return;
   }
 
   rxNodeQueue.push(node);
 };
 
-function initSocketHandler () {
-
+function initSocketHandler() {
   socket.on("connect", function () {
-
     viewerObj.socketId = socket.id;
 
     status.socketId = socket.id;
@@ -665,7 +689,6 @@ function initSocketHandler () {
       userId: viewerObj.userId,
       password: "0123456789",
     });
-    
   });
 
   socket.on("SERVER_READY", function (serverAck) {
@@ -767,9 +790,13 @@ function initSocketHandler () {
 
   socket.on("unauthorized", function (err) {
     status.serverConnected = true;
-    console.error("*** UNAUTHORIZED *** | ID: " + socket.id +
-      " | VIEWER ID: " + viewerObj.userId +
-      " | " + err.message
+    console.error(
+      "*** UNAUTHORIZED *** | ID: " +
+        socket.id +
+        " | VIEWER ID: " +
+        viewerObj.userId +
+        " | " +
+        err.message
     );
   });
 
@@ -787,25 +814,25 @@ function initSocketHandler () {
   sSmall.bestNetwork = {};
 
   socket.on("action", (action) => {
-
-    switch (action.type){
-
+    switch (action.type) {
       case "heartbeat":
-
         status.serverConnected = true;
         status.socket.connected = true;
 
         // console.log(`<R HB | ${action.data.timeStamp}`);
 
         if (customizerWindow) {
-          customizerWindow.postMessage({ op: "HEARTBEAT", status: action.data }, DEFAULT_SOURCE);
+          customizerWindow.postMessage(
+            { op: "HEARTBEAT", status: action.data },
+            DEFAULT_SOURCE
+          );
         }
 
-        if (testMode && currentSessionView){
-          currentSessionView.addNode(testNode)
+        if (testMode && currentSessionView) {
+          currentSessionView.addNode(testNode);
         }
 
-        break
+        break;
 
       default:
     }
@@ -819,39 +846,37 @@ function initSocketHandler () {
 let socketSessionUpdateInterval;
 
 function initSocketSessionUpdateRx() {
-
   rxNodeQueueReady = true;
 
   let newNode = {};
   let category;
-  let viewNodeAddQlength = 0;
+  // let viewNodeAddQlength = 0;
 
   clearInterval(socketSessionUpdateInterval);
 
   socketSessionUpdateInterval = setInterval(function () {
+    // viewNodeAddQlength = currentSessionView.getNodeAddQlength();
 
-    viewNodeAddQlength = currentSessionView.getNodeAddQlength();
-
-    if (rxNodeQueueReady && rxNodeQueue.length > 0 && viewNodeAddQlength <= 1.5 * currentConfig.settings.rxNodeQueueMax) {
-
+    // if (rxNodeQueueReady && rxNodeQueue.length > 0 && viewNodeAddQlength <= 1.5 * currentConfig.settings.rxNodeQueueMax) {
+    if (rxNodeQueueReady && rxNodeQueue.length > 0) {
       rxNodeQueueReady = false;
 
       newNode = rxNodeQueue.shift();
 
       if (currentConfig.autoCategoryFlag && newNode.categoryAuto) {
         category = newNode.categoryAuto;
-      } 
-      else {
+      } else {
         category = newNode.category;
       }
 
-      if (newNode.categoryAuto !== "none" && (category === undefined || category === "none")) {
+      if (
+        newNode.categoryAuto !== "none" &&
+        (category === undefined || category === "none")
+      ) {
         newNode.categoryColor = categoryColorHashMap.get("auto");
-      } 
-      else if (category === undefined || category === "none") {
+      } else if (category === undefined || category === "none") {
         newNode.categoryColor = categoryColorHashMap.get("none");
-      } 
-      else {
+      } else {
         newNode.categoryColor = categoryColorHashMap.get(category);
       }
 
@@ -868,14 +893,20 @@ function initSocketSessionUpdateRx() {
         newNode.screenName = newNode.screenName.toLowerCase();
       }
 
-      newNode.categoryMismatch = newNode.category !== "none" && newNode.category && newNode.categoryAuto && newNode.category !== newNode.categoryAuto;
-      newNode.categoryMatch = newNode.category !== "none" && newNode.category && newNode.categoryAuto && newNode.category === newNode.categoryAuto;
+      newNode.categoryMismatch =
+        newNode.category !== "none" &&
+        newNode.category &&
+        newNode.categoryAuto &&
+        newNode.category !== newNode.categoryAuto;
+      newNode.categoryMatch =
+        newNode.category !== "none" &&
+        newNode.category &&
+        newNode.categoryAuto &&
+        newNode.category === newNode.categoryAuto;
 
       currentSessionView.addNode(newNode);
       rxNodeQueueReady = true;
-
     }
-
   }, currentConfig.settings.rxNodeQueueInterval);
 
   return;
@@ -939,7 +970,10 @@ function resetMouseMoveTimer() {
     currentSessionView.toolTipVisibility(false);
     currentSessionView.mouseMoving(false);
 
-    if (currentConfig.settings.pauseOnMouseMove && !currentConfig.settings.pauseFlag) {
+    if (
+      currentConfig.settings.pauseOnMouseMove &&
+      !currentConfig.settings.pauseFlag
+    ) {
       currentSessionView.simulationControl("RESUME");
     }
 
@@ -964,7 +998,9 @@ document.addEventListener(visibilityEvent, function () {
   }
 });
 
-document.addEventListener("mousemove", function () {
+document.addEventListener(
+  "mousemove",
+  function () {
     if (currentSessionView) {
       if (currentConfig.settings.pauseOnMouseMove) {
         currentSessionView.simulationControl("PAUSE");
@@ -978,7 +1014,9 @@ document.addEventListener("mousemove", function () {
   true
 );
 
-document.addEventListener("panzoomEvent", function () {
+document.addEventListener(
+  "panzoomEvent",
+  function () {
     if (currentSessionView) {
       currentConfig.settings.panzoom.transform = currentSessionView.getPanzoomTransform();
       saveConfig();
@@ -990,10 +1028,9 @@ document.addEventListener("panzoomEvent", function () {
 const loadStoredSettings = () => {
   console.log("LOADING STORED SETTINGS: " + globalStoredSettingsName);
   return store.get(globalStoredSettingsName);
-}
+};
 
-function getWindowDimensions () {
-
+function getWindowDimensions() {
   if (window.outerWidth !== "undefined") {
     return { width: window.outerWidth, height: window.outerHeight };
   }
@@ -1022,18 +1059,21 @@ function getWindowDimensions () {
 let width = getWindowDimensions().width;
 let height = getWindowDimensions().height;
 
-window.addEventListener("beforeunload",
+window.addEventListener(
+  "beforeunload",
   function () {
     console.log("CLOSING...");
-    if (customizerWindow){ customizerWindow.close() }
+    if (customizerWindow) {
+      customizerWindow.close();
+    }
     customizePanelFlag = false;
   },
   false
 );
 
-window.addEventListener("load",
+window.addEventListener(
+  "load",
   function () {
-
     console.log("LOAD SESSION");
 
     width = getWindowDimensions().width;
@@ -1043,52 +1083,54 @@ window.addEventListener("load",
     currentConfig.defaults.panzoom.transform.x = 0.5 * width;
     currentConfig.settings.panzoom.transform.y = 0.5 * height;
     currentConfig.defaults.panzoom.transform.y = 0.5 * height;
-
   },
 
   false
 );
 
 const nodeSearch = (event) => {
-// { detail: { node: d }}
+  // { detail: { node: d }}
 
-  console.log(`EVENT | NODE SEARCH | TYPE: ${event.detail.node.nodeType} | @${event.detail.node.screenName}`);
+  console.log(
+    `EVENT | NODE SEARCH | TYPE: ${event.detail.node.nodeType} | @${event.detail.node.screenName}`
+  );
 
-  let searchNode
+  let searchNode;
 
-  switch (event.detail.node.nodeType){
+  switch (event.detail.node.nodeType) {
     case "user":
       searchNode = "@" + event.detail.node.screenName;
-    break;
+      break;
     case "hashtag":
       searchNode = "#" + event.detail.node.nodeId;
-    break;
+      break;
     default:
-      console.error(`EVENT | NODE SEARCH | UNKNOWN TYPE: ${event.detail.node.nodeType}`);
+      console.error(
+        `EVENT | NODE SEARCH | UNKNOWN TYPE: ${event.detail.node.nodeType}`
+      );
       return;
   }
 
-  socket.emit("TWITTER_SEARCH_NODE", {searchNode: searchNode})
-}
+  socket.emit("TWITTER_SEARCH_NODE", { searchNode: searchNode });
+};
 
 document.addEventListener("nodeSearch", nodeSearch, false);
 
 let testModeAddNodeInterval;
 
-setTimeout(function(){
-
-  try{
-
+setTimeout(function () {
+  try {
     const storedSettings = loadStoredSettings();
 
     if (storedSettings) {
-      console.log(`LOADED STORED SETTINGS`)
-      console.log({storedSettings}) 
-      currentConfig = Object.assign({}, currentConfig, storedSettings)
-    }
-    else{
-      console.log(`*** LOAD STORED SETTINGS FAILED: ${globalStoredSettingsName}`)
-      currentConfig = Object.assign({}, currentConfig, config)
+      console.log(`LOADED STORED SETTINGS`);
+      console.log({ storedSettings });
+      currentConfig = Object.assign({}, currentConfig, storedSettings);
+    } else {
+      console.log(
+        `*** LOAD STORED SETTINGS FAILED: ${globalStoredSettingsName}`
+      );
+      currentConfig = Object.assign({}, currentConfig, config);
     }
 
     socket = io("/view");
@@ -1107,19 +1149,17 @@ setTimeout(function(){
 
     currentSessionView = ViewForceLinks(currentConfig);
     currentSessionView.initD3timer();
-    initSocketHandler()
-    resetMouseMoveTimer()
-    initSocketSessionUpdateRx()
+    initSocketHandler();
+    resetMouseMoveTimer();
+    initSocketSessionUpdateRx();
 
-    if (testMode && currentSessionView){
+    if (testMode && currentSessionView) {
       testModeAddNodeInterval = setInterval(() => {
-        currentSessionView.addNode(testNode)
+        currentSessionView.addNode(testNode);
       }, 1047);
     }
+  } catch (err) {
+    clearInterval(testModeAddNodeInterval);
+    console.error({ err });
   }
-  catch(err){
-    clearInterval(testModeAddNodeInterval)
-    console.error({err})
-  }
-
-}, 100)
+}, 100);

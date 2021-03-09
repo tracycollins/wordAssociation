@@ -131,8 +131,20 @@ const Stats = (props) => {
   // memory: MemoryInfo jsHeapSizeLimit: 2172649472 totalJSHeapSize: 19348658
   // usedJSHeapSize: 18244770
 
-  const totalJSHeapSize = props.heartbeat.memory.totalJSHeapSize || 0;
-  const jsHeapSizeLimit = props.heartbeat.memory.jsHeapSizeLimit || 0;
+  const totalJSHeapSize =
+    props.heartbeat &&
+    props.heartbeat.memory &&
+    props.heartbeat.memory.totalJSHeapSize
+      ? props.heartbeat.memory.totalJSHeapSize
+      : 0;
+
+  const jsHeapSizeLimit =
+    props.heartbeat &&
+    props.heartbeat.memory &&
+    props.heartbeat.memory.jsHeapSizeLimit
+      ? props.heartbeat.memory.jsHeapSizeLimit
+      : 0;
+
   const heapUsedPercent =
     jsHeapSizeLimit > 0 ? (100 * totalJSHeapSize) / jsHeapSizeLimit : 0;
 

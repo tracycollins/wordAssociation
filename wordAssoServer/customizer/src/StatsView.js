@@ -12,6 +12,10 @@ import { makeStyles } from "@material-ui/core/styles";
 const lightGray = "#202020";
 const textLightGray = "#CCCCCC";
 
+const ONE_KB = 1024;
+const ONE_MB = 1024 * ONE_KB;
+const ONE_GB = 1024 * ONE_MB;
+
 const useStyles = makeStyles((theme) => ({
   root: {
     border: 0,
@@ -135,31 +139,38 @@ const Stats = (props) => {
     props.heartbeat &&
     props.heartbeat.memory &&
     props.heartbeat.memory.totalJSHeapSize
-      ? props.heartbeat.memory.totalJSHeapSize
+      ? props.heartbeat.memory.totalJSHeapSize / ONE_MB
       : 0;
 
   const jsHeapSizeLimit =
     props.heartbeat &&
     props.heartbeat.memory &&
     props.heartbeat.memory.jsHeapSizeLimit
-      ? props.heartbeat.memory.jsHeapSizeLimit
+      ? props.heartbeat.memory.jsHeapSizeLimit / ONE_MB
       : 0;
 
   const heapUsedPercent =
     jsHeapSizeLimit > 0 ? (100 * totalJSHeapSize) / jsHeapSizeLimit : 0;
+
+  const heapMax =
+    props.heartbeat && props.heartbeat.memory && props.heartbeat.memory.heapMax
+      ? props.heartbeat.memory.heapMax / ONE_MB
+      : 0;
 
   return (
     <>
       <Grid className={classes.grid}>
         <Grid item className={classes.gridItem} xs={4}>
           <Grid className={classes.gridSetting}>
-            <Typography className={classes.sectionLabel}>CLIENT</Typography>
+            <Typography className={classes.sectionLabel}>
+              CLIENT HEAP
+            </Typography>
 
             <Grid className={classes.gridSubSetting}>
               <Grid item xs={4}>
                 <Grid item xs={6}>
                   <Typography className={classes.settingLabel}>
-                    HEAP USED (%)
+                    USED (%)
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
@@ -172,12 +183,12 @@ const Stats = (props) => {
               <Grid item xs={4}>
                 <Grid item xs={6}>
                   <Typography className={classes.settingLabel}>
-                    HEAP USED (B)
+                    USED (B)
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography className={classes.settingValue}>
-                    {totalJSHeapSize}
+                    {totalJSHeapSize.toFixed(3)}
                   </Typography>
                 </Grid>
               </Grid>
@@ -185,12 +196,22 @@ const Stats = (props) => {
               <Grid item xs={6}>
                 <Grid item xs={6}>
                   <Typography className={classes.settingLabel}>
-                    MAX HEAP
+                    LIMIT
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography className={classes.settingValue} margin={0}>
-                    {jsHeapSizeLimit}
+                    {jsHeapSizeLimit.toFixed(3)}
+                  </Typography>
+                </Grid>
+              </Grid>
+              <Grid item xs={6}>
+                <Grid item xs={6}>
+                  <Typography className={classes.settingLabel}>MAX</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography className={classes.settingValue} margin={0}>
+                    {heapMax.toFixed(3)}
                   </Typography>
                 </Grid>
               </Grid>

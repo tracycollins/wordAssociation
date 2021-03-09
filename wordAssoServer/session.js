@@ -132,6 +132,11 @@ status.viewerReadyAck = false;
 status.isAuthenticated = false || LOCAL_SOURCE === DEFAULT_SOURCE;
 
 status.memory = {};
+status.memory.jsHeapSizeLimit = 0;
+status.memory.totalJSHeapSize = 0;
+status.memory.usedJSHeapSize = 0;
+status.memory.heapMax = 0;
+
 status.socket = {};
 status.socket.errors = 0;
 status.socket.error = false;
@@ -824,6 +829,12 @@ function initSocketHandler() {
         status.memory.totalJSHeapSize =
           window.performance.memory.totalJSHeapSize;
         status.memory.usedJSHeapSize = window.performance.memory.usedJSHeapSize;
+
+        status.memory.heapMax = Math.max(
+          status.memory.heapMax,
+          window.performance.memory.usedJSHeapSize
+        );
+
         // console.log(`<R HB | ${action.data.timeStamp}`);
 
         if (customizerWindow) {

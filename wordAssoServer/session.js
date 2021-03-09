@@ -825,7 +825,7 @@ function initSocketHandler() {
         status.serverConnected = true;
         status.socket.connected = true;
 
-        if (window && window.performance) {
+        if (window && window.performance && window.performance.memory) {
           status.memory.jsHeapSizeLimit =
             window.performance.memory.jsHeapSizeLimit;
           status.memory.totalJSHeapSize =

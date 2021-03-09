@@ -3768,7 +3768,10 @@ const initHeartbeatInterval = async (p) => {
 
         heartbeatObj = pick(statsObj, heartbeatPickArray);
 
-        viewNameSpace.emit("action", { type: "heartbeat", data: heartbeatObj });
+        viewNameSpace.volatile.emit("action", {
+          type: "heartbeat",
+          data: heartbeatObj,
+        });
 
         statsObj.heartbeat.sent += 1;
 

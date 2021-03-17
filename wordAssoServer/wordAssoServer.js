@@ -6,6 +6,7 @@ if (envConfig.error) {
 }
 
 console.log("WAS | +++ ENV CONFIG LOADED");
+// console.log({ envConfig });
 
 const DEFAULT_MONGODB_SESSION_SECRET = process.env.MONGODB_SESSION_SECRET;
 const DEFAULT_MONGODB_USERNAME = process.env.MONGODB_USERNAME;
@@ -329,7 +330,8 @@ app.set("trust proxy", 1); // trust first proxy
 
 const expressSession = require("express-session");
 // const MongoStore = require("connect-mongo")(expressSession);
-const MongoStore = require("connect-mongo").default;
+// const MongoStore = require("connect-mongo").default;
+const MongoStore = require("connect-mongo");
 const passport = require("passport");
 const TwitterStrategy = require("passport-twitter").Strategy;
 // const { Autohook } = require("twitter-autohook");
@@ -361,8 +363,8 @@ const userCategoryHashmapPickArray = [
 const threeceeConfig = {
   consumer_key: process.env.TWITTER_CONSUMER_KEY,
   consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-  token: process.env.TWITTER_TOKEN,
-  token_secret: process.env.TWITTER_TOKEN_SECRET,
+  token: process.env.TWITTER_ACCESS_TOKEN,
+  token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
 };
 
 const statsObj = {};
@@ -2366,13 +2368,6 @@ function initPassport() {
           MODULE_ID + " | PASSPORT SERIALIZE USER | @" + user.screenName
         )
       );
-
-      // slackText = "*PASSPORT TWITTER SERIALIZE USER*";
-      // slackText = slackText + "\nUSER NID:  " + user.nodeId;
-      // slackText = slackText + "\nUSER      @" + user.screenName;
-      // slackText = slackText + "\nUSER NAME: " + user.name;
-
-      // await slackSendWebMessage({ channel: slackChannel, text: slackText });
 
       done(null, sessionUser);
     });

@@ -1162,13 +1162,13 @@ function initSearchStream() {
                 threeceeUser.stats.twitterLimit
             )
           );
+          process.send({
+            op: "TWITTER_LIMIT",
+            threeceeUser: threeceeUser.screenName,
+            stats: threeceeUser.stats,
+            message: limitMessage,
+          });
         }
-        process.send({
-          op: "TWITTER_LIMIT",
-          threeceeUser: threeceeUser.screenName,
-          stats: threeceeUser.stats,
-          message: limitMessage,
-        });
       });
 
       threeceeUser.searchStream.on("error", function (err) {

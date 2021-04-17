@@ -114,13 +114,17 @@ global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
 const ThreeceeUtilities = require("@threeceelabs/threeceeutilities");
 const tcUtils = new ThreeceeUtilities(PF + "_TCU");
+const redisClient = tcUtils.redisClient;
 
 tcUtils.on("error", function (err) {
   console.log(chalkError(PF + " | *** TCU ERROR | " + err));
 });
 
-tcUtils.on("ready", function () {
+tcUtils.on("ready", async function () {
   console.log(chalk.green(`${PF} | TCU READY | ${PF}_TCU`));
+  if (hostname === "google") {
+    const redisResult = await redisClient.flushall();
+  }
 });
 
 const mguAppName = MODULE_ID_PREFIX + "_MGU";
@@ -9889,7 +9893,6 @@ function initTssChild(params) {
           }
           break;
 
-        
         case "TWITTER_MESSAGE":
         case "TWITTER_CONNECT":
         case "TWITTER_RECONNECT":

@@ -961,6 +961,7 @@ function initSearchStream() {
           )
         );
         statsObj.twitter.connects += 1;
+        threeceeUser.stats.ready = true;
         threeceeUser.stats.connected = true;
         threeceeUser.stats.twitterConnects += 1;
         threeceeUser.stats.rateLimited = false;
@@ -997,6 +998,7 @@ function initSearchStream() {
         );
 
         statsObj.twitter.reconnects += 1;
+        threeceeUser.stats.ready = true;
         threeceeUser.stats.connected = true;
         threeceeUser.stats.twitterReconnects += 1;
         threeceeUser.stats.twitterTokenErrorFlag = false;
@@ -1021,6 +1023,7 @@ function initSearchStream() {
           )
         );
         statsObj.twitter.disconnects += 1;
+        threeceeUser.stats.ready = false;
         threeceeUser.stats.connected = false;
         threeceeUser.stats.twitterReconnects = 0;
         threeceeUser.stats.rateLimited = false;

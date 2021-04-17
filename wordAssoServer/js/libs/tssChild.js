@@ -877,13 +877,13 @@ function initSearchStream() {
                 jsonPrint(msg)
             )
           );
+          process.send({
+            op: "TWITTER_MESSAGE",
+            threeceeUser: threeceeUser.screenName,
+            stats: threeceeUser.stats,
+            message: msg,
+          });
         }
-        process.send({
-          op: "TWITTER_MESSAGE",
-          threeceeUser: threeceeUser.screenName,
-          stats: threeceeUser.stats,
-          message: msg,
-        });
       });
 
       threeceeUser.searchStream.on("follow", function (msg) {

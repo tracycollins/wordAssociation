@@ -9889,6 +9889,8 @@ function initTssChild(params) {
           }
           break;
 
+        
+        case "TWITTER_MESSAGE":
         case "TWITTER_CONNECT":
         case "TWITTER_RECONNECT":
         case "TWITTER_USER_UPDATE":

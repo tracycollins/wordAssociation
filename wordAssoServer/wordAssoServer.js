@@ -92,11 +92,11 @@ hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
-const MODULE_ID = MODULE_ID_PREFIX + "_" + hostname.toUpperCase();
+const PF = MODULE_ID_PREFIX + "_" + hostname.toUpperCase();
 
-console.log(MODULE_ID + " | ==============================");
-console.log(MODULE_ID + " | HOST: " + hostname);
-console.log(MODULE_ID + " | ==============================");
+console.log(PF + " | ==============================");
+console.log(PF + " | HOST: " + hostname);
+console.log(PF + " | ==============================");
 
 let DROPBOX_ROOT_FOLDER;
 const TWITTER_WEBHOOK_URL = "/webhooks/twitter";
@@ -113,14 +113,14 @@ if (hostname == "google") {
 global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
 const ThreeceeUtilities = require("@threeceelabs/threeceeutilities");
-const tcUtils = new ThreeceeUtilities(MODULE_ID + "_TCU");
+const tcUtils = new ThreeceeUtilities(PF + "_TCU");
 
 tcUtils.on("error", function (err) {
-  console.log(chalkError(MODULE_ID + " | *** TCU ERROR | " + err));
+  console.log(chalkError(PF + " | *** TCU ERROR | " + err));
 });
 
 tcUtils.on("ready", function () {
-  console.log(chalk.green(`${MODULE_ID} | TCU READY | ${MODULE_ID}_TCU`));
+  console.log(chalk.green(`${PF} | TCU READY | ${PF}_TCU`));
 });
 
 const mguAppName = MODULE_ID_PREFIX + "_MGU";
@@ -511,7 +511,7 @@ function dnsReverse(params) {
     if (ipCacheObj) {
       console.log(
         chalkGreen(
-          MODULE_ID +
+          PF +
             " | DNS REVERSE | $ HIT" +
             " | IP: " +
             params.ipAddress +
@@ -533,7 +533,7 @@ function dnsReverse(params) {
       if (err) {
         console.log(
           chalk.yellow(
-            MODULE_ID +
+            PF +
               " | *** DNS REVERSE ERROR | IP: " +
               params.ipAddress +
               " | " +
@@ -543,16 +543,14 @@ function dnsReverse(params) {
 
         try {
           console.log(
-            chalk.yellow(
-              MODULE_ID + " | ... TRY WHOIS | IP: " + params.ipAddress
-            )
+            chalk.yellow(PF + " | ... TRY WHOIS | IP: " + params.ipAddress)
           );
 
           const whoisResult = await whois(params.ipAddress);
 
           console.log(
             chalkGreen(
-              MODULE_ID +
+              PF +
                 " | WHOIS" +
                 " | REAL IP: " +
                 params.ipAddress +
@@ -565,7 +563,7 @@ function dnsReverse(params) {
           if (params.verbose || configuration.verbose) {
             console.log(
               chalk.black(
-                MODULE_ID +
+                PF +
                   " | WHOIS" +
                   " | REAL IP: " +
                   params.ipAddress +
@@ -587,11 +585,7 @@ function dnsReverse(params) {
         } catch (err1) {
           console.log(
             chalkError(
-              MODULE_ID +
-                " | *** WHOIS ERROR | IP: " +
-                params.ipAddress +
-                " | " +
-                err1
+              PF + " | *** WHOIS ERROR | IP: " + params.ipAddress + " | " + err1
             )
           );
 
@@ -618,7 +612,7 @@ function dnsReverse(params) {
 
         console.log(
           chalk.black(
-            MODULE_ID +
+            PF +
               " | DOMAIN | DNS REVERSE" +
               " | GCP IP: " +
               params.ipAddress +
@@ -639,7 +633,7 @@ function dnsReverse(params) {
           .catch(async function (err0) {
             console.log(
               chalkError(
-                MODULE_ID +
+                PF +
                   " | *** DNS REVERSE ERROR | IP: " +
                   googleComputeEngineExternalIpAddress +
                   " | " +
@@ -650,7 +644,7 @@ function dnsReverse(params) {
             try {
               console.log(
                 chalkAlert(
-                  MODULE_ID +
+                  PF +
                     " | ... TRY WHOIS | IP: " +
                     googleComputeEngineExternalIpAddress
                 )
@@ -662,7 +656,7 @@ function dnsReverse(params) {
 
               console.log(
                 chalk.black(
-                  MODULE_ID +
+                  PF +
                     " | DOMAIN | WHOIS" +
                     " | REAL IP: " +
                     googleComputeEngineExternalIpAddress +
@@ -687,7 +681,7 @@ function dnsReverse(params) {
             } catch (err1) {
               console.log(
                 chalkError(
-                  MODULE_ID +
+                  PF +
                     " | *** WHOIS ERROR | IP: " +
                     googleComputeEngineExternalIpAddress +
                     " | " +
@@ -700,7 +694,7 @@ function dnsReverse(params) {
       } else {
         console.log(
           chalkGreen(
-            MODULE_ID +
+            PF +
               " | DNS REVERSE | $ MISS" +
               " | IP: " +
               params.ipAddress +
@@ -755,7 +749,7 @@ const nodeSearchResultHandler = async function (message) {
 
     const messageObj = JSON.parse(message.data.toString());
 
-    debug(chalkLog(MODULE_ID + " | RX NODE SEARCH RESULT " + message.id));
+    debug(chalkLog(PF + " | RX NODE SEARCH RESULT " + message.id));
 
     if (pubSubPublishMessageRequestIdSet.has(messageObj.requestId)) {
       statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived += 1;
@@ -769,7 +763,7 @@ const nodeSearchResultHandler = async function (message) {
         if (messageObj.node) {
           debug(
             chalkBlue(
-              MODULE_ID +
+              PF +
                 " | ==> SUB [" +
                 statsObj.pubSub.subscriptions.nodeSearchResult
                   .messagesReceived +
@@ -797,9 +791,7 @@ const nodeSearchResultHandler = async function (message) {
         }
 
         if (messageObj.stats) {
-          debug(
-            chalkLog(MODULE_ID + "\nUSER STATS\n" + jsonPrint(messageObj.stats))
-          );
+          debug(chalkLog(PF + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
           defaults(statsObj.user, messageObj.stats);
         }
 
@@ -826,7 +818,7 @@ const nodeSearchResultHandler = async function (message) {
 
         if (messageObj.nodes && messageObj.nodes.length > 0) {
           console.log(
-            MODULE_ID +
+            PF +
               " | nodeSearchResultHandler | NODES: " +
               messageObj.nodes.length
           );
@@ -863,7 +855,7 @@ const nodeSearchResultHandler = async function (message) {
       } else if (messageObj.node && messageObj.node.nodeType === "hashtag") {
         console.log(
           chalkBlueBold(
-            MODULE_ID +
+            PF +
               " | ==> SUB [" +
               statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived +
               "]" +
@@ -898,7 +890,7 @@ const nodeSearchResultHandler = async function (message) {
 
         console.log(
           chalkBlue(
-            MODULE_ID +
+            PF +
               " | ==> SUB [" +
               statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived +
               "]" +
@@ -915,16 +907,14 @@ const nodeSearchResultHandler = async function (message) {
 
         if (messageObj.stats) {
           debug(
-            chalkLog(
-              MODULE_ID + "\nHASHTAG STATS\n" + jsonPrint(messageObj.stats)
-            )
+            chalkLog(PF + "\nHASHTAG STATS\n" + jsonPrint(messageObj.stats))
           );
           defaults(statsObj.hashtag, messageObj.stats);
         }
 
         if (messageObj.nodes && messageObj.nodes.length > 0) {
           console.log(
-            MODULE_ID +
+            PF +
               " | nodeSearchResultHandler | NODES: " +
               messageObj.nodes.length
           );
@@ -957,7 +947,7 @@ const nodeSearchResultHandler = async function (message) {
       } else if (messageObj.results && messageObj.results.endCursor) {
         console.log(
           chalk.yellow(
-            MODULE_ID +
+            PF +
               " | ==> PS SEARCH NODE X END CURSOR X [" +
               statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived +
               "]" +
@@ -978,7 +968,7 @@ const nodeSearchResultHandler = async function (message) {
       } else {
         console.log(
           chalk.yellow(
-            MODULE_ID +
+            PF +
               " | ==> PS SEARCH NODE -MISS- [" +
               statsObj.pubSub.subscriptions.nodeSearchResult.messagesReceived +
               "]" +
@@ -998,7 +988,7 @@ const nodeSearchResultHandler = async function (message) {
           messageObj.results;
 
         console.log(
-          MODULE_ID +
+          PF +
             " | *** nodeSearchResultHandler | UNKNOWN NODE TYPE\n" +
             jsonPrint(messageObj)
         );
@@ -1013,7 +1003,7 @@ const nodeSearchResultHandler = async function (message) {
   } catch (err) {
     message.ack();
     console.log(
-      chalkError(MODULE_ID + " | *** RX nodeSearchResultHandler ERROR: " + err)
+      chalkError(PF + " | *** RX nodeSearchResultHandler ERROR: " + err)
     );
     console.log("message\n", message);
     throw err;
@@ -1042,7 +1032,7 @@ const nodeSetPropsResultHandler = async function (message) {
       ) {
         debug(
           chalkBlueBold(
-            MODULE_ID +
+            PF +
               " | ==> SUB [" +
               statsObj.pubSub.subscriptions.nodeSetPropsResult
                 .messagesReceived +
@@ -1073,9 +1063,7 @@ const nodeSetPropsResultHandler = async function (message) {
       }
 
       if (messageObj.stats) {
-        debug(
-          chalkLog(MODULE_ID + "\nUSER STATS\n" + jsonPrint(messageObj.stats))
-        );
+        debug(chalkLog(PF + "\nUSER STATS\n" + jsonPrint(messageObj.stats)));
         defaults(statsObj.user, messageObj.stats);
       }
 
@@ -1123,7 +1111,7 @@ const nodeSetPropsResultHandler = async function (message) {
       if (configuration.verbose) {
         console.log(
           chalkBlue(
-            MODULE_ID +
+            PF +
               " | ==> SUB [" +
               statsObj.pubSub.subscriptions.nodeSetPropsResult
                 .messagesReceived +
@@ -1147,7 +1135,7 @@ const nodeSetPropsResultHandler = async function (message) {
     } else {
       console.log(
         chalk.yellow(
-          MODULE_ID +
+          PF +
             " | ==> NODE SET PROPS -MISS- [" +
             statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived +
             "]" +
@@ -1179,7 +1167,7 @@ const nodeIgnoreHandler = async function (message) {
 
   console.log(
     chalkBlue(
-      MODULE_ID +
+      PF +
         " | --> PS IGNORE NODE [RX: " +
         statsObj.pubSub.ignoreNode.messagesReceived +
         "]" +
@@ -1214,7 +1202,7 @@ const nodeIgnoreHandler = async function (message) {
 const pubSubErrorHandler = function (params) {
   console.log(
     chalkError(
-      `${MODULE_ID} | *** PUBSUB ERROR | SUBSCRIPTION: ${params.subscribeName} | ${params.err}`
+      `${PF} | *** PUBSUB ERROR | SUBSCRIPTION: ${params.subscribeName} | ${params.err}`
     )
   );
   statsObj.pubSub.subscriptions.errors.push(params.err);
@@ -1231,7 +1219,7 @@ async function initNodeOpHandler(params) {
 
   console.log(
     chalkBlueBold(
-      `${MODULE_ID} | INIT PUBSUB NODE OP SUB HANDLER | SUB: ${params.subscribeName} | TOPIC: ${metadata.topic}`
+      `${PF} | INIT PUBSUB NODE OP SUB HANDLER | SUB: ${params.subscribeName} | TOPIC: ${metadata.topic}`
     )
   );
 
@@ -1278,7 +1266,7 @@ async function initNodeOpHandler(params) {
     default:
       console.log(
         chalkError(
-          `${MODULE_ID} | initNodeOpHandler ERROR: UNKNOWN SUBSCRIPTION: ${params.subscribeName}`
+          `${PF} | initNodeOpHandler ERROR: UNKNOWN SUBSCRIPTION: ${params.subscribeName}`
         )
       );
       throw new Error(
@@ -1308,7 +1296,7 @@ async function pubSubPublishMessage(params) {
 
     debug(
       chalkLog(
-        MODULE_ID +
+        PF +
           " | <== PUB [" +
           statsObj.pubSub.messagesSent +
           " / OUT: " +
@@ -1329,9 +1317,7 @@ async function pubSubPublishMessage(params) {
 
     return messageId;
   } catch (err) {
-    console.log(
-      chalkError(MODULE_ID + " | *** pubSubPublishMessage ERROR: " + err)
-    );
+    console.log(chalkError(PF + " | *** pubSubPublishMessage ERROR: " + err));
     throw err;
   }
 }
@@ -1373,7 +1359,7 @@ async function slackSendWebMessage(msgObj) {
 
 async function initSlackWebClient() {
   try {
-    console.log(chalkLog(MODULE_ID + " | INIT SLACK WEB CLIENT"));
+    console.log(chalkLog(PF + " | INIT SLACK WEB CLIENT"));
 
     slackWebClient = new WebClient(slackBotToken);
 
@@ -1627,7 +1613,7 @@ async function quit(message) {
 
   console.log(chalkAlert("\nWAS | ... QUITTING ... " + getTimeStamp()));
 
-  // const slackText = MODULE_ID + " | *** QUIT | MESSAGE: " + message;
+  // const slackText = PF + " | *** QUIT | MESSAGE: " + message;
 
   // await slackSendWebMessage({ channel: slackChannel, text: slackText });
 
@@ -1660,9 +1646,9 @@ async function quit(message) {
     msg = message;
   }
 
-  console.log(chalkAlert(MODULE_ID + " | ... QUITTING ..."));
-  console.log(chalkAlert(MODULE_ID + " | QUIT MESSAGE: " + msg));
-  console.log(chalkAlert(MODULE_ID + " | QUIT MESSAGE: " + msg));
+  console.log(chalkAlert(PF + " | ... QUITTING ..."));
+  console.log(chalkAlert(PF + " | QUIT MESSAGE: " + msg));
+  console.log(chalkAlert(PF + " | QUIT MESSAGE: " + msg));
 
   setTimeout(async function () {
     if (tcUtils !== undefined) {
@@ -1675,15 +1661,13 @@ async function quit(message) {
 const commandLineConfig = commandLineArgs(optionDefinitions);
 console.log(
   chalkInfo(
-    MODULE_ID + " | COMMAND LINE CONFIG\nWAS | " + jsonPrint(commandLineConfig)
+    PF + " | COMMAND LINE CONFIG\nWAS | " + jsonPrint(commandLineConfig)
   )
 );
 
 if (Object.keys(commandLineConfig).includes("help")) {
   console.log(
-    chalkInfo(
-      MODULE_ID + " | optionDefinitions\n" + jsonPrint(optionDefinitions)
-    )
+    chalkInfo(PF + " | optionDefinitions\n" + jsonPrint(optionDefinitions))
   );
   quit("help").then(function () {
     console.log("QUIT");
@@ -1845,11 +1829,11 @@ let ignoredUserSet = new Set();
 let ignoredHashtagSet = new Set();
 
 process.title = "node_wordAssoServer";
-console.log(chalkBlue(MODULE_ID + " | ============= START ==============\n\n"));
+console.log(chalkBlue(PF + " | ============= START ==============\n\n"));
 
-console.log(chalkBlue(MODULE_ID + " | PROCESS PID:   " + process.pid));
-console.log(chalkBlue(MODULE_ID + " | PROCESS TITLE: " + process.title));
-console.log(chalkBlue(MODULE_ID + " | ENVIRONMENT:   " + process.env.NODE_ENV));
+console.log(chalkBlue(PF + " | PROCESS PID:   " + process.pid));
+console.log(chalkBlue(PF + " | PROCESS TITLE: " + process.title));
+console.log(chalkBlue(PF + " | ENVIRONMENT:   " + process.env.NODE_ENV));
 
 // ==================================================================
 // GLOBAL VARIABLES
@@ -2214,9 +2198,7 @@ function initPassport() {
   return new Promise(function (resolve) {
     const sessionId = btoa("threecee");
 
-    console.log(
-      chalk.green(MODULE_ID + " | PASSPORT SESSION ID: " + sessionId)
-    );
+    console.log(chalk.green(PF + " | PASSPORT SESSION ID: " + sessionId));
 
     console.log({ threeceeConfig });
 
@@ -2229,20 +2211,16 @@ function initPassport() {
         },
         function (token, tokenSecret, profile, cb) {
           console.log(
+            chalk.green(PF + " | PASSPORT TWITTER AUTH: token:       " + token)
+          );
+          console.log(
             chalk.green(
-              MODULE_ID + " | PASSPORT TWITTER AUTH: token:       " + token
+              PF + " | PASSPORT TWITTER AUTH: tokenSecret: " + tokenSecret
             )
           );
           console.log(
             chalk.green(
-              MODULE_ID +
-                " | PASSPORT TWITTER AUTH: tokenSecret: " +
-                tokenSecret
-            )
-          );
-          console.log(
-            chalk.green(
-              MODULE_ID +
+              PF +
                 " | PASSPORT TWITTER AUTH: USER:       @" +
                 profile.username +
                 " | " +
@@ -2253,9 +2231,7 @@ function initPassport() {
           if (configuration.verbose) {
             console.log(
               chalk.green(
-                MODULE_ID +
-                  " | PASSPORT TWITTER AUTH\nprofile\n" +
-                  jsonPrint(profile)
+                PF + " | PASSPORT TWITTER AUTH\nprofile\n" + jsonPrint(profile)
               )
             );
           }
@@ -2268,7 +2244,7 @@ function initPassport() {
               if (err) {
                 console.log(
                   chalkError(
-                    MODULE_ID +
+                    PF +
                       " | *** UNCATEGORIZED USER | convertRawUser ERROR: " +
                       err +
                       "\nrawUser\n" +
@@ -2278,7 +2254,7 @@ function initPassport() {
                 return cb("RAW USER", rawUser);
               }
 
-              printUserObj(MODULE_ID + " | MONGO DB | TWITTER AUTH USER", user);
+              printUserObj(PF + " | MONGO DB | TWITTER AUTH USER", user);
 
               userServerController.findOneUser(
                 user,
@@ -2286,7 +2262,7 @@ function initPassport() {
                 async function (err, updatedUser) {
                   if (err) {
                     console.log(
-                      chalkError(MODULE_ID + " | ***findOneUser ERROR: " + err)
+                      chalkError(PF + " | ***findOneUser ERROR: " + err)
                     );
                     return cb(err);
                   }
@@ -2294,7 +2270,7 @@ function initPassport() {
                   if (configuration.verbose) {
                     console.log(
                       chalk.blue(
-                        MODULE_ID +
+                        PF +
                           " | UPDATED updatedUser" +
                           " | PREV CR: " +
                           previousUserUncategorizedCreated.format(
@@ -2364,9 +2340,7 @@ function initPassport() {
       };
 
       console.log(
-        chalk.green(
-          MODULE_ID + " | PASSPORT SERIALIZE USER | @" + user.screenName
-        )
+        chalk.green(PF + " | PASSPORT SERIALIZE USER | @" + user.screenName)
       );
 
       done(null, sessionUser);
@@ -2375,9 +2349,7 @@ function initPassport() {
     passport.deserializeUser(async function (sessionUser, done) {
       console.log(
         chalk.green(
-          MODULE_ID +
-            " | PASSPORT DESERIALIZE USER | @" +
-            sessionUser.screenName
+          PF + " | PASSPORT DESERIALIZE USER | @" + sessionUser.screenName
         )
       );
 
@@ -2440,7 +2412,7 @@ function touchChildPidFile(params) {
 
   touch.sync(path, { force: true });
 
-  console.log(chalkBlue(MODULE_ID + " | TOUCH CHILD PID FILE: " + path));
+  console.log(chalkBlue(PF + " | TOUCH CHILD PID FILE: " + path));
 }
 
 // ==================================================================
@@ -2452,7 +2424,7 @@ if (empty(ipCacheTtl)) {
   ipCacheTtl = IP_CACHE_DEFAULT_TTL;
 }
 
-console.log(MODULE_ID + " | IP CACHE TTL: " + ipCacheTtl + " SECONDS");
+console.log(PF + " | IP CACHE TTL: " + ipCacheTtl + " SECONDS");
 
 let ipCacheCheckPeriod = process.env.IP_CACHE_CHECK_PERIOD;
 if (empty(ipCacheCheckPeriod)) {
@@ -2460,7 +2432,7 @@ if (empty(ipCacheCheckPeriod)) {
 }
 
 console.log(
-  MODULE_ID + " | IP CACHE CHECK PERIOD: " + ipCacheCheckPeriod + " SECONDS"
+  PF + " | IP CACHE CHECK PERIOD: " + ipCacheCheckPeriod + " SECONDS"
 );
 
 const ipCache = new NodeCache({
@@ -2473,7 +2445,7 @@ function ipCacheExpired(ip, ipCacheObj) {
 
   console.log(
     chalkInfo(
-      MODULE_ID +
+      PF +
         " | XXX IP CACHE EXPIRED" +
         " [" +
         ipCache.getStats().keys +
@@ -2504,9 +2476,7 @@ if (empty(tweetIdCacheTtl)) {
   tweetIdCacheTtl = TWEET_ID_CACHE_DEFAULT_TTL;
 }
 
-console.log(
-  MODULE_ID + " | TWEET ID CACHE TTL: " + tweetIdCacheTtl + " SECONDS"
-);
+console.log(PF + " | TWEET ID CACHE TTL: " + tweetIdCacheTtl + " SECONDS");
 
 let tweetIdCacheCheckPeriod = process.env.TWEET_ID_CACHE_CHECK_PERIOD;
 if (empty(tweetIdCacheCheckPeriod)) {
@@ -2514,10 +2484,7 @@ if (empty(tweetIdCacheCheckPeriod)) {
 }
 
 console.log(
-  MODULE_ID +
-    " | TWEET ID CACHE CHECK PERIOD: " +
-    tweetIdCacheCheckPeriod +
-    " SECONDS"
+  PF + " | TWEET ID CACHE CHECK PERIOD: " + tweetIdCacheCheckPeriod + " SECONDS"
 );
 
 const tweetIdCache = new NodeCache({
@@ -2533,7 +2500,7 @@ if (empty(viewerCacheTtl)) {
   viewerCacheTtl = VIEWER_CACHE_DEFAULT_TTL;
 }
 
-console.log(MODULE_ID + " | VIEWER CACHE TTL: " + viewerCacheTtl + " SECONDS");
+console.log(PF + " | VIEWER CACHE TTL: " + viewerCacheTtl + " SECONDS");
 
 let viewerCacheCheckPeriod = process.env.VIEWER_CACHE_CHECK_PERIOD;
 if (empty(viewerCacheCheckPeriod)) {
@@ -2541,10 +2508,7 @@ if (empty(viewerCacheCheckPeriod)) {
 }
 
 console.log(
-  MODULE_ID +
-    " | VIEWER CACHE CHECK PERIOD: " +
-    viewerCacheCheckPeriod +
-    " SECONDS"
+  PF + " | VIEWER CACHE CHECK PERIOD: " + viewerCacheCheckPeriod + " SECONDS"
 );
 
 const viewerCache = new NodeCache({
@@ -2555,7 +2519,7 @@ const viewerCache = new NodeCache({
 function viewerCacheExpired(viewerCacheId, viewerObj) {
   console.log(
     chalkInfo(
-      MODULE_ID +
+      PF +
         " | XXX VIEWER CACHE EXPIRED" +
         " [" +
         viewerCache.getStats().keys +
@@ -2590,17 +2554,14 @@ let serverCacheTtl = process.env.SERVER_CACHE_DEFAULT_TTL;
 if (empty(serverCacheTtl)) {
   serverCacheTtl = SERVER_CACHE_DEFAULT_TTL;
 }
-console.log(MODULE_ID + " | SERVER CACHE TTL: " + serverCacheTtl + " SECONDS");
+console.log(PF + " | SERVER CACHE TTL: " + serverCacheTtl + " SECONDS");
 
 let serverCacheCheckPeriod = process.env.SERVER_CACHE_CHECK_PERIOD;
 if (empty(serverCacheCheckPeriod)) {
   serverCacheCheckPeriod = SERVER_CACHE_CHECK_PERIOD;
 }
 console.log(
-  MODULE_ID +
-    " | SERVER CACHE CHECK PERIOD: " +
-    serverCacheCheckPeriod +
-    " SECONDS"
+  PF + " | SERVER CACHE CHECK PERIOD: " + serverCacheCheckPeriod + " SECONDS"
 );
 
 const serverCache = new NodeCache({
@@ -2611,7 +2572,7 @@ const serverCache = new NodeCache({
 function serverCacheExpired(serverCacheId, serverObj) {
   console.log(
     chalkInfo(
-      MODULE_ID +
+      PF +
         " | XXX SERVER CACHE EXPIRED" +
         " [" +
         serverCache.getStats().keys +
@@ -2647,7 +2608,7 @@ if (empty(authenticatedSocketCacheTtl)) {
   authenticatedSocketCacheTtl = AUTH_SOCKET_CACHE_DEFAULT_TTL;
 }
 console.log(
-  MODULE_ID +
+  PF +
     " | AUTHENTICATED SOCKET CACHE TTL: " +
     authenticatedSocketCacheTtl +
     " SECONDS"
@@ -2659,7 +2620,7 @@ if (empty(authenticatedSocketCacheCheckPeriod)) {
   authenticatedSocketCacheCheckPeriod = AUTH_SOCKET_CACHE_CHECK_PERIOD;
 }
 console.log(
-  MODULE_ID +
+  PF +
     " | AUTHENTICATED SOCKET CACHE CHECK PERIOD: " +
     authenticatedSocketCacheCheckPeriod +
     " SECONDS"
@@ -2673,7 +2634,7 @@ const authenticatedSocketCache = new NodeCache({
 function authenticatedSocketCacheExpired(socketId, authSocketObj) {
   console.log(
     chalkInfo(
-      MODULE_ID +
+      PF +
         " | XXX AUTH SOCKET CACHE EXPIRED" +
         " [" +
         authenticatedSocketCache.getStats().keys +
@@ -2705,7 +2666,7 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
         if (authSocketObjCache !== undefined) {
           console.log(
             chalkInfo(
-              MODULE_ID +
+              PF +
                 " | AUTH SOCKET CACHE ENTRIES" +
                 " | NSP: " +
                 authSocketObjCache.namespace.toUpperCase() +
@@ -2726,17 +2687,13 @@ function authenticatedSocketCacheExpired(socketId, authSocketObj) {
         } else {
           console.log(
             chalkAlert(
-              MODULE_ID +
-                " | ??? AUTH SOCKET CACHE NO ENTRY? | SOCKET ID: " +
-                socketId
+              PF + " | ??? AUTH SOCKET CACHE NO ENTRY? | SOCKET ID: " + socketId
             )
           );
         }
       });
     } else {
-      console.log(
-        chalkError(MODULE_ID + " | *** AUTH CACHE GET KEYS ERROR: " + err)
-      );
+      console.log(chalkError(PF + " | *** AUTH CACHE GET KEYS ERROR: " + err));
     }
   });
 
@@ -2753,7 +2710,7 @@ if (empty(authenticatedTwitterUserCacheTtl)) {
   authenticatedTwitterUserCacheTtl = AUTH_USER_CACHE_DEFAULT_TTL;
 }
 console.log(
-  MODULE_ID +
+  PF +
     " | AUTHENTICATED TWITTER USER CACHE TTL: " +
     authenticatedTwitterUserCacheTtl +
     " SECONDS"
@@ -2765,7 +2722,7 @@ if (empty(authenticatedTwitterUserCacheCheckPeriod)) {
   authenticatedTwitterUserCacheCheckPeriod = AUTH_USER_CACHE_CHECK_PERIOD;
 }
 console.log(
-  MODULE_ID +
+  PF +
     " | AUTHENTICATED TWITTERUSER CACHE CHECK PERIOD: " +
     authenticatedTwitterUserCacheCheckPeriod +
     " SECONDS"
@@ -2779,7 +2736,7 @@ const authenticatedTwitterUserCache = new NodeCache({
 function authenticatedTwitterUserCacheExpired(nodeId, userObj) {
   console.log(
     chalkInfo(
-      MODULE_ID +
+      PF +
         " | XXX AUTH TWITTER USER CACHE EXPIRED" +
         " [" +
         authenticatedTwitterUserCache.getStats().keys +
@@ -2809,7 +2766,7 @@ if (empty(authInProgressTwitterUserCacheTtl)) {
   authInProgressTwitterUserCacheTtl = AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL;
 }
 console.log(
-  MODULE_ID +
+  PF +
     " | AUTH IN PROGRESS CACHE TTL: " +
     authInProgressTwitterUserCacheTtl +
     " SECONDS"
@@ -2821,7 +2778,7 @@ if (empty(authInProgressTwitterUserCacheCheckPeriod)) {
   authInProgressTwitterUserCacheCheckPeriod = AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;
 }
 console.log(
-  MODULE_ID +
+  PF +
     " | AUTH IN PROGRESS CACHE CHECK PERIOD: " +
     authInProgressTwitterUserCacheCheckPeriod +
     " SECONDS"
@@ -2835,7 +2792,7 @@ const authInProgressTwitterUserCache = new NodeCache({
 authInProgressTwitterUserCache.on("expired", function (nodeId, userObj) {
   console.log(
     chalkInfo(
-      MODULE_ID +
+      PF +
         " | XXX AUTH IN PROGRESS TWITTER USER CACHE EXPIRED" +
         " [" +
         authInProgressTwitterUserCache.getStats().keys +
@@ -2858,14 +2815,14 @@ let nodeCacheTtl = process.env.NODE_CACHE_DEFAULT_TTL;
 if (empty(nodeCacheTtl)) {
   nodeCacheTtl = NODE_CACHE_DEFAULT_TTL;
 }
-console.log(MODULE_ID + " | NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
+console.log(PF + " | NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
 
 let nodeCacheCheckPeriod = process.env.NODE_CACHE_CHECK_PERIOD;
 if (empty(nodeCacheCheckPeriod)) {
   nodeCacheCheckPeriod = NODE_CACHE_CHECK_PERIOD;
 }
 console.log(
-  MODULE_ID + " | NODE CACHE CHECK PERIOD: " + nodeCacheCheckPeriod + " SECONDS"
+  PF + " | NODE CACHE CHECK PERIOD: " + nodeCacheCheckPeriod + " SECONDS"
 );
 
 const nodeCache = new NodeCache({
@@ -2890,7 +2847,7 @@ function nodeCacheExpired(nodeObj, callback) {
       statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
       console.log(
         chalkLog(
-          MODULE_ID +
+          PF +
             " | NEW MAX NODE METER ENTRIES" +
             " | " +
             getTimeStamp() +
@@ -2944,10 +2901,7 @@ if (empty(nodesPerMinuteTopTermTtl)) {
 }
 
 console.log(
-  MODULE_ID +
-    " | TOP TERMS WPM CACHE TTL: " +
-    nodesPerMinuteTopTermTtl +
-    " SECONDS"
+  PF + " | TOP TERMS WPM CACHE TTL: " + nodesPerMinuteTopTermTtl + " SECONDS"
 );
 
 let nodesPerMinuteTopTermCheckPeriod = process.env.TOPTERMS_CACHE_CHECK_PERIOD;
@@ -2957,7 +2911,7 @@ if (empty(nodesPerMinuteTopTermCheckPeriod)) {
 }
 
 console.log(
-  MODULE_ID +
+  PF +
     " | TOP TERMS WPM CACHE CHECK PERIOD: " +
     nodesPerMinuteTopTermCheckPeriod +
     " SECONDS"
@@ -3040,7 +2994,7 @@ const statsBestNetworkPickArray = [
 let tweetParserReady = false;
 
 function initStats() {
-  console.log(chalk.bold.black(MODULE_ID + " | INIT STATS"));
+  console.log(chalk.bold.black(PF + " | INIT STATS"));
 
   statsObj.ioReady = false;
   statsObj.internetReady = false;
@@ -3268,12 +3222,12 @@ function showStats(options) {
   }
 
   if (options) {
-    console.log(chalkLog(MODULE_ID + " | STATS\n" + jsonPrint(statsObj)));
+    console.log(chalkLog(PF + " | STATS\n" + jsonPrint(statsObj)));
   }
 
   console.log(
     chalkLog(
-      MODULE_ID +
+      PF +
         " | S" +
         " | " +
         getTimeStamp() +
@@ -3330,11 +3284,7 @@ function loadCommandLineArgs() {
       function (arg, cb) {
         configuration[arg] = commandLineConfig[arg];
         console.log(
-          MODULE_ID +
-            " | --> COMMAND LINE CONFIG | " +
-            arg +
-            ": " +
-            configuration[arg]
+          PF + " | --> COMMAND LINE CONFIG | " + arg + ": " + configuration[arg]
         );
         cb();
       },
@@ -3434,7 +3384,7 @@ function getChildProcesses() {
 
           debug(
             chalkInfo(
-              MODULE_ID +
+              PF +
                 " | FOUND CHILD" +
                 " [ " +
                 childPidArray.length +
@@ -3461,7 +3411,7 @@ function getChildProcesses() {
 
           console.log(
             chalkAlert(
-              MODULE_ID +
+              PF +
                 " | *** CHILD ZOMBIE" +
                 " | STATUS: " +
                 childrenHashMap[childId].status +
@@ -3471,9 +3421,7 @@ function getChildProcesses() {
 
           kill(childPid, function (err) {
             if (err) {
-              console.log(
-                chalkError(MODULE_ID + " | *** KILL ZOMBIE ERROR: ", err)
-              );
+              console.log(chalkError(PF + " | *** KILL ZOMBIE ERROR: ", err));
               return cb(err);
             }
 
@@ -3483,7 +3431,7 @@ function getChildProcesses() {
 
             console.log(
               chalkAlert(
-                MODULE_ID +
+                PF +
                   " | XXX CHILD ZOMBIE" +
                   " [ " +
                   childPidArray.length +
@@ -3526,7 +3474,7 @@ async function killAll() {
           await killChild({ pid: childObj.pid });
           console.log(
             chalkAlert(
-              MODULE_ID +
+              PF +
                 " | XXX KILL ALL | KILLED | PID: " +
                 childObj.pid +
                 " | CH ID: " +
@@ -3536,7 +3484,7 @@ async function killAll() {
         } catch (err) {
           console.log(
             chalkError(
-              MODULE_ID +
+              PF +
                 " | *** KILL CHILD ERROR" +
                 " | PID: " +
                 childObj.pid +
@@ -3551,26 +3499,22 @@ async function killAll() {
       return childPidArray;
     }
 
-    console.log(chalkBlue(MODULE_ID + " | XXX KILL ALL | NO CHILDREN"));
+    console.log(chalkBlue(PF + " | XXX KILL ALL | NO CHILDREN"));
     return childPidArray;
   } catch (err) {
-    console.log(chalkError(MODULE_ID + " | *** killAll ERROR: " + err));
+    console.log(chalkError(PF + " | *** killAll ERROR: " + err));
     throw err;
   }
 }
 
 process.on("unhandledRejection", async function (err, promise) {
   console.trace(
-    MODULE_ID +
-      " | *** Unhandled rejection | PROMISE: " +
-      promise +
-      " | ERROR: " +
-      err
+    PF + " | *** Unhandled rejection | PROMISE: " + promise + " | ERROR: " + err
   );
   console.log(promise);
 
   // const slackText =
-  //   MODULE_ID +
+  //   PF +
   //   " | *** Unhandled rejection | PROMISE: " +
   //   promise +
   //   " | ERROR: " +
@@ -3586,9 +3530,7 @@ process.on("exit", async function processExit() {
   try {
     await killAll();
   } catch (err) {
-    console.log(
-      chalkError(MODULE_ID + " | *** MAIN PROCESS EXIT ERROR: " + err)
-    );
+    console.log(chalkError(PF + " | *** MAIN PROCESS EXIT ERROR: " + err));
   }
 });
 
@@ -3608,7 +3550,7 @@ process.on("message", async function processMessageRx(msg) {
         obj: statsObj,
       });
     } catch (err) {
-      console.log(chalkError(MODULE_ID + " | *** SAVE STATS ERROR: " + err));
+      console.log(chalkError(PF + " | *** SAVE STATS ERROR: " + err));
     }
 
     setTimeout(async function quitTimeout() {
@@ -3621,7 +3563,7 @@ process.on("message", async function processMessageRx(msg) {
 configEvents.on("CHILD_ERROR", function childError(childObj) {
   console.log(
     chalkError(
-      MODULE_ID +
+      PF +
         " | *** CHILD_ERROR" +
         " | " +
         childObj.childId +
@@ -3637,13 +3579,11 @@ configEvents.on("CHILD_ERROR", function childError(childObj) {
 
   switch (childObj.childId) {
     case DEFAULT_DBU_CHILD_ID:
-      console.log(chalkError(MODULE_ID + " | *** KILL DBU CHILD"));
+      console.log(chalkError(PF + " | *** KILL DBU CHILD"));
 
       killChild({ childId: DEFAULT_DBU_CHILD_ID }, function (err) {
         if (err) {
-          console.log(
-            chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err)
-          );
+          console.log(chalkError(PF + " | *** KILL CHILD ERROR: " + err));
         } else {
           initDbuChild({ childId: DEFAULT_DBU_CHILD_ID });
         }
@@ -3652,13 +3592,11 @@ configEvents.on("CHILD_ERROR", function childError(childObj) {
       break;
 
     case DEFAULT_TSS_CHILD_ID:
-      console.log(chalkError(MODULE_ID + " | *** KILL TSS CHILD"));
+      console.log(chalkError(PF + " | *** KILL TSS CHILD"));
 
       killChild({ childId: DEFAULT_TSS_CHILD_ID }, async function (err) {
         if (err) {
-          console.log(
-            chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err)
-          );
+          console.log(chalkError(PF + " | *** KILL CHILD ERROR: " + err));
         } else {
           await initTssChild({
             childId: DEFAULT_TSS_CHILD_ID,
@@ -3671,13 +3609,11 @@ configEvents.on("CHILD_ERROR", function childError(childObj) {
       break;
 
     case DEFAULT_TWP_CHILD_ID:
-      console.log(chalkError(MODULE_ID + " | *** KILL TWEET PARSER"));
+      console.log(chalkError(PF + " | *** KILL TWEET PARSER"));
 
       killChild({ childId: DEFAULT_TWP_CHILD_ID }, function (err) {
         if (err) {
-          console.log(
-            chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err)
-          );
+          console.log(chalkError(PF + " | *** KILL CHILD ERROR: " + err));
         } else {
           initTweetParser({ childId: DEFAULT_TWP_CHILD_ID });
         }
@@ -3688,9 +3624,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj) {
     default:
       console.log(
         chalkError(
-          MODULE_ID +
-            " | *** CHILD ERROR -- UNKNOWN CHILD ID: " +
-            childObj.childId
+          PF + " | *** CHILD ERROR -- UNKNOWN CHILD ID: " + childObj.childId
         )
       );
   }
@@ -3800,7 +3734,7 @@ const initHeartbeatInterval = async (p) => {
 configEvents.on("INTERNET_READY", function internetReady() {
   console.log(
     chalkInfo(
-      `${MODULE_ID} | ${getTimeStamp()} | SERVER_READY EVENT | PORT ${
+      `${PF} | ${getTimeStamp()} | SERVER_READY EVENT | PORT ${
         configServer.port
       }`
     )
@@ -3811,9 +3745,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
       statsObj.internetReady = true;
       debug(
         chalkLog(
-          `${MODULE_ID} | ${getTimeStamp()} | RECONNECT PORT ${
-            configServer.port
-          }`
+          `${PF} | ${getTimeStamp()} | RECONNECT PORT ${configServer.port}`
         )
       );
     });
@@ -3823,7 +3755,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
       statsObj.internetReady = true;
       debug(
         chalkLog(
-          `${MODULE_ID} | ${getTimeStamp()} | CONNECT PORT ${configServer.port}`
+          `${PF} | ${getTimeStamp()} | CONNECT PORT ${configServer.port}`
         )
       );
 
@@ -3831,7 +3763,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
         statsObj.internetReady = false;
         console.log(
           chalkError(
-            `${MODULE_ID} | *** PORT DISCONNECTED | ${getTimeStamp()} | ${
+            `${PF} | *** PORT DISCONNECTED | ${getTimeStamp()} | ${
               configServer.port
             }`
           )
@@ -3842,9 +3774,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
     httpServer.listen(configServer.port, function serverListen() {
       debug(
         chalkLog(
-          `${MODULE_ID} | ${getTimeStamp()} | LISTENING ON PORT ${
-            configServer.port
-          }`
+          `${PF} | ${getTimeStamp()} | LISTENING ON PORT ${configServer.port}`
         )
       );
     });
@@ -3855,7 +3785,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
 
       debug(
         chalkError(
-          `${MODULE_ID} | ${getTimeStamp()} | *** HTTP ERROR | PORT ${
+          `${PF} | ${getTimeStamp()} | *** HTTP ERROR | PORT ${
             configServer.port
           } | ERROR: ${err}`
         )
@@ -3864,7 +3794,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
       if (err.code == "EADDRINUSE") {
         debug(
           chalkError(
-            `${MODULE_ID} | ${getTimeStamp()} | *** HTTP ADDRESS IN USE | PORT ${
+            `${PF} | ${getTimeStamp()} | *** HTTP ADDRESS IN USE | PORT ${
               configServer.port
             } | ... RETRYING...`
           )
@@ -3874,7 +3804,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
           httpServer.listen(configServer.port, function serverErrorListen() {
             debug(
               chalkInfo(
-                `${MODULE_ID} | ${getTimeStamp()} | LISTENING ON PORT ${
+                `${PF} | ${getTimeStamp()} | LISTENING ON PORT ${
                   configServer.port
                 }`
               )
@@ -3891,7 +3821,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
 configEvents.on("INTERNET_NOT_READY", function internetNotReady() {
   if (configuration.autoOfflineMode) {
     configuration.offlineMode = true;
-    console.log(chalkAlert(MODULE_ID + " | *** AUTO_OFFLINE_MODE ***"));
+    console.log(chalkAlert(PF + " | *** AUTO_OFFLINE_MODE ***"));
   }
 });
 
@@ -3902,7 +3832,7 @@ configEvents.on("INIT_SETS_COMPLETE", function configEventDbConnect() {
 configEvents.on("DB_CONNECT", function configEventDbConnect() {
   statsObj.status = "DB_CONNECT";
 
-  console.log(chalk.green(MODULE_ID + " | >>> DB CONNECT EVENT"));
+  console.log(chalk.green(PF + " | >>> DB CONNECT EVENT"));
 
   async.parallel(
     {
@@ -3949,19 +3879,15 @@ configEvents.on("DB_CONNECT", function configEventDbConnect() {
     function (err, results) {
       if (err) {
         console.log(
-          chalkError(MODULE_ID + " | *** ERROR: LOAD CATEGORY HASHMAPS: " + err)
+          chalkError(PF + " | *** ERROR: LOAD CATEGORY HASHMAPS: " + err)
         );
         console.log(err);
       } else {
-        console.log(
-          chalk.green(MODULE_ID + " | +++ MONGO DB CONNECTION READY")
-        );
+        console.log(chalk.green(PF + " | +++ MONGO DB CONNECTION READY"));
         if (configuration.verbose) {
           console.log(
             chalk.green(
-              MODULE_ID +
-                " | +++ MONGO DB CONNECTION RESULTS\n" +
-                jsonPrint(results)
+              PF + " | +++ MONGO DB CONNECTION RESULTS\n" + jsonPrint(results)
             )
           );
         }
@@ -4049,7 +3975,7 @@ function socketRxTweet(tw) {
 
       console.log(
         chalkLog(
-          MODULE_ID +
+          PF +
             " | SAVING SAMPLE TWEET" +
             " [" +
             tweetsReceived +
@@ -4128,7 +4054,7 @@ async function deleteNode(node) {
 
       console.log(
         chalkAlert(
-          MODULE_ID +
+          PF +
             " | XXX USER | -*- DB HIT" +
             " [" +
             statsObj.user.deleted +
@@ -4139,9 +4065,7 @@ async function deleteNode(node) {
       );
     } else {
       console.log(
-        chalkAlert(
-          MODULE_ID + " | XXX USER | --- DB MISS" + " | " + node.nodeId
-        )
+        chalkAlert(PF + " | XXX USER | --- DB MISS" + " | " + node.nodeId)
       );
     }
   }
@@ -4156,7 +4080,7 @@ async function deleteNode(node) {
 
       console.log(
         chalkAlert(
-          MODULE_ID +
+          PF +
             " | XXX HASHTAG | -*- DB HIT" +
             " [" +
             statsObj.hashtag.deleted +
@@ -4167,9 +4091,7 @@ async function deleteNode(node) {
       );
     } else {
       console.log(
-        chalkAlert(
-          MODULE_ID + " | XXX HASHTAG | --- DB MISS" + " | " + node.nodeId
-        )
+        chalkAlert(PF + " | XXX HASHTAG | --- DB MISS" + " | " + node.nodeId)
       );
     }
   }
@@ -4184,7 +4106,7 @@ async function pubSubNodeSetProps(params) {
   try {
     debug(
       chalkBlue(
-        MODULE_ID +
+        PF +
           " | NODE SET PROPS [" +
           statsObj.pubSub.messagesSent +
           "]" +
@@ -4216,7 +4138,7 @@ async function pubSubNodeSetProps(params) {
     nodeSetPropsResultTimeout = setTimeout(function () {
       console.log(
         chalkAlert(
-          MODULE_ID +
+          PF +
             " | !!! NODE SET PROPS TIMEOUT" +
             " | " +
             msToTime(configuration.pubSub.pubSubResultTimeout) +
@@ -4309,7 +4231,7 @@ async function pubSubNodeSetProps(params) {
     if (!node) {
       console.log(
         chalkAlert(
-          MODULE_ID +
+          PF +
             " | !!! NODE SET PROP NODE NOT FOUND" +
             " | " +
             params.requestId +
@@ -4336,7 +4258,7 @@ async function pubSubNodeSetProps(params) {
         errorType = "USER_NOT_FOUND";
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | *** TWITTER USER NOT FOUND" +
               " | " +
               getTimeStamp() +
@@ -4356,7 +4278,7 @@ async function pubSubNodeSetProps(params) {
         errorType = "USER_SUSPENDED";
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | *** TWITTER USER SUSPENDED" +
               " | " +
               getTimeStamp() +
@@ -4376,7 +4298,7 @@ async function pubSubNodeSetProps(params) {
         errorType = "USER_DUPLICATE_KEY";
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | *** DB USER_DUPLICATE_KEY ERROR" +
               " | " +
               getTimeStamp() +
@@ -4395,7 +4317,7 @@ async function pubSubNodeSetProps(params) {
       default:
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | *** TWITTER SEARCH NODE USER ERROR | SEARCH CAT AUTO: " +
               params.categoryAuto +
               " | ERR CODE: " +
@@ -4416,7 +4338,7 @@ async function nodeSetProps(params) {
 
   debug(
     chalk.blue(
-      MODULE_ID +
+      PF +
         " | NODE SET PROPS" +
         " | " +
         requestId +
@@ -4443,7 +4365,7 @@ async function nodeSetProps(params) {
 async function updateDbIgnoredHashtags() {
   statsObj.status = "UPDATE IGNORED HASHTAGS IN DB";
 
-  console.log(chalkBlue(MODULE_ID + " | UPDATE IGNORED HASHTAGS DB"));
+  console.log(chalkBlue(PF + " | UPDATE IGNORED HASHTAGS DB"));
 
   [...ignoredHashtagSet].forEach(async function (hashtag) {
     try {
@@ -4461,7 +4383,7 @@ async function updateDbIgnoredHashtags() {
 
       debug(
         chalkLog(
-          MODULE_ID +
+          PF +
             " | +++ IGNORED HASHTAG" +
             " [" +
             ignoredHashtagSet.size +
@@ -4475,7 +4397,7 @@ async function updateDbIgnoredHashtags() {
 
       debug(
         chalkLog(
-          MODULE_ID +
+          PF +
             " | XXX IGNORE" +
             " [" +
             ignoredHashtagSet.size +
@@ -4486,7 +4408,7 @@ async function updateDbIgnoredHashtags() {
       );
     } catch (err) {
       console.log(
-        chalkError(MODULE_ID + " | *** UPDATE IGNORED HASHTAG DB ERROR: " + err)
+        chalkError(PF + " | *** UPDATE IGNORED HASHTAG DB ERROR: " + err)
       );
       return err;
     }
@@ -4498,7 +4420,7 @@ async function updateDbIgnoredHashtags() {
 async function initIgnoredHashtagSet() {
   statsObj.status = "INIT IGNORE HASHTAG SET";
 
-  console.log(chalkLog(MODULE_ID + " | ... INIT IGNORE HASHTAG SET"));
+  console.log(chalkLog(PF + " | ... INIT IGNORE HASHTAG SET"));
 
   try {
     const result = await tcUtils.initSetFromFile({
@@ -4516,7 +4438,7 @@ async function initIgnoredHashtagSet() {
 
     console.log(
       chalkLog(
-        MODULE_ID +
+        PF +
           " | LOADED IGNORED HASHTAGS FILE" +
           " | " +
           ignoredHashtagSet.size +
@@ -4530,9 +4452,7 @@ async function initIgnoredHashtagSet() {
 
     return;
   } catch (err) {
-    console.log(
-      chalkError(MODULE_ID + " | *** LOAD IGNORED HASHTAGS ERROR: " + err)
-    );
+    console.log(chalkError(PF + " | *** LOAD IGNORED HASHTAGS ERROR: " + err));
     throw err;
   }
 }
@@ -4542,7 +4462,7 @@ async function initFollowableSearchTermSet() {
 
   console.log(
     chalkBlue(
-      MODULE_ID +
+      PF +
         " | INIT FOLLOWABLE SEARCH TERM SET: " +
         configDefaultFolder +
         "/" +
@@ -4566,7 +4486,7 @@ async function initFollowableSearchTermSet() {
 
     console.log(
       chalkLog(
-        MODULE_ID +
+        PF +
           " | LOADED FOLLOWABLE SEARCH TERMS FILE" +
           " | " +
           followableSearchTermSet.size +
@@ -4581,9 +4501,7 @@ async function initFollowableSearchTermSet() {
     return;
   } catch (err) {
     console.log(
-      chalkError(
-        MODULE_ID + " | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err
-      )
+      chalkError(PF + " | *** INIT FOLLOWABLE SEARCH TERM SET ERROR: " + err)
     );
     throw err;
   }
@@ -4594,7 +4512,7 @@ async function initIgnoredUserSet() {
 
   console.log(
     chalkBlue(
-      MODULE_ID +
+      PF +
         " | INIT IGNORED USER SET: " +
         configDefaultFolder +
         "/" +
@@ -4618,7 +4536,7 @@ async function initIgnoredUserSet() {
 
     console.log(
       chalkLog(
-        MODULE_ID +
+        PF +
           " | LOADED IGNORED USERS FILE" +
           " | " +
           ignoredUserSet.size +
@@ -4632,9 +4550,7 @@ async function initIgnoredUserSet() {
 
     return;
   } catch (err) {
-    console.log(
-      chalkError(MODULE_ID + " | *** INIT IGNORED USERS SET ERROR: " + err)
-    );
+    console.log(chalkError(PF + " | *** INIT IGNORED USERS SET ERROR: " + err));
     throw err;
   }
 }
@@ -4672,7 +4588,7 @@ async function pubSubSearchNode(params) {
       default:
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | *** pubSubSearchNode UNKNOWN NODE TYPE: " +
               params.node.nodeType
           )
@@ -4684,7 +4600,7 @@ async function pubSubSearchNode(params) {
 
     console.log(
       chalkBlue(
-        MODULE_ID +
+        PF +
           " | PS SEARCH NODE [" +
           statsObj.pubSub.messagesSent +
           "]" +
@@ -4715,10 +4631,7 @@ async function pubSubSearchNode(params) {
     twitterSearchNodeTimeout = setTimeout(function () {
       console.log(
         chalkAlert(
-          MODULE_ID +
-            " | !!! NODE SEARCH TIMEOUT" +
-            "\nPARAMS\n" +
-            jsonPrint(params)
+          PF + " | !!! NODE SEARCH TIMEOUT" + "\nPARAMS\n" + jsonPrint(params)
         )
       );
 
@@ -4746,7 +4659,7 @@ async function pubSubSearchNode(params) {
     ) {
       console.log(
         chalkAlert(
-          MODULE_ID +
+          PF +
             " | !!! " +
             params.node.nodeType +
             " NOT FOUND\n" +
@@ -4861,7 +4774,7 @@ async function pubSubSearchNode(params) {
           errorType = "USER_NOT_FOUND";
           console.log(
             chalkError(
-              MODULE_ID +
+              PF +
                 " | *** TWITTER USER NOT FOUND" +
                 " | " +
                 getTimeStamp() +
@@ -4881,7 +4794,7 @@ async function pubSubSearchNode(params) {
           errorType = "USER_SUSPENDED";
           console.log(
             chalkError(
-              MODULE_ID +
+              PF +
                 " | *** TWITTER USER SUSPENDED" +
                 " | " +
                 getTimeStamp() +
@@ -4900,7 +4813,7 @@ async function pubSubSearchNode(params) {
         default:
           console.log(
             chalkError(
-              MODULE_ID +
+              PF +
                 " | *** TWITTER SEARCH NODE USER ERROR | SEARCH CAT AUTO: " +
                 params.categoryAuto +
                 " | ERR CODE: " +
@@ -4922,13 +4835,11 @@ async function pubSubSearchNode(params) {
 
 async function twitterSearchUser(params) {
   if (typeof params.node === "string") {
-    console.log(
-      chalkInfo(MODULE_ID + " | -?- USER SEARCH | USER: " + params.node)
-    );
+    console.log(chalkInfo(PF + " | -?- USER SEARCH | USER: " + params.node));
   } else {
     console.log(
       chalkInfo(
-        MODULE_ID +
+        PF +
           " | -?- USER SEARCH | NID: " +
           params.node.nodeId +
           " | minFollowers: " +
@@ -4986,7 +4897,7 @@ async function twitterSearchUser(params) {
   } catch (err) {
     console.log(
       chalkError(
-        MODULE_ID +
+        PF +
           " | *** TWITTER_SEARCH_NODE ERROR" +
           " | " +
           getTimeStamp() +
@@ -5019,13 +4930,11 @@ async function twitterSearchUser(params) {
 async function twitterSearchHashtag(params) {
   if (typeof params.node === "string") {
     console.log(
-      chalkInfo(MODULE_ID + " | -?- HASHTAG SEARCH | HASHTAG: " + params.node)
+      chalkInfo(PF + " | -?- HASHTAG SEARCH | HASHTAG: " + params.node)
     );
   } else {
     console.log(
-      chalkInfo(
-        MODULE_ID + " | -?- HASHTAG SEARCH | NID: #" + params.node.nodeId
-      )
+      chalkInfo(PF + " | -?- HASHTAG SEARCH | NID: #" + params.node.nodeId)
     );
   }
 
@@ -5041,7 +4950,7 @@ async function twitterSearchHashtag(params) {
 
     console.log(
       chalkLog(
-        MODULE_ID +
+        PF +
           " | +++ TWITTER_SEARCH_NODE" +
           " | " +
           getTimeStamp() +
@@ -5049,7 +4958,7 @@ async function twitterSearchHashtag(params) {
           searchResponse.node.nodeId +
           " | RESPONSE RESULTS\n" +
           jsonPrint(searchResponse.results)
-        // "\n" + MODULE_ID + " | RESPONSE\n" + jsonPrint(searchResponse)
+        // "\n" + PF + " | RESPONSE\n" + jsonPrint(searchResponse)
       )
     );
 
@@ -5063,7 +4972,7 @@ async function twitterSearchHashtag(params) {
   } catch (err) {
     console.log(
       chalkError(
-        MODULE_ID +
+        PF +
           " | *** TWITTER_SEARCH_NODE ERROR" +
           " | " +
           getTimeStamp() +
@@ -5095,7 +5004,7 @@ async function twitterSearchNode(params) {
 
     console.log(
       chalkSocket(
-        MODULE_ID +
+        PF +
           " | twitterSearchNode" +
           " | " +
           getTimeStamp() +
@@ -5122,7 +5031,7 @@ async function twitterSearchNode(params) {
 
           console.log(
             chalkSocket(
-              MODULE_ID +
+              PF +
                 " | twitterSearchNode | SEARCH FOR HT TWEETS" +
                 " | " +
                 getTimeStamp() +
@@ -5138,7 +5047,7 @@ async function twitterSearchNode(params) {
               if (err) {
                 console.log(
                   chalkError(
-                    MODULE_ID +
+                    PF +
                       " | twitterSearchNode | *** SEARCH FOR HT TWEETS ERROR" +
                       " | " +
                       getTimeStamp() +
@@ -5159,7 +5068,7 @@ async function twitterSearchNode(params) {
 
               console.log(
                 chalkSocket(
-                  MODULE_ID +
+                  PF +
                     " | twitterSearchNode | HT TWEETS" +
                     " | " +
                     getTimeStamp() +
@@ -5210,7 +5119,7 @@ async function twitterSearchNode(params) {
       if (response.nodes) {
         console.log(
           chalkSocket(
-            MODULE_ID +
+            PF +
               " | twitterSearchUser" +
               " | " +
               getTimeStamp() +
@@ -5228,7 +5137,7 @@ async function twitterSearchNode(params) {
       } else if (response.node) {
         console.log(
           chalkSocket(
-            MODULE_ID +
+            PF +
               " | twitterSearchUser" +
               " | " +
               getTimeStamp() +
@@ -5260,9 +5169,7 @@ async function twitterSearchNode(params) {
 
     return new Error("UNKNOWN SEARCH MODE: " + searchNode);
   } catch (err) {
-    console.log(
-      chalkError(MODULE_ID + " | *** twitterSearchNode ERROR: " + err)
-    );
+    console.log(chalkError(PF + " | *** twitterSearchNode ERROR: " + err));
     return err;
   }
 }
@@ -5280,14 +5187,12 @@ async function initSocketHandler(socketObj) {
     try {
       domainName = await dnsReverse({ ipAddress: ipAddress });
     } catch (err) {
-      console.log(
-        chalkError(MODULE_ID + " | *** initAppRouting DNS ERROR: " + err)
-      );
+      console.log(chalkError(PF + " | *** initAppRouting DNS ERROR: " + err));
     }
 
     console.log(
       chalk.blue(
-        MODULE_ID +
+        PF +
           " | SOCKET CONNECT" +
           " | " +
           ipAddress +
@@ -5317,7 +5222,7 @@ async function initSocketHandler(socketObj) {
 
       console.log(
         chalkError(
-          MODULE_ID +
+          PF +
             " | " +
             getTimeStamp(timeStamp) +
             " | SOCKET RECONNECT ERROR: " +
@@ -5407,7 +5312,7 @@ async function initSocketHandler(socketObj) {
 
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | SERVER ERROR" +
               " | " +
               getTimeStamp(currentServer.timeStamp) +
@@ -5438,7 +5343,7 @@ async function initSocketHandler(socketObj) {
 
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | VIEWER ERROR" +
               " | " +
               getTimeStamp(currentViewer.timeStamp) +
@@ -5479,7 +5384,7 @@ async function initSocketHandler(socketObj) {
 
       console.log(
         chalkAlert(
-          MODULE_ID +
+          PF +
             " | XXX SOCKET DISCONNECT" +
             " | " +
             socketId +
@@ -5491,7 +5396,7 @@ async function initSocketHandler(socketObj) {
       if (adminHashMap.has(socketId)) {
         console.log(
           chalkAlert(
-            MODULE_ID +
+            PF +
               " | XXX DELETED ADMIN" +
               " | " +
               getTimeStamp(timeStamp) +
@@ -5517,7 +5422,7 @@ async function initSocketHandler(socketObj) {
 
         console.log(
           chalkAlert(
-            MODULE_ID +
+            PF +
               " | XXX SERVER DISCONNECTED" +
               " | " +
               getTimeStamp(timeStamp) +
@@ -5541,7 +5446,7 @@ async function initSocketHandler(socketObj) {
           if (err) {
             console.log(
               chalkError(
-                MODULE_ID +
+                PF +
                   " | VIEWER CA ENTRY DELETE ERROR" +
                   " | " +
                   err +
@@ -5553,7 +5458,7 @@ async function initSocketHandler(socketObj) {
 
           console.log(
             chalkAlert(
-              MODULE_ID +
+              PF +
                 " | -X- VIEWER DISCONNECTED" +
                 " | " +
                 getTimeStamp(currentViewer.timeStamp) +
@@ -5579,7 +5484,7 @@ async function initSocketHandler(socketObj) {
       if (empty(keepAliveObj.user)) {
         console.log(
           chalkAlert(
-            MODULE_ID +
+            PF +
               " | SESSION_KEEPALIVE USER UNDEFINED ??" +
               " | NSP: " +
               socket.nsp.name.toUpperCase() +
@@ -5600,7 +5505,7 @@ async function initSocketHandler(socketObj) {
         if (configuration.verbose) {
           console.log(
             chalkLog(
-              MODULE_ID +
+              PF +
                 " | ... KEEPALIVE AUTHENTICATED SOCKET" +
                 " | " +
                 socket.id +
@@ -5619,7 +5524,7 @@ async function initSocketHandler(socketObj) {
       } else {
         console.log(
           chalkAlert(
-            MODULE_ID +
+            PF +
               " | *** KEEPALIVE UNAUTHENTICATED SOCKET | DISCONNECTING..." +
               " | " +
               socket.id +
@@ -5655,7 +5560,7 @@ async function initSocketHandler(socketObj) {
         case "ADMIN":
           console.log(
             chalkInfo(
-              MODULE_ID +
+              PF +
                 " | R< KA" +
                 " | " +
                 "ADMIN" +
@@ -5720,7 +5625,7 @@ async function initSocketHandler(socketObj) {
         case "TMP":
           console.log(
             chalkInfo(
-              MODULE_ID +
+              PF +
                 " | R< KA" +
                 " | " +
                 currentSessionType +
@@ -5789,7 +5694,7 @@ async function initSocketHandler(socketObj) {
         case "VIEWER":
           console.log(
             chalkInfo(
-              MODULE_ID +
+              PF +
                 " | R< KA" +
                 " | " +
                 "VIEWER" +
@@ -5857,7 +5762,7 @@ async function initSocketHandler(socketObj) {
         default:
           console.log(
             chalkAlert(
-              MODULE_ID +
+              PF +
                 " | **** NOT SERVER ****" +
                 " | SESSION TYPE: " +
                 currentSessionType +
@@ -5870,9 +5775,7 @@ async function initSocketHandler(socketObj) {
 
     socket.on("TWITTER_FOLLOW", async function (user) {
       if (empty(user)) {
-        console.log(
-          chalkError(MODULE_ID + " | TWITTER_FOLLOW ERROR: NULL USER")
-        );
+        console.log(chalkError(PF + " | TWITTER_FOLLOW ERROR: NULL USER"));
         return;
       }
 
@@ -5880,7 +5783,7 @@ async function initSocketHandler(socketObj) {
 
       console.log(
         chalkSocket(
-          MODULE_ID +
+          PF +
             " | R< TWITTER_FOLLOW" +
             " | " +
             getTimeStamp() +
@@ -5911,7 +5814,7 @@ async function initSocketHandler(socketObj) {
           utilNameSpace.emit("FOLLOW", node);
         }
       } catch (err) {
-        console.log(chalkError(MODULE_ID + " | TWITTER_FOLLOW ERROR: " + err));
+        console.log(chalkError(PF + " | TWITTER_FOLLOW ERROR: " + err));
       }
     });
 
@@ -5919,7 +5822,7 @@ async function initSocketHandler(socketObj) {
       user.nodeType = user.nodeType || "user";
       console.log(
         chalkSocket(
-          MODULE_ID +
+          PF +
             " | R< TWITTER_UNFOLLOW" +
             " | " +
             getTimeStamp() +
@@ -5949,7 +5852,7 @@ async function initSocketHandler(socketObj) {
           utilNameSpace.emit("FOLLOW", node);
         }
       } catch (err) {
-        console.log(chalkError(MODULE_ID + " | TWITTER_FOLLOW ERROR: " + err));
+        console.log(chalkError(PF + " | TWITTER_FOLLOW ERROR: " + err));
       }
     });
 
@@ -5958,7 +5861,7 @@ async function initSocketHandler(socketObj) {
 
       console.log(
         chalkSocket(
-          MODULE_ID +
+          PF +
             " | R< TWITTER_CATEGORY_VERIFIED" +
             " | " +
             getTimeStamp() +
@@ -5990,7 +5893,7 @@ async function initSocketHandler(socketObj) {
         }
       } catch (err) {
         console.log(
-          chalkError(MODULE_ID + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err)
+          chalkError(PF + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err)
         );
       }
     });
@@ -5999,7 +5902,7 @@ async function initSocketHandler(socketObj) {
       user.nodeType = user.nodeType || "user";
       console.log(
         chalkSocket(
-          MODULE_ID +
+          PF +
             " | R< TWITTER_CATEGORY_UNVERIFIED" +
             " | " +
             getTimeStamp() +
@@ -6022,7 +5925,7 @@ async function initSocketHandler(socketObj) {
         socket.emit("SET_TWITTER_USER", { node: node, stats: statsObj });
       } catch (err) {
         console.log(
-          chalkError(MODULE_ID + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err)
+          chalkError(PF + " | TWITTER_CATEGORY_VERIFIED ERROR: " + err)
         );
       }
     });
@@ -6034,7 +5937,7 @@ async function initSocketHandler(socketObj) {
       try {
         console.log(
           chalkSocket(
-            MODULE_ID +
+            PF +
               " | R< TWITTER_IGNORE" +
               " | " +
               getTimeStamp() +
@@ -6058,7 +5961,7 @@ async function initSocketHandler(socketObj) {
         await deleteNode(user);
         socket.emit("SET_TWITTER_USER", { node: user, stats: statsObj });
       } catch (err) {
-        console.log(chalkError(MODULE_ID + " | *** IGNORE USER ERROR: " + err));
+        console.log(chalkError(PF + " | *** IGNORE USER ERROR: " + err));
       }
     });
 
@@ -6069,7 +5972,7 @@ async function initSocketHandler(socketObj) {
       try {
         console.log(
           chalkSocket(
-            MODULE_ID +
+            PF +
               " | R< TWITTER_UNIGNORE" +
               " | " +
               getTimeStamp() +
@@ -6092,9 +5995,7 @@ async function initSocketHandler(socketObj) {
         await nodeSetProps({ node: user, props: { ignored: false } });
         socket.emit("SET_TWITTER_USER", { node: user, stats: statsObj });
       } catch (err) {
-        console.log(
-          chalkError(MODULE_ID + " | TWITTER_UNIGNORE ERROR: " + err)
-        );
+        console.log(chalkError(PF + " | TWITTER_UNIGNORE ERROR: " + err));
       }
     });
 
@@ -6105,7 +6006,7 @@ async function initSocketHandler(socketObj) {
       try {
         console.log(
           chalkSocket(
-            MODULE_ID +
+            PF +
               " | R< TWITTER_BOT" +
               " | " +
               getTimeStamp() +
@@ -6127,7 +6028,7 @@ async function initSocketHandler(socketObj) {
         await nodeSetProps({ node: user, props: { isBot: true } });
         socket.emit("SET_TWITTER_USER", { node: user, stats: statsObj });
       } catch (err) {
-        console.log(chalkError(MODULE_ID + " | *** BOT USER ERROR: " + err));
+        console.log(chalkError(PF + " | *** BOT USER ERROR: " + err));
       }
     });
 
@@ -6138,7 +6039,7 @@ async function initSocketHandler(socketObj) {
       try {
         console.log(
           chalkSocket(
-            MODULE_ID +
+            PF +
               " | R< TWITTER_UNBOT" +
               " | " +
               getTimeStamp() +
@@ -6161,7 +6062,7 @@ async function initSocketHandler(socketObj) {
         nodeSetProps({ node: user, props: { isBot: false } });
         socket.emit("SET_TWITTER_USER", { node: user, stats: statsObj });
       } catch (err) {
-        console.log(chalkError(MODULE_ID + " | TWITTER_UNBOT ERROR: " + err));
+        console.log(chalkError(PF + " | TWITTER_UNBOT ERROR: " + err));
       }
     });
 
@@ -6169,7 +6070,7 @@ async function initSocketHandler(socketObj) {
     socket.on("TWITTER_SEARCH_NODE", async function (searchObj) {
       console.log(
         chalkSocket(
-          MODULE_ID +
+          PF +
             " | R< TWITTER_SEARCH_NODE" +
             " | " +
             getTimeStamp() +
@@ -6207,7 +6108,7 @@ async function initSocketHandler(socketObj) {
             if (node.nodeType === "user") {
               console.log(
                 chalkSocket(
-                  MODULE_ID +
+                  PF +
                     " | R< TWITTER_CATEGORIZE_NODE" +
                     " | " +
                     getTimeStamp() +
@@ -6227,7 +6128,7 @@ async function initSocketHandler(socketObj) {
               if (!empty(node.categorizedBy)) {
                 console.log(
                   chalkSocket(
-                    MODULE_ID +
+                    PF +
                       " | R< TWITTER_CATEGORIZE_NODE | CAT BY" +
                       " | @" +
                       node.screenName +
@@ -6255,7 +6156,7 @@ async function initSocketHandler(socketObj) {
         } catch (err) {
           console.log(
             chalkError(
-              MODULE_ID +
+              PF +
                 " | *** TWITTER_CATEGORIZE_NODE ERROR" +
                 " | TYPE: " +
                 catNodeObj.node.nodeType +
@@ -6274,7 +6175,7 @@ async function initSocketHandler(socketObj) {
     socket.on("USER_READY", function userReady(userObj) {
       console.log(
         chalkSocket(
-          `${MODULE_ID} | R< USER READY | ${getTimeStamp()} | ${ipAddress} | ${
+          `${PF} | R< USER READY | ${getTimeStamp()} | ${ipAddress} | ${
             socket.id
           } | ${userObj.nodeId} | SENT AT ${getTimeStamp(
             parseInt(userObj.timeStamp)
@@ -6289,14 +6190,12 @@ async function initSocketHandler(socketObj) {
           if (err) {
             console.log(
               chalkError(
-                `${MODULE_ID} | *** USER_READY_ACK SEND ERROR | ${userObj.userId}`
+                `${PF} | *** USER_READY_ACK SEND ERROR | ${userObj.userId}`
               )
             );
           } else {
             console.log(
-              chalkError(
-                `${MODULE_ID} | TXD> USER_READY_ACK | ${userObj.userId}`
-              )
+              chalkError(`${PF} | TXD> USER_READY_ACK | ${userObj.userId}`)
             );
           }
         }
@@ -6308,11 +6207,11 @@ async function initSocketHandler(socketObj) {
 
       console.log(
         chalkSocket(
-          `${MODULE_ID} | VIEWER READY | ${getTimeStamp(
-            timeStamp
-          )} | ${ipAddress} | ${socket.id} | ${
-            viewerObj.viewerId
-          } | SENT AT ${getTimeStamp(parseInt(viewerObj.timeStamp))}`
+          `${PF} | VIEWER READY | ${getTimeStamp(timeStamp)} | ${ipAddress} | ${
+            socket.id
+          } | ${viewerObj.viewerId} | SENT AT ${getTimeStamp(
+            parseInt(viewerObj.timeStamp)
+          )}`
         )
       );
 
@@ -6344,7 +6243,7 @@ async function initSocketHandler(socketObj) {
       } catch (err) {
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | *** ERROR | VIEWER READY FIND USER" +
               " | " +
               getTimeStamp(timeStamp) +
@@ -6366,7 +6265,7 @@ async function initSocketHandler(socketObj) {
 
       console.log(
         chalkAlert(
-          MODULE_ID +
+          PF +
             " | TWITTER_AUTHENTICATE" +
             " | " +
             socket.id +
@@ -6402,7 +6301,7 @@ async function initSocketHandler(socketObj) {
 
         if (configuration.verbose) {
           console.log(
-            chalkSocket(MODULE_ID + " | R< STATS | " + serverObj.user.userId)
+            chalkSocket(PF + " | R< STATS | " + serverObj.user.userId)
           );
         }
 
@@ -6418,7 +6317,7 @@ async function initSocketHandler(socketObj) {
 
         if (configuration.verbose) {
           console.log(
-            chalkSocket(MODULE_ID + " | R< STATS | " + viewerObj.user.userId)
+            chalkSocket(PF + " | R< STATS | " + viewerObj.user.userId)
           );
         }
 
@@ -6426,14 +6325,12 @@ async function initSocketHandler(socketObj) {
       }
 
       if (configuration.verbose) {
-        console.log(chalkSocket(MODULE_ID + " | R< STATS | " + socket.id));
+        console.log(chalkSocket(PF + " | R< STATS | " + socket.id));
       }
     });
   } catch (err) {
     console.log(
-      chalkError(
-        MODULE_ID + " | *** initSocketHandler DNS REVERSE ERROR: " + err
-      )
+      chalkError(PF + " | *** initSocketHandler DNS REVERSE ERROR: " + err)
     );
   }
 }
@@ -6444,10 +6341,7 @@ async function initSocketNamespaces() {
 
     console.log(
       chalkInfo(
-        MODULE_ID +
-          " | " +
-          getTimeStamp(timeStamp) +
-          " | INIT SOCKET NAMESPACES"
+        PF + " | " + getTimeStamp(timeStamp) + " | INIT SOCKET NAMESPACES"
       )
     );
 
@@ -6457,7 +6351,7 @@ async function initSocketNamespaces() {
     viewNameSpace = io.of("/view");
 
     adminNameSpace.on("connect", function adminConnect(socket) {
-      console.log(chalk.blue(MODULE_ID + " | ADMIN CONNECT " + socket.id));
+      console.log(chalk.blue(PF + " | ADMIN CONNECT " + socket.id));
 
       const ipAddress =
         socket.handshake.headers["x-real-ip"] ||
@@ -6468,7 +6362,7 @@ async function initSocketNamespaces() {
       if (authenticatedSocketObj !== undefined) {
         console.log(
           chalkAlert(
-            MODULE_ID +
+            PF +
               " | ADMIN ALREADY AUTHENTICATED" +
               " | " +
               socket.id +
@@ -6482,7 +6376,7 @@ async function initSocketNamespaces() {
         socket.on("authentication", async function (data) {
           if (configuration.verbose) {
             console.log(
-              MODULE_ID +
+              PF +
                 " | RX SOCKET AUTHENTICATION" +
                 " | " +
                 socket.nsp.name.toUpperCase() +
@@ -6512,7 +6406,7 @@ async function initSocketNamespaces() {
     });
 
     utilNameSpace.on("connect", function utilConnect(socket) {
-      console.log(chalk.blue(MODULE_ID + " | #### UTIL CONNECT " + socket.id));
+      console.log(chalk.blue(PF + " | #### UTIL CONNECT " + socket.id));
 
       const ipAddress =
         socket.handshake.headers["x-real-ip"] ||
@@ -6522,7 +6416,7 @@ async function initSocketNamespaces() {
       if (authenticatedSocketObj !== undefined) {
         console.log(
           chalkAlert(
-            MODULE_ID +
+            PF +
               " | UTIL ALREADY AUTHENTICATED" +
               " | " +
               socket.id +
@@ -6536,7 +6430,7 @@ async function initSocketNamespaces() {
         socket.on("authentication", async function (data) {
           if (configuration.verbose) {
             console.log(
-              MODULE_ID +
+              PF +
                 " | RX SOCKET AUTHENTICATION" +
                 " | " +
                 socket.nsp.name.toUpperCase() +
@@ -6566,13 +6460,13 @@ async function initSocketNamespaces() {
     });
 
     userNameSpace.on("connect", async function userConnect(socket) {
-      console.log(chalk.blue(MODULE_ID + " | USER CONNECT " + socket.id));
+      console.log(chalk.blue(PF + " | USER CONNECT " + socket.id));
 
       const authenticatedSocketObj = authenticatedSocketCache.get(socket.id);
       if (authenticatedSocketObj !== undefined) {
         console.log(
           chalkAlert(
-            MODULE_ID +
+            PF +
               " | USER ALREADY AUTHENTICATED" +
               " | " +
               socket.id +
@@ -6593,14 +6487,14 @@ async function initSocketNamespaces() {
           socket.handshake.headers["x-real-ip"] ||
           socket.client.conn.remoteAddress;
 
-        console.log(chalk.blue(MODULE_ID + " | VIEWER CONNECT " + socket.id));
+        console.log(chalk.blue(PF + " | VIEWER CONNECT " + socket.id));
 
         const authenticatedSocketObj = authenticatedSocketCache.get(socket.id);
 
         if (authenticatedSocketObj !== undefined) {
           console.log(
             chalkAlert(
-              MODULE_ID +
+              PF +
                 " | VIEWER ALREADY AUTHENTICATED" +
                 " | " +
                 socket.id +
@@ -6613,7 +6507,7 @@ async function initSocketNamespaces() {
         } else {
           socket.on("authentication", async function (data) {
             console.log(
-              MODULE_ID +
+              PF +
                 " | RX SOCKET AUTHENTICATION" +
                 " | " +
                 socket.nsp.name.toUpperCase() +
@@ -6636,7 +6530,7 @@ async function initSocketNamespaces() {
           });
         }
       } catch (err) {
-        console.log(chalkError(MODULE_ID + " | VIEWER CONNECT ERROR:" + error));
+        console.log(chalkError(PF + " | VIEWER CONNECT ERROR:" + error));
         throw err;
       }
     });
@@ -6646,7 +6540,7 @@ async function initSocketNamespaces() {
     return;
   } catch (err) {
     console.log(
-      chalkError(MODULE_ID + " | *** INIT SOCKET NAME SPACES ERROR: " + err)
+      chalkError(PF + " | *** INIT SOCKET NAME SPACES ERROR: " + err)
     );
     throw err;
   }
@@ -6700,9 +6594,7 @@ async function updateNodeMeter(node) {
   }
 
   if (empty(node.nodeId)) {
-    console.log(
-      chalkError(MODULE_ID + " | NODE ID UNDEFINED\n" + jsonPrint(node))
-    );
+    console.log(chalkError(PF + " | NODE ID UNDEFINED\n" + jsonPrint(node)));
     throw new Error("NODE ID UNDEFINED", node);
   }
 
@@ -6897,7 +6789,7 @@ async function fetchBotIds(p) {
 
     console.log(
       chalkTwitter(
-        MODULE_ID + " | INIT BOT SET INTERVAL | BOT CATEGORY: " + botCategory
+        PF + " | INIT BOT SET INTERVAL | BOT CATEGORY: " + botCategory
       )
     );
 
@@ -6924,7 +6816,7 @@ async function fetchBotIds(p) {
         if (!botArray || botArray.length === 0) {
           console.log(
             chalkBlueBold(
-              MODULE_ID +
+              PF +
                 " [OFFSET: " +
                 options.params.offset +
                 "] " +
@@ -6967,7 +6859,7 @@ async function fetchBotIds(p) {
 
             if (configuration.verbose || botIndex % 1000 === 0) {
               printUserObj(
-                MODULE_ID +
+                PF +
                   "| +++ BOT [" +
                   botIndex +
                   "] | SET SIZE: " +
@@ -6984,7 +6876,7 @@ async function fetchBotIds(p) {
           if (options.params.offset >= maxBotsToFetch) {
             console.log(
               chalkBlueBold(
-                MODULE_ID +
+                PF +
                   " [OFFSET: " +
                   options.params.offset +
                   "] " +
@@ -7019,16 +6911,14 @@ async function fetchBotIds(p) {
 async function initBotSet() {
   statsObj.status = "INIT BOT SET";
 
-  console.log(chalkTwitter(MODULE_ID + " | INIT BOT SET INTERVAL"));
+  console.log(chalkTwitter(PF + " | INIT BOT SET INTERVAL"));
 
   try {
     const dbBotNodes = await global.wordAssoDb.User.find({ isBot: true })
       .select({ nodeId: 1, screenName: 1 })
       .lean();
 
-    console.log(
-      chalkTwitter(MODULE_ID + " | BOTS IN DB: " + dbBotNodes.length)
-    );
+    console.log(chalkTwitter(PF + " | BOTS IN DB: " + dbBotNodes.length));
 
     for (const botNode of dbBotNodes) {
       botNodeIdSet.add(botNode.nodeId);
@@ -7036,7 +6926,7 @@ async function initBotSet() {
       if (botNodeIdSet.size % 1000 === 0) {
         console.log(
           chalk.black(
-            MODULE_ID +
+            PF +
               " | LOADED DB BOT NODE IDs [" +
               botNodeIdSet.size +
               "]" +
@@ -7061,9 +6951,7 @@ async function initBotSet() {
       }
 
       console.log(
-        chalk.black(
-          MODULE_ID + " | LOADED BOT NODE IDs [" + botNodeIdSet.size + "]"
-        )
+        chalk.black(PF + " | LOADED BOT NODE IDs [" + botNodeIdSet.size + "]")
       );
 
       statsObj.bots = statsObj.bots || {};
@@ -7072,7 +6960,7 @@ async function initBotSet() {
 
     return;
   } catch (e) {
-    console.log(chalkError(MODULE_ID + " | BOT SENTINEL FETCH\n" + e));
+    console.log(chalkError(PF + " | BOT SENTINEL FETCH\n" + e));
     throw e;
   }
 }
@@ -7080,7 +6968,7 @@ async function initBotSet() {
 async function initAllowLocations() {
   statsObj.status = "INIT ALLOW LOCATIONS SET";
 
-  console.log(chalkTwitter(MODULE_ID + " | INIT ALLOW LOCATIONS"));
+  console.log(chalkTwitter(PF + " | INIT ALLOW LOCATIONS"));
 
   try {
     const data = await tcUtils.loadFileRetry({
@@ -7091,7 +6979,7 @@ async function initAllowLocations() {
     if (empty(data)) {
       console.log(
         chalkError(
-          MODULE_ID +
+          PF +
             " | DROPBOX FILE DOWNLOAD DATA UNDEFINED" +
             " | " +
             configDefaultFolder +
@@ -7106,7 +6994,7 @@ async function initAllowLocations() {
 
     console.log(
       chalk.blue(
-        MODULE_ID + " | FILE CONTAINS " + dataArray.length + " ALLOW LOCATIONS "
+        PF + " | FILE CONTAINS " + dataArray.length + " ALLOW LOCATIONS "
       )
     );
 
@@ -7117,7 +7005,7 @@ async function initAllowLocations() {
         allowLocationsSet.add(location);
         console.log(
           chalkLog(
-            MODULE_ID +
+            PF +
               " | +++ ALLOW LOCATION [" +
               allowLocationsSet.size +
               "] " +
@@ -7134,7 +7022,7 @@ async function initAllowLocations() {
 
     return;
   } catch (e) {
-    console.log(chalkError(MODULE_ID + " | TSS | LOAD FILE ERROR\n" + e));
+    console.log(chalkError(PF + " | TSS | LOAD FILE ERROR\n" + e));
     throw e;
   }
 }
@@ -7142,7 +7030,7 @@ async function initAllowLocations() {
 async function initIgnoreLocations() {
   statsObj.status = "INIT IGNORE LOCATIONS SET";
 
-  console.log(chalkTwitter(MODULE_ID + " | INIT IGNORE LOCATIONS"));
+  console.log(chalkTwitter(PF + " | INIT IGNORE LOCATIONS"));
 
   try {
     const data = await tcUtils.loadFileRetry({
@@ -7153,7 +7041,7 @@ async function initIgnoreLocations() {
     if (empty(data)) {
       console.log(
         chalkError(
-          MODULE_ID +
+          PF +
             " | DROPBOX FILE DOWNLOAD DATA UNDEFINED" +
             " | " +
             configDefaultFolder +
@@ -7168,10 +7056,7 @@ async function initIgnoreLocations() {
 
     console.log(
       chalk.blue(
-        MODULE_ID +
-          " | FILE CONTAINS " +
-          dataArray.length +
-          " IGNORE LOCATIONS "
+        PF + " | FILE CONTAINS " + dataArray.length + " IGNORE LOCATIONS "
       )
     );
 
@@ -7182,7 +7067,7 @@ async function initIgnoreLocations() {
         ignoreLocationsSet.add(location);
         debug(
           chalkLog(
-            MODULE_ID +
+            PF +
               " | +++ IGNORE LOCATION [" +
               ignoreLocationsSet.size +
               "] " +
@@ -7199,13 +7084,13 @@ async function initIgnoreLocations() {
 
     return;
   } catch (e) {
-    console.log(chalkError(MODULE_ID + " | *** LOAD FILE ERROR\n" + e));
+    console.log(chalkError(PF + " | *** LOAD FILE ERROR\n" + e));
     throw e;
   }
 }
 
 async function initIgnoredProfileWords() {
-  console.log(chalkInfo(MODULE_ID + " | INIT IGNORED PROFILE WORDS"));
+  console.log(chalkInfo(PF + " | INIT IGNORED PROFILE WORDS"));
 
   try {
     const result = await tcUtils.initSetFromFile({
@@ -7223,7 +7108,7 @@ async function initIgnoredProfileWords() {
 
     console.log(
       chalkInfo(
-        MODULE_ID +
+        PF +
           " | +++ LOADED IGNORED PROFILE WORDS: " +
           ignoredProfileWordsSet.size
       )
@@ -7232,7 +7117,7 @@ async function initIgnoredProfileWords() {
     return;
   } catch (err) {
     console.log(
-      chalkError(MODULE_ID + " | *** INIT IGNORED PROFILE WORDS ERROR: " + err)
+      chalkError(PF + " | *** INIT IGNORED PROFILE WORDS ERROR: " + err)
     );
     throw err;
   }
@@ -7250,7 +7135,7 @@ async function countDocuments(params) {
 
     console.log(
       chalkLog(
-        `${MODULE_ID} | ... COUNTING DOCUMENTS: TYPE: ${params.documentType} | QUERY VALUE: ${queryValue}`
+        `${PF} | ... COUNTING DOCUMENTS: TYPE: ${params.documentType} | QUERY VALUE: ${queryValue}`
       )
     );
 
@@ -7261,7 +7146,7 @@ async function countDocuments(params) {
     ) {
       console.log(
         chalkAlert(
-          `${MODULE_ID} | SKIP COUNTING DOCUMENTS: TYPE: ${params.documentType} | QUERY VALUE: ${queryValue}`
+          `${PF} | SKIP COUNTING DOCUMENTS: TYPE: ${params.documentType} | QUERY VALUE: ${queryValue}`
         )
       );
       return;
@@ -7273,7 +7158,7 @@ async function countDocuments(params) {
       params.documentType
     );
 
-    // console.log(chalkLog(MODULE_ID + " | ... COUNTING DOCUMENTS: TYPE: " + params.documentType));
+    // console.log(chalkLog(PF + " | ... COUNTING DOCUMENTS: TYPE: " + params.documentType));
 
     if (params.query) {
       const count = await documentCollection.countDocuments(params.query);
@@ -7287,9 +7172,7 @@ async function countDocuments(params) {
     }
   } catch (err) {
     countDocumentsRunning[params.documentType] = false;
-    console.log(
-      chalkError(MODULE_ID + " | *** DB COUNT DOCUMENTS ERROR: " + err)
-    );
+    console.log(chalkError(PF + " | *** DB COUNT DOCUMENTS ERROR: " + err));
     console.error(err);
     throw err;
   }
@@ -7340,16 +7223,14 @@ async function updateUserCounts() {
     const endPeriodLast = moment().endOf("week").subtract(7, "days").valueOf();
 
     statsObj.user.total = await countDocuments({ documentType: "users" });
-    console.log(
-      chalkBlue(MODULE_ID + " | GRAND TOTAL USERS: " + statsObj.user.total)
-    );
+    console.log(chalkBlue(PF + " | GRAND TOTAL USERS: " + statsObj.user.total));
 
     statsObj.user.following = await countDocuments({
       documentType: "users",
       query: { following: true },
     });
     console.log(
-      chalkBlue(MODULE_ID + " | FOLLOWING USERS: " + statsObj.user.following)
+      chalkBlue(PF + " | FOLLOWING USERS: " + statsObj.user.following)
     );
 
     statsObj.user.notFollowing = await countDocuments({
@@ -7357,27 +7238,21 @@ async function updateUserCounts() {
       query: { following: false },
     });
     console.log(
-      chalkBlue(
-        MODULE_ID + " | NOT FOLLOWING USERS: " + statsObj.user.notFollowing
-      )
+      chalkBlue(PF + " | NOT FOLLOWING USERS: " + statsObj.user.notFollowing)
     );
 
     statsObj.user.ignored = await countDocuments({
       documentType: "users",
       query: { ignored: true },
     });
-    console.log(
-      chalkBlue(MODULE_ID + " | IGNORED USERS: " + statsObj.user.ignored)
-    );
+    console.log(chalkBlue(PF + " | IGNORED USERS: " + statsObj.user.ignored));
 
     statsObj.user.categoryVerified = await countDocuments({
       documentType: "users",
       query: { categoryVerified: true },
     });
     console.log(
-      chalkBlue(
-        MODULE_ID + " | CAT VERIFIED USERS: " + statsObj.user.categoryVerified
-      )
+      chalkBlue(PF + " | CAT VERIFIED USERS: " + statsObj.user.categoryVerified)
     );
 
     // -----
@@ -7388,9 +7263,7 @@ async function updateUserCounts() {
       query: { category: { $in: ["left", "neutral", "right"] } },
     });
     console.log(
-      chalkBlue(
-        MODULE_ID + " | CAT MANUAL USERS: " + statsObj.user.categorizedManual
-      )
+      chalkBlue(PF + " | CAT MANUAL USERS: " + statsObj.user.categorizedManual)
     );
 
     statsObj.user.category.left = await countDocuments({
@@ -7398,9 +7271,7 @@ async function updateUserCounts() {
       query: { category: "left" },
     });
     console.log(
-      chalkBlue(
-        MODULE_ID + " | CAT MANUAL USERS LEFT: " + statsObj.user.category.left
-      )
+      chalkBlue(PF + " | CAT MANUAL USERS LEFT: " + statsObj.user.category.left)
     );
 
     statsObj.user.category.right = await countDocuments({
@@ -7409,7 +7280,7 @@ async function updateUserCounts() {
     });
     console.log(
       chalkBlue(
-        MODULE_ID + " | CAT MANUAL USERS RIGHT: " + statsObj.user.category.right
+        PF + " | CAT MANUAL USERS RIGHT: " + statsObj.user.category.right
       )
     );
 
@@ -7419,9 +7290,7 @@ async function updateUserCounts() {
     });
     console.log(
       chalkBlue(
-        MODULE_ID +
-          " | CAT MANUAL USERS NEUTRAL: " +
-          statsObj.user.category.neutral
+        PF + " | CAT MANUAL USERS NEUTRAL: " + statsObj.user.category.neutral
       )
     );
 
@@ -7433,7 +7302,7 @@ async function updateUserCounts() {
     });
     console.log(
       chalkBlue(
-        MODULE_ID + " | UNCAT MANUAL USERS: " + statsObj.user.uncategorized.all
+        PF + " | UNCAT MANUAL USERS: " + statsObj.user.uncategorized.all
       )
     );
 
@@ -7443,9 +7312,7 @@ async function updateUserCounts() {
     });
     console.log(
       chalkBlue(
-        MODULE_ID +
-          " | UNCAT MANUAL LEFT USERS: " +
-          statsObj.user.uncategorized.left
+        PF + " | UNCAT MANUAL LEFT USERS: " + statsObj.user.uncategorized.left
       )
     );
 
@@ -7455,9 +7322,7 @@ async function updateUserCounts() {
     });
     console.log(
       chalkBlue(
-        MODULE_ID +
-          " | UNCAT MANUAL RIGHT USERS: " +
-          statsObj.user.uncategorized.right
+        PF + " | UNCAT MANUAL RIGHT USERS: " + statsObj.user.uncategorized.right
       )
     );
 
@@ -7467,7 +7332,7 @@ async function updateUserCounts() {
     });
     console.log(
       chalkBlue(
-        MODULE_ID +
+        PF +
           " | UNCAT MANUAL NEUTRAL USERS: " +
           statsObj.user.uncategorized.neutral
       )
@@ -7480,9 +7345,7 @@ async function updateUserCounts() {
       query: { categorizedAuto: true },
     });
     console.log(
-      chalkBlue(
-        MODULE_ID + " | CAT AUTO USERS: " + statsObj.user.categorizedAuto
-      )
+      chalkBlue(PF + " | CAT AUTO USERS: " + statsObj.user.categorizedAuto)
     );
 
     statsObj.user.categoryAuto.left = await countDocuments({
@@ -7491,7 +7354,7 @@ async function updateUserCounts() {
     });
     console.log(
       chalkBlue(
-        MODULE_ID + " | CAT AUTO USERS LEFT: " + statsObj.user.categoryAuto.left
+        PF + " | CAT AUTO USERS LEFT: " + statsObj.user.categoryAuto.left
       )
     );
 
@@ -7501,9 +7364,7 @@ async function updateUserCounts() {
     });
     console.log(
       chalkBlue(
-        MODULE_ID +
-          " | CAT AUTO USERS RIGHT: " +
-          statsObj.user.categoryAuto.right
+        PF + " | CAT AUTO USERS RIGHT: " + statsObj.user.categoryAuto.right
       )
     );
 
@@ -7513,9 +7374,7 @@ async function updateUserCounts() {
     });
     console.log(
       chalkBlue(
-        MODULE_ID +
-          " | CAT AUTO USERS NEUTRAL: " +
-          statsObj.user.categoryAuto.neutral
+        PF + " | CAT AUTO USERS NEUTRAL: " + statsObj.user.categoryAuto.neutral
       )
     );
 
@@ -7524,9 +7383,7 @@ async function updateUserCounts() {
       query: { categoryAuto: "none" },
     });
     console.log(
-      chalkBlue(
-        MODULE_ID + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto
-      )
+      chalkBlue(PF + " | UNCAT AUTO USERS: " + statsObj.user.uncategorizedAuto)
     );
 
     // -----
@@ -7536,7 +7393,7 @@ async function updateUserCounts() {
       query: { categoryMismatch: true },
     });
     console.log(
-      chalkBlue(MODULE_ID + " | MISMATCHED USERS: " + statsObj.user.mismatched)
+      chalkBlue(PF + " | MISMATCHED USERS: " + statsObj.user.mismatched)
     );
 
     // -----
@@ -7553,7 +7410,7 @@ async function updateUserCounts() {
 
       console.log(
         chalkBlue(
-          `${MODULE_ID} | USERS CATEGORIZED BY @${user}: ${statsObj.user.categorizedBy[user].total}`
+          `${PF} | USERS CATEGORIZED BY @${user}: ${statsObj.user.categorizedBy[user].total}`
         )
       );
 
@@ -7569,7 +7426,7 @@ async function updateUserCounts() {
       });
       console.log(
         chalkBlue(
-          `${MODULE_ID} | USERS CATEGORIZED TODAY BY @${user}: ${statsObj.user.categorizedBy[user].today}`
+          `${PF} | USERS CATEGORIZED TODAY BY @${user}: ${statsObj.user.categorizedBy[user].today}`
         )
       );
 
@@ -7585,7 +7442,7 @@ async function updateUserCounts() {
 
       console.log(
         chalkBlue(
-          `${MODULE_ID} | USERS CATEGORIZED THIS WEEK BY @${user}: ${statsObj.user.categorizedBy[user].periodCurrent}`
+          `${PF} | USERS CATEGORIZED THIS WEEK BY @${user}: ${statsObj.user.categorizedBy[user].periodCurrent}`
         )
       );
 
@@ -7601,7 +7458,7 @@ async function updateUserCounts() {
 
       console.log(
         chalkBlue(
-          `${MODULE_ID} | USERS CATEGORIZED LAST WEEK BY @${user}: ${statsObj.user.categorizedBy[user].periodLast}`
+          `${PF} | USERS CATEGORIZED LAST WEEK BY @${user}: ${statsObj.user.categorizedBy[user].periodLast}`
         )
       );
     }
@@ -7625,7 +7482,7 @@ async function updateHashtagCounts() {
   statsObj.hashtag.total = await countDocuments({ documentType: "hashtags" });
 
   console.log(
-    chalkBlue(MODULE_ID + " | GRAND TOTAL HASHTAGS: " + statsObj.hashtag.total)
+    chalkBlue(PF + " | GRAND TOTAL HASHTAGS: " + statsObj.hashtag.total)
   );
 
   statsObj.hashtag.ignored = await countDocuments({
@@ -7633,7 +7490,7 @@ async function updateHashtagCounts() {
     query: { ignored: true },
   });
   console.log(
-    chalkBlue(MODULE_ID + " | IGNORED HASHTAGS: " + statsObj.hashtag.ignored)
+    chalkBlue(PF + " | IGNORED HASHTAGS: " + statsObj.hashtag.ignored)
   );
 
   // -----
@@ -7645,9 +7502,7 @@ async function updateHashtagCounts() {
   });
   console.log(
     chalkBlue(
-      MODULE_ID +
-        " | CAT MANUAL HASHTAGS: " +
-        statsObj.hashtag.categorizedManual
+      PF + " | CAT MANUAL HASHTAGS: " + statsObj.hashtag.categorizedManual
     )
   );
 
@@ -7657,9 +7512,7 @@ async function updateHashtagCounts() {
   });
   console.log(
     chalkBlue(
-      MODULE_ID +
-        " | CAT MANUAL HASHTAGS LEFT: " +
-        statsObj.hashtag.category.left
+      PF + " | CAT MANUAL HASHTAGS LEFT: " + statsObj.hashtag.category.left
     )
   );
 
@@ -7669,9 +7522,7 @@ async function updateHashtagCounts() {
   });
   console.log(
     chalkBlue(
-      MODULE_ID +
-        " | CAT MANUAL HASHTAGS RIGHT: " +
-        statsObj.hashtag.category.right
+      PF + " | CAT MANUAL HASHTAGS RIGHT: " + statsObj.hashtag.category.right
     )
   );
 
@@ -7681,7 +7532,7 @@ async function updateHashtagCounts() {
   });
   console.log(
     chalkBlue(
-      MODULE_ID +
+      PF +
         " | CAT MANUAL HASHTAGS NEUTRAL: " +
         statsObj.hashtag.category.neutral
     )
@@ -7695,9 +7546,7 @@ async function updateHashtagCounts() {
   });
   console.log(
     chalkBlue(
-      MODULE_ID +
-        " | UNCAT MANUAL HASHTAGS: " +
-        statsObj.hashtag.uncategorized.all
+      PF + " | UNCAT MANUAL HASHTAGS: " + statsObj.hashtag.uncategorized.all
     )
   );
 
@@ -7724,7 +7573,7 @@ function cursorDataHandler(user) {
         if (statsObj.user.processed % 5000 === 0) {
           console.log(
             chalkLog(
-              MODULE_ID +
+              PF +
                 " | USER SETS | " +
                 statsObj.user.processed +
                 " USERS PROCESSED"
@@ -7798,7 +7647,7 @@ function hashtagCursorDataHandler(hashtag) {
     ) {
       console.log(
         chalkAlert(
-          MODULE_ID +
+          PF +
             " | HASHTAG SETS | XXX DELETE OLD HT" +
             " | CR: " +
             moment(hashtag.createdAt).format(compactDateTimeFormat) +
@@ -7823,7 +7672,7 @@ function hashtagCursorDataHandler(hashtag) {
     if (statsObj.hashtagsProcessed % 10000 === 0) {
       console.log(
         chalkLog(
-          MODULE_ID +
+          PF +
             " | HASHTAG SETS | " +
             statsObj.hashtagsProcessed +
             " HASHTAGS PROCESSED"
@@ -7840,7 +7689,7 @@ let updateUserSetsRunning = false;
 async function updateUserSets(p) {
   statsObj.status = "UPDATE USER SETS";
 
-  console.log(chalkInfo(MODULE_ID + " | UPDATING USER SETS..."));
+  console.log(chalkInfo(PF + " | UPDATING USER SETS..."));
 
   if (updateUserSetsRunning) {
     return;
@@ -7887,7 +7736,7 @@ async function updateUserSets(p) {
   userSearchCursor.on("end", function () {
     console.log(
       chalkBlue(
-        MODULE_ID +
+        PF +
           " | END FOLLOWING CURSOR" +
           " | " +
           getTimeStamp() +
@@ -7895,24 +7744,20 @@ async function updateUserSets(p) {
           msToTime(moment().valueOf() - cursorStartTime)
       )
     );
-    console.log(
-      chalkLog(MODULE_ID + " | USER DB STATS\n" + jsonPrint(statsObj.user))
-    );
+    console.log(chalkLog(PF + " | USER DB STATS\n" + jsonPrint(statsObj.user)));
   });
 
   userSearchCursor.on("error", function (err) {
+    console.log(chalkError(PF + " | *** ERROR userSearchCursor: " + err));
     console.log(
-      chalkError(MODULE_ID + " | *** ERROR userSearchCursor: " + err)
-    );
-    console.log(
-      chalkAlert(MODULE_ID + " | USER DB STATS\n" + jsonPrint(statsObj.user))
+      chalkAlert(PF + " | USER DB STATS\n" + jsonPrint(statsObj.user))
     );
   });
 
   userSearchCursor.on("close", async function () {
-    console.log(chalkBlue(MODULE_ID + " | CLOSE FOLLOWING CURSOR"));
+    console.log(chalkBlue(PF + " | CLOSE FOLLOWING CURSOR"));
     console.log(
-      chalkBlue(MODULE_ID + " | USER DB STATS\n" + jsonPrint(statsObj.user))
+      chalkBlue(PF + " | USER DB STATS\n" + jsonPrint(statsObj.user))
     );
   });
 
@@ -7931,7 +7776,7 @@ async function updateUserSets(p) {
 let updateUserSetsInterval;
 
 async function initUpdateUserSetsInterval(p) {
-  console.log(chalkInfo(MODULE_ID + " | INIT UPDATE USER SETS INTERVAL ..."));
+  console.log(chalkInfo(PF + " | INIT UPDATE USER SETS INTERVAL ..."));
 
   const params = p || {};
 
@@ -7940,9 +7785,7 @@ async function initUpdateUserSetsInterval(p) {
   try {
     await updateUserSets();
   } catch (e) {
-    console.log(
-      chalkError(`${MODULE_ID} | *** INIT USER SETS INTERVAL ERROR: ${e}`)
-    );
+    console.log(chalkError(`${PF} | *** INIT USER SETS INTERVAL ERROR: ${e}`));
   }
 
   clearInterval(updateUserSetsInterval);
@@ -7951,9 +7794,7 @@ async function initUpdateUserSetsInterval(p) {
     try {
       await updateUserSets();
     } catch (e) {
-      console.log(
-        chalkError(`${MODULE_ID} | *** UPDATE USER SETS ERROR: ${e}`)
-      );
+      console.log(chalkError(`${PF} | *** UPDATE USER SETS ERROR: ${e}`));
     }
   }, interval);
 
@@ -7965,12 +7806,10 @@ let updateHashtagSetsRunning = false;
 async function updateHashtagSets(p) {
   statsObj.status = "UPDATE HASHTAG SETS";
 
-  console.log(chalkInfo(MODULE_ID + " | UPDATING HASHTAG SETS..."));
+  console.log(chalkInfo(PF + " | UPDATING HASHTAG SETS..."));
 
   if (updateHashtagSetsRunning) {
-    console.log(
-      chalkAlert(MODULE_ID + " | SKIP updateHashtagSets: RUNNING...")
-    );
+    console.log(chalkAlert(PF + " | SKIP updateHashtagSets: RUNNING..."));
     return;
   }
 
@@ -7995,7 +7834,7 @@ async function updateHashtagSets(p) {
   hashtagSearchCursor.on("end", function () {
     console.log(
       chalkBlue(
-        MODULE_ID +
+        PF +
           " | END FOLLOWING CURSOR" +
           " | " +
           getTimeStamp() +
@@ -8004,30 +7843,22 @@ async function updateHashtagSets(p) {
       )
     );
     console.log(
-      chalkLog(
-        MODULE_ID + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)
-      )
+      chalkLog(PF + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag))
     );
     updateHashtagSetsRunning = false;
   });
 
   hashtagSearchCursor.on("error", function (err) {
+    console.log(chalkError(PF + " | *** ERROR hashtagSearchCursor: " + err));
     console.log(
-      chalkError(MODULE_ID + " | *** ERROR hashtagSearchCursor: " + err)
-    );
-    console.log(
-      chalkAlert(
-        MODULE_ID + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)
-      )
+      chalkAlert(PF + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag))
     );
   });
 
   hashtagSearchCursor.on("close", function () {
-    console.log(chalkBlue(MODULE_ID + " | CLOSE FOLLOWING CURSOR"));
+    console.log(chalkBlue(PF + " | CLOSE FOLLOWING CURSOR"));
     console.log(
-      chalkBlue(
-        MODULE_ID + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag)
-      )
+      chalkBlue(PF + " | HASHTAG DB STATS\n" + jsonPrint(statsObj.hashtag))
     );
     updateHashtagSetsRunning = false;
   });
@@ -8046,9 +7877,7 @@ async function updateHashtagSets(p) {
 let updateHashtagSetsInterval;
 
 async function initUpdateHashtagSetsInterval(p) {
-  console.log(
-    chalkInfo(MODULE_ID + " | INIT UPDATE HASHTAG SETS INTERVAL ...")
-  );
+  console.log(chalkInfo(PF + " | INIT UPDATE HASHTAG SETS INTERVAL ..."));
 
   const params = p || {};
 
@@ -8069,7 +7898,7 @@ function printBotStats(params) {
   if (statsObj.traffic.users.bots % params.modulo === 0) {
     console.log(
       chalkBot(
-        MODULE_ID +
+        PF +
           " | BOT" +
           " [ " +
           statsObj.traffic.users.bots +
@@ -8079,7 +7908,7 @@ function printBotStats(params) {
           statsObj.traffic.users.percentBots.toFixed(2) +
           "% ]" +
           "\n" +
-          MODULE_ID +
+          PF +
           " | BOT | " +
           printUser({ user: params.user })
       )
@@ -8101,7 +7930,7 @@ function initNodeSetPropsQueueInterval(interval) {
   return new Promise(function (resolve) {
     console.log(
       chalk.bold.black(
-        MODULE_ID + " | INIT NODE SET PROPS QUEUE INTERVAL: " + interval + " MS"
+        PF + " | INIT NODE SET PROPS QUEUE INTERVAL: " + interval + " MS"
       )
     );
 
@@ -8121,9 +7950,7 @@ function initNodeSetPropsQueueInterval(interval) {
               nodeSetPropsQueue.length % 100 === 0)
           ) {
             console.log(
-              chalkLog(
-                MODULE_ID + " | NODE SET PROPS Q: " + nodeSetPropsQueue.length
-              )
+              chalkLog(PF + " | NODE SET PROPS Q: " + nodeSetPropsQueue.length)
             );
           }
 
@@ -8133,7 +7960,7 @@ function initNodeSetPropsQueueInterval(interval) {
       } catch (err) {
         nodeSetPropsQueueReady = true;
         console.trace(
-          chalkError(MODULE_ID + " | *** NODE SET PROPS QUEUE ERROR: " + err)
+          chalkError(PF + " | *** NODE SET PROPS QUEUE ERROR: " + err)
         );
       }
     }, interval);
@@ -8152,7 +7979,7 @@ async function uncatDbCheck(params) {
   if (!dbUncat || dbUncat === undefined) {
     debug(
       chalk.yellow(
-        MODULE_ID +
+        PF +
           " | --- MISS | UNCAT" +
           " [" +
           statsObj.user.dbUncat +
@@ -8179,7 +8006,7 @@ async function uncatDbCheck(params) {
 
   debug(
     chalkBlue(
-      MODULE_ID +
+      PF +
         " | +++ HIT  | UNCAT" +
         " [" +
         statsObj.user.dbUncat +
@@ -8198,9 +8025,7 @@ function initTransmitNodeQueueInterval(interval) {
   return new Promise(function (resolve) {
     console.log(
       chalk.bold.black(
-        MODULE_ID +
-          " | INIT TRANSMIT NODE QUEUE INTERVAL: " +
-          msToTime(interval)
+        PF + " | INIT TRANSMIT NODE QUEUE INTERVAL: " + msToTime(interval)
       )
     );
 
@@ -8304,19 +8129,15 @@ function initTransmitNodeQueueInterval(interval) {
               return;
             } catch (e) {
               console.log(
-                chalkError(
-                  MODULE_ID + " | findOneAndUpdate USER ERROR" + jsonPrint(e)
-                )
+                chalkError(PF + " | findOneAndUpdate USER ERROR" + jsonPrint(e))
               );
 
               if (node.screenName === undefined || node.screenName === "") {
                 console.log(
-                  chalkError(
-                    MODULE_ID + " | *** TRANSMIT USER SCREENNAME UNDEFINED"
-                  )
+                  chalkError(PF + " | *** TRANSMIT USER SCREENNAME UNDEFINED")
                 );
                 printUserObj(
-                  MODULE_ID + " | *** TRANSMIT USER SCREENNAME UNDEFINED",
+                  PF + " | *** TRANSMIT USER SCREENNAME UNDEFINED",
                   node
                 );
                 transmitNodeQueueReady = true;
@@ -8379,9 +8200,7 @@ function initTransmitNodeQueueInterval(interval) {
             return;
           } catch (e) {
             console.log(
-              chalkError(
-                MODULE_ID + " | findOneAndUpdate HT ERROR\n" + jsonPrint(e)
-              )
+              chalkError(PF + " | findOneAndUpdate HT ERROR\n" + jsonPrint(e))
             );
 
             viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
@@ -8398,9 +8217,7 @@ function initTransmitNodeQueueInterval(interval) {
             return;
           } catch (e) {
             console.log(
-              chalkError(
-                MODULE_ID + " | findOneAndUpdate HT ERROR\n" + jsonPrint(e)
-              )
+              chalkError(PF + " | findOneAndUpdate HT ERROR\n" + jsonPrint(e))
             );
             viewNameSpace.volatile.emit("node", pick(node, fieldsTransmitKeys));
             transmitNodeQueueReady = true;
@@ -8413,7 +8230,7 @@ function initTransmitNodeQueueInterval(interval) {
       } catch (err) {
         transmitNodeQueueReady = true;
         console.trace(
-          chalkError(MODULE_ID + " | *** TRANSMIT NODE QUEUE ERROR: " + err)
+          chalkError(PF + " | *** TRANSMIT NODE QUEUE ERROR: " + err)
         );
       }
     }, interval);
@@ -8502,7 +8319,7 @@ async function transmitNodes(tw) {
 function logHeartbeat() {
   console.log(
     chalkLog(
-      MODULE_ID +
+      PF +
         " | HB " +
         statsObj.heartbeat.sent +
         " | " +
@@ -8518,9 +8335,7 @@ function logHeartbeat() {
 }
 
 function initAppRouting(callback) {
-  console.log(
-    chalkInfo(MODULE_ID + " | " + getTimeStamp() + " | INIT APP ROUTING")
-  );
+  console.log(chalkInfo(PF + " | " + getTimeStamp() + " | INIT APP ROUTING"));
 
   let domainName;
 
@@ -8531,7 +8346,7 @@ function initAppRouting(callback) {
       if (!ignoreIpSet.has(req.ip)) {
         console.log(
           chalkInfo(
-            MODULE_ID +
+            PF +
               " | R< REJECT: /json" +
               " | " +
               getTimeStamp() +
@@ -8549,13 +8364,11 @@ function initAppRouting(callback) {
       }
       res.sendStatus(404);
     } else if (req.path == "callbacks/addsub") {
-      console.log(
-        chalkAlert(MODULE_ID + " | R< TWITTER WEB HOOK | callbacks/addsub")
-      );
+      console.log(chalkAlert(PF + " | R< TWITTER WEB HOOK | callbacks/addsub"));
 
       console.log(
         chalkAlert(
-          MODULE_ID +
+          PF +
             " | R< callbacks/addsub" +
             "\nreq.query\n" +
             jsonPrint(req.query) +
@@ -8567,12 +8380,12 @@ function initAppRouting(callback) {
       );
     } else if (req.path == "callbacks/removesub") {
       console.log(
-        chalkAlert(MODULE_ID + " | R< TWITTER WEB HOOK | callbacks/removesub")
+        chalkAlert(PF + " | R< TWITTER WEB HOOK | callbacks/removesub")
       );
 
       console.log(
         chalkAlert(
-          MODULE_ID +
+          PF +
             " | R< callbacks/removesub" +
             "\nreq.query\n" +
             jsonPrint(req.query) +
@@ -8585,7 +8398,7 @@ function initAppRouting(callback) {
     } else if (req.path == TWITTER_WEBHOOK_URL) {
       console.log(
         chalkAlert(
-          MODULE_ID +
+          PF +
             " | R< TWITTER WEB HOOK | " +
             TWITTER_WEBHOOK_URL +
             " | " +
@@ -8608,9 +8421,7 @@ function initAppRouting(callback) {
 
         if (crc_token) {
           console.log(
-            chalkAlert(
-              MODULE_ID + " | R< TWITTER WEB HOOK | CRC TOKEN: " + crc_token
-            )
+            chalkAlert(PF + " | R< TWITTER WEB HOOK | CRC TOKEN: " + crc_token)
           );
 
           const hmac = crypto
@@ -8620,7 +8431,7 @@ function initAppRouting(callback) {
 
           console.log(
             chalkAlert(
-              MODULE_ID + " | T> TWITTER WEB HOOK | CRC TOKEN > HASH: " + hmac
+              PF + " | T> TWITTER WEB HOOK | CRC TOKEN > HASH: " + hmac
             )
           );
           res.status(200);
@@ -8637,7 +8448,7 @@ function initAppRouting(callback) {
         if (followEvents && followEvents[0].type == "follow") {
           console.log(
             chalkAlert(
-              MODULE_ID +
+              PF +
                 " | >>> TWITTER USER FOLLOW EVENT" +
                 " | SOURCE: @" +
                 followEvents[0].source.screen_name +
@@ -8662,7 +8473,7 @@ function initAppRouting(callback) {
         if (followEvents && followEvents[0].type == "unfollow") {
           console.log(
             chalkAlert(
-              MODULE_ID +
+              PF +
                 " | >>> TWITTER USER UNFOLLOW EVENT" +
                 " | SOURCE: @" +
                 followEvents[0].source.screen_name +
@@ -8683,7 +8494,7 @@ function initAppRouting(callback) {
         res.sendStatus(200);
       }
     } else if (req.path == "/googleccd19766bea2dfd2.html") {
-      console.log(chalk.green(MODULE_ID + " | R< googleccd19766bea2dfd2.html"));
+      console.log(chalk.green(PF + " | R< googleccd19766bea2dfd2.html"));
 
       const googleVerification = path.join(
         __dirname,
@@ -8694,7 +8505,7 @@ function initAppRouting(callback) {
         if (err) {
           console.log(
             chalkError(
-              MODULE_ID +
+              PF +
                 " | GET /googleccd19766bea2dfd2.html ERROR:" +
                 " | " +
                 getTimeStamp() +
@@ -8707,11 +8518,11 @@ function initAppRouting(callback) {
             )
           );
         } else {
-          console.log(chalkInfo(MODULE_ID + " | SENT:", googleVerification));
+          console.log(chalkInfo(PF + " | SENT:", googleVerification));
         }
       });
     } else if (req.path == "/") {
-      console.log(chalkLog(MODULE_ID + " | R< REDIRECT /session"));
+      console.log(chalkLog(PF + " | R< REDIRECT /session"));
       res.redirect("/session");
     } else if (
       req.path == "/profiles.js" ||
@@ -8726,7 +8537,7 @@ function initAppRouting(callback) {
 
       console.log(
         chalkAlert(
-          MODULE_ID +
+          PF +
             " | !!! REPLACE DEFAULT SOURCE" +
             " | REQ: " +
             req.path +
@@ -8740,18 +8551,16 @@ function initAppRouting(callback) {
       fs.readFile(fullPath, "utf8", function (err, data) {
         if (err) {
           console.log(
-            chalkError(
-              MODULE_ID + " | fs readFile " + fullPath + " ERROR: " + err
-            )
+            chalkError(PF + " | fs readFile " + fullPath + " ERROR: " + err)
           );
           res.sendStatus(404);
         } else {
           console.log(
             chalkInfo(
-              MODULE_ID +
+              PF +
                 " | " +
                 getTimeStamp() +
-                MODULE_ID +
+                PF +
                 " | T> | FILE" +
                 " | " +
                 fullPath
@@ -8767,14 +8576,12 @@ function initAppRouting(callback) {
       try {
         domainName = await dnsReverse({ ipAddress: req.ip });
       } catch (err) {
-        console.log(
-          chalkError(MODULE_ID + " | *** initAppRouting DNS ERROR: " + err)
-        );
+        console.log(chalkError(PF + " | *** initAppRouting DNS ERROR: " + err));
       }
 
       console.log(
         chalkInfo(
-          MODULE_ID +
+          PF +
             " | R<" +
             " | " +
             getTimeStamp() +
@@ -8831,7 +8638,7 @@ function initAppRouting(callback) {
   app.use(express.static(path.join(__dirname, "/overlay/build")));
 
   app.get("/onload.js", function (req, res) {
-    console.log(chalkInfo(MODULE_ID + " | R< ONLOAD | /onload"));
+    console.log(chalkInfo(PF + " | R< ONLOAD | /onload"));
 
     const onloadFile = path.join(__dirname, "/onload.js");
 
@@ -8839,7 +8646,7 @@ function initAppRouting(callback) {
       if (err) {
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | GET /onload ERROR:" +
               " | " +
               getTimeStamp() +
@@ -8859,7 +8666,7 @@ function initAppRouting(callback) {
 
   app.get("/categorize/user/:query", async function searchUserById(req, res) {
     console.log(
-      chalkLog(MODULE_ID + " | R< SEARCH | USER | QUERY: " + req.params.query)
+      chalkLog(PF + " | R< SEARCH | USER | QUERY: " + req.params.query)
     );
 
     try {
@@ -8868,14 +8675,10 @@ function initAppRouting(callback) {
     } catch (e) {
       console.log(
         chalkError(
-          MODULE_ID +
-            " | R< SEARCH | *** USER ERROR | QUERY: " +
-            req.params.query
+          PF + " | R< SEARCH | *** USER ERROR | QUERY: " + req.params.query
         )
       );
-      console.log(
-        chalkError(MODULE_ID + " | R< SEARCH | *** USER ERROR: " + e)
-      );
+      console.log(chalkError(PF + " | R< SEARCH | *** USER ERROR: " + e));
       res.sendStatus(500);
     }
   });
@@ -8884,9 +8687,7 @@ function initAppRouting(callback) {
     "/categorize/hashtag/:query",
     async function searchHashtagById(req, res) {
       console.log(
-        chalkLog(
-          MODULE_ID + " | R< SEARCH | HASHTAG | QUERY: " + req.params.query
-        )
+        chalkLog(PF + " | R< SEARCH | HASHTAG | QUERY: " + req.params.query)
       );
 
       try {
@@ -8895,14 +8696,10 @@ function initAppRouting(callback) {
       } catch (e) {
         console.log(
           chalkError(
-            MODULE_ID +
-              " | R< SEARCH | *** HASHTAG ERROR | QUERY: " +
-              req.params.query
+            PF + " | R< SEARCH | *** HASHTAG ERROR | QUERY: " + req.params.query
           )
         );
-        console.log(
-          chalkError(MODULE_ID + " | R< SEARCH | *** HASHTAG ERROR: " + e)
-        );
+        console.log(chalkError(PF + " | R< SEARCH | *** HASHTAG ERROR: " + e));
         res.sendStatus(500);
       }
     }
@@ -8914,13 +8711,13 @@ function initAppRouting(callback) {
       "/categorizer/build/index.html"
     );
 
-    console.log(chalkLog(MODULE_ID + " | R< CATEGORIZE"));
+    console.log(chalkLog(PF + " | R< CATEGORIZE"));
 
     res.sendFile(categorizerHtml, function responseCategorizer(err) {
       if (err) {
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | GET /categorize ERROR:" +
               " | " +
               getTimeStamp() +
@@ -8933,13 +8730,13 @@ function initAppRouting(callback) {
           )
         );
       } else {
-        console.log(chalkAlert(MODULE_ID + " | SENT:", categorizerHtml));
+        console.log(chalkAlert(PF + " | SENT:", categorizerHtml));
       }
     });
   });
 
   app.get("/stats", async function requestStats(req, res) {
-    console.log(chalkLog(MODULE_ID + " | R< STATS"));
+    console.log(chalkLog(PF + " | R< STATS"));
 
     statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
     statsObj.timeStamp = getTimeStamp();
@@ -8963,13 +8760,13 @@ function initAppRouting(callback) {
   const customizerHtml = path.join(__dirname, "/customizer/build/index.html");
 
   app.get("/customize", async function requestCustomizer(req, res) {
-    console.log(chalkLog(MODULE_ID + " | R< CUSTOMIZE"));
+    console.log(chalkLog(PF + " | R< CUSTOMIZE"));
 
     res.sendFile(customizerHtml, function responseCustomizer(err) {
       if (err) {
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | GET /customize ERROR:" +
               " | " +
               getTimeStamp() +
@@ -8982,7 +8779,7 @@ function initAppRouting(callback) {
           )
         );
       } else {
-        console.log(chalkAlert(MODULE_ID + " | SENT:", customizerHtml));
+        console.log(chalkAlert(PF + " | SENT:", customizerHtml));
       }
     });
   });
@@ -8994,13 +8791,13 @@ function initAppRouting(callback) {
       domainName = await dnsReverse({ ipAddress: req.ip });
     } catch (err) {
       console.log(
-        chalkError(MODULE_ID + " | *** initAppRouting /admin ERROR: " + err)
+        chalkError(PF + " | *** initAppRouting /admin ERROR: " + err)
       );
     }
 
     console.log(
       chalkLog(
-        MODULE_ID +
+        PF +
           " | LOADING PAGE" +
           " | IP: " +
           req.ip +
@@ -9025,7 +8822,7 @@ function initAppRouting(callback) {
       if (err) {
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | GET /admin ERROR:" +
               " | " +
               getTimeStamp() +
@@ -9052,13 +8849,13 @@ function initAppRouting(callback) {
       domainName = await dnsReverse({ ipAddress: req.ip });
     } catch (err) {
       console.log(
-        chalkError(MODULE_ID + " | *** initAppRouting /login ERROR: " + err)
+        chalkError(PF + " | *** initAppRouting /login ERROR: " + err)
       );
     }
 
     console.log(
       chalkAlert(
-        MODULE_ID +
+        PF +
           " | LOADING PAGE | LOGIN" +
           " | IP: " +
           req.ip +
@@ -9083,7 +8880,7 @@ function initAppRouting(callback) {
       if (err) {
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | GET /login ERROR:" +
               " | " +
               getTimeStamp() +
@@ -9096,7 +8893,7 @@ function initAppRouting(callback) {
           )
         );
       } else {
-        console.log(chalkAlert(MODULE_ID + " | SENT:", loginHtml));
+        console.log(chalkAlert(PF + " | SENT:", loginHtml));
       }
     });
   });
@@ -9110,13 +8907,13 @@ function initAppRouting(callback) {
       domainName = await dnsReverse({ ipAddress: req.ip });
     } catch (err) {
       console.log(
-        chalkError(MODULE_ID + " | *** initAppRouting /session ERROR: " + err)
+        chalkError(PF + " | *** initAppRouting /session ERROR: " + err)
       );
     }
 
     console.log(
       chalkLog(
-        MODULE_ID +
+        PF +
           " | LOADING PAGE" +
           " | IP: " +
           req.ip +
@@ -9143,7 +8940,7 @@ function initAppRouting(callback) {
       if (err) {
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | GET /session ERROR:" +
               " | " +
               getTimeStamp() +
@@ -9159,7 +8956,7 @@ function initAppRouting(callback) {
         );
       } else {
         if (configuration.verbose) {
-          console.log(chalkInfo(MODULE_ID + " | SENT:", sessionHtml));
+          console.log(chalkInfo(PF + " | SENT:", sessionHtml));
         }
       }
     });
@@ -9174,13 +8971,13 @@ function initAppRouting(callback) {
       domainName = await dnsReverse({ ipAddress: req.ip });
     } catch (err) {
       console.log(
-        chalkError(MODULE_ID + " | *** initAppRouting /profiles ERROR: " + err)
+        chalkError(PF + " | *** initAppRouting /profiles ERROR: " + err)
       );
     }
 
     console.log(
       chalkLog(
-        MODULE_ID +
+        PF +
           " | LOADING PAGE" +
           " | IP: " +
           req.ip +
@@ -9207,7 +9004,7 @@ function initAppRouting(callback) {
       if (err) {
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | GET /profiles ERROR:" +
               " | " +
               getTimeStamp() +
@@ -9223,7 +9020,7 @@ function initAppRouting(callback) {
         );
       } else {
         if (configuration.verbose) {
-          console.log(chalkInfo(MODULE_ID + " | SENT:", profilesHtml));
+          console.log(chalkInfo(PF + " | SENT:", profilesHtml));
         }
       }
     });
@@ -9234,14 +9031,12 @@ function initAppRouting(callback) {
       domainName = await dnsReverse({ ipAddress: req.ip });
     } catch (err) {
       console.log(
-        chalkError(
-          MODULE_ID + " | *** ensureAuthenticated DNS REVERSE ERROR: " + err
-        )
+        chalkError(PF + " | *** ensureAuthenticated DNS REVERSE ERROR: " + err)
       );
     }
 
     if (req.isAuthenticated()) {
-      console.log(chalk.green(MODULE_ID + " | PASSPORT TWITTER AUTHENTICATED"));
+      console.log(chalk.green(PF + " | PASSPORT TWITTER AUTHENTICATED"));
 
       // slackText = "*PASSPORT TWITTER AUTHENTICATED*";
       // slackText = slackText + "\nIP: " + req.ip;
@@ -9258,7 +9053,7 @@ function initAppRouting(callback) {
     }
 
     console.log(
-      chalkAlert(MODULE_ID + " | *** PASSPORT TWITTER *NOT* AUTHENTICATED ***")
+      chalkAlert(PF + " | *** PASSPORT TWITTER *NOT* AUTHENTICATED ***")
     );
 
     // slackText = "*PASSPORT TWITTER AUTHENTICATION FAILED*";
@@ -9277,21 +9072,19 @@ function initAppRouting(callback) {
     try {
       domainName = await dnsReverse({ ipAddress: req.ip });
     } catch (err) {
-      console.log(
-        chalkError(MODULE_ID + " | *** /account DNS REVERSE ERROR: " + err)
-      );
+      console.log(chalkError(PF + " | *** /account DNS REVERSE ERROR: " + err));
     }
 
     console.log(
       chalkError(
-        MODULE_ID +
+        PF +
           " | PASSPORT TWITTER AUTH USER\n" +
           jsonPrint(req.session.passport.user)
       )
     ); // handle errors
     console.log(
       chalkError(
-        MODULE_ID +
+        PF +
           " | PASSPORT TWITTER AUTH USER" +
           " | IP: " +
           req.ip +
@@ -9321,16 +9114,14 @@ function initAppRouting(callback) {
         if (err) {
           console.log(
             chalkError(
-              MODULE_ID +
-                " | *** ERROR TWITTER AUTHENTICATION: " +
-                jsonPrint(err)
+              PF + " | *** ERROR TWITTER AUTHENTICATION: " + jsonPrint(err)
             )
           ); // handle errors
           res.redirect("/504.html");
         } else if (user) {
           console.log(
             chalk.green(
-              MODULE_ID + " | TWITTER USER AUTHENTICATED: @" + user.screenName
+              PF + " | TWITTER USER AUTHENTICATED: @" + user.screenName
             )
           ); // handle errors
           authenticatedTwitterUserCache.set(user.nodeId, user);
@@ -9338,7 +9129,7 @@ function initAppRouting(callback) {
         } else {
           console.log(
             chalkAlert(
-              MODULE_ID +
+              PF +
                 " | *** TWITTER USER AUTHENTICATE FAILED" +
                 " | @" +
                 req.session.passport.user.screenName +
@@ -9356,13 +9147,11 @@ function initAppRouting(callback) {
       domainName = await dnsReverse({ ipAddress: req.ip });
     } catch (err) {
       console.log(
-        chalkError(
-          MODULE_ID + " | *** /auth/twitter/error DNS REVERSE ERROR: " + err
-        )
+        chalkError(PF + " | *** /auth/twitter/error DNS REVERSE ERROR: " + err)
       );
     }
 
-    console.log(chalkAlert(MODULE_ID + " | PASSPORT AUTH TWITTER ERROR"));
+    console.log(chalkAlert(PF + " | PASSPORT AUTH TWITTER ERROR"));
 
     // slackText = "*LOADING PAGE | PASSPORT AUTH TWITTER ERROR*";
     // slackText = slackText + "\nIP: " + req.ip;
@@ -9386,9 +9175,7 @@ function initAppRouting(callback) {
 function initTwitterRxQueueInterval(interval) {
   return new Promise(function (resolve, reject) {
     console.log(
-      chalkLog(
-        MODULE_ID + " | initTwitterRxQueueInterval | interval: " + interval
-      )
+      chalkLog(PF + " | initTwitterRxQueueInterval | interval: " + interval)
     );
 
     let tweetRxQueueReady = true;
@@ -9405,7 +9192,7 @@ function initTwitterRxQueueInterval(interval) {
 
     console.log(
       chalk.bold.black(
-        MODULE_ID + " | INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"
+        PF + " | INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"
       )
     );
 
@@ -9438,7 +9225,7 @@ async function initTweetParserMessageRxQueueInterval(interval) {
 
   console.log(
     chalk.bold.black(
-      MODULE_ID +
+      PF +
         " | INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " +
         msToTime(interval)
     )
@@ -9467,7 +9254,7 @@ async function initTweetParserMessageRxQueueInterval(interval) {
 
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | *** ERROR PARSE TW" +
               " | " +
               getTimeStamp() +
@@ -9485,7 +9272,7 @@ async function initTweetParserMessageRxQueueInterval(interval) {
         if (!tweetObj.user) {
           console.log(
             chalkAlert(
-              MODULE_ID +
+              PF +
                 " | parsedTweet -- TW USER UNDEFINED" +
                 " | " +
                 tweetObj.tweetId
@@ -9507,7 +9294,7 @@ async function initTweetParserMessageRxQueueInterval(interval) {
               await transmitNodes(tweetObj);
               tweetParserMessageRxQueueReady = true;
             } catch (e) {
-              console.log(chalkError(MODULE_ID + " | *** TX NODES ERROR"));
+              console.log(chalkError(PF + " | *** TX NODES ERROR"));
               console.log(e);
               tweetParserMessageRxQueueReady = true;
             }
@@ -9518,7 +9305,7 @@ async function initTweetParserMessageRxQueueInterval(interval) {
       } else {
         console.log(
           chalkError(
-            MODULE_ID +
+            PF +
               " | *** TWEET PARSER UNKNOWN OP" +
               " | INTERVAL: " +
               tweetParserMessage.op
@@ -9566,9 +9353,7 @@ function initSorterMessageRxQueueInterval(interval) {
   return new Promise(function (resolve) {
     console.log(
       chalk.bold.black(
-        MODULE_ID +
-          " | INIT SORTER RX MESSAGE QUEUE INTERVAL | " +
-          msToTime(interval)
+        PF + " | INIT SORTER RX MESSAGE QUEUE INTERVAL | " + msToTime(interval)
       )
     );
 
@@ -9634,9 +9419,7 @@ function initSorterMessageRxQueueInterval(interval) {
             default:
               console.log(
                 chalkError(
-                  MODULE_ID +
-                    " | ??? SORTER UNKNOWN OP\n" +
-                    jsonPrint(sorterObj)
+                  PF + " | ??? SORTER UNKNOWN OP\n" + jsonPrint(sorterObj)
                 )
               );
               sorterMessageRxReady = true;
@@ -9670,7 +9453,7 @@ let keySortReady = true;
 function initKeySortInterval(interval) {
   return new Promise(function (resolve) {
     console.log(
-      chalkInfo(MODULE_ID + " | INIT KEY SORT INTERVAL: " + msToTime(interval))
+      chalkInfo(PF + " | INIT KEY SORT INTERVAL: " + msToTime(interval))
     );
 
     clearInterval(keySortInterval);
@@ -9687,9 +9470,7 @@ function initKeySortInterval(interval) {
 
         keySort(keySortParams, function (err, results) {
           if (err) {
-            console.log(
-              chalkError(MODULE_ID + " | *** KEY SORT ERROR: " + err)
-            );
+            console.log(chalkError(PF + " | *** KEY SORT ERROR: " + err));
             keySortReady = true;
           } else {
             sorterMessageRxQueue.push({
@@ -9726,15 +9507,11 @@ function initDbuPingInterval(interval) {
           dbuPingSent = true;
 
           if (err) {
-            console.log(
-              chalkError(MODULE_ID + " | *** DBU SEND PING ERROR: " + err)
-            );
+            console.log(chalkError(PF + " | *** DBU SEND PING ERROR: " + err));
 
             killChild({ childId: DEFAULT_DBU_CHILD_ID }, function (err) {
               if (err) {
-                console.log(
-                  chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err)
-                );
+                console.log(chalkError(PF + " | *** KILL CHILD ERROR: " + err));
                 return;
               }
               dbuPongReceived = false;
@@ -9746,7 +9523,7 @@ function initDbuPingInterval(interval) {
 
           console.log(
             chalkInfo(
-              MODULE_ID + " | >PING | DBU | PING ID: " + getTimeStamp(dbuPingId)
+              PF + " | >PING | DBU | PING ID: " + getTimeStamp(dbuPingId)
             )
           );
         });
@@ -9758,15 +9535,11 @@ function initDbuPingInterval(interval) {
 
         dbuChild.send({ op: "PING", pingId: dbuPingId }, function (err) {
           if (err) {
-            console.log(
-              chalkError(MODULE_ID + " | *** DBU SEND PING ERROR: " + err)
-            );
+            console.log(chalkError(PF + " | *** DBU SEND PING ERROR: " + err));
 
             killChild({ childId: DEFAULT_DBU_CHILD_ID }, function (err) {
               if (err) {
-                console.log(
-                  chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err)
-                );
+                console.log(chalkError(PF + " | *** KILL CHILD ERROR: " + err));
                 return;
               }
               dbuPongReceived = false;
@@ -9779,9 +9552,7 @@ function initDbuPingInterval(interval) {
           if (configuration.verbose) {
             console.log(
               chalkInfo(
-                MODULE_ID +
-                  " | >PING | DBU | PING ID: " +
-                  getTimeStamp(dbuPingId)
+                PF + " | >PING | DBU | PING ID: " + getTimeStamp(dbuPingId)
               )
             );
           }
@@ -9791,7 +9562,7 @@ function initDbuPingInterval(interval) {
       } else {
         console.log(
           chalkAlert(
-            MODULE_ID +
+            PF +
               " | *** PONG TIMEOUT | DBU" +
               " | TIMEOUT: " +
               interval +
@@ -9825,15 +9596,11 @@ function initTssPingInterval(interval) {
           tssPingSent = true;
 
           if (err) {
-            console.log(
-              chalkError(MODULE_ID + " | *** TSS SEND PING ERROR: " + err)
-            );
+            console.log(chalkError(PF + " | *** TSS SEND PING ERROR: " + err));
 
             killChild({ childId: DEFAULT_TSS_CHILD_ID }, function (err) {
               if (err) {
-                console.log(
-                  chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err)
-                );
+                console.log(chalkError(PF + " | *** KILL CHILD ERROR: " + err));
                 return;
               }
               tssPongReceived = false;
@@ -9849,7 +9616,7 @@ function initTssPingInterval(interval) {
 
           console.log(
             chalkInfo(
-              MODULE_ID + " | >PING | TSS | PING ID: " + getTimeStamp(tssPingId)
+              PF + " | >PING | TSS | PING ID: " + getTimeStamp(tssPingId)
             )
           );
         });
@@ -9861,15 +9628,11 @@ function initTssPingInterval(interval) {
 
         tssChild.send({ op: "PING", pingId: tssPingId }, function (err) {
           if (err) {
-            console.log(
-              chalkError(MODULE_ID + " | *** TSS SEND PING ERROR: " + err)
-            );
+            console.log(chalkError(PF + " | *** TSS SEND PING ERROR: " + err));
 
             killChild({ childId: DEFAULT_TSS_CHILD_ID }, function (err) {
               if (err) {
-                console.log(
-                  chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err)
-                );
+                console.log(chalkError(PF + " | *** KILL CHILD ERROR: " + err));
                 return;
               }
               tssPongReceived = false;
@@ -9886,9 +9649,7 @@ function initTssPingInterval(interval) {
           if (configuration.verbose) {
             console.log(
               chalkInfo(
-                MODULE_ID +
-                  " | >PING | TSS | PING ID: " +
-                  getTimeStamp(tssPingId)
+                PF + " | >PING | TSS | PING ID: " + getTimeStamp(tssPingId)
               )
             );
           }
@@ -9898,7 +9659,7 @@ function initTssPingInterval(interval) {
       } else {
         console.log(
           chalkAlert(
-            MODULE_ID +
+            PF +
               " | *** PONG TIMEOUT | TSS" +
               " | TIMEOUT: " +
               interval +
@@ -9920,7 +9681,7 @@ const initMongoIndexChild = (params) => {
 
   statsObj.mgiChildReady = false;
 
-  console.log(chalk.bold.black(MODULE_ID + " | INIT MGI CHILD"));
+  console.log(chalk.bold.black(PF + " | INIT MGI CHILD"));
 
   return new Promise(function (resolve) {
     const mgi = cp.fork(`${__dirname}/js/libs/mgiChild.js`);
@@ -9954,9 +9715,7 @@ function initTssChild(params) {
 
   statsObj.tssChildReady = false;
 
-  console.log(
-    chalk.bold.black(MODULE_ID + " | INIT TSS CHILD\n" + jsonPrint(params))
-  );
+  console.log(chalk.bold.black(PF + " | INIT TSS CHILD\n" + jsonPrint(params)));
 
   return new Promise(function (resolve) {
     let tss;
@@ -10001,9 +9760,7 @@ function initTssChild(params) {
             function tssMessageRxError(err) {
               if (err) {
                 statsObj.tssChildReady = false;
-                console.log(
-                  chalkError(MODULE_ID + " | *** TSS SEND ERROR: " + err)
-                );
+                console.log(chalkError(PF + " | *** TSS SEND ERROR: " + err));
                 console.log(err);
                 clearInterval(tssPingInterval);
                 childrenHashMap[params.childId].status = "ERROR";
@@ -10022,7 +9779,7 @@ function initTssChild(params) {
         case "ERROR":
           console.log(
             chalkError(
-              MODULE_ID +
+              PF +
                 " | <TSS | ERROR" +
                 " | 3C @" +
                 m.threeceeUser +
@@ -10040,7 +9797,7 @@ function initTssChild(params) {
 
             console.log(
               chalkError(
-                MODULE_ID +
+                PF +
                   " | <TSS | ERROR | TWITTER_UNFOLLOW" +
                   " | AUTUO FOLLOW USER: @" +
                   m.threeceeUser +
@@ -10060,7 +9817,7 @@ function initTssChild(params) {
 
             console.log(
               chalkError(
-                MODULE_ID +
+                PF +
                   " | <TSS | ERROR | TWITTER_FOLLOW_LIMIT" +
                   " | AUTUO FOLLOW USER: @" +
                   m.threeceeUser +
@@ -10086,7 +9843,7 @@ function initTssChild(params) {
 
             console.log(
               chalkLog(
-                MODULE_ID +
+                PF +
                   " | XXX TWITTER USER SUSPENDED" +
                   " | UID: " +
                   m.userId +
@@ -10101,7 +9858,7 @@ function initTssChild(params) {
 
             console.log(
               chalkLog(
-                MODULE_ID +
+                PF +
                   " | XXX TWITTER USER NOT FOUND" +
                   " | UID: " +
                   m.userId +
@@ -10116,7 +9873,7 @@ function initTssChild(params) {
 
             console.log(
               chalkLog(
-                MODULE_ID +
+                PF +
                   " | XXX TWITTER FOLLOW BLOCK" +
                   " | UID: " +
                   m.userId +
@@ -10132,10 +9889,32 @@ function initTssChild(params) {
           }
           break;
 
+        case "TWITTER_CONNECT":
+        case "TWITTER_RECONNECT":
+        case "TWITTER_USER_UPDATE":
+        case "TWITTER_WARNING":
+        case "TWITTER_DIRECT_MESSAGE":
+        case "TWITTER_SCRUB_GEO":
+        case "TWITTER_STATUS_WITHHELD":
+        case "TWITTER_USER_WITHHELD":
+        case "TWITTER_FOLLOW":
+        case "TWITTER_UNFOLLOW":
+        case "TWITTER_LIMIT":
+          console.log(
+            chalkInfo(
+              `${PF} | ${m.op}` +
+                ` | ${m.threeceeUser}` +
+                ` | MESSAGE: ${m.message || "NONE"}` +
+                `\n${PF} | TWITTER STATS\n${jsonPrint(m.stats)}`
+            )
+          );
+
+          break;
+
         case "TWITTER_STATS":
           console.log(
             chalkInfo(
-              MODULE_ID +
+              PF +
                 " | <TSS | TWITTER STATS" +
                 " | 3C @" +
                 m.threeceeUser +
@@ -10154,7 +9933,7 @@ function initTssChild(params) {
         case "FOLLOW_LIMIT":
           console.log(
             chalkInfo(
-              MODULE_ID +
+              PF +
                 " | <TSS | FOLLOW LIMIT" +
                 " | 3C @" +
                 m.threeceeUser +
@@ -10180,7 +9959,7 @@ function initTssChild(params) {
           if (configuration.verbose) {
             console.log(
               chalkInfo(
-                MODULE_ID +
+                PF +
                   " | <TSS | PONG" +
                   " | NOW: " +
                   getTimeStamp() +
@@ -10195,7 +9974,7 @@ function initTssChild(params) {
 
         default:
           console.log(
-            chalkError(MODULE_ID + " | TSS | *** ERROR *** UNKNOWN OP: " + m.op)
+            chalkError(PF + " | TSS | *** ERROR *** UNKNOWN OP: " + m.op)
           );
       }
     });
@@ -10204,7 +9983,7 @@ function initTssChild(params) {
       statsObj.tssChildReady = false;
       console.log(
         chalkError(
-          MODULE_ID +
+          PF +
             " | " +
             getTimeStamp() +
             " | *** TSS ERROR ***" +
@@ -10222,7 +10001,7 @@ function initTssChild(params) {
       statsObj.tssChildReady = false;
       console.log(
         chalkError(
-          MODULE_ID +
+          PF +
             " | " +
             getTimeStamp() +
             " | *** TSS EXIT ***" +
@@ -10238,7 +10017,7 @@ function initTssChild(params) {
       statsObj.tssChildReady = false;
       console.log(
         chalkError(
-          MODULE_ID +
+          PF +
             " | " +
             getTimeStamp() +
             " | *** TSS CLOSE ***" +
@@ -10264,7 +10043,7 @@ function initDbuChild(params) {
     const childId = params.childId;
 
     console.log(
-      chalk.bold.black(MODULE_ID + " | INIT DBU CHILD\n" + jsonPrint(params))
+      chalk.bold.black(PF + " | INIT DBU CHILD\n" + jsonPrint(params))
     );
 
     const dbu = cp.fork(`${__dirname}/js/libs/dbuChild.js`);
@@ -10297,7 +10076,7 @@ function initDbuChild(params) {
             function dbuMessageRxError(err) {
               if (err) {
                 console.log(
-                  chalkError(MODULE_ID + " | *** DBU SEND ERROR" + " | " + err)
+                  chalkError(PF + " | *** DBU SEND ERROR" + " | " + err)
                 );
                 console.log(err);
                 dbuChildReady = false;
@@ -10319,7 +10098,7 @@ function initDbuChild(params) {
         case "ERROR":
           console.log(
             chalkError(
-              MODULE_ID +
+              PF +
                 " | <DBU | ERROR" +
                 " | ERROR TYPE: " +
                 m.errorType +
@@ -10335,7 +10114,7 @@ function initDbuChild(params) {
           if (configuration.verbose) {
             console.log(
               chalkInfo(
-                MODULE_ID +
+                PF +
                   " | <DBU | PONG" +
                   " | NOW: " +
                   getTimeStamp() +
@@ -10350,7 +10129,7 @@ function initDbuChild(params) {
 
         default:
           console.log(
-            chalkError(MODULE_ID + " | DBU | *** ERROR *** UNKNOWN OP: " + m.op)
+            chalkError(PF + " | DBU | *** ERROR *** UNKNOWN OP: " + m.op)
           );
       }
     });
@@ -10358,7 +10137,7 @@ function initDbuChild(params) {
     dbu.on("error", function dbuError(err) {
       console.log(
         chalkError(
-          MODULE_ID +
+          PF +
             " | " +
             getTimeStamp() +
             " | *** DBU ERROR ***" +
@@ -10374,7 +10153,7 @@ function initDbuChild(params) {
     dbu.on("exit", function dbuExit(code) {
       console.log(
         chalkError(
-          MODULE_ID +
+          PF +
             " | " +
             getTimeStamp() +
             " | *** DBU EXIT ***" +
@@ -10390,7 +10169,7 @@ function initDbuChild(params) {
     dbu.on("close", function dbuClose(code) {
       console.log(
         chalkError(
-          MODULE_ID +
+          PF +
             " | " +
             getTimeStamp() +
             " | *** DBU CLOSE ***" +
@@ -10429,15 +10208,13 @@ function initTweetParserPingInterval(interval) {
 
             if (err) {
               console.log(
-                chalkError(
-                  MODULE_ID + " | *** TWEET_PARSER SEND PING ERROR: " + err
-                )
+                chalkError(PF + " | *** TWEET_PARSER SEND PING ERROR: " + err)
               );
 
               killChild({ childId: DEFAULT_TWP_CHILD_ID }, function (err) {
                 if (err) {
                   console.log(
-                    chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err)
+                    chalkError(PF + " | *** KILL CHILD ERROR: " + err)
                   );
                   return;
                 }
@@ -10451,7 +10228,7 @@ function initTweetParserPingInterval(interval) {
             if (configuration.verbose) {
               console.log(
                 chalkInfo(
-                  MODULE_ID +
+                  PF +
                     " | >PING | TWEET_PARSER | PING ID: " +
                     getTimeStamp(tweetParserPingId)
                 )
@@ -10470,15 +10247,13 @@ function initTweetParserPingInterval(interval) {
           function (err) {
             if (err) {
               console.log(
-                chalkError(
-                  MODULE_ID + " | *** TWEET_PARSER SEND PING ERROR: " + err
-                )
+                chalkError(PF + " | *** TWEET_PARSER SEND PING ERROR: " + err)
               );
 
               killChild({ childId: DEFAULT_TWP_CHILD_ID }, function (err) {
                 if (err) {
                   console.log(
-                    chalkError(MODULE_ID + " | *** KILL CHILD ERROR: " + err)
+                    chalkError(PF + " | *** KILL CHILD ERROR: " + err)
                   );
                   return;
                 }
@@ -10492,7 +10267,7 @@ function initTweetParserPingInterval(interval) {
             if (configuration.verbose) {
               console.log(
                 chalkInfo(
-                  MODULE_ID +
+                  PF +
                     " | >PING | TWEET_PARSER | PING ID: " +
                     getTimeStamp(tweetParserPingId)
                 )
@@ -10505,7 +10280,7 @@ function initTweetParserPingInterval(interval) {
       } else {
         console.log(
           chalkAlert(
-            MODULE_ID +
+            PF +
               " | *** PONG TIMEOUT | TWEET_PARSER" +
               " | TIMEOUT: " +
               interval +
@@ -10527,7 +10302,7 @@ function initTweetParser(params) {
 
   return new Promise(function (resolve, reject) {
     console.log(
-      chalk.bold.black(MODULE_ID + " | INIT TWEET PARSER\n" + jsonPrint(params))
+      chalk.bold.black(PF + " | INIT TWEET PARSER\n" + jsonPrint(params))
     );
 
     clearInterval(tweetParserPingInterval);
@@ -10541,7 +10316,7 @@ function initTweetParser(params) {
       twp = cp.fork(`${__dirname}/js/libs/tweetParser.js`);
     } catch (err) {
       console.log(
-        chalkError(MODULE_ID + " | *** TWEET PARSER CHILD FORK ERROR: " + err)
+        chalkError(PF + " | *** TWEET PARSER CHILD FORK ERROR: " + err)
       );
       return reject(err);
     }
@@ -10576,7 +10351,7 @@ function initTweetParser(params) {
               if (err) {
                 console.log(
                   chalkError(
-                    MODULE_ID + " | *** TWEET PARSER SEND ERROR" + " | " + err
+                    PF + " | *** TWEET PARSER SEND ERROR" + " | " + err
                   )
                 );
                 statsObj.tweetParserSendReady = false;
@@ -10604,7 +10379,7 @@ function initTweetParser(params) {
           if (configuration.verbose) {
             console.log(
               chalkInfo(
-                MODULE_ID +
+                PF +
                   " | <PONG | TWEET PARSER" +
                   " | NOW: " +
                   getTimeStamp() +
@@ -10623,14 +10398,14 @@ function initTweetParser(params) {
           break;
 
         default:
-          console.log(chalkError(MODULE_ID + " | *** TWP UNKNOWN OP: " + m.op));
+          console.log(chalkError(PF + " | *** TWP UNKNOWN OP: " + m.op));
       }
     });
 
     twp.on("error", function tweetParserError(err) {
       console.log(
         chalkError(
-          MODULE_ID +
+          PF +
             " | " +
             getTimeStamp() +
             " | *** TWEET PARSER ERROR ***" +
@@ -10648,7 +10423,7 @@ function initTweetParser(params) {
     twp.on("exit", function tweetParserExit(code) {
       console.log(
         chalkError(
-          MODULE_ID +
+          PF +
             " | " +
             getTimeStamp() +
             " | *** TWEET PARSER EXIT ***" +
@@ -10665,7 +10440,7 @@ function initTweetParser(params) {
     twp.on("close", function tweetParserClose(code) {
       console.log(
         chalkError(
-          MODULE_ID +
+          PF +
             " | " +
             getTimeStamp() +
             " | *** TWEET PARSER CLOSE ***" +
@@ -10691,7 +10466,7 @@ function initRateQinterval(interval) {
   return new Promise(function (resolve) {
     console.log(
       chalk.bold.black(
-        MODULE_ID + " | INIT RATE QUEUE INTERVAL | " + msToTime(interval)
+        PF + " | INIT RATE QUEUE INTERVAL | " + msToTime(interval)
       )
     );
 
@@ -10746,7 +10521,7 @@ function initRateQinterval(interval) {
                 ].stats.keysMaxTime = moment().valueOf();
                 console.log(
                   chalkInfo(
-                    `${MODULE_ID} | MAX CACHE | ${cacheName} - ${nodeType} | Ks + ${statsObj.caches[cacheName][nodeType].stats.keys}`
+                    `${PF} | MAX CACHE | ${cacheName} - ${nodeType} | Ks + ${statsObj.caches[cacheName][nodeType].stats.keys}`
                   )
                 );
               }
@@ -10765,7 +10540,7 @@ function initRateQinterval(interval) {
               statsObj.caches[cacheName].stats.keysMaxTime = moment().valueOf();
               console.log(
                 chalkInfo(
-                  MODULE_ID +
+                  PF +
                     " | MAX CACHE" +
                     " | " +
                     cacheName +
@@ -10783,7 +10558,7 @@ function initRateQinterval(interval) {
             statsObj.admin.connectedMax = statsObj.admin.connected;
             console.log(
               chalkInfo(
-                MODULE_ID +
+                PF +
                   " | MAX ADMINS" +
                   " | " +
                   statsObj.admin.connected +
@@ -10802,7 +10577,7 @@ function initRateQinterval(interval) {
             statsObj.entity.util.connectedMax = statsObj.entity.util.connected;
             console.log(
               chalkInfo(
-                MODULE_ID +
+                PF +
                   " | MAX UTILS" +
                   " | " +
                   statsObj.entity.util.connected +
@@ -10828,7 +10603,7 @@ function initRateQinterval(interval) {
 
             console.log(
               chalkInfo(
-                MODULE_ID +
+                PF +
                   " | MAX VIEWERS" +
                   " | " +
                   statsObj.entity.viewer.connected +
@@ -10853,7 +10628,7 @@ function initRateQinterval(interval) {
               if (!nodeMeterType[nodeType][meterId]) {
                 console.log(
                   chalkError(
-                    MODULE_ID +
+                    PF +
                       " | *** ERROR NULL nodeMeterType[" +
                       nodeType +
                       "]: " +
@@ -10872,7 +10647,7 @@ function initRateQinterval(interval) {
             function (err) {
               if (err) {
                 console.log(
-                  chalkError(MODULE_ID + " | ERROR RATE QUEUE INTERVAL\n" + err)
+                  chalkError(PF + " | ERROR RATE QUEUE INTERVAL\n" + err)
                 );
               }
 
@@ -10894,7 +10669,7 @@ function initRateQinterval(interval) {
             if (!nodeMeter[meterId]) {
               console.log(
                 chalkError(
-                  MODULE_ID + " | *** ERROR NULL nodeMeter[meterId]: " + meterId
+                  PF + " | *** ERROR NULL nodeMeter[meterId]: " + meterId
                 )
               );
             }
@@ -10909,7 +10684,7 @@ function initRateQinterval(interval) {
           function (err) {
             if (err) {
               console.log(
-                chalkError(MODULE_ID + " | ERROR RATE QUEUE INTERVAL\n" + err)
+                chalkError(PF + " | ERROR RATE QUEUE INTERVAL\n" + err)
               );
             }
 
@@ -10931,7 +10706,7 @@ async function loadBestRuntimeNetwork(p) {
 
   try {
     console.log(
-      chalkLog(`${MODULE_ID} | LOAD BEST RUNTIME NETWORK | ${folder}/${file}`)
+      chalkLog(`${PF} | LOAD BEST RUNTIME NETWORK | ${folder}/${file}`)
     );
 
     const bRtNnObj = await tcUtils.loadFileRetry({
@@ -10950,7 +10725,7 @@ async function loadBestRuntimeNetwork(p) {
 
       console.log(
         chalkLog(
-          `${MODULE_ID} | LOAD BEST NETWORK RUNTIME ID | ${
+          `${PF} | LOAD BEST NETWORK RUNTIME ID | ${
             bRtNnObj.networkId
           } | ${bRtNnObj.runtimeMatchRate.toFixed(3)}%`
         )
@@ -10977,7 +10752,7 @@ async function loadBestRuntimeNetwork(p) {
 
           console.log(
             chalk.green.bold(
-              `${MODULE_ID} | +++ LOADED BEST NETWORK | ${
+              `${PF} | +++ LOADED BEST NETWORK | ${
                 bestNetworkObj.networkId
               } | ${bestNetworkObj.runtimeMatchRate.toFixed(3)}%`
             )
@@ -10991,7 +10766,7 @@ async function loadBestRuntimeNetwork(p) {
           if (statsObj.previousBestNetworkId != bestNetworkObj.networkId) {
             console.log(
               chalk.green.bold(
-                `${MODULE_ID} | >>> BEST NETWORK CHANGE | PREV: ${statsObj.previousBestNetworkId} > NEW ${bestNetworkObj.networkId}`
+                `${PF} | >>> BEST NETWORK CHANGE | PREV: ${statsObj.previousBestNetworkId} > NEW ${bestNetworkObj.networkId}`
               )
             );
 
@@ -11004,12 +10779,12 @@ async function loadBestRuntimeNetwork(p) {
       } catch (e) {
         console.log(
           chalkError(
-            `${MODULE_ID} | *** ERROR LOAD BEST RUNTIME NETWORK | ERROR: ${e}`
+            `${PF} | *** ERROR LOAD BEST RUNTIME NETWORK | ERROR: ${e}`
           )
         );
         console.log(
           chalkAlert(
-            `${MODULE_ID} | ... SEARCH DB FOR BEST RUNTIME NETWORK: ${bRtNnObj.networkId}`
+            `${PF} | ... SEARCH DB FOR BEST RUNTIME NETWORK: ${bRtNnObj.networkId}`
           )
         );
       }
@@ -11022,9 +10797,7 @@ async function loadBestRuntimeNetwork(p) {
       .limit(1);
 
     if (nnArray.length == 0) {
-      console.log(
-        chalkError(`${MODULE_ID} | *** BEST RUNTIME NETWORK NOT FOUND`)
-      );
+      console.log(chalkError(`${PF} | *** BEST RUNTIME NETWORK NOT FOUND`));
       return;
     }
 
@@ -11046,7 +10819,7 @@ async function loadBestRuntimeNetwork(p) {
     if (statsObj.previousBestNetworkId != bestNetworkObj.networkId) {
       console.log(
         chalk.green.bold(
-          `${MODULE_ID} | >>> BEST NETWORK CHANGE | PREV: ${statsObj.previousBestNetworkId} > NEW ${bestNetworkObj.networkId}`
+          `${PF} | >>> BEST NETWORK CHANGE | PREV: ${statsObj.previousBestNetworkId} > NEW ${bestNetworkObj.networkId}`
         )
       );
       statsObj.previousBestNetworkId = bestNetworkObj.networkId;
@@ -11055,7 +10828,7 @@ async function loadBestRuntimeNetwork(p) {
 
     console.log(
       chalk.blue.bold(
-        `${MODULE_ID} | +++ BEST NEURAL NETWORK LOADED FROM DB | ${
+        `${PF} | +++ BEST NEURAL NETWORK LOADED FROM DB | ${
           bestNetworkObj.networkId
         } | ${bestNetworkObj.runtimeMatchRate.toFixed(3)}%`
       )
@@ -11066,19 +10839,17 @@ async function loadBestRuntimeNetwork(p) {
     if (err.code == "ETIMEDOUT") {
       console.log(
         chalkError(
-          `${MODULE_ID} | *** LOAD BEST NETWORK ERROR: NETWORK TIMEOUT | ${folder}/${file}`
+          `${PF} | *** LOAD BEST NETWORK ERROR: NETWORK TIMEOUT | ${folder}/${file}`
         )
       );
     } else if (err.code == "ENOTFOUND") {
       console.log(
         chalkError(
-          `${MODULE_ID} | *** LOAD BEST NETWORK ERROR: FILE NOT FOUND | ${folder}/${file}`
+          `${PF} | *** LOAD BEST NETWORK ERROR: FILE NOT FOUND | ${folder}/${file}`
         )
       );
     } else {
-      console.log(
-        chalkError(`${MODULE_ID} | *** LOAD BEST NETWORK ERROR: ${err}`)
-      );
+      console.log(chalkError(`${PF} | *** LOAD BEST NETWORK ERROR: ${err}`));
     }
 
     console.log(err);
@@ -11104,13 +10875,13 @@ async function loadConfigFile(params) {
     if (empty(loadedConfigObj)) {
       console.log(
         chalkAlert(
-          `${MODULE_ID} | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ???`
+          `${PF} | DROPBOX CONFIG LOAD FILE ERROR | JSON UNDEFINED ???`
         )
       );
       return;
     }
 
-    console.log(chalkInfo(`${MODULE_ID} | LOADED CONFIG FILE: ${params.file}`));
+    console.log(chalkInfo(`${PF} | LOADED CONFIG FILE: ${params.file}`));
 
     const newConfiguration = {};
 
@@ -11119,7 +10890,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.WAS_HEARTBEAT_INTERVAL !== undefined) {
       console.log(
-        `${MODULE_ID} | LOADED WAS_HEARTBEAT_INTERVAL: ${loadedConfigObj.WAS_HEARTBEAT_INTERVAL}`
+        `${PF} | LOADED WAS_HEARTBEAT_INTERVAL: ${loadedConfigObj.WAS_HEARTBEAT_INTERVAL}`
       );
       newConfiguration.heartbeatInterval =
         loadedConfigObj.WAS_HEARTBEAT_INTERVAL;
@@ -11127,7 +10898,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG !== undefined) {
       console.log(
-        `${MODULE_ID} | LOADED WAS_USER_PROFILE_ONLY_FLAG: ${loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG}`
+        `${PF} | LOADED WAS_USER_PROFILE_ONLY_FLAG: ${loadedConfigObj.WAS_USER_PROFILE_ONLY_FLAG}`
       );
 
       if (
@@ -11147,7 +10918,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.WAS_MAX_LAST_SEEN_DAYS_HASHTAGS !== undefined) {
       console.log(
-        `${MODULE_ID} | LOADED WAS_MAX_LAST_SEEN_DAYS_HASHTAGS: ${loadedConfigObj.WAS_MAX_LAST_SEEN_DAYS_HASHTAGS}`
+        `${PF} | LOADED WAS_MAX_LAST_SEEN_DAYS_HASHTAGS: ${loadedConfigObj.WAS_MAX_LAST_SEEN_DAYS_HASHTAGS}`
       );
       newConfiguration.maxLastSeenDaysHashtags =
         loadedConfigObj.WAS_MAX_LAST_SEEN_DAYS_HASHTAGS;
@@ -11155,7 +10926,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.WAS_MIN_MENTIONS_HASHTAGS !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED WAS_MIN_MENTIONS_HASHTAGS: " +
           loadedConfigObj.WAS_MIN_MENTIONS_HASHTAGS
       );
@@ -11165,7 +10936,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.WAS_PUBSUB_PROJECT_ID !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED WAS_PUBSUB_PROJECT_ID: " +
           loadedConfigObj.WAS_PUBSUB_PROJECT_ID
       );
@@ -11174,7 +10945,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED WAS_PUBSUB_RESULT_TIMEOUT: " +
           loadedConfigObj.WAS_PUBSUB_RESULT_TIMEOUT
       );
@@ -11184,9 +10955,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.TWEET_VERSION_2 !== undefined) {
       console.log(
-        MODULE_ID +
-          " | LOADED TWEET_VERSION_2: " +
-          loadedConfigObj.TWEET_VERSION_2
+        PF + " | LOADED TWEET_VERSION_2: " + loadedConfigObj.TWEET_VERSION_2
       );
 
       if (
@@ -11206,7 +10975,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.WAS_TEST_MODE !== undefined) {
       console.log(
-        MODULE_ID + " | LOADED WAS_TEST_MODE: " + loadedConfigObj.WAS_TEST_MODE
+        PF + " | LOADED WAS_TEST_MODE: " + loadedConfigObj.WAS_TEST_MODE
       );
 
       if (
@@ -11225,7 +10994,7 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.VERBOSE !== undefined) {
-      console.log(MODULE_ID + " | LOADED VERBOSE: " + loadedConfigObj.VERBOSE);
+      console.log(PF + " | LOADED VERBOSE: " + loadedConfigObj.VERBOSE);
 
       if (
         loadedConfigObj.VERBOSE == false ||
@@ -11243,9 +11012,7 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.BINARY_MODE !== undefined) {
-      console.log(
-        MODULE_ID + " | LOADED BINARY_MODE: " + loadedConfigObj.BINARY_MODE
-      );
+      console.log(PF + " | LOADED BINARY_MODE: " + loadedConfigObj.BINARY_MODE);
 
       if (
         loadedConfigObj.BINARY_MODE == false ||
@@ -11264,7 +11031,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.TWEET_SEARCH_COUNT !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED TWEET_SEARCH_COUNT: " +
           loadedConfigObj.TWEET_SEARCH_COUNT
       );
@@ -11273,7 +11040,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.NODE_SETPROPS_QUEUE_INTERVAL !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED NODE_SETPROPS_QUEUE_INTERVAL: " +
           loadedConfigObj.NODE_SETPROPS_QUEUE_INTERVAL
       );
@@ -11283,7 +11050,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.UPDATE_USER_SETS_INTERVAL !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED UPDATE_USER_SETS_INTERVAL: " +
           loadedConfigObj.UPDATE_USER_SETS_INTERVAL
       );
@@ -11293,7 +11060,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.UPDATE_HASHTAG_SETS_INTERVAL !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED UPDATE_HASHTAG_SETS_INTERVAL: " +
           loadedConfigObj.UPDATE_HASHTAG_SETS_INTERVAL
       );
@@ -11303,9 +11070,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.ENABLE_GEOCODE !== undefined) {
       console.log(
-        MODULE_ID +
-          " | LOADED ENABLE_GEOCODE: " +
-          loadedConfigObj.ENABLE_GEOCODE
+        PF + " | LOADED ENABLE_GEOCODE: " + loadedConfigObj.ENABLE_GEOCODE
       );
 
       if (
@@ -11325,9 +11090,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.FILTER_RETWEETS !== undefined) {
       console.log(
-        MODULE_ID +
-          " | LOADED FILTER_RETWEETS: " +
-          loadedConfigObj.FILTER_RETWEETS
+        PF + " | LOADED FILTER_RETWEETS: " + loadedConfigObj.FILTER_RETWEETS
       );
 
       if (
@@ -11347,7 +11110,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.FILTER_DUPLICATE_TWEETS !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED FILTER_DUPLICATE_TWEETS: " +
           loadedConfigObj.FILTER_DUPLICATE_TWEETS
       );
@@ -11369,7 +11132,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.ENABLE_IMAGE_ANALYSIS !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED ENABLE_IMAGE_ANALYSIS: " +
           loadedConfigObj.ENABLE_IMAGE_ANALYSIS
       );
@@ -11391,7 +11154,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.FORCE_IMAGE_ANALYSIS !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED FORCE_IMAGE_ANALYSIS: " +
           loadedConfigObj.FORCE_IMAGE_ANALYSIS
       );
@@ -11412,9 +11175,7 @@ async function loadConfigFile(params) {
     }
 
     if (loadedConfigObj.AUTO_FOLLOW !== undefined) {
-      console.log(
-        MODULE_ID + " | LOADED AUTO_FOLLOW: " + loadedConfigObj.AUTO_FOLLOW
-      );
+      console.log(PF + " | LOADED AUTO_FOLLOW: " + loadedConfigObj.AUTO_FOLLOW);
 
       if (
         loadedConfigObj.AUTO_FOLLOW == false ||
@@ -11433,7 +11194,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.FORCE_FOLLOW !== undefined) {
       console.log(
-        MODULE_ID + " | LOADED FORCE_FOLLOW: " + loadedConfigObj.FORCE_FOLLOW
+        PF + " | LOADED FORCE_FOLLOW: " + loadedConfigObj.FORCE_FOLLOW
       );
 
       if (
@@ -11453,9 +11214,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.WAS_ENABLE_STDIN !== undefined) {
       console.log(
-        MODULE_ID +
-          " | LOADED WAS_ENABLE_STDIN: " +
-          loadedConfigObj.WAS_ENABLE_STDIN
+        PF + " | LOADED WAS_ENABLE_STDIN: " + loadedConfigObj.WAS_ENABLE_STDIN
       );
 
       if (
@@ -11475,7 +11234,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.NODE_METER_ENABLED !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED NODE_METER_ENABLED: " +
           loadedConfigObj.NODE_METER_ENABLED
       );
@@ -11491,14 +11250,14 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.PROCESS_NAME !== undefined) {
       console.log(
-        MODULE_ID + " | LOADED PROCESS_NAME: " + loadedConfigObj.PROCESS_NAME
+        PF + " | LOADED PROCESS_NAME: " + loadedConfigObj.PROCESS_NAME
       );
       newConfiguration.processName = loadedConfigObj.PROCESS_NAME;
     }
 
     if (loadedConfigObj.MAX_TWEET_RX_QUEUE !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED MAX_TWEET_RX_QUEUE: " +
           loadedConfigObj.MAX_TWEET_RX_QUEUE
       );
@@ -11507,7 +11266,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.MAX_TRANSMIT_NODE_QUEUE !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED MAX_TRANSMIT_NODE_QUEUE: " +
           loadedConfigObj.MAX_TRANSMIT_NODE_QUEUE
       );
@@ -11517,7 +11276,7 @@ async function loadConfigFile(params) {
 
     // if (loadedConfigObj.THREECEE_USERS !== undefined) {
     //   console.log(
-    //     MODULE_ID +
+    //     PF +
     //       " | LOADED THREECEE_USERS: " +
     //       loadedConfigObj.THREECEE_USERS
     //   );
@@ -11526,7 +11285,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.TWITTER_THREECEE_INFO_USERS !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED TWITTER_THREECEE_INFO_USERS: " +
           loadedConfigObj.TWITTER_THREECEE_INFO_USERS
       );
@@ -11536,7 +11295,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.TWITTER_THREECEE_USER !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED TWITTER_THREECEE_USER: " +
           loadedConfigObj.TWITTER_THREECEE_USER
       );
@@ -11545,16 +11304,14 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.CURSOR_BATCH_SIZE !== undefined) {
       console.log(
-        MODULE_ID +
-          " | LOADED CURSOR_BATCH_SIZE: " +
-          loadedConfigObj.CURSOR_BATCH_SIZE
+        PF + " | LOADED CURSOR_BATCH_SIZE: " + loadedConfigObj.CURSOR_BATCH_SIZE
       );
       newConfiguration.cursorBatchSize = loadedConfigObj.CURSOR_BATCH_SIZE;
     }
 
     if (loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED FIND_CAT_USER_CURSOR_LIMIT: " +
           loadedConfigObj.FIND_CAT_USER_CURSOR_LIMIT
       );
@@ -11564,7 +11321,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED FIND_CAT_HASHTAG_CURSOR_LIMIT: " +
           loadedConfigObj.FIND_CAT_HASHTAG_CURSOR_LIMIT
       );
@@ -11574,16 +11331,14 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.MAX_BOTS_TO_FETCH !== undefined) {
       console.log(
-        MODULE_ID +
-          " | LOADED MAX_BOTS_TO_FETCH: " +
-          loadedConfigObj.MAX_BOTS_TO_FETCH
+        PF + " | LOADED MAX_BOTS_TO_FETCH: " + loadedConfigObj.MAX_BOTS_TO_FETCH
       );
       newConfiguration.maxBotsToFetch = loadedConfigObj.MAX_BOTS_TO_FETCH;
     }
 
     if (loadedConfigObj.BOT_UPDATE_INTERVAL !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED BOT_UPDATE_INTERVAL: " +
           loadedConfigObj.BOT_UPDATE_INTERVAL
       );
@@ -11593,25 +11348,21 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.HEAPDUMP_ENABLED !== undefined) {
       console.log(
-        MODULE_ID +
-          " | LOADED HEAPDUMP_ENABLED: " +
-          loadedConfigObj.HEAPDUMP_ENABLED
+        PF + " | LOADED HEAPDUMP_ENABLED: " + loadedConfigObj.HEAPDUMP_ENABLED
       );
       newConfiguration.heapDumpEnabled = loadedConfigObj.HEAPDUMP_ENABLED;
     }
 
     if (loadedConfigObj.HEAPDUMP_MODULO !== undefined) {
       console.log(
-        MODULE_ID +
-          " | LOADED HEAPDUMP_MODULO: " +
-          loadedConfigObj.HEAPDUMP_MODULO
+        PF + " | LOADED HEAPDUMP_MODULO: " + loadedConfigObj.HEAPDUMP_MODULO
       );
       newConfiguration.heapDumpModulo = loadedConfigObj.HEAPDUMP_MODULO;
     }
 
     if (loadedConfigObj.HEAPDUMP_THRESHOLD !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED HEAPDUMP_THRESHOLD: " +
           loadedConfigObj.HEAPDUMP_THRESHOLD
       );
@@ -11620,7 +11371,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.NODE_CACHE_CHECK_PERIOD !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED NODE_CACHE_CHECK_PERIOD: " +
           loadedConfigObj.NODE_CACHE_CHECK_PERIOD
       );
@@ -11630,7 +11381,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.NODE_CACHE_DEFAULT_TTL !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED NODE_CACHE_DEFAULT_TTL: " +
           loadedConfigObj.NODE_CACHE_DEFAULT_TTL
       );
@@ -11639,7 +11390,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.SOCKET_IDLE_TIMEOUT !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED SOCKET_IDLE_TIMEOUT: " +
           loadedConfigObj.SOCKET_IDLE_TIMEOUT
       );
@@ -11648,7 +11399,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED TOPTERMS_CACHE_CHECK_PERIOD: " +
           loadedConfigObj.TOPTERMS_CACHE_CHECK_PERIOD
       );
@@ -11658,7 +11409,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED TOPTERMS_CACHE_DEFAULT_TTL: " +
           loadedConfigObj.TOPTERMS_CACHE_DEFAULT_TTL
       );
@@ -11668,7 +11419,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.MIN_FOLLOWERS_AUTO_FOLLOW !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED MIN_FOLLOWERS_AUTO_FOLLOW: " +
           loadedConfigObj.MIN_FOLLOWERS_AUTO_FOLLOW
       );
@@ -11678,7 +11429,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.MIN_FOLLOWERS_AUTO_CATEGORIZE !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED MIN_FOLLOWERS_AUTO_CATEGORIZE: " +
           loadedConfigObj.MIN_FOLLOWERS_AUTO_CATEGORIZE
       );
@@ -11688,7 +11439,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED CATEGORY_HASHMAPS_UPDATE_INTERVAL: " +
           loadedConfigObj.CATEGORY_HASHMAPS_UPDATE_INTERVAL
       );
@@ -11698,7 +11449,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.STATS_UPDATE_INTERVAL !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED STATS_UPDATE_INTERVAL: " +
           loadedConfigObj.STATS_UPDATE_INTERVAL
       );
@@ -11708,7 +11459,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED TRANSMIT_NODE_QUEUE_INTERVAL: " +
           loadedConfigObj.TRANSMIT_NODE_QUEUE_INTERVAL
       );
@@ -11718,7 +11469,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.RATE_QUEUE_INTERVAL !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED RATE_QUEUE_INTERVAL: " +
           loadedConfigObj.RATE_QUEUE_INTERVAL
       );
@@ -11727,7 +11478,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED RATE_QUEUE_INTERVAL_MODULO: " +
           loadedConfigObj.RATE_QUEUE_INTERVAL_MODULO
       );
@@ -11737,7 +11488,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED TWITTER_THREECEE_AUTO_FOLLOW: " +
           loadedConfigObj.TWITTER_THREECEE_AUTO_FOLLOW
       );
@@ -11747,7 +11498,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.TWEET_PARSER_INTERVAL !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED TWEET_PARSER_INTERVAL: " +
           loadedConfigObj.TWEET_PARSER_INTERVAL
       );
@@ -11757,7 +11508,7 @@ async function loadConfigFile(params) {
 
     if (loadedConfigObj.KEEPALIVE_INTERVAL !== undefined) {
       console.log(
-        MODULE_ID +
+        PF +
           " | LOADED KEEPALIVE_INTERVAL: " +
           loadedConfigObj.KEEPALIVE_INTERVAL
       );
@@ -11768,11 +11519,7 @@ async function loadConfigFile(params) {
   } catch (err) {
     console.log(
       chalkError(
-        MODULE_ID +
-          " | ERROR LOAD DROPBOX CONFIG: " +
-          fullPath +
-          "\n" +
-          jsonPrint(err)
+        PF + " | ERROR LOAD DROPBOX CONFIG: " + fullPath + "\n" + jsonPrint(err)
       )
     );
     throw err;
@@ -11791,7 +11538,7 @@ async function loadAllConfigFiles() {
     defaultConfiguration = defaultConfig;
     console.log(
       chalk.green(
-        MODULE_ID +
+        PF +
           " | +++ RELOADED DEFAULT CONFIG " +
           configDefaultFolder +
           "/" +
@@ -11809,7 +11556,7 @@ async function loadAllConfigFiles() {
     hostConfiguration = hostConfig;
     console.log(
       chalk.green(
-        MODULE_ID +
+        PF +
           " | +++ RELOADED HOST CONFIG " +
           configHostFolder +
           "/" +
@@ -11835,9 +11582,7 @@ async function loadAllConfigFiles() {
   filterDuplicateTweets = configuration.filterDuplicateTweets;
   filterRetweets = configuration.filterRetweets;
 
-  console.log(
-    chalkWarn(MODULE_ID + " | -X- FILTER RETWEETS: " + filterRetweets)
-  );
+  console.log(chalkWarn(PF + " | -X- FILTER RETWEETS: " + filterRetweets));
 
   maxTweetRxQueue = configuration.maxTweetRxQueue;
   maxTransmitNodeQueue = configuration.maxTransmitNodeQueue;
@@ -11850,7 +11595,7 @@ function initStatsUpdate() {
     try {
       console.log(
         chalkTwitter(
-          MODULE_ID +
+          PF +
             " | INIT STATS UPDATE INTERVAL | " +
             msToTime(configuration.statsUpdateIntervalTime)
         )
@@ -11868,16 +11613,14 @@ function initStatsUpdate() {
 
           if (configuration.verbose) {
             console.log(
-              chalkLog(
-                MODULE_ID + " | FOUND " + childArray.length + " CHILDREN"
-              )
+              chalkLog(PF + " | FOUND " + childArray.length + " CHILDREN")
             );
           }
 
           childArray.forEach(function (childObj) {
             console.log(
               chalkLog(
-                MODULE_ID +
+                PF +
                   " | CHILD" +
                   " | PID: " +
                   childObj.pid +
@@ -11922,9 +11665,7 @@ function initStatsUpdate() {
             statsObj.twitNotReadyWarning = false;
           }
         } catch (err) {
-          console.log(
-            chalkError(MODULE_ID + " | *** STATS UPDATE ERROR: " + err)
-          );
+          console.log(chalkError(PF + " | *** STATS UPDATE ERROR: " + err));
         }
       }, configuration.statsUpdateIntervalTime);
 
@@ -11987,14 +11728,10 @@ async function initConfig() {
     configArgs.forEach((arg) => {
       if (_.isObject(configuration[arg])) {
         console.log(
-          `${MODULE_ID} | _FINAL CONFIG | ${arg}\n${jsonPrint(
-            configuration[arg]
-          )}`
+          `${PF} | _FINAL CONFIG | ${arg}\n${jsonPrint(configuration[arg])}`
         );
       } else {
-        console.log(
-          `${MODULE_ID} | _FINAL CONFIG | ${arg}: ${configuration[arg]}`
-        );
+        console.log(`${PF} | _FINAL CONFIG | ${arg}: ${configuration[arg]}`);
       }
     });
 
@@ -12009,13 +11746,13 @@ async function initConfig() {
 
     return configuration;
   } catch (err) {
-    console.log(chalkLog(MODULE_ID + " | *** INIT CONFIG ERROR: " + err));
+    console.log(chalkLog(PF + " | *** INIT CONFIG ERROR: " + err));
     throw err;
   }
 }
 
 async function initDbUserChangeStream() {
-  console.log(chalkLog(MODULE_ID + " | ... INIT DB USER CHANGE STREAM"));
+  console.log(chalkLog(PF + " | ... INIT DB USER CHANGE STREAM"));
 
   const userCollection = global.dbConnection.collection("users");
 
@@ -12209,7 +11946,7 @@ async function initDbUserChangeStream() {
 }
 
 async function initDbHashtagChangeStream() {
-  console.log(chalkLog(MODULE_ID + " | ... INIT DB HASHTAG CHANGE STREAM"));
+  console.log(chalkLog(PF + " | ... INIT DB HASHTAG CHANGE STREAM"));
 
   const hashtagCollection = global.dbConnection.collection("hashtags");
 
@@ -12300,7 +12037,7 @@ let stdin;
 
 function initStdIn() {
   return new Promise(function (resolve) {
-    console.log(MODULE_ID + " | STDIN ENABLED");
+    console.log(PF + " | STDIN ENABLED");
 
     stdin = process.stdin;
 
@@ -12317,18 +12054,16 @@ function initStdIn() {
         case "t":
           configuration.testMode = !configuration.testMode;
           console.log(
-            chalkAlert(MODULE_ID + " | TEST MODE: " + configuration.testMode)
+            chalkAlert(PF + " | TEST MODE: " + configuration.testMode)
           );
           break;
         case "x":
           saveSampleTweetFlag = true;
-          console.log(chalkAlert(MODULE_ID + " | SAVE SAMPLE TWEET"));
+          console.log(chalkAlert(PF + " | SAVE SAMPLE TWEET"));
           break;
         case "v":
           configuration.verbose = !configuration.verbose;
-          console.log(
-            chalkAlert(MODULE_ID + " | VERBOSE: " + configuration.verbose)
-          );
+          console.log(chalkAlert(PF + " | VERBOSE: " + configuration.verbose));
           break;
         case "q":
           await quit();
@@ -12345,7 +12080,7 @@ function initStdIn() {
         default:
           console.log(
             chalkAlert(
-              MODULE_ID +
+              PF +
                 "\n" +
                 "q/Q: quit" +
                 "\n" +
@@ -12375,9 +12110,7 @@ function initIgnoreWordsHashMap() {
       function ignoreWordHashMapError(err) {
         if (err) {
           console.log(
-            chalkError(
-              MODULE_ID + " | *** initIgnoreWordsHashMap ERROR: " + err
-            )
+            chalkError(PF + " | *** initIgnoreWordsHashMap ERROR: " + err)
           );
           return reject(err);
         }
@@ -12391,14 +12124,12 @@ let memStatsInterval;
 
 async function initThreeceeTwitterUser(threeceeUser) {
   console.log(
-    chalkTwitter(
-      MODULE_ID + " | ... INIT THREECEE TWITTER USER: " + threeceeUser
-    )
+    chalkTwitter(PF + " | ... INIT THREECEE TWITTER USER: " + threeceeUser)
   );
 
   console.log(
     chalkTwitter(
-      `${MODULE_ID} | ... LOADING TWITTER CONFIG | @${threeceeUser} | FILE: ${twitterConfigFolder}`
+      `${PF} | ... LOADING TWITTER CONFIG | @${threeceeUser} | FILE: ${twitterConfigFolder}`
     )
   );
 
@@ -12416,7 +12147,7 @@ async function initThreeceeTwitterUser(threeceeUser) {
     await tcUtils.getTwitterAccountSettings();
 
     console.log(
-      chalkTwitter(`${MODULE_ID} | +++ TWITTER INITIALIZED | @${threeceeUser}`)
+      chalkTwitter(`${PF} | +++ TWITTER INITIALIZED | @${threeceeUser}`)
     );
 
     threeceeTwitter.ready = true;
@@ -12429,20 +12160,18 @@ async function initThreeceeTwitterUser(threeceeUser) {
   } catch (err) {
     if (err.code == "88") {
       console.log(
-        chalkError(`${MODULE_ID} | !!! TWITTER RATE LIMIT | @${threeceeUser}`)
+        chalkError(`${PF} | !!! TWITTER RATE LIMIT | @${threeceeUser}`)
       );
       return;
     }
     if (err.code == "ENOTFOUND") {
       console.log(
         chalkError(
-          `${MODULE_ID} | *** LOAD TWITTER CONFIG ERROR: FILE NOT FOUND: ${twitterConfigFolder}/${configFile}`
+          `${PF} | *** LOAD TWITTER CONFIG ERROR: FILE NOT FOUND: ${twitterConfigFolder}/${configFile}`
         )
       );
     } else {
-      console.log(
-        chalkError(`${MODULE_ID} | *** LOAD TWITTER CONFIG ERROR: ${err}`)
-      );
+      console.log(chalkError(`${PF} | *** LOAD TWITTER CONFIG ERROR: ${err}`));
     }
 
     threeceeTwitter.error = "CONFIG LOAD ERROR: " + err;
@@ -12465,7 +12194,7 @@ async function deleteUser(params) {
 
     console.log(
       chalkAlert(
-        MODULE_ID +
+        PF +
           " | XXX USER | -*- DB HIT" +
           " [" +
           statsObj.user.deleted +
@@ -12479,7 +12208,7 @@ async function deleteUser(params) {
   } else {
     console.log(
       chalkAlert(
-        MODULE_ID +
+        PF +
           " | XXX USER | --- DB MISS" +
           " | " +
           params.user.nodeId +
@@ -12507,7 +12236,7 @@ function allTrue(p) {
 
     console.log(
       chalkLog(
-        MODULE_ID +
+        PF +
           " | ... WAIT ALL TRUE TIMEOUT | " +
           msToTime(params.maxIntervalWait)
       )
@@ -12524,7 +12253,7 @@ function allTrue(p) {
       if (waitTime >= params.maxIntervalWait) {
         clearInterval(waitInterval);
         console.log(
-          chalkAlert(MODULE_ID + " | ALL TRUE TIMEOUT | " + msToTime(waitTime))
+          chalkAlert(PF + " | ALL TRUE TIMEOUT | " + msToTime(waitTime))
         );
         return resolve(false);
       }
@@ -12545,17 +12274,13 @@ const botBlockListFileRegex = RegExp("block-list");
 async function initWatchConfig() {
   statsObj.status = "INIT WATCH CONFIG";
 
-  console.log(chalkLog(MODULE_ID + " | ... INIT WATCH"));
+  console.log(chalkLog(PF + " | ... INIT WATCH"));
 
   const loadConfig = async function (f) {
     try {
       debug(
         chalkInfo(
-          MODULE_ID +
-            " | +++ FILE CREATED or CHANGED | " +
-            getTimeStamp() +
-            " | " +
-            f
+          PF + " | +++ FILE CREATED or CHANGED | " + getTimeStamp() + " | " + f
         )
       );
 
@@ -12567,7 +12292,7 @@ async function initWatchConfig() {
         for (const arg of configArgs) {
           if (_.isObject(configuration[arg])) {
             console.log(
-              MODULE_ID +
+              PF +
                 " | _FINAL CONFIG | " +
                 arg +
                 "\n" +
@@ -12575,11 +12300,7 @@ async function initWatchConfig() {
             );
           } else {
             console.log(
-              MODULE_ID +
-                " | _FINAL CONFIG | " +
-                arg +
-                ": " +
-                configuration[arg]
+              PF + " | _FINAL CONFIG | " + arg + ": " + configuration[arg]
             );
           }
         }
@@ -12600,11 +12321,7 @@ async function initWatchConfig() {
       if (botBlockListFileRegex.test(f)) {
         console.log(
           chalkAlert(
-            MODULE_ID +
-              " | BOT BLOCK FILE CHANGED | " +
-              getTimeStamp() +
-              " | " +
-              f
+            PF + " | BOT BLOCK FILE CHANGED | " + getTimeStamp() + " | " + f
           )
         );
 
@@ -12616,9 +12333,7 @@ async function initWatchConfig() {
       }
     } catch (err) {
       console.log(
-        chalkError(
-          MODULE_ID + " | *** LOAD ALL CONFIGS ON CREATE ERROR: " + err
-        )
+        chalkError(PF + " | *** LOAD ALL CONFIGS ON CREATE ERROR: " + err)
       );
     }
   };
@@ -12638,9 +12353,7 @@ async function initWatchConfig() {
     monitor.on("changed", loadConfig);
     monitor.on("removed", function (f) {
       console.log(
-        chalkAlert(
-          MODULE_ID + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f
-        )
+        chalkAlert(PF + " | XXX FILE DELETED | " + getTimeStamp() + " | " + f)
       );
     });
   });
@@ -12656,9 +12369,7 @@ async function initWatchConfig() {
 setTimeout(async function () {
   console.log(
     chalkBlue(
-      `${MODULE_ID} | ... WAIT START TIMEOUT: ${msToTime(
-        DEFAULT_START_TIMEOUT
-      )}`
+      `${PF} | ... WAIT START TIMEOUT: ${msToTime(DEFAULT_START_TIMEOUT)}`
     )
   );
 
@@ -12685,7 +12396,7 @@ setTimeout(async function () {
     configEvents.emit("DB_CONNECT");
 
     console.log(
-      chalkTwitter(MODULE_ID + " | PROCESS NAME: " + configuration.processName)
+      chalkTwitter(PF + " | PROCESS NAME: " + configuration.processName)
     );
 
     configuration.isPrimaryHost = hostname === configuration.primaryHost;
@@ -12696,7 +12407,7 @@ setTimeout(async function () {
 
     console.log(
       chalkBlueBold(
-        MODULE_ID +
+        PF +
           " | PROCESS: " +
           configuration.processName +
           " | HOST: " +
@@ -12754,12 +12465,12 @@ setTimeout(async function () {
     if (pubSubClient) {
       const [topics] = await pubSubClient.getTopics();
       topics.forEach((topic) =>
-        console.log(chalkLog(MODULE_ID + " | PUBSUB TOPIC: " + topic.name))
+        console.log(chalkLog(PF + " | PUBSUB TOPIC: " + topic.name))
       );
 
       const [subscriptions] = await pubSubClient.getSubscriptions();
       subscriptions.forEach((subscription) =>
-        console.log(chalkLog(MODULE_ID + " | PUBSUB SUB: " + subscription.name))
+        console.log(chalkLog(PF + " | PUBSUB SUB: " + subscription.name))
       );
     }
 
@@ -12789,13 +12500,11 @@ setTimeout(async function () {
   } catch (err) {
     console.trace(
       chalkError(
-        MODULE_ID + " | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)
+        PF + " | **** INIT CONFIG ERROR: " + err + "\n" + jsonPrint(err)
       )
     );
     if (err.code != 404) {
-      console.log(
-        MODULE_ID + " | *** INIT CONFIG ERROR | err.code: " + err.code
-      );
+      console.log(PF + " | *** INIT CONFIG ERROR | err.code: " + err.code);
       await quit();
     }
   }

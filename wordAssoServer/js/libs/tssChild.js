@@ -878,6 +878,12 @@ function initSearchStream() {
             )
           );
         }
+        process.send({
+          op: "TWITTER_MESSAGE",
+          threeceeUser: threeceeUser.screenName,
+          stats: threeceeUser.stats,
+          message: msg,
+        });
       });
 
       threeceeUser.searchStream.on("follow", function (msg) {
@@ -893,6 +899,12 @@ function initSearchStream() {
               jsonPrint(msg)
           )
         );
+        process.send({
+          op: "TWITTER_FOLLOW",
+          threeceeUser: threeceeUser.screenName,
+          stats: threeceeUser.stats,
+          message: msg,
+        });
       });
 
       threeceeUser.searchStream.on("unfollow", function (msg) {
@@ -908,6 +920,12 @@ function initSearchStream() {
               jsonPrint(msg)
           )
         );
+        process.send({
+          op: "TWITTER_UNFOLLOW",
+          threeceeUser: threeceeUser.screenName,
+          stats: threeceeUser.stats,
+          message: msg,
+        });
       });
 
       threeceeUser.searchStream.on("user_update", function (msg) {
@@ -923,6 +941,12 @@ function initSearchStream() {
               jsonPrint(msg)
           )
         );
+        process.send({
+          op: "TWITTER_USER_UPDATE",
+          threeceeUser: threeceeUser.screenName,
+          stats: threeceeUser.stats,
+          message: msg,
+        });
       });
 
       threeceeUser.searchStream.on("connect", function () {
@@ -942,6 +966,11 @@ function initSearchStream() {
         threeceeUser.stats.rateLimited = false;
         rateLimited = false;
         threeceeUser.stats.twitterTokenErrorFlag = false;
+        process.send({
+          op: "TWITTER_CONNECT",
+          threeceeUser: threeceeUser.screenName,
+          stats: threeceeUser.stats,
+        });
         showStats();
       });
 
@@ -968,14 +997,18 @@ function initSearchStream() {
         );
 
         statsObj.twitter.reconnects += 1;
-
         threeceeUser.stats.connected = true;
         threeceeUser.stats.twitterReconnects += 1;
         threeceeUser.stats.twitterTokenErrorFlag = false;
+        process.send({
+          op: "TWITTER_RECONNECT",
+          threeceeUser: threeceeUser.screenName,
+          stats: threeceeUser.stats,
+        });
         showStats();
       });
 
-      threeceeUser.searchStream.on("disconnect", function (data) {
+      threeceeUser.searchStream.on("disconnect", function (msg) {
         console.log(
           chalkAlert(
             MODULE_ID +
@@ -984,7 +1017,7 @@ function initSearchStream() {
               " | @" +
               threeceeUser.screenName +
               " | !!! TWITTER DISCONNECT\n" +
-              jsonPrint(data)
+              jsonPrint(msg)
           )
         );
         statsObj.twitter.disconnects += 1;
@@ -993,6 +1026,13 @@ function initSearchStream() {
         threeceeUser.stats.rateLimited = false;
         rateLimited = false;
         threeceeUser.stats.twitterTokenErrorFlag = false;
+
+        process.send({
+          op: "TWITTER_DISCONNECT",
+          threeceeUser: threeceeUser.screenName,
+          stats: threeceeUser.stats,
+          message: msg,
+        });
         showStats();
       });
 
@@ -1007,10 +1047,16 @@ function initSearchStream() {
           )
         );
         statsObj.twitter.warnings += 1;
+        process.send({
+          op: "TWITTER_WARNING",
+          threeceeUser: threeceeUser.screenName,
+          stats: threeceeUser.stats,
+          message: msg,
+        });
         showStats();
       });
 
-      threeceeUser.searchStream.on("direct_message", function (message) {
+      threeceeUser.searchStream.on("direct_message", function (msg) {
         console.log(
           chalkTwitter(
             MODULE_ID +
@@ -1020,52 +1066,76 @@ function initSearchStream() {
               " | " +
               message.direct_message.sender_screen_name +
               "\n" +
-              message.direct_message.text
+              message.msg.text
           )
         );
+        process.send({
+          op: "TWITTER_DIRECT_MESSAGE",
+          threeceeUser: threeceeUser.screenName,
+          stats: threeceeUser.stats,
+          message: msg,
+        });
         showStats();
       });
 
-      threeceeUser.searchStream.on("scrub_geo", function (data) {
+      threeceeUser.searchStream.on("scrub_geo", function (msg) {
         console.log(
           chalkTwitter(
             MODULE_ID +
               " | " +
               getTimeStamp() +
               " | !!! TWITTER SCRUB GEO\n" +
-              jsonPrint(data)
+              jsonPrint(msg)
           )
         );
         statsObj.twitter.scrubGeo += 1;
         showStats();
+        process.send({
+          op: "TWITTER_SCRUB_GEO",
+          threeceeUser: threeceeUser.screenName,
+          stats: threeceeUser.stats,
+          message: msg,
+        });
       });
 
-      threeceeUser.searchStream.on("status_withheld", function (data) {
+      threeceeUser.searchStream.on("status_withheld", function (msg) {
         console.log(
           chalkTwitter(
             MODULE_ID +
               " | " +
               getTimeStamp() +
               " | !!! TWITTER STATUS WITHHELD\n" +
-              jsonPrint(data)
+              jsonPrint(msg)
           )
         );
         statsObj.twitter.statusWithheld += 1;
+        process.send({
+          op: "TWITTER_STATUS_WITHHELD",
+          threeceeUser: threeceeUser.screenName,
+          stats: threeceeUser.stats,
+          message: msg,
+        });
         showStats();
       });
 
-      threeceeUser.searchStream.on("user_withheld", function (data) {
+      threeceeUser.searchStream.on("user_withheld", function (msg) {
         console.log(
           chalkTwitter(
             MODULE_ID +
               " | " +
               getTimeStamp() +
               " | !!! TWITTER USER WITHHELD\n" +
-              jsonPrint(data)
+              jsonPrint(msg)
           )
         );
         statsObj.twitter.userWithheld += 1;
         showStats();
+        process.send({
+          op: "TWITTER_USER_WITHHELD",
+          threeceeUser: threeceeUser.screenName,
+          stats: threeceeUser.stats,
+          message: msg,
+        });
       });
 
       threeceeUser.searchStream.on("limit", function (limitMessage) {
@@ -1093,6 +1163,12 @@ function initSearchStream() {
             )
           );
         }
+        process.send({
+          op: "TWITTER_LIMIT",
+          threeceeUser: threeceeUser.screenName,
+          stats: threeceeUser.stats,
+          message: limitMessage,
+        });
       });
 
       threeceeUser.searchStream.on("error", function (err) {
@@ -1123,7 +1199,7 @@ function initSearchStream() {
           err.statusCode == 401 ? "TWITTER_UNAUTHORIZED" : "TWITTER";
 
         process.send({
-          op: "ERROR",
+          op: "TWITTER_ERROR",
           threeceeUser: threeceeUser.screenName,
           stats: threeceeUser.stats,
           errorType: errorType,
@@ -1151,7 +1227,7 @@ function initSearchStream() {
 
         if (err.statusCode == 401) {
           process.send({
-            op: "ERROR",
+            op: "TWITTER_ERROR",
             threeceeUser: threeceeUser.screenName,
             stats: threeceeUser.stats,
             errorType: "TWITTER_UNAUTHORIZED",
@@ -1159,7 +1235,7 @@ function initSearchStream() {
           });
         } else {
           process.send({
-            op: "ERROR",
+            op: "TWITTER_ERROR",
             threeceeUser: threeceeUser.screenName,
             stats: threeceeUser.stats,
             errorType: "TWITTER_END",
@@ -1185,7 +1261,7 @@ function initSearchStream() {
         threeceeUser.stats.twitterErrors += 1;
 
         process.send({
-          op: "ERROR",
+          op: "TWITTER_ERROR",
           threeceeUser: threeceeUser.screenName,
           stats: threeceeUser.stats,
           errorType: "TWITTER_PARSER",
@@ -1393,7 +1469,7 @@ function initSearchStream() {
         err.statusCode == 401 ? "TWITTER_UNAUTHORIZED" : "TWITTER";
 
       process.send({
-        op: "ERROR",
+        op: "TWITTER_ERROR",
         threeceeUser: threeceeUser.screenName,
         stats: threeceeUser.stats,
         errorType: errorType,
@@ -2120,7 +2196,7 @@ async function initFollowQueue(params) {
                 err.code == 161 ? "TWITTER_FOLLOW_LIMIT" : "TWITTER_FOLLOW";
 
               process.send({
-                op: "ERROR",
+                op: "TWITTER_ERROR",
                 threeceeUser: threeceeUser.screenName,
                 stats: threeceeUser.stats,
                 errorType: errorType,
@@ -2579,6 +2655,7 @@ process.on("message", async function (m) {
         process.send({
           op: "TWITTER_ERROR",
           threeceeUser: threeceeUser.screenName,
+          errorType: "TWITTER_UPDATE_SEARCH_TERMS",
           err: err,
         });
       }

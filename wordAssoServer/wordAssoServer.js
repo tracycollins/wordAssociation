@@ -390,6 +390,8 @@ statsObj.pubSub.subscriptions = {};
 statsObj.pubSub.subscriptions.errors = [];
 statsObj.pubSub.messagesSent = 0;
 statsObj.pubSub.messagesReceived = 0;
+statsObj.pubSub.nodeSetPropsResultTimeouts = 0;
+statsObj.pubSub.nodeSetProps = 0;
 
 statsObj.commandLineArgsLoaded = false;
 
@@ -4140,24 +4142,17 @@ async function pubSubNodeSetProps(params) {
     clearTimeout(nodeSetPropsResultTimeout);
 
     nodeSetPropsResultTimeout = setTimeout(function () {
+      statsObj.pubSub.nodeSetPropsResultTimeouts += 1;
       console.log(
         chalkAlert(
-          PF +
-            " | !!! NODE SET PROPS TIMEOUT" +
-            " | " +
-            msToTime(configuration.pubSub.pubSubResultTimeout) +
-            " [" +
-            statsObj.pubSub.messagesSent +
-            "]" +
-            " | " +
-            params.requestId +
-            " | TOPIC: node-setprops" +
-            " | NODE TYPE: " +
-            params.node.nodeType +
-            " | NID: " +
-            params.node.nodeId +
-            " | PROPS: " +
-            Object.keys(params.props)
+          `${PF} | !!! NODE SET PROPS TIMEOUT` +
+            ` |  ${msToTime(configuration.pubSub.pubSubResultTimeout)}` +
+            `[${statsObj.pubSub.nodeSetPropsResultTimeouts} TIMEOUTS / ${statsObj.pubSub.nodeSetProps} TOTAL]` +
+            ` | ${params.requestId}` +
+            ` | TOPIC: node-setprops` +
+            ` | NODE TYPE: ${params.node.nodeType}` +
+            ` | NID: ${params.node.nodeId}` +
+            ` | PROPS: ${Object.keys(params.props)}`
         )
       );
 
@@ -4174,6 +4169,7 @@ async function pubSubNodeSetProps(params) {
     clearTimeout(nodeSetPropsResultTimeout);
 
     const node = nodeSetPropsResultHashMap[params.requestId] || false;
+    statsObj.pubSub.nodeSetProps += 1;
 
     if (node.nodeType === "user") {
       if (isCategorized(node) || isAutoCategorized(node)) {

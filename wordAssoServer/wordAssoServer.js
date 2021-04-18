@@ -5007,14 +5007,10 @@ async function twitterSearchNode(params) {
 
     console.log(
       chalkSocket(
-        PF +
-          " | twitterSearchNode" +
-          " | " +
-          getTimeStamp() +
-          " | minFollowers: " +
-          minFollowers +
-          " | " +
-          searchNode
+        `${PF} | twitterSearchNode` +
+          ` | ${getTimeStamp()}` +
+          ` | minFollowers: ${minFollowers}` +
+          ` | ${searchNode}`
       )
     );
 
@@ -5034,12 +5030,9 @@ async function twitterSearchNode(params) {
 
           console.log(
             chalkSocket(
-              PF +
-                " | twitterSearchNode | SEARCH FOR HT TWEETS" +
-                " | " +
-                getTimeStamp() +
-                " | " +
-                searchTerm
+              `${PF} | twitterSearchNode | SEARCH FOR HT TWEETS` +
+                ` | ${getTimeStamp()}` +
+                ` | ${searchTerm}`
             )
           );
 
@@ -5050,14 +5043,10 @@ async function twitterSearchNode(params) {
               if (err) {
                 console.log(
                   chalkError(
-                    PF +
-                      " | twitterSearchNode | *** SEARCH FOR HT TWEETS ERROR" +
-                      " | " +
-                      getTimeStamp() +
-                      " | " +
-                      searchTerm +
-                      " | " +
-                      err
+                    `${PF} | twitterSearchNode | *** SEARCH FOR HT TWEETS ERROR` +
+                      ` | ${getTimeStamp()}` +
+                      ` | ${searchTerm}` +
+                      ` | ${err}`
                   )
                 );
 
@@ -5071,14 +5060,10 @@ async function twitterSearchNode(params) {
 
               console.log(
                 chalkSocket(
-                  PF +
-                    " | twitterSearchNode | HT TWEETS" +
-                    " | " +
-                    getTimeStamp() +
-                    " | " +
-                    searchTerm +
-                    " | TWs: " +
-                    tweets.statuses.length
+                  `${PF} | twitterSearchNode | HT TWEETS` +
+                    ` | ${getTimeStamp()}` +
+                    ` | ${searchTerm}` +
+                    ` | TWs: ${tweets.statuses.length}`
                 )
               );
 
@@ -5122,12 +5107,9 @@ async function twitterSearchNode(params) {
       if (response.nodes) {
         console.log(
           chalkSocket(
-            PF +
-              " | twitterSearchUser" +
-              " | " +
-              getTimeStamp() +
-              " | NODES: " +
-              response.nodes.length
+            `${PF} | twitterSearchUser` +
+              ` | ${getTimeStamp()}` +
+              ` | NODES: ${response.nodes.length}`
           )
         );
 
@@ -5137,15 +5119,13 @@ async function twitterSearchNode(params) {
           results: response.results,
           stats: statsObj,
         });
+        return;
       } else if (response.node) {
         console.log(
           chalkSocket(
-            PF +
-              " | twitterSearchUser" +
-              " | " +
-              getTimeStamp() +
-              " | NODE: @" +
-              response.node.screenName
+            `${PF} | twitterSearchUser` +
+              ` | ${getTimeStamp()}` +
+              ` | NODE: @${response.node.screenName}`
           )
         );
 
@@ -5154,16 +5134,24 @@ async function twitterSearchNode(params) {
           results: response.results,
           stats: statsObj,
         });
+
+        return;
       } else {
         viewNameSpace.emit("TWITTER_USER_NOT_FOUND", {
           searchNode: searchNode,
           results: response.results,
           stats: statsObj,
         });
+        return;
       }
-
-      return;
     }
+
+    console.log(
+      chalkError(
+        `${PF} | twitterSearchNode | *** TWITTER_SEARCH_NODE_UNKNOWN_MODE` +
+          ` | ${searchNode}`
+      )
+    );
 
     viewNameSpace.emit("TWITTER_SEARCH_NODE_UNKNOWN_MODE", {
       searchNode: searchNode,

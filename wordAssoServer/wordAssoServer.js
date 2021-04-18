@@ -6081,6 +6081,9 @@ async function initSocketHandler(socketObj) {
       "TWITTER_CATEGORIZE_NODE",
       async function twitterCategorizeNode(catNodeObj) {
         try {
+          console.log(
+            `${PF} | R< TWITTER_CATEGORIZE_NODE | CAT: ${catNodeObj.category} | @${catNodeObj.node.screenName}`
+          );
           const node = await nodeSetProps({
             createNodeOnMiss: true,
             categorizedBy: catNodeObj.categorizedBy, // screenName

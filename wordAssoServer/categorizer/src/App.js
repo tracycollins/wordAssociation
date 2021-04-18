@@ -639,7 +639,10 @@ const App = () => {
         case "category":
           if (twitterAuthenticatedRef.current) {
             console.log(
-              "CATEGORIZE | CAT: " + eventValue + " | NODE: " + node.nodeId
+              "TWITTER_CATEGORIZE_NODE | CAT: " +
+                eventValue +
+                " | NODE: " +
+                node.nodeId
             );
             socket.emit("TWITTER_CATEGORIZE_NODE", {
               categorizedBy: twitterAuthenticatedUserRef.current.screenName,

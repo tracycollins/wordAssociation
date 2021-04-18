@@ -2082,7 +2082,10 @@ const trainingSetsUsersFolder = path.join(
   "users"
 );
 
-const testDataFolder = path.join(configDefaultFolder, "test/testData/tweets");
+const testDataFolder = path.join(
+  configDefaultFolder,
+  "test/testData/tweets/v1"
+);
 
 configuration.dropboxChangeFolderArray = [
   bestNetworkFolder,

@@ -647,7 +647,7 @@
     url-parse "^1.5.1"
     write-json-file "^4.3.0"
 
-"@threeceelabs/threeceeutilities@^3.0.3", "@threeceelabs/threeceeutilities@^3.1.3", "@threeceelabs/threeceeutilities@^3.2.2":
+"@threeceelabs/threeceeutilities@^3.0.3", "@threeceelabs/threeceeutilities@^3.2.2":
   version "3.2.2"
   resolved "https://registry.yarnpkg.com/@threeceelabs/threeceeutilities/-/threeceeutilities-3.2.2.tgz#7828dc1d8672c6824b6487cee901d3ca53509c5b"
   integrity sha512-iwg+nPQZCRznWWDS2/5pK/X7FV4/bG5ToNPqJvVaB9MDhtuvefGYJ8eje9sS8ET5yuZWPBmkSfof+4GdPoYltw==
@@ -718,15 +718,15 @@
     twitter-text "^3.1.0"
     uuid "^8.3.2"
 
-"@threeceelabs/tweet-server-controller@^3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@threeceelabs/tweet-server-controller/-/tweet-server-controller-3.0.1.tgz#1028a5a584f9c18d0671f409b09e4dabe5df188a"
-  integrity sha512-3LIG8g+MC8GaIPM2m9NBqowYsbwLwhubGqlM1C4NwUGR1HyLCeeI0LNvPHCogeE0qht8wIf/+eHnYLKfCc5DYg==
+"@threeceelabs/tweet-server-controller@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@threeceelabs/tweet-server-controller/-/tweet-server-controller-3.1.0.tgz#3fbf9cc381f6d506ebff065f608a6e61972738ee"
+  integrity sha512-8962/Z/YuqtFaB60Z3d2W1NLbfmVvI99Cw1VBxlX5mwHU8PuUEUiYUISzjVyQsb3heu0/GHdgi8SGOPsKeV8vA==
   dependencies:
     "@threeceelabs/mongoose-twitter" "^1.1.0"
     "@threeceelabs/mongoose-utilities" "^1.0.13"
     "@threeceelabs/threecee-utilities" "^1.2.10"
-    "@threeceelabs/threeceeutilities" "^3.1.3"
+    "@threeceelabs/threeceeutilities" "^3.2.2"
     "@threeceelabs/user-server-controller" "^2.0.1"
     atob "^2.1.2"
     axios "^0.21.1"
@@ -4920,9 +4920,9 @@ object-copy@^0.1.0:
     kind-of "^3.0.3"
 
 object-inspect@^1.9.0:
-  version "1.10.1"
-  resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.10.1.tgz#b69d9494d35a56387bbaebbae61c55510d877a1a"
-  integrity sha512-WQUIkCSDPWm5ing/PTUkLr2KaOXX2uV/vz1hLGW2XbZ/RDUmtgcsOyEqA1ox0rkyNx9mJX4kxX+YWceje3pmag==
+  version "1.10.2"
+  resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.10.2.tgz#b6385a3e2b7cae0b5eafcf90cddf85d128767f30"
+  integrity sha512-gz58rdPpadwztRrPjZE9DZLOABUpTGdcANUgOwBFO1C+HZZhePoP83M65WGDmbpwFYJSWqavbl4SgDn4k8RYTA==
 
 object-is@^1.0.1:
   version "1.1.5"
@@ -6196,9 +6196,9 @@ socks-proxy-agent@^5.0.0:
     socks "^2.3.3"
 
 socks@^2.2.2, socks@^2.3.3:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/socks/-/socks-2.6.0.tgz#6b984928461d39871b3666754b9000ecf39dfac2"
-  integrity sha512-mNmr9owlinMplev0Wd7UHFlqI4ofnBnNzFuzrm63PPaHgbkqCFe4T5LzwKmtQ/f2tX0NTpcdVLyD/FHxFBstYw==
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/socks/-/socks-2.6.1.tgz#989e6534a07cf337deb1b1c94aaa44296520d30e"
+  integrity sha512-kLQ9N5ucj8uIcxrDwjm0Jsqk06xdpBjGNQtpXy4Q8/QY2k+fY7nZH8CARy+hkbG+SGAovmzzuauCpBlb8FrnBA==
   dependencies:
     ip "^1.1.5"
     smart-buffer "^4.1.0"
@@ -6503,9 +6503,9 @@ title-case@^2.1.0:
     upper-case "^1.0.3"
 
 tlds@^1.217.0:
-  version "1.219.0"
-  resolved "https://registry.yarnpkg.com/tlds/-/tlds-1.219.0.tgz#7e636062386a1f3c9184356de93d40842ffe91d9"
-  integrity sha512-o4g9c8kXCmTDwUnK/9HpTT9o/GNH85KCvs+S5SgUw5yILdECvMmTGzK7ngoWMp97P5tfYr8fZeF16YhgV/l90A==
+  version "1.220.0"
+  resolved "https://registry.yarnpkg.com/tlds/-/tlds-1.220.0.tgz#cdf6fa51e7f20da0b53af406cce9f15d2ebd87cb"
+  integrity sha512-dUc6ko5g7xuBjDmSn5B5FCjOVnCn9Ea8ce+kynWKAanymx59R+zV75h6aED0OZHh1EpfNWq4jui0cwd9aXdy0Q==
 
 to-fast-properties@^2.0.0:
   version "2.0.0"
@@ -7052,9 +7052,9 @@ write-json-file@^4.3.0:
     write-file-atomic "^3.0.0"
 
 ws@~7.4.2:
-  version "7.4.4"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-7.4.4.tgz#383bc9742cb202292c9077ceab6f6047b17f2d59"
-  integrity sha512-Qm8k8ojNQIMx7S+Zp8u/uHOx7Qazv3Yv4q68MiWWWOJhiwG5W3x7iqmRtJo8xxrciZUY4vRxUTJCKuRnF28ZZw==
+  version "7.4.5"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-7.4.5.tgz#a484dd851e9beb6fdb420027e3885e8ce48986c1"
+  integrity sha512-xzyu3hFvomRfXKH8vOFMU3OguG6oOvhXMo3xsGy3xWExqaM2dxBbVxuD99O7m3ZUFMvvscsZDqxfgMaRr/Nr1g==
 
 xdg-basedir@^4.0.0:
   version "4.0.0"

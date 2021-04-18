@@ -5091,9 +5091,7 @@ async function twitterSearchNode(params) {
         });
         return;
       }
-    }
-
-    if (searchNode.startsWith("@")) {
+    } else if (searchNode.startsWith("@")) {
       updateUserCounts();
 
       const response = await twitterSearchUser({
@@ -5144,21 +5142,21 @@ async function twitterSearchNode(params) {
         });
         return;
       }
+    } else {
+      console.log(
+        chalkError(
+          `${PF} | twitterSearchNode | *** TWITTER_SEARCH_NODE_UNKNOWN_MODE` +
+            ` | ${searchNode}`
+        )
+      );
+
+      viewNameSpace.emit("TWITTER_SEARCH_NODE_UNKNOWN_MODE", {
+        searchNode: searchNode,
+        stats: statsObj,
+      });
+
+      return new Error("UNKNOWN SEARCH MODE: " + searchNode);
     }
-
-    console.log(
-      chalkError(
-        `${PF} | twitterSearchNode | *** TWITTER_SEARCH_NODE_UNKNOWN_MODE` +
-          ` | ${searchNode}`
-      )
-    );
-
-    viewNameSpace.emit("TWITTER_SEARCH_NODE_UNKNOWN_MODE", {
-      searchNode: searchNode,
-      stats: statsObj,
-    });
-
-    return new Error("UNKNOWN SEARCH MODE: " + searchNode);
   } catch (err) {
     console.log(chalkError(PF + " | *** twitterSearchNode ERROR: " + err));
     return err;

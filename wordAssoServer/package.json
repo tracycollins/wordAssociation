@@ -2,6 +2,7 @@
   "dependencies": {
     "chalk": "^4.1.0",
     "deep-copy": "^1.4.2",
+    "dotenv": "^8.2.0",
     "is-empty": "^1.2.0",
     "object.defaults": "^1.1.0"
   }

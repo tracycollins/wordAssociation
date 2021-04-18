@@ -12,6 +12,7 @@
     "connect-mongo": "^4.4.1",
     "cors": "^2.8.5",
     "deep-copy": "^1.4.2",
+    "deepool": "^2.2.0",
     "dotenv": "^8.2.0",
     "eventemitter2": "^6.4.4",
     "express": "^4.17.1",

@@ -34,7 +34,7 @@
     "whois-json": "^2.0.4"
   },
   "name": "word-server",
-  "version": "5.0.4",
+  "version": "5.0.5",
   "main": "wordAssoServer.js",
   "repository": "https://github.com/tracycollins/wordAssociation.git",
   "author": "Tracy Collins",

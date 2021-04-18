@@ -358,7 +358,6 @@
     dotenv "^8.2.0"
     eventemitter3 "^4.0.7"
     fs-extra "^9.1.0"
-    fsevents "^2.3.2"
     hashmap "^2.4.0"
     ioredis "^4.23.0"
     is-empty "^1.2.0"
@@ -379,9 +378,9 @@
     write-json-file "^4.3.0"
 
 "@threeceelabs/threeceeutilities@^3.0.3", "@threeceelabs/threeceeutilities@^3.2.2", "@threeceelabs/threeceeutilities@^3.2.3":
-  version "3.2.3"
-  resolved "https://registry.yarnpkg.com/@threeceelabs/threeceeutilities/-/threeceeutilities-3.2.3.tgz#7b2740fce0db42241768150d1450a2656ab14ebb"
-  integrity sha512-30K2ZVgdHvmmBhQUe2G8a4H+F7eNRQR2Jnt1Jc5IqXMsdrUTj+Eas2JxgxTBahLjWCRqTmhDGMNjQb3A4W704w==
+  version "3.2.4"
+  resolved "https://registry.yarnpkg.com/@threeceelabs/threeceeutilities/-/threeceeutilities-3.2.4.tgz#7eee57c5bcc9ccfcd757299f5e43463917862050"
+  integrity sha512-MobOqwr1jTNGJPPR7cCW5M+2bQPaojQuvIPeIYh2p6lHtfN0LKEuwXmQvIs5ID7Bq2FTIWXgVrz/uaqK7RLKjg==
   dependencies:
     "@google-cloud/language" "^4.2.2"
     "@googlemaps/google-maps-services-js" "^3.1.16"
@@ -544,7 +543,6 @@
   integrity sha512-X2Es/WdOyg/4jajx5L5QmioLIeGMN+vIZzXuAbIJObusK1ubo/x/T9S0lu9getn9ml8CwPZAsKaGpEuF2Q08JQ==
   dependencies:
     "@threeceelabs/mongoose-twitter" "^1.1.0"
-    fsevents "^2.3.2"
     lodash "^4.17.21"
     moment "^2.29.1"
     mongoose "^5.11.18"
@@ -1240,8 +1238,6 @@ chokidar@3.3.0:
     is-glob "~4.0.1"
     normalize-path "~3.0.0"
     readdirp "~3.2.0"
-  optionalDependencies:
-    fsevents "~2.1.1"
 
 chokidar@3.5.1:
   version "3.5.1"
@@ -1255,8 +1251,6 @@ chokidar@3.5.1:
     is-glob "~4.0.1"
     normalize-path "~3.0.0"
     readdirp "~3.5.0"
-  optionalDependencies:
-    fsevents "~2.3.1"
 
 chownr@^1.1.1:
   version "1.1.4"
@@ -2243,16 +2237,6 @@ fs@^0.0.1-security:
   version "0.0.1-security"
   resolved "https://registry.yarnpkg.com/fs/-/fs-0.0.1-security.tgz#8a7bd37186b6dddf3813f23858b57ecaaf5e41d4"
   integrity sha1-invTcYa23d84E/I4WLV+yq9eQdQ=
-
-fsevents@^2.3.2, fsevents@~2.3.1:
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.3.2.tgz#8a526f78b8fdf4623b709e0b975c52c24c02fd1a"
-  integrity sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==
-
-fsevents@~2.1.1:
-  version "2.1.3"
-  resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.1.3.tgz#fb738703ae8d2f9fe900c33836ddebee8b97f23e"
-  integrity sha512-Auw9a4AxqWpa9GUfj370BMPzzyncfBABW8Mab7BGWBYDj4Isgq+cDKtx0i6u9jcX9pQDnswsaaOTgTmA5pEjuQ==
 
 function-bind@^1.1.1:
   version "1.1.1"

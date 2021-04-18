@@ -22,5 +22,12 @@
     "tree-kill": "^1.2.2",
     "watch": "^1.0.2",
     "whois-json": "^2.0.4"
-  }
+  },
+  "name": "wordAssoServer",
+  "version": "5.0.0",
+  "main": "wordAssoServer.js",
+  "repository": "https://github.com/tracycollins/wordAssociation.git",
+  "author": "Tracy Collins",
+  "license": "MIT",
+  "private": false
 }

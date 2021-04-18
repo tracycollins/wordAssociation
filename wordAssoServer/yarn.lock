@@ -378,10 +378,10 @@
     url-parse "^1.5.1"
     write-json-file "^4.3.0"
 
-"@threeceelabs/threeceeutilities@^3.0.3", "@threeceelabs/threeceeutilities@^3.2.2", "@threeceelabs/threeceeutilities@^3.2.3":
-  version "3.2.4"
-  resolved "https://registry.yarnpkg.com/@threeceelabs/threeceeutilities/-/threeceeutilities-3.2.4.tgz#7eee57c5bcc9ccfcd757299f5e43463917862050"
-  integrity sha512-MobOqwr1jTNGJPPR7cCW5M+2bQPaojQuvIPeIYh2p6lHtfN0LKEuwXmQvIs5ID7Bq2FTIWXgVrz/uaqK7RLKjg==
+"@threeceelabs/threeceeutilities@^3.2.2", "@threeceelabs/threeceeutilities@^3.2.3", "@threeceelabs/threeceeutilities@^3.2.5":
+  version "3.2.5"
+  resolved "https://registry.yarnpkg.com/@threeceelabs/threeceeutilities/-/threeceeutilities-3.2.5.tgz#32222e9a3cffc94cb09ed3fe600da996fd515d10"
+  integrity sha512-KL1r0XHQAMbhASbwtnibOiqk3Db4TZZ3SCasGgAZrt7izog34iagYZ2bCSmkrhu+ynjDgo9QMK8DYlcj2S8DPQ==
   dependencies:
     "@google-cloud/language" "^4.2.2"
     "@googlemaps/google-maps-services-js" "^3.1.16"
@@ -449,10 +449,10 @@
     twitter-text "^3.1.0"
     uuid "^8.3.2"
 
-"@threeceelabs/tweet-server-controller@^3.1.0":
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/@threeceelabs/tweet-server-controller/-/tweet-server-controller-3.1.1.tgz#201bdfccd6ae0da1f495e78cd0cbc308d15a6a5a"
-  integrity sha512-jZJ7Sx4icry8QrirbggjXGMOxTFe57dFKWkIZVw4ABCR6rZni8/Uo64v7N0fFISbp5xqfVRngZ/Infkha7ffBg==
+"@threeceelabs/tweet-server-controller@^3.1.3":
+  version "3.1.3"
+  resolved "https://registry.yarnpkg.com/@threeceelabs/tweet-server-controller/-/tweet-server-controller-3.1.3.tgz#64fece6890070b3df63c020efbcf27c6af8592f8"
+  integrity sha512-auLEHWYbtyeJKitMBHzUsZ6cr6JQ2xLoXKxaXNGAs9VBN1db7LNNnsY29Xu/INuNaSY7WietjdYF+CB3LbIOrA==
   dependencies:
     "@threeceelabs/mongoose-twitter" "^1.1.0"
     "@threeceelabs/mongoose-utilities" "^1.0.13"
@@ -551,16 +551,16 @@
     object.pick "^1.3.0"
     treeify "^1.1.0"
 
-"@threeceelabs/user-server-controller@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@threeceelabs/user-server-controller/-/user-server-controller-2.0.1.tgz#261860fa8682545d9461482d3bec3ed20cff3e69"
-  integrity sha512-EVl92mbLoV9qp8/Jlw+4g7Ovmsvfmq2UUZufWTjY1FysE6Tk0n5uhJQ2ICXKD3JcnG7uEKYTz4P6c1DNunZncw==
+"@threeceelabs/user-server-controller@^2.0.1", "@threeceelabs/user-server-controller@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@threeceelabs/user-server-controller/-/user-server-controller-2.0.2.tgz#92463b6a58f35303ff6f7ad23cc9c6e8b64b3225"
+  integrity sha512-ZoaKn3dhLMNVCwQhdMOTEg4SUhLGnoZw2vgAXpseWiIZ5ly+4ipRfXHE8dGl3w1xLMZ0PV2KC1Eic8Dhy/Y3rA==
   dependencies:
     "@threeceelabs/mongoose-twitter" "^1.1.0"
-    "@threeceelabs/threeceeutilities" "^3.0.3"
+    "@threeceelabs/threeceeutilities" "^3.2.3"
     lodash "^4.17.21"
     moment "^2.29.1"
-    mongoose "^5.11.18"
+    mongoose "^5.12.4"
     object.pick "^1.3.0"
     treeify "^1.1.0"
 

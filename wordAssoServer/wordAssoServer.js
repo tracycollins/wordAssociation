@@ -4145,17 +4145,20 @@ async function pubSubNodeSetProps(params) {
     clearTimeout(nodeSetPropsResultTimeout);
 
     nodeSetPropsResultTimeout = setTimeout(function () {
+      statsObj.pubSub.nodeSetProps += 1;
       statsObj.pubSub.nodeSetPropsResultTimeouts += 1;
       console.log(
         chalkAlert(
           `${PF} | !!! NODE SET PROPS TIMEOUT` +
             ` |  ${msToTime(configuration.pubSub.pubSubResultTimeout)}` +
-            `[${statsObj.pubSub.nodeSetPropsResultTimeouts} TIMEOUTS / ${statsObj.pubSub.nodeSetProps} TOTAL]` +
+            ` [ ${statsObj.pubSub.nodeSetPropsResultTimeouts} TOs / ${statsObj.pubSub.nodeSetProps} TOT ]` +
             ` | ${params.requestId}` +
             ` | TOPIC: node-setprops` +
             ` | NODE TYPE: ${params.node.nodeType}` +
             ` | NID: ${params.node.nodeId}` +
-            ` | PROPS: ${Object.keys(params.props)}`
+            ` | PROPS: ${Object.keys(params.props)}` +
+            `\n${PF} | NODE\n${jsonPrint(params.node)}` +
+            `\n${PF} | PROPS\n${jsonPrint(params.props)}`
         )
       );
 
@@ -4634,7 +4637,12 @@ async function pubSubSearchNode(params) {
     twitterSearchNodeTimeout = setTimeout(function () {
       console.log(
         chalkAlert(
-          PF + " | !!! NODE SEARCH TIMEOUT" + "\nPARAMS\n" + jsonPrint(params)
+          `${PF} | !!! NODE SEARCH TIMEOUT | ${configuration.pubSub.pubSubResultTimeout} MS`
+        )
+      );
+      console.log(
+        chalkAlert(
+          `${PF} | !!! NODE SEARCH TIMEOUT | PARAMS\n${jsonPrint(params)}`
         )
       );
 

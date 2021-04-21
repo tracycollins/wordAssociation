@@ -8083,15 +8083,17 @@ function initTransmitNodeQueueInterval(interval) {
 
             node = await updateNodeMeter(node);
 
-            uncatObj = await uncatDbCheck({ node: node });
+            if (hostname === configuration.databaseHost) {
+              uncatObj = await uncatDbCheck({ node: node });
 
-            if (uncatObj === undefined) {
-              nodeSetPropsQueue.push({
-                createNodeOnMiss: true,
-                node: pick(node, fieldsTransmitKeys),
-                props: { screenName: node.screenName.toLowerCase() },
-                autoCategorize: true,
-              });
+              if (uncatObj === undefined) {
+                nodeSetPropsQueue.push({
+                  createNodeOnMiss: true,
+                  node: pick(node, fieldsTransmitKeys),
+                  props: { screenName: node.screenName.toLowerCase() },
+                  autoCategorize: true,
+                });
+              }
             }
 
             nCacheObj = nodeCache.get(node.nodeId);
@@ -12444,9 +12446,11 @@ setTimeout(async function () {
     await initUpdateUserSetsInterval();
     await initUpdateHashtagSetsInterval();
     await loadBestRuntimeNetwork();
-    await initNodeSetPropsQueueInterval(
-      configuration.nodeSetPropsQueueInterval
-    );
+    if (hostname === configuration.databaseHost) {
+      await initNodeSetPropsQueueInterval(
+        configuration.nodeSetPropsQueueInterval
+      );
+    }
     await initTransmitNodeQueueInterval(
       configuration.transmitNodeQueueInterval
     );

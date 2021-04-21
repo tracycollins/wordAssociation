@@ -5100,7 +5100,7 @@ async function twitterSearchNode(params) {
         return;
       }
     } else if (searchNode.startsWith("@")) {
-      updateUserCounts();
+      // updateUserCounts();
 
       const response = await twitterSearchUser({
         node: {
@@ -6142,7 +6142,7 @@ async function initSocketHandler(socketObj) {
                 node: node,
                 stats: statsObj,
               });
-              updateUserCounts();
+              // updateUserCounts();
             }
 
             if (node.nodeType === "hashtag") {
@@ -7769,7 +7769,7 @@ async function updateUserSets(p) {
   );
 
   updateUserSetsRunning = false;
-  updateUserCounts();
+  // updateUserCounts();
   return;
 }
 

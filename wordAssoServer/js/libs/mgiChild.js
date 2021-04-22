@@ -190,6 +190,7 @@ setTimeout(async function () {
       { "categorizedBy.users.threeceeinfo.category": 1 },
       { "categorizedBy.users.threeceeinfo.timeStamp": 1 },
       { "geo.components.country": 1 },
+      { geoValid: 1 },
       { "tweets.tweetIds.0": 1 },
     ];
 

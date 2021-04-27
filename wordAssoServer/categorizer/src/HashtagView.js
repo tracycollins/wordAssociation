@@ -26,7 +26,7 @@ import { TableHead } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    flexGrow: 2,
+    // flexGrow: 2,
   },
   grid: {
     display: "flex",
@@ -35,15 +35,14 @@ const useStyles = makeStyles((theme) => ({
     margin: 5,
   },
   tweets: {
-    // display: "block",
-    margin: 5,
+    // margin: 5,
     overflow: "auto",
-    // minHeight: 400,
-    maxHeight: 800,
+    maxHeight: 540,
   },
-  card: {
+  hashtag: {
+    // margin: theme.spacing(2),
     raised: false,
-    maxWidth: 400,
+    // maxWidth: 300,
   },
   table: {},
   tableRowGreen: {
@@ -101,18 +100,18 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   selectCategory: {
-    fontSize: "0.5rem",
+    fontSize: "0.7rem",
     backgroundColor: "#ddeeee",
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
     marginBottom: theme.spacing(1),
   },
   radioGroupCategory: {
-    fontSize: "0.5rem",
+    fontSize: "0.7rem",
     backgroundColor: "#ddeeee",
     borderRadius: theme.shape.borderRadius,
-    padding: theme.spacing(2),
-    marginBottom: theme.spacing(1),
+    padding: theme.spacing(1),
+    margin: theme.spacing(1),
   },
   checkbox: {
     color: green[400],
@@ -122,13 +121,13 @@ const useStyles = makeStyles((theme) => ({
   },
   checked: {},
   radioButtonLabel: {
-    fontSize: "0.9rem",
+    fontSize: "0.7rem",
   },
   radioButton: {},
 
   buttonGroupLabel: {
     color: "blue",
-    marginRight: theme.spacing(1),
+    // marginRight: theme.spacing(1),
   },
   buttonAll: {
     color: "black",
@@ -143,7 +142,7 @@ const useStyles = makeStyles((theme) => ({
     color: "red",
   },
   buttonMismatch: {
-    margin: 5,
+    // margin: 5,
   },
 
   autoCategory: {
@@ -153,7 +152,7 @@ const useStyles = makeStyles((theme) => ({
   },
 
   category: {
-    // fontSize: fontSizeCategory,
+    fontSize: "0.9rem",
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
     marginBottom: theme.spacing(1),
@@ -259,7 +258,7 @@ const HashtagView = (props) => {
   return (
     <>
       <Grid className={classes.grid}>
-        <Grid item className={classes.gridItem} xs={3}>
+        {/* <Grid item className={classes.gridItem} xs={3}>
           <Card className={classes.card} variant="outlined">
             <CardContent onClick={openHashtagTwitterPage}>
               <Typography
@@ -278,8 +277,27 @@ const HashtagView = (props) => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
+        </Grid> */}
+
         <Grid item className={classes.gridItem} xs={3}>
+          <Card className={classes.hashtag} variant="outlined">
+            <CardContent onClick={openHashtagTwitterPage}>
+              <Typography
+                className={clsx(
+                  classes.category,
+                  props.hashtag.ignored
+                    ? getCategoryClass("ignored")
+                    : getCategoryClass(props.hashtag.category)
+                )}
+                variant="h6"
+              >
+                #
+                {props.statusHashtag === "notFound"
+                  ? props.hashtag.nodeId + " NOT FOUND"
+                  : props.hashtag.nodeId}
+              </Typography>
+            </CardContent>
+          </Card>
           <div className={classes.tweets}>{displayTweets(props.tweets)}</div>
         </Grid>
 
@@ -444,26 +462,6 @@ const HashtagView = (props) => {
               />
             </FormControl>
           </FormGroup>
-
-          {/* <FormGroup>
-            <FormControl component="fieldset">
-              <RadioGroup aria-label="category" name="category" value={props.hashtag.category || "none"} onChange={(event) => props.handleNodeChange(event, props.hashtag)}>
-                <FormControlLabel labelPlacement="start" value="left" control={<Radio />} label="left"/>
-                <FormControlLabel labelPlacement="start" value="neutral" control={<Radio />} label="neutral" />
-                <FormControlLabel labelPlacement="start" value="right" control={<Radio />} label="right" />
-                <FormControlLabel labelPlacement="start" value="positive" control={<Radio />} label="positive" />
-                <FormControlLabel labelPlacement="start" value="negative" control={<Radio />} label="negative" />
-                <FormControlLabel labelPlacement="start" value="none" control={<Radio />} label="none" />
-              </RadioGroup>
-            </FormControl>
-
-            <FormControlLabel
-              control={<Checkbox checked={props.hashtag.ignored || false} onChange={(event) => props.handleNodeChange(event, props.hashtag)} name="ignored" />}
-              label="ignored"
-              labelPlacement="start"
-            />
-          </FormGroup>
- */}
         </Grid>
       </Grid>
     </>

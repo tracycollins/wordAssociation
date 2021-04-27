@@ -73,6 +73,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: "white",
   },
   card: {
+    width: theme.spacing(40),
     alignSelf: "center",
   },
   profileImage: {
@@ -359,7 +360,7 @@ const User = (props) => {
                 sourceType: "profile",
                 screenName: props.user.screenName,
               }}
-              options={{ width: "100%", height: "800" }}
+              options={{ width: "100%", height: "640" }}
               renderError={(_err) => (
                 <div className={classes.timelineError}>
                   <p>COULD NOT LOAD USER TWEETS</p>

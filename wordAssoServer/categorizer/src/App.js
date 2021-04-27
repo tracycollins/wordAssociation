@@ -58,7 +58,7 @@ let socket = socketClient(ENDPOINT);
 const useStyles = makeStyles((theme) => ({
   root: {
     width: "100%",
-    flexGrow: 1,
+    // flexGrow: 1,
     boxShadow: 0,
   },
   appBar: {
@@ -100,7 +100,7 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
   },
   buttonLogin: {
-    marginRight: theme.spacing(2),
+    // marginRight: theme.spacing(1),
   },
   statusBar: {
     backgroundColor: "white",

@@ -65,6 +65,8 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: "black",
     marginBottom: theme.spacing(2),
     boxShadow: 0,
+    top: 0,
+    bottom: "auto",
   },
   tabs: {
     color: "white",

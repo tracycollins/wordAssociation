@@ -375,7 +375,7 @@ const User = (props) => {
         </Grid>
         <Grid item className={classes.gridItem} xs={3}>
           <Paper className={classes.paper} elevation={0} variant="outlined">
-            <Typography className={classes.gridHeader}>STATS</Typography>
+            {/* <Typography className={classes.gridHeader}>STATS</Typography> */}
             <TableContainer className={classes.table}>
               <Table size="small">
                 <TableHead>
@@ -541,7 +541,7 @@ const User = (props) => {
         </Grid>
         <Grid item className={classes.gridItem} xs={2}>
           <Paper className={classes.paper} elevation={0} variant="outlined">
-            <Typography className={classes.gridHeader}>SETTINGS</Typography>
+            {/* <Typography className={classes.gridHeader}>SETTINGS</Typography> */}
             <FormGroup align="center">
               <FormControl align="center">
                 <Select

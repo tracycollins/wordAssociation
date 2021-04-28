@@ -134,7 +134,7 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "center",
   },
   inputRoot: {
-    color: "primary",
+    color: "secondary",
   },
   inputInput: {
     padding: theme.spacing(1, 1, 1, 0),
@@ -1082,7 +1082,7 @@ const App = () => {
       <Container component="main" maxWidth={false}>
         <AppBar className={classes.appBar} position="static">
           <Toolbar className={classes.toolBar}>
-            <Typography className={classes.title}>CATEGORIZE</Typography>
+            {/* <Typography className={classes.title}>CATEGORIZE</Typography> */}
 
             <Tabs
               className={classes.tabs}

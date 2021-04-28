@@ -7,6 +7,7 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import CardMedia from "@material-ui/core/CardMedia";
 import Checkbox from "@material-ui/core/Checkbox";
+// import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import FormGroup from "@material-ui/core/FormGroup";
@@ -40,26 +41,27 @@ const StyledTableRow = withStyles((theme) => ({
 const useStyles = makeStyles((theme) => ({
   root: {
     border: 0,
-    flexGrow: 2,
+    // flexGrow: 2,
   },
   appBar: {
     border: 0,
     backgroundColor: "white",
-    marginBottom: theme.spacing(1),
+    // marginBottom: theme.spacing(1),
   },
   grid: {
     border: 0,
     display: "flex",
-    alignItems: "stretch",
+    // alignItems: "stretch",
   },
   gridItem: {
     border: 0,
-    margin: theme.spacing(1),
+    justifyContent: "center",
+    marginRight: theme.spacing(1),
   },
   gridHeader: {
     padding: theme.spacing(1),
     border: 0,
-    marginBottom: theme.spacing(1),
+    // marginBottom: theme.spacing(1),
   },
   paper: {
     padding: theme.spacing(1),
@@ -73,8 +75,13 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: "white",
   },
   card: {
-    width: theme.spacing(40),
-    alignSelf: "center",
+    // width: theme.spacing(36),
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  description: {
+    marginTop: theme.spacing(1),
+    fontSize: 12,
   },
   profileImage: {
     marginBottom: theme.spacing(1),
@@ -227,7 +234,7 @@ const useStyles = makeStyles((theme) => ({
   category: {
     borderRadius: theme.shape.borderRadius,
     padding: theme.spacing(1),
-    marginBottom: theme.spacing(1),
+    // marginBottom: theme.spacing(1),
   },
 
   left: {
@@ -326,17 +333,14 @@ const User = (props) => {
                     ? getCategoryClass("ignored")
                     : getCategoryClass(props.user.category)
                 )}
-                variant="h6"
               >
                 {props.user.name}
               </Typography>
-              <Typography variant="h6">@{props.user.screenName} </Typography>
-              <Typography>
-                {props.user.location !== undefined ? props.user.location : ""}{" "}
+              {/* <Typography>@{props.user.screenName} </Typography> */}
+              {/* <Divider /> */}
+              <Typography className={classes.description}>
+                {props.user.description}
               </Typography>
-            </CardContent>
-            <CardContent>
-              <Typography>{props.user.description}</Typography>
             </CardContent>
 
             <CardMedia
@@ -394,6 +398,18 @@ const User = (props) => {
                       {props.user.location}
                     </StyledTableCell>
                   </StyledTableRow>
+                  {/* <StyledTableRow>
+                    <StyledTableCell>Geo Enabled</StyledTableCell>
+                    <StyledTableCell align="right">
+                      {props.user.geoEnabled ? "TRUE" : "FALSE"}
+                    </StyledTableCell>
+                  </StyledTableRow>
+                  <StyledTableRow>
+                    <StyledTableCell>Geo Valid</StyledTableCell>
+                    <StyledTableCell align="right">
+                      {props.user.geoValid ? "TRUE" : "FALSE"}
+                    </StyledTableCell>
+                  </StyledTableRow> */}
                   <StyledTableRow>
                     <StyledTableCell>Created</StyledTableCell>
                     <StyledTableCell align="right">{createdAt}</StyledTableCell>

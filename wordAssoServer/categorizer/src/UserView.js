@@ -41,17 +41,14 @@ const StyledTableRow = withStyles((theme) => ({
 const useStyles = makeStyles((theme) => ({
   root: {
     border: 0,
-    // flexGrow: 2,
   },
   appBar: {
     border: 0,
     backgroundColor: "white",
-    // marginBottom: theme.spacing(1),
   },
   grid: {
     border: 0,
     display: "flex",
-    // alignItems: "stretch",
   },
   gridItem: {
     border: 0,
@@ -61,7 +58,6 @@ const useStyles = makeStyles((theme) => ({
   gridHeader: {
     padding: theme.spacing(1),
     border: 0,
-    // marginBottom: theme.spacing(1),
   },
   paper: {
     padding: theme.spacing(1),
@@ -75,7 +71,6 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: "white",
   },
   card: {
-    // width: theme.spacing(36),
     justifyContent: "center",
     alignItems: "center",
   },
@@ -87,7 +82,7 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(1),
   },
   bannerImage: {
-    // marginBottom: theme.spacing(1),
+    // : theme.spacing(1),
   },
   icon: {
     borderRadius: "50%",

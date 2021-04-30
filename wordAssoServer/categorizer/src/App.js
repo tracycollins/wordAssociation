@@ -641,11 +641,9 @@ const App = () => {
         case "category":
           if (twitterAuthenticatedRef.current) {
             console.log(
-              "TWITTER_CATEGORIZE_NODE | CAT: " +
-                eventValue +
-                " | NODE: " +
-                node.nodeId
+              `TWITTER_CATEGORIZE_NODE | ${node.nodeType} | CAT: ${eventValue} | NID: ${node.nodeId}`
             );
+            setCurrentUser({ ...node, category: eventValue });
             socket.emit("TWITTER_CATEGORIZE_NODE", {
               categorizedBy: twitterAuthenticatedUserRef.current.screenName,
               category: eventValue,
@@ -671,8 +669,10 @@ const App = () => {
 
           if (eventName === "ignored") {
             if (eventChecked) {
+              setCurrentUser({ ...node, ignored: true });
               socket.emit("TWITTER_IGNORE", node);
             } else {
+              setCurrentUser({ ...node, ignored: false });
               socket.emit("TWITTER_UNIGNORE", node);
             }
             break;
@@ -831,7 +831,10 @@ const App = () => {
         console.debug("RX nodes: " + response.nodes.length);
       }
 
-      if (nodeValid(response.node)) {
+      if (
+        nodeValid(response.node) &&
+        currentUser.nodeId === response.node.nodeId
+      ) {
         setCurrentUser((currentUser) => response.node);
         console.debug("new twitter user: @" + response.node.screenName);
         // if (currentTabRef.current === "user"){
@@ -948,6 +951,7 @@ const App = () => {
     setProgress("idle");
 
     return () => socket.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // history

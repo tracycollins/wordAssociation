@@ -217,9 +217,9 @@ const App = () => {
   };
 
   const defaultUser = {
-    nodeId: null,
+    nodeId: "14607119",
     screenName: "threecee",
-    name: "",
+    name: "Tracy Collins",
     location: "",
     description: "",
     profileImageUrl:
@@ -230,13 +230,11 @@ const App = () => {
     followersCount: 0,
     friendsCount: 0,
     tweets: 0,
-
     age: 0,
     mentions: 0,
     rate: 0,
     rateMax: 0,
     tweetsPerDay: 0,
-
     lastSeen: null,
     isBot: false,
     following: false,

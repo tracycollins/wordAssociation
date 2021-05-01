@@ -3,7 +3,6 @@ const MODULE_ID_PREFIX = "MGI";
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 const os = require("os");
-
 const chalk = require("chalk");
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
@@ -33,9 +32,6 @@ process.on("SIGINT", function () {
 process.on("disconnect", function () {
   quit("DISCONNECT");
 });
-
-// let configuration = {};
-// configuration.testMode = false; // per tweet test mode
 
 console.log(
   "\n\nMGI | ====================================================================================================\n" +
@@ -83,21 +79,7 @@ function quit(message) {
       process.pid
   );
 
-  // if (dbConnection !== undefined) {
-
-  //   dbConnection.close(function () {
-  //     console.log(chalkAlert(
-  //           MODULE_ID + " | =========================="
-  //       + "\nMGI | MONGO DB CONNECTION CLOSED"
-  //       + "\nMGI | =========================="
-  //     ));
-
-  //     process.exit(exitCode);
-  //   });
-  // }
-  // else {
   process.exit(exitCode);
-  // }
 }
 
 process.on("message", async function (m) {
@@ -125,7 +107,6 @@ process.on("unhandledRejection", function (err, promise) {
     ")."
   );
   quit("unhandledRejection");
-  // process.exit(1);
 });
 
 global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
@@ -150,6 +131,8 @@ setTimeout(async function () {
 
     console.log(chalkLog(`${MODULE_ID_PREFIX} | CURRENT USER INDEXES`));
     console.log({ currentUserIndexes });
+
+    statsObj.status = "RUNNING";
 
     const defaultUserIndexes = [
       { nodeId: 1 },
@@ -232,9 +215,11 @@ setTimeout(async function () {
         }
       }
     }
+    statsObj.status = "DONE";
 
     process.send({ op: "DONE" });
   } catch (err) {
+    statsObj.status = "ERROR";
     console.log(
       chalkError(MODULE_ID + " | *** ERROR: " + err + " | QUITTING ***")
     );

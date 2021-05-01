@@ -6,7 +6,6 @@ if (envConfig.error) {
 }
 
 console.log("WAS | +++ ENV CONFIG LOADED");
-// console.log({ envConfig });
 
 const DEFAULT_MONGODB_SESSION_SECRET = process.env.MONGODB_SESSION_SECRET;
 const DEFAULT_MONGODB_USERNAME = process.env.MONGODB_USERNAME;
@@ -63,7 +62,6 @@ const DEFAULT_BINARY_MODE = true;
 
 let saveSampleTweetFlag = true;
 
-// const escape = require("escape-html");
 const cors = require("cors");
 const os = require("os");
 const https = require("https");
@@ -1161,7 +1159,7 @@ const nodeSetPropsResultHandler = async function (message) {
 const nodeIgnoreHandler = async function (message) {
   message.ack();
 
-  statsObj.pubSub.searchNode.messagesReceived += 1;
+  statsObj.pubSub.subscriptions.nodeSetPropsResult.messagesReceived += 1;
 
   const messageObj = JSON.parse(message.data.toString());
 
@@ -1203,6 +1201,43 @@ const nodeIgnoreHandler = async function (message) {
       result: result,
     },
   });
+};
+
+const nodeDeleteHandler = async function (message) {
+  message.ack();
+
+  statsObj.pubSub.subscriptions.nodeDelete.messagesReceived += 1;
+
+  const messageObj = JSON.parse(message.data.toString());
+
+  // messageObj
+  // ├─ requestId: reqId_1587767958144
+  // ├─ node
+  // │  └─ nodeType: "user"
+  // │  └─ nodeId: 1000193009403613186
+
+  console.log(
+    chalkBlue(
+      PF +
+        " | --> PS DELETE NODE [RX: " +
+        statsObj.pubSub.subscriptions.nodeDelete.messagesReceived +
+        "]" +
+        " | MID: " +
+        message.id +
+        " | REQ ID: " +
+        messageObj.requestId +
+        " | NODE TYPE: " +
+        messageObj.node.nodeType +
+        " | NID: " +
+        messageObj.node.nodeId
+    )
+  );
+
+  let result = {};
+
+  if (messageObj.node.nodeType === "user") {
+    result = await deleteUser({ user: messageObj.node });
+  }
 };
 
 const pubSubErrorHandler = function (params) {
@@ -1267,6 +1302,17 @@ async function initNodeOpHandler(params) {
       subscriptionHashMap.nodeIgnoreResult = {};
       subscriptionHashMap.nodeIgnoreResult = subscription;
       subscription.on("message", nodeIgnoreHandler);
+      break;
+
+    case "node-delete":
+      statsObj.pubSub.subscriptions.nodeDelete = {};
+      statsObj.pubSub.subscriptions.nodeDelete.name = params.subscribeName;
+      statsObj.pubSub.subscriptions.nodeDelete.errors = [];
+      statsObj.pubSub.subscriptions.nodeDelete.messagesReceived = 0;
+      statsObj.pubSub.subscriptions.nodeDelete.topic = metadata.topic;
+      subscriptionHashMap.nodeDelete = {};
+      subscriptionHashMap.nodeDelete = subscription;
+      subscription.on("message", nodeDeleteHandler);
       break;
 
     default:
@@ -3521,16 +3567,7 @@ process.on("unhandledRejection", async function (err, promise) {
     PF + " | *** Unhandled rejection | PROMISE: " + promise + " | ERROR: " + err
   );
   console.log(promise);
-
-  // const slackText =
-  //   PF +
-  //   " | *** Unhandled rejection | PROMISE: " +
-  //   promise +
-  //   " | ERROR: " +
-  //   err;
-  // await slackSendWebMessage({ channel: slackChannel, text: slackText });
   await quit("unhandledRejection");
-  // process.exit(1);
 });
 
 process.on("exit", async function processExit() {
@@ -12484,6 +12521,9 @@ setTimeout(async function () {
     });
     await initNodeOpHandler({
       subscribeName: "node-setprops-result" + configuration.primaryHostSuffix,
+    });
+    await initNodeOpHandler({
+      subscribeName: "node-delete" + configuration.primaryHostSuffix,
     });
 
     await initDbUserChangeStream();

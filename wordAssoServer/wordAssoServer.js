@@ -1305,6 +1305,7 @@ async function initNodeOpHandler(params) {
       break;
 
     case "node-delete":
+    case "node-delete-primary":
       statsObj.pubSub.subscriptions.nodeDelete = {};
       statsObj.pubSub.subscriptions.nodeDelete.name = params.subscribeName;
       statsObj.pubSub.subscriptions.nodeDelete.errors = [];

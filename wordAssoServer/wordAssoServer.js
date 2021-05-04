@@ -1,4 +1,4 @@
-const dotenv = require("dotenv");
+import dotenv from "dotenv";
 const envConfig = dotenv.config({ path: process.env.WORD_ENV_VARS_FILE });
 
 if (envConfig.error) {
@@ -62,22 +62,22 @@ const DEFAULT_BINARY_MODE = true;
 
 let saveSampleTweetFlag = true;
 
-const cors = require("cors");
-const os = require("os");
-const https = require("https");
-const defaults = require("object.defaults");
-const kill = require("tree-kill");
-const empty = require("is-empty");
-const watch = require("watch");
-const whois = require("whois-json");
-const dns = require("dns");
-const crypto = require("crypto");
-const NodeCache = require("node-cache");
-const commandLineArgs = require("command-line-args");
+import cors from "cors";
+import os from "os";
+import https from "https";
+import defaults from "object.defaults";
+import kill from "tree-kill";
+import empty from "is-empty";
+import watch from "watch";
+import whois from "whois-json";
+import dns from "dns";
+import crypto from "crypto";
+import NodeCache from "node-cache";
+import commandLineArgs from "command-line-args";
 const metricsRate = "5MinuteRate";
-const shell = require("shelljs");
-const methodOverride = require("method-override");
-const deepcopy = require("deep-copy");
+import shell from "shelljs";
+import methodOverride from "method-override";
+import deepcopy from "deep-copy";
 const { PubSub } = require("@google-cloud/pubsub");
 
 let hostname = os.hostname();
@@ -110,7 +110,7 @@ if (hostname == "google") {
 
 global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
-const ThreeceeUtilities = require("@threeceelabs/threeceeutilities");
+import { ThreeceeUtilities } from "@threeceelabs/threeceeutilities";
 const tcUtils = new ThreeceeUtilities(PF + "_TCU");
 const redisClient = tcUtils.redisClient;
 
@@ -126,7 +126,7 @@ tcUtils.on("ready", async function () {
 });
 
 const mguAppName = MODULE_ID_PREFIX + "_MGU";
-const MongooseUtilities = require("@threeceelabs/mongoose-utilities");
+import MongooseUtilities from "@threeceelabs/mongoose-utilities";
 const mgUtils = new MongooseUtilities(mguAppName);
 
 mgUtils.on("ready", async () => {
@@ -135,7 +135,7 @@ mgUtils.on("ready", async () => {
 });
 
 const uscAppName = MODULE_ID_PREFIX + "_USC";
-const UserServerController = require("@threeceelabs/user-server-controller");
+import UserServerController from "@threeceelabs/user-server-controller";
 const userServerController = new UserServerController(uscAppName);
 
 userServerController.on("error", async (err) => {
@@ -281,7 +281,7 @@ const TWEET_ID_CACHE_CHECK_PERIOD = 5;
 const DEFAULT_CATEGORIZE_CACHE_DEFAULT_TTL = 300; //
 const DEFAULT_CATEGORIZE_CACHE_CHECK_PERIOD = 10;
 
-const chalk = require("chalk");
+import chalk from "chalk";
 const chalkTwitter = chalk.blue;
 const chalkConnect = chalk.black;
 const chalkSocket = chalk.black;
@@ -295,29 +295,28 @@ const chalkBlue = chalk.blue;
 const chalkBlueBold = chalk.blue.bold;
 const chalkBot = chalk.gray;
 
-const EventEmitter2 = require("eventemitter2").EventEmitter2;
-const HashMap = require("hashmap");
+import EventEmitter3 from "eventemitter3";
+import HashMap from "hashmap";
 
-const btoa = require("btoa");
-const axios = require("axios");
-const _ = require("lodash");
-const touch = require("touch");
-const merge = require("deepmerge");
-const Measured = require("measured-core");
-const omit = require("object.omit");
-const pick = require("object.pick");
-const configServer = require("./config/configServer");
+import btoa from "btoa";
+import axios from "axios";
+import _ from "lodash";
+import touch from "touch";
+import merge from "deepmerge";
+import Measured from "measured-core";
+import omit from "object.omit";
+import pick from "object.pick";
 
-const fs = require("fs");
-const path = require("path");
-const async = require("async");
-const debug = require("debug")("wa");
-const moment = require("moment");
+import fs from "fs";
+import path from "path";
+import async from "async";
+import debug from "debug";
+import moment from "moment";
 
-const express = require("express");
+import express from "express";
 // set up rate limiter: maximum of five requests per minute
 
-// const RateLimit = require('express-rate-limit');
+// import RateLimit from 'express-rate-limit';
 // const limiter = new RateLimit({
 //   windowMs: 1*60*1000, // 1 minute
 //   max: 100
@@ -330,18 +329,135 @@ const app = express();
 app.use(cors());
 app.set("trust proxy", 1); // trust first proxy
 
-const expressSession = require("express-session");
-// const MongoStore = require("connect-mongo")(expressSession);
-// const MongoStore = require("connect-mongo").default;
-const MongoStore = require("connect-mongo");
-const passport = require("passport");
-const TwitterStrategy = require("passport-twitter").Strategy;
+import expressSession from "express-session";
+// import MongoStore from "connect-mongo")(expressSession;
+// import MongoStore from "connect-mongo".default;
+import MongoStore from "connect-mongo";
+import passport from "passport";
+import TwitterStrategy from "passport-twitter";
 // const { Autohook } = require("twitter-autohook");
 // const webhook = new Autohook();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(require("serve-static")(path.join(__dirname, "public")));
+
+let defaultConfiguration = {}; // general configuration
+let hostConfiguration = {}; // host-specific configuration
+
+let configuration = {};
+configuration.server = {};
+configuration.server.port = process.env.NODE_ENV === "production" ? 8080 : 9997;
+
+configuration.minMentionsHashtags = DEFAULT_MIN_MENTIONS_HASHTAGS;
+configuration.maxLastSeenDaysHashtags = DEFAULT_MAX_LAST_SEEN_DAYS_HASHTAGS;
+
+configuration.tweetSearchCount = DEFAULT_TWEET_SEARCH_COUNT;
+configuration.primaryHost = process.env.PRIMARY_HOST || DEFAULT_PRIMARY_HOST;
+configuration.databaseHost = process.env.DATABASE_HOST || DEFAULT_DATABASE_HOST;
+
+configuration.isPrimaryHost = hostname === configuration.primaryHost;
+configuration.isDatabaseHost = hostname === configuration.databaseHost;
+
+configuration.maxBotsToFetch = DEFAULT_MAX_BOTS_TO_FETCH;
+configuration.botUpdateIntervalTime = DEFAULT_BOT_UPDATE_INTERVAL;
+configuration.botCategories = DEFAULT_BOT_CATEGORIES;
+
+configuration.pubSub = {};
+configuration.pubSub.enabled = DEFAULT_PUBSUB_ENABLED;
+configuration.pubSub.projectId = DEFAULT_PUBSUB_PROJECT_ID;
+configuration.pubSub.pubSubResultTimeout = DEFAULT_PUBSUB_RESULT_TIMEOUT;
+
+configuration.pubSub.subscriptions = {};
+
+configuration.slackChannel = {};
+
+configuration.heartbeatInterval =
+  process.env.WAS_HEARTBEAT_INTERVAL || 10 * ONE_SECOND;
+
+configuration.maxUserSearchSkipCount = DEFAULT_MAX_USER_SEARCH_SKIP_COUNT;
+configuration.filterVerifiedUsers = true;
+configuration.twitterBearerToken = process.env.TWITTER_BEARER_TOKEN;
+configuration.verbose = false;
+configuration.userProfileOnlyFlag = DEFAULT_USER_PROFILE_ONLY_FLAG;
+configuration.binaryMode = DEFAULT_BINARY_MODE;
+
+configuration.maxTransmitNodeQueue = DEFAULT_MAX_TRANSMIT_NODE_QUEUE;
+configuration.maxTweetRxQueue = DEFAULT_MAX_TWEET_RX_QUEUE;
+
+let maxTransmitNodeQueue = configuration.maxTransmitNodeQueue;
+
+let maxTweetRxQueue = configuration.maxTweetRxQueue;
+let maxRxQueue = 0;
+let tweetsReceived = 0;
+let retweetsReceived = 0;
+let quotedTweetsReceived = 0;
+let duplicateTweetsReceived = 0;
+
+configuration.filterDuplicateTweets = DEFAULT_FILTER_DUPLICATE_TWEETS;
+configuration.filterRetweets = DEFAULT_FILTER_RETWEETS;
+
+filterDuplicateTweets = configuration.filterDuplicateTweets;
+filterRetweets = configuration.filterRetweets;
+
+configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
+configuration.enableTwitterFollow = DEFAULT_ENABLE_TWITTER_FOLLOW;
+configuration.autoFollow = DEFAULT_AUTO_FOLLOW;
+
+configuration.categorizeCacheTtl = DEFAULT_CATEGORIZE_CACHE_DEFAULT_TTL;
+configuration.categorizeCacheCheckPeriod = DEFAULT_CATEGORIZE_CACHE_CHECK_PERIOD;
+
+configuration.enableLanguageAnalysis = DEFAULT_ENABLE_LANG_ANALYSIS;
+configuration.forceLanguageAnalysis = DEFAULT_FORCE_LANG_ANALYSIS;
+
+configuration.enableImageAnalysis = DEFAULT_ENABLE_IMAGE_ANALYSIS;
+configuration.forceImageAnalysis = DEFAULT_FORCE_IMAGE_ANALYSIS;
+
+configuration.enableGeoCode = DEFAULT_ENABLE_GEOCODE;
+configuration.forceGeoCode = DEFAULT_FORCE_GEOCODE;
+
+configuration.threeceeUser = DEFAULT_TWITTER_THREECEE_USER;
+configuration.threeceeInfoUsersArray = DEFAULT_THREECEE_INFO_USERS;
+
+configuration.nodeCacheDeleteQueueInterval = DEFAULT_NODE_CACHE_DELETE_QUEUE_INTERVAL;
+configuration.tssInterval = DEFAULT_TSS_TWITTER_QUEUE_INTERVAL;
+configuration.tweetParserMessageRxQueueInterval = DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL;
+configuration.tweetVersion2 = DEFAULT_TWEET_VERSION_2;
+configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
+configuration.sorterMessageRxQueueInterval = DEFAULT_SORTER_INTERVAL;
+configuration.keySortInterval = DEFAULT_SORTER_INTERVAL;
+configuration.nodeSetPropsQueueInterval = DEFAULT_NODE_SETPROPS_QUEUE_INTERVAL;
+configuration.transmitNodeQueueInterval = DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL;
+configuration.rateQueueInterval = DEFAULT_RATE_QUEUE_INTERVAL;
+configuration.rateQueueIntervalModulo = DEFAULT_RATE_QUEUE_INTERVAL_MODULO;
+configuration.statsUpdateIntervalTime = DEFAULT_STATS_UPDATE_INTERVAL;
+configuration.updateUserSetsInterval = DEFAULT_UPDATE_USER_SETS_INTERVAL;
+configuration.updateHashtagSetsInterval = DEFAULT_UPDATE_HASHTAG_SETS_INTERVAL;
+
+configuration.twitterRxQueueInterval = DEFAULT_TWITTER_RX_QUEUE_INTERVAL;
+configuration.categoryHashmapsUpdateInterval = DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL;
+configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
+configuration.offlineMode = DEFAULT_OFFLINE_MODE;
+configuration.autoOfflineMode = DEFAULT_AUTO_OFFLINE_MODE;
+
+configuration.cursorBatchSize = DEFAULT_CURSOR_BATCH_SIZE;
+
+configuration.enableTransmitUser = true;
+configuration.enableTransmitWord = false;
+configuration.enableTransmitPlace = false;
+configuration.enableTransmitHashtag = true;
+configuration.enableTransmitEmoji = false;
+configuration.enableTransmitNgram = false;
+configuration.enableTransmitUrl = false;
+configuration.enableTransmitMedia = false;
+
+configuration.socketAuthTimeout = DEFAULT_SOCKET_AUTH_TIMEOUT;
+configuration.quitOnError = DEFAULT_QUIT_ON_ERROR;
+configuration.maxTopTerms = DEFAULT_MAX_TOP_TERMS;
+configuration.metrics = {};
+configuration.metrics.nodeMeterEnabled = DEFAULT_METRICS_NODE_METER_ENABLED;
+configuration.minFollowersAutoCategorize = DEFAULT_MIN_FOLLOWERS_AUTO_CATEGORIZE;
+configuration.minFollowersAutoFollow = DEFAULT_MIN_FOLLOWERS_AUTO_FOLLOW;
 
 const userCategoryHashmapPickArray = [
   "category",
@@ -1494,7 +1610,7 @@ let ignoreLocationsString = ignoreLocationsArray.join("\\b|\\b");
 ignoreLocationsString = "\\b" + ignoreLocationsString + "\\b";
 let ignoreLocationsRegEx = new RegExp(ignoreLocationsString, "i");
 
-const configEvents = new EventEmitter2({
+const configEvents = new EventEmitter3({
   wildcard: true,
   newListener: true,
   maxListeners: 20,
@@ -1503,121 +1619,6 @@ const configEvents = new EventEmitter2({
 configEvents.on("newListener", function (data) {
   debug("*** NEW CONFIG EVENT LISTENER: " + data);
 });
-
-let defaultConfiguration = {}; // general configuration
-let hostConfiguration = {}; // host-specific configuration
-
-let configuration = {};
-
-configuration.minMentionsHashtags = DEFAULT_MIN_MENTIONS_HASHTAGS;
-configuration.maxLastSeenDaysHashtags = DEFAULT_MAX_LAST_SEEN_DAYS_HASHTAGS;
-
-configuration.tweetSearchCount = DEFAULT_TWEET_SEARCH_COUNT;
-configuration.primaryHost = process.env.PRIMARY_HOST || DEFAULT_PRIMARY_HOST;
-configuration.databaseHost = process.env.DATABASE_HOST || DEFAULT_DATABASE_HOST;
-
-configuration.isPrimaryHost = hostname === configuration.primaryHost;
-configuration.isDatabaseHost = hostname === configuration.databaseHost;
-
-configuration.maxBotsToFetch = DEFAULT_MAX_BOTS_TO_FETCH;
-configuration.botUpdateIntervalTime = DEFAULT_BOT_UPDATE_INTERVAL;
-configuration.botCategories = DEFAULT_BOT_CATEGORIES;
-
-configuration.pubSub = {};
-configuration.pubSub.enabled = DEFAULT_PUBSUB_ENABLED;
-configuration.pubSub.projectId = DEFAULT_PUBSUB_PROJECT_ID;
-configuration.pubSub.pubSubResultTimeout = DEFAULT_PUBSUB_RESULT_TIMEOUT;
-
-configuration.pubSub.subscriptions = {};
-
-configuration.slackChannel = {};
-
-configuration.heartbeatInterval =
-  process.env.WAS_HEARTBEAT_INTERVAL || 10 * ONE_SECOND;
-
-configuration.maxUserSearchSkipCount = DEFAULT_MAX_USER_SEARCH_SKIP_COUNT;
-configuration.filterVerifiedUsers = true;
-configuration.twitterBearerToken = process.env.TWITTER_BEARER_TOKEN;
-configuration.verbose = false;
-configuration.userProfileOnlyFlag = DEFAULT_USER_PROFILE_ONLY_FLAG;
-configuration.binaryMode = DEFAULT_BINARY_MODE;
-
-configuration.maxTransmitNodeQueue = DEFAULT_MAX_TRANSMIT_NODE_QUEUE;
-configuration.maxTweetRxQueue = DEFAULT_MAX_TWEET_RX_QUEUE;
-
-let maxTransmitNodeQueue = configuration.maxTransmitNodeQueue;
-
-let maxTweetRxQueue = configuration.maxTweetRxQueue;
-let maxRxQueue = 0;
-let tweetsReceived = 0;
-let retweetsReceived = 0;
-let quotedTweetsReceived = 0;
-let duplicateTweetsReceived = 0;
-
-configuration.filterDuplicateTweets = DEFAULT_FILTER_DUPLICATE_TWEETS;
-configuration.filterRetweets = DEFAULT_FILTER_RETWEETS;
-
-filterDuplicateTweets = configuration.filterDuplicateTweets;
-filterRetweets = configuration.filterRetweets;
-
-configuration.forceFollow = DEFAULT_FORCE_FOLLOW;
-configuration.enableTwitterFollow = DEFAULT_ENABLE_TWITTER_FOLLOW;
-configuration.autoFollow = DEFAULT_AUTO_FOLLOW;
-
-configuration.categorizeCacheTtl = DEFAULT_CATEGORIZE_CACHE_DEFAULT_TTL;
-configuration.categorizeCacheCheckPeriod = DEFAULT_CATEGORIZE_CACHE_CHECK_PERIOD;
-
-configuration.enableLanguageAnalysis = DEFAULT_ENABLE_LANG_ANALYSIS;
-configuration.forceLanguageAnalysis = DEFAULT_FORCE_LANG_ANALYSIS;
-
-configuration.enableImageAnalysis = DEFAULT_ENABLE_IMAGE_ANALYSIS;
-configuration.forceImageAnalysis = DEFAULT_FORCE_IMAGE_ANALYSIS;
-
-configuration.enableGeoCode = DEFAULT_ENABLE_GEOCODE;
-configuration.forceGeoCode = DEFAULT_FORCE_GEOCODE;
-
-configuration.threeceeUser = DEFAULT_TWITTER_THREECEE_USER;
-configuration.threeceeInfoUsersArray = DEFAULT_THREECEE_INFO_USERS;
-
-configuration.nodeCacheDeleteQueueInterval = DEFAULT_NODE_CACHE_DELETE_QUEUE_INTERVAL;
-configuration.tssInterval = DEFAULT_TSS_TWITTER_QUEUE_INTERVAL;
-configuration.tweetParserMessageRxQueueInterval = DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL;
-configuration.tweetVersion2 = DEFAULT_TWEET_VERSION_2;
-configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
-configuration.sorterMessageRxQueueInterval = DEFAULT_SORTER_INTERVAL;
-configuration.keySortInterval = DEFAULT_SORTER_INTERVAL;
-configuration.nodeSetPropsQueueInterval = DEFAULT_NODE_SETPROPS_QUEUE_INTERVAL;
-configuration.transmitNodeQueueInterval = DEFAULT_TRANSMIT_NODE_QUEUE_INTERVAL;
-configuration.rateQueueInterval = DEFAULT_RATE_QUEUE_INTERVAL;
-configuration.rateQueueIntervalModulo = DEFAULT_RATE_QUEUE_INTERVAL_MODULO;
-configuration.statsUpdateIntervalTime = DEFAULT_STATS_UPDATE_INTERVAL;
-configuration.updateUserSetsInterval = DEFAULT_UPDATE_USER_SETS_INTERVAL;
-configuration.updateHashtagSetsInterval = DEFAULT_UPDATE_HASHTAG_SETS_INTERVAL;
-
-configuration.twitterRxQueueInterval = DEFAULT_TWITTER_RX_QUEUE_INTERVAL;
-configuration.categoryHashmapsUpdateInterval = DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL;
-configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
-configuration.offlineMode = DEFAULT_OFFLINE_MODE;
-configuration.autoOfflineMode = DEFAULT_AUTO_OFFLINE_MODE;
-
-configuration.cursorBatchSize = DEFAULT_CURSOR_BATCH_SIZE;
-
-configuration.enableTransmitUser = true;
-configuration.enableTransmitWord = false;
-configuration.enableTransmitPlace = false;
-configuration.enableTransmitHashtag = true;
-configuration.enableTransmitEmoji = false;
-configuration.enableTransmitNgram = false;
-configuration.enableTransmitUrl = false;
-configuration.enableTransmitMedia = false;
-
-configuration.socketAuthTimeout = DEFAULT_SOCKET_AUTH_TIMEOUT;
-configuration.quitOnError = DEFAULT_QUIT_ON_ERROR;
-configuration.maxTopTerms = DEFAULT_MAX_TOP_TERMS;
-configuration.metrics = {};
-configuration.metrics.nodeMeterEnabled = DEFAULT_METRICS_NODE_METER_ENABLED;
-configuration.minFollowersAutoCategorize = DEFAULT_MIN_FOLLOWERS_AUTO_CATEGORIZE;
-configuration.minFollowersAutoFollow = DEFAULT_MIN_FOLLOWERS_AUTO_FOLLOW;
 
 const threeceeTwitter = {};
 const threeceeInfoTwitter = {};
@@ -3007,7 +3008,7 @@ let cacheObjKeys = Object.keys(cacheObj);
 
 let updateMetricsInterval;
 
-const http = require("http");
+import http from "http";
 
 const httpServer = http.createServer(app);
 
@@ -3023,9 +3024,12 @@ const ioConfig = {
   },
 };
 
-const io = require("socket.io")(httpServer, ioConfig);
+import { createServer } from "http";
+import { Server } from "socket.io";
 
-const cp = require("child_process");
+const io = new Server(httpServer, ioConfig);
+
+import cp from "child_process";
 const { error } = require("console");
 const sorterMessageRxQueue = [];
 
@@ -3782,7 +3786,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
   console.log(
     chalkInfo(
       `${PF} | ${getTimeStamp()} | SERVER_READY EVENT | PORT ${
-        configServer.port
+        configuration.server.port
       }`
     )
   );
@@ -3792,7 +3796,9 @@ configEvents.on("INTERNET_READY", function internetReady() {
       statsObj.internetReady = true;
       debug(
         chalkLog(
-          `${PF} | ${getTimeStamp()} | RECONNECT PORT ${configServer.port}`
+          `${PF} | ${getTimeStamp()} | RECONNECT PORT ${
+            configuration.server.port
+          }`
         )
       );
     });
@@ -3802,7 +3808,9 @@ configEvents.on("INTERNET_READY", function internetReady() {
       statsObj.internetReady = true;
       debug(
         chalkLog(
-          `${PF} | ${getTimeStamp()} | CONNECT PORT ${configServer.port}`
+          `${PF} | ${getTimeStamp()} | CONNECT PORT ${
+            configuration.server.port
+          }`
         )
       );
 
@@ -3811,17 +3819,19 @@ configEvents.on("INTERNET_READY", function internetReady() {
         console.log(
           chalkError(
             `${PF} | *** PORT DISCONNECTED | ${getTimeStamp()} | ${
-              configServer.port
+              configuration.server.port
             }`
           )
         );
       });
     });
 
-    httpServer.listen(configServer.port, function serverListen() {
+    httpServer.listen(configuration.server.port, function serverListen() {
       debug(
         chalkLog(
-          `${PF} | ${getTimeStamp()} | LISTENING ON PORT ${configServer.port}`
+          `${PF} | ${getTimeStamp()} | LISTENING ON PORT ${
+            configuration.server.port
+          }`
         )
       );
     });
@@ -3833,7 +3843,7 @@ configEvents.on("INTERNET_READY", function internetReady() {
       debug(
         chalkError(
           `${PF} | ${getTimeStamp()} | *** HTTP ERROR | PORT ${
-            configServer.port
+            configuration.server.port
           } | ERROR: ${err}`
         )
       );
@@ -3842,21 +3852,24 @@ configEvents.on("INTERNET_READY", function internetReady() {
         debug(
           chalkError(
             `${PF} | ${getTimeStamp()} | *** HTTP ADDRESS IN USE | PORT ${
-              configServer.port
+              configuration.server.port
             } | ... RETRYING...`
           )
         );
 
         setTimeout(function serverErrorTimeout() {
-          httpServer.listen(configServer.port, function serverErrorListen() {
-            debug(
-              chalkInfo(
-                `${PF} | ${getTimeStamp()} | LISTENING ON PORT ${
-                  configServer.port
-                }`
-              )
-            );
-          });
+          httpServer.listen(
+            configuration.server.port,
+            function serverErrorListen() {
+              debug(
+                chalkInfo(
+                  `${PF} | ${getTimeStamp()} | LISTENING ON PORT ${
+                    configuration.server.port
+                  }`
+                )
+              );
+            }
+          );
         }, 5000);
       }
     });
@@ -3979,7 +3992,7 @@ if (debug.enabled) {
 }
 
 debug("NODE_ENV : " + process.env.NODE_ENV);
-debug("CLIENT HOST + PORT: " + "http://localhost:" + configServer.port);
+debug("CLIENT HOST + PORT: " + "http://localhost:" + configuration.server.port);
 
 let prevTweetUser;
 

@@ -1,1 +1,2 @@
-module.exports = require('./env/' + process.env.NODE_ENV + '.js');
+const configServer = require("./env/" + process.env.NODE_ENV + ".js");
+export { configServer };

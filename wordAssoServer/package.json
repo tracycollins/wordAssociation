@@ -1,4 +1,12 @@
 {
+  "name": "word-server",
+  "type": "module",
+  "version": "5.4.0",
+  "main": "wordAssoServer.js",
+  "repository": "https://github.com/tracycollins/wordAssociation.git",
+  "author": "Tracy Collins",
+  "license": "MIT",
+  "private": false,
   "dependencies": {
     "@google-cloud/pubsub": "^2.11.0",
     "@slack/web-api": "^6.1.0",
@@ -20,6 +28,7 @@
     "is-empty": "^1.2.0",
     "is-plain-object": "^5.0.0",
     "languagedetect": "^2.0.0",
+    "limiter": "^2.0.1",
     "measured-core": "^2.0.0",
     "method-override": "^3.0.0",
     "node-cache": "^5.1.2",
@@ -33,12 +42,5 @@
     "tree-kill": "^1.2.2",
     "watch": "^1.0.2",
     "whois-json": "^2.0.4"
-  },
-  "name": "word-server",
-  "version": "5.4.0",
-  "main": "wordAssoServer.js",
-  "repository": "https://github.com/tracycollins/wordAssociation.git",
-  "author": "Tracy Collins",
-  "license": "MIT",
-  "private": false
+  }
 }

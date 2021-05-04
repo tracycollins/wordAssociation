@@ -5,10 +5,9 @@ process.title = "wa_node_child_twp";
 const MAX_Q = 500;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
-const debug = require("debug")("twp");
-const moment = require("moment");
+import moment from "moment";
 
-const chalk = require("chalk");
+import chalk from "chalk";
 const chalkLog = chalk.gray;
 const chalkInfo = chalk.black;
 const chalkAlert = chalk.red;
@@ -16,10 +15,11 @@ const chalkError = chalk.bold.red;
 
 const statsObj = {};
 
-global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+import mgt from "@threeceelabs/mongoose-twitter";
+global.wordAssoDb = mgt;
 
 const tcuAppName = MODULE_ID_PREFIX + "_TCU";
-const ThreeceeUtilities = require("@threeceelabs/threeceeutilities");
+import { ThreeceeUtilities } from "@threeceelabs/threeceeutilities";
 const tcUtils = new ThreeceeUtilities(tcuAppName);
 
 tcUtils.on("error", function (err) {
@@ -33,7 +33,7 @@ tcUtils.on("ready", function () {
 });
 
 const tscAppName = MODULE_ID_PREFIX + "_TSC";
-const TweetServerController = require("@threeceelabs/tweet-server-controller");
+import { TweetServerController } from "@threeceelabs/tweet-server-controller";
 const tweetServerController = new TweetServerController(tscAppName);
 
 tweetServerController.on("error", function (err) {
@@ -49,7 +49,7 @@ tweetServerController.on("ready", function () {
 });
 
 const mguAppName = MODULE_ID_PREFIX + "_MGU";
-const MongooseUtilities = require("@threeceelabs/mongoose-utilities");
+import MongooseUtilities from "@threeceelabs/mongoose-utilities";
 const mgUtils = new MongooseUtilities(mguAppName);
 
 mgUtils.on("ready", async () => {
@@ -131,13 +131,6 @@ console.log(
     "====================================================================================================\n"
 );
 
-if (debug.enabled) {
-  console.log(
-    MODULE_ID_PREFIX +
-      " | %%%%%%%%%%%%%%\n | %%%%%%% DEBUG ENABLED %%%%%%%\n | %%%%%%%%%%%%%%\n"
-  );
-}
-
 let tweetParserQueueInterval;
 
 function initTweetParserQueueInterval(cnf) {
@@ -177,8 +170,6 @@ function initTweetParserQueueInterval(cnf) {
 
       params.tweetStatus = tweetParserQueue.shift();
 
-      debug("params.tweetStatus\n", params.tweetStatus);
-
       try {
         tweetObjMessage.tweetObj = await tweetServerController.createStreamTweetAsync(
           params
@@ -212,15 +203,6 @@ function initTweetParserQueueInterval(cnf) {
                   moment().format(compactDateTimeFormat) +
                   " | " +
                   err
-              )
-            );
-          } else {
-            debug(
-              chalkInfo(
-                MODULE_ID_PREFIX +
-                  " | PARSER SEND ERROR COMPLETE" +
-                  " | " +
-                  moment().format(compactDateTimeFormat)
               )
             );
           }
@@ -263,15 +245,6 @@ process.on("message", function (m) {
       break;
 
     case "PING":
-      debug(
-        chalkLog(
-          MODULE_ID_PREFIX +
-            " | PING" +
-            " | PING ID: " +
-            moment(m.pingId).format(compactDateTimeFormat)
-        )
-      );
-
       setTimeout(function () {
         process.send({ op: "PONG", pongId: m.pingId });
       }, 1000);
@@ -280,26 +253,6 @@ process.on("message", function (m) {
     case "tweet":
       if (tweetParserQueue.length <= MAX_Q) {
         tweetParserQueue.push(m.tweetStatus);
-
-        debug(
-          chalkInfo(
-            MODULE_ID_PREFIX +
-              " | PARSER T<" +
-              " [ TPQ: " +
-              tweetParserQueue.length +
-              "]" +
-              " | " +
-              m.tweetStatus.id_str
-          )
-        );
-      } else {
-        debug(
-          chalkAlert(
-            MODULE_ID_PREFIX +
-              " | *** MAX TWEET PARSE Q SIZE: " +
-              tweetParserQueue.length
-          )
-        );
       }
       break;
 

@@ -26,18 +26,15 @@ const DEFAULT_SEARCH_TERM_UPDATE_INTERVAL = 15 * ONE_MINUTE;
 const defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
-const os = require("os");
-const debug = require("debug")("tss");
-const debugCache = require("debug")("cache");
-const debugQ = require("debug")("queue");
-const path = require("path");
-const dotProp = require("dot-prop");
-const watch = require("watch");
-const LanguageDetect = require("languagedetect");
+import os from "os";
+import path from "path";
+import dotProp from "dot-prop";
+import watch from "watch";
+import LanguageDetect from "languagedetect";
 const lngDetector = new LanguageDetect();
 lngDetector.setLanguageType("iso3");
 
-const chalk = require("chalk");
+import chalk from "chalk";
 const chalkBlue = chalk.blue;
 const chalkAlert = chalk.red;
 const chalkTwitter = chalk.blue;
@@ -58,12 +55,12 @@ hostname = hostname.replace(/word/g, "google");
 
 const MODULE_ID = MODULE_ID_PREFIX + "_" + hostname.toUpperCase();
 
-const _ = require("lodash");
-const Twit = require("twit");
+import _ from "lodash";
+import Twit from "twit";
 
-const moment = require("moment");
-const Measured = require("measured-core");
-const NodeCache = require("node-cache");
+import moment from "moment";
+import Measured from "measured-core";
+import NodeCache from "node-cache";
 
 let DROPBOX_ROOT_FOLDER;
 
@@ -113,7 +110,7 @@ const tweetIdCache = new NodeCache({
   checkperiod: tweetIdCacheCheckPeriod,
 });
 
-const ThreeceeUtilities = require("@threeceelabs/threeceeutilities");
+import { ThreeceeUtilities } from "@threeceelabs/threeceeutilities";
 const tcUtils = new ThreeceeUtilities("WAS_TSS_TCU");
 const jsonPrint = tcUtils.jsonPrint;
 const getTimeStamp = tcUtils.getTimeStamp;
@@ -247,15 +244,7 @@ console.log(
     "====================================================================================================\n"
 );
 
-if (debug.enabled) {
-  console.log(
-    "\nTSS | %%%%%%%%%%%%%%\nTSS | %%%%%%% DEBUG ENABLED %%%%%%%\nTSS | %%%%%%%%%%%%%%\n"
-  );
-}
-
 const statsObj = {};
-
-// statsObj.dbConnectionReady = false;
 
 statsObj.hostname = hostname;
 statsObj.pid = process.pid;
@@ -341,9 +330,6 @@ const dropboxConfigFile = hostname + "_" + DROPBOX_TSS_CONFIG_FILE;
 console.log(
   MODULE_ID + " | DROPBOX_TSS_CONFIG_FILE: " + DROPBOX_TSS_CONFIG_FILE
 );
-
-debug(MODULE_ID + " | dropboxConfigFolder : " + dropboxConfigFolder);
-debug(MODULE_ID + " | dropboxConfigFile : " + dropboxConfigFile);
 
 function showStats(options) {
   threeceeUser.stats.rateLimited = rateLimited;
@@ -1383,11 +1369,6 @@ function initSearchStream() {
           dotProp.has(tweetStatus, "extended_tweet.entities.hashtags") &&
           tweetStatus.extended_tweet.entities.hashtags.length > 0
         ) {
-          debug(
-            "tweetStatus.extended_tweet.entities.hashtags.length: " +
-              tweetStatus.extended_tweet.entities.hashtags.length
-          );
-
           for (const ht of tweetStatus.extended_tweet.entities.hashtags) {
             if (ignoredHashtagSet.has(ht.text.toLowerCase())) {
               statsObj.filtered.hashtags += 1;
@@ -1400,11 +1381,6 @@ function initSearchStream() {
           dotProp.has(tweetStatus, "entities.hashtags") &&
           tweetStatus.entities.hashtags.length > 0
         ) {
-          debug(
-            "tweetStatus.entities.hashtags.length: " +
-              tweetStatus.entities.hashtags.length
-          );
-
           for (const ht of tweetStatus.entities.hashtags) {
             if (ignoredHashtagSet.has(ht.text.toLowerCase())) {
               statsObj.filtered.hashtags += 1;
@@ -1841,16 +1817,6 @@ async function initWatchConfig() {
 
   const loadConfig = async function (f) {
     try {
-      debug(
-        chalkInfo(
-          MODULE_ID +
-            " | +++ FILE CREATED or CHANGED | " +
-            getTimeStamp() +
-            " | " +
-            f
-        )
-      );
-
       if (f.endsWith(followableSearchTermFile)) {
         await initFollowableSearchTermSet();
         await initSearchTerms(configuration);
@@ -1907,12 +1873,6 @@ async function initialize(cnf) {
     chalkLog(MODULE_ID + " | TSS | INITIALIZE" + " | @" + cnf.threeceeUser)
   );
 
-  if (debug.enabled || debugCache.enabled || debugQ.enabled) {
-    console.log(
-      "\nTSS | %%%%%%%%%%%%%%\nTSS | DEBUG ENABLED \nTSS | %%%%%%%%%%%%%%\n"
-    );
-  }
-
   cnf.processName = process.env.TSS_PROCESS_NAME || "wa_node_tss";
 
   cnf.verbose = process.env.TSS_VERBOSE_MODE || false;
@@ -1934,19 +1894,12 @@ async function initialize(cnf) {
 
   cnf.statsUpdateIntervalTime = process.env.TSS_STATS_UPDATE_INTERVAL || 60000;
 
-  debug(
-    chalkWarn(MODULE_ID + " | dropboxConfigFolder: " + dropboxConfigFolder)
-  );
-  debug(chalkWarn(MODULE_ID + " | dropboxConfigFile  : " + dropboxConfigFile));
-
   try {
     const loadedConfigObj = await tcUtils.loadFile({
       folder: configHostFolder,
       file: dropboxConfigFile,
       noErrorNotFound: true,
     });
-
-    debug(dropboxConfigFile + "\n" + jsonPrint(loadedConfigObj));
 
     if (loadedConfigObj.TSS_VERBOSE_MODE !== undefined) {
       console.log(
@@ -2665,15 +2618,6 @@ process.on("message", async function (m) {
       break;
 
     case "PING":
-      debug(
-        chalkLog(
-          MODULE_ID +
-            " | TWP | PING" +
-            " | PING ID: " +
-            moment(m.pingId).format(compactDateTimeFormat)
-        )
-      );
-
       setTimeout(function () {
         process.send({
           op: "PONG",

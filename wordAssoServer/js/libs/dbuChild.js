@@ -30,19 +30,14 @@ const ONE_DAY = ONE_HOUR * 24;
 
 const compactDateTimeFormat = "YYYYMMDD_HHmmss";
 
-const os = require("os");
-const moment = require("moment");
-const debug = require("debug")("dbu");
-const debugCache = require("debug")("cache");
-const debugQ = require("debug")("queue");
-const _ = require("lodash");
-const merge = require("deepmerge");
+import os from "os";
+import moment from "moment";
+import _ from "lodash";
+import merge from "deepmerge";
 
-const ThreeceeUtilities = require("@threeceelabs/threeceeutilities");
+import { ThreeceeUtilities } from "@threeceelabs/threeceeutilities";
 const tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
 
-// const jsonPrint = tcUtils.jsonPrint;
-// const formatBoolean = tcUtils.formatBoolean;
 const formatCategory = tcUtils.formatCategory;
 const getTimeStamp = tcUtils.getTimeStamp;
 const msToTime = tcUtils.msToTime;
@@ -55,8 +50,7 @@ tcUtils.on("ready", function (appname) {
   console.log(chalk.green(MODULE_ID_PREFIX + " | TCU READY | " + appname));
 });
 
-const chalk = require("chalk");
-// const { truncateSync } = require("fs");
+import chalk from "chalk";
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
@@ -116,10 +110,11 @@ process.on("disconnect", function () {
   quit("DISCONNECT");
 });
 
-global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+import mgt from "@threeceelabs/mongoose-twitter";
+global.wordAssoDb = mgt;
 
 const mguAppName = MODULE_ID_PREFIX + "_MGU";
-const MongooseUtilities = require("@threeceelabs/mongoose-utilities");
+import MongooseUtilities from "@threeceelabs/mongoose-utilities";
 const mgUtils = new MongooseUtilities(mguAppName);
 
 mgUtils.on("ready", async () => {
@@ -201,12 +196,6 @@ process.on("exit", function () {
 function initialize() {
   return new Promise(function (resolve) {
     statsObj.status = "INITIALIZE";
-
-    if (debug.enabled || debugCache.enabled || debugQ.enabled) {
-      console.log(
-        "\nDBU | %%%%%%%%%%%%%%\nDBU |  DEBUG ENABLED \nDBU | %%%%%%%%%%%%%%\n"
-      );
-    }
 
     resolve();
   });
@@ -370,44 +359,6 @@ async function tweetUpdateDb(params) {
       printUserObj("DBU | +++ USR DB HIT", user);
     }
 
-    debug(
-      chalkInfo(
-        "DBU | USER MERGED HISTOGRAMS" +
-          " | " +
-          user.nodeId +
-          " | @" +
-          user.screenName +
-          " | LHTID" +
-          user.lastHistogramTweetId +
-          " | LHQID" +
-          user.lastHistogramQuoteId +
-          " | EJs: " +
-          getNumKeys(user.tweetHistograms.emoji) +
-          " | Hs: " +
-          getNumKeys(user.tweetHistograms.hashtags) +
-          " | IMs: " +
-          getNumKeys(user.tweetHistograms.images) +
-          " | LCs: " +
-          getNumKeys(user.tweetHistograms.locations) +
-          " | MEs: " +
-          getNumKeys(user.tweetHistograms.media) +
-          " | Ms: " +
-          getNumKeys(user.tweetHistograms.mentions) +
-          " | NGs: " +
-          getNumKeys(user.tweetHistograms.ngrams) +
-          " | PLs: " +
-          getNumKeys(user.tweetHistograms.places) +
-          " | STs: " +
-          getNumKeys(user.tweetHistograms.sentiment) +
-          " | UMs: " +
-          getNumKeys(user.tweetHistograms.userMentions) +
-          " | ULs: " +
-          getNumKeys(user.tweetHistograms.urls) +
-          " | WDs: " +
-          getNumKeys(user.tweetHistograms.words)
-      )
-    );
-
     user.ageDays = moment().diff(user.createdAt) / ONE_DAY;
     user.tweetsPerDay = user.statusesCount / user.ageDays;
 
@@ -478,8 +429,6 @@ function initUserUpdateQueueInterval(interval) {
 }
 
 process.on("message", async function (m) {
-  debug(chalkAlert("DBU | RX MESSAGE" + " | OP: " + m.op));
-
   switch (m.op) {
     case "INIT":
       process.title = m.title;
@@ -521,14 +470,6 @@ process.on("message", async function (m) {
       break;
 
     case "PING":
-      debug(
-        chalkLog(
-          "DBU | TWP | PING" +
-            " | PING ID: " +
-            moment(m.pingId).format(compactDateTimeFormat)
-        )
-      );
-
       setTimeout(function () {
         process.send({ op: "PONG", pongId: m.pingId });
       }, 1000);

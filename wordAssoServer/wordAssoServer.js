@@ -78,7 +78,7 @@ const metricsRate = "5MinuteRate";
 import shell from "shelljs";
 import methodOverride from "method-override";
 import deepcopy from "deep-copy";
-const { PubSub } = require("@google-cloud/pubsub");
+import { PubSub } from "@google-cloud/pubsub";
 
 let hostname = os.hostname();
 hostname = hostname.replace(/\.local/g, "");
@@ -108,7 +108,8 @@ if (hostname == "google") {
   TWITTER_AUTH_CALLBACK_URL = "http://localhost:9997/auth/twitter/callback";
 }
 
-global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+import mgt from "@threeceelabs/mongoose-twitter";
+global.wordAssoDb = mgt;
 
 import { ThreeceeUtilities } from "@threeceelabs/threeceeutilities";
 const tcUtils = new ThreeceeUtilities(PF + "_TCU");
@@ -135,7 +136,7 @@ mgUtils.on("ready", async () => {
 });
 
 const uscAppName = MODULE_ID_PREFIX + "_USC";
-import UserServerController from "@threeceelabs/user-server-controller";
+import { UserServerController } from "@threeceelabs/user-server-controller";
 const userServerController = new UserServerController(uscAppName);
 
 userServerController.on("error", async (err) => {
@@ -340,7 +341,12 @@ import TwitterStrategy from "passport-twitter";
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(require("serve-static")(path.join(__dirname, "public")));
+import staticServer from "serve-static";
+
+// import path from 'path';
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+
+app.use(staticServer(path.join(__dirname, "public")));
 
 let defaultConfiguration = {}; // general configuration
 let hostConfiguration = {}; // host-specific configuration
@@ -1494,7 +1500,7 @@ async function pubSubPublishMessage(params) {
 //=========================================================================
 // SLACK
 //=========================================================================
-const { WebClient } = require("@slack/web-api");
+import { WebClient } from "@slack/web-api";
 
 console.log("process.env.SLACK_BOT_TOKEN", process.env.SLACK_BOT_TOKEN);
 
@@ -3030,7 +3036,7 @@ import { Server } from "socket.io";
 const io = new Server(httpServer, ioConfig);
 
 import cp from "child_process";
-const { error } = require("console");
+// const { error } = require("console");
 const sorterMessageRxQueue = [];
 
 const ignoreWordHashMap = new HashMap();
@@ -4125,7 +4131,7 @@ async function deleteNode(node) {
       );
     } else {
       console.log(
-        chalkAlert(PF + " | XXX USER | --- DB MISS" + " | " + node.nodeId)
+        chalkLog(PF + " | XXX USER | --- DB MISS" + " | " + node.nodeId)
       );
     }
   }
@@ -9205,16 +9211,6 @@ function initAppRouting(callback) {
     }
 
     console.log(chalkAlert(PF + " | PASSPORT AUTH TWITTER ERROR"));
-
-    // slackText = "*LOADING PAGE | PASSPORT AUTH TWITTER ERROR*";
-    // slackText = slackText + "\nIP: " + req.ip;
-    // slackText = slackText + "\nDOMAIN: " + domainName;
-    // slackText = slackText + "\nURL: " + req.url;
-
-    // await slackSendWebMessage({
-    //   channel: slackChannelUserAuth,
-    //   text: slackText,
-    // });
   });
 
   app.get("/logout", function (req, res) {
@@ -9840,7 +9836,6 @@ function initTssChild(params) {
                 m.errorType +
                 " | ERROR MESSAGE: " +
                 m.error.message
-              // + "\n" + jsonPrint(m.error)
             )
           );
 
@@ -12569,8 +12564,8 @@ setTimeout(async function () {
   }
 }, DEFAULT_START_TIMEOUT);
 
-module.exports = {
-  app: app,
-  io: io,
-  http: httpServer,
-};
+// module.exports = {
+//   app: app,
+//   io: io,
+//   http: httpServer,
+// };

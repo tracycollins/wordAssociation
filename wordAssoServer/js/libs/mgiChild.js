@@ -2,8 +2,8 @@ const MODULE_ID_PREFIX = "MGI";
 
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
-const os = require("os");
-const chalk = require("chalk");
+import os from "os";
+import chalk from "chalk";
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
@@ -19,7 +19,7 @@ hostname = hostname.replace(/word-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
 const MODULE_ID = MODULE_ID_PREFIX + "_" + hostname.toUpperCase();
-const moment = require("moment");
+import moment from "moment";
 
 process.on("SIGHUP", function () {
   quit("SIGHUP");
@@ -109,10 +109,11 @@ process.on("unhandledRejection", function (err, promise) {
   quit("unhandledRejection");
 });
 
-global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+import mgt from "@threeceelabs/mongoose-twitter";
+global.wordAssoDb = mgt;
 
 const mguAppName = MODULE_ID_PREFIX + "_MGU";
-const MongooseUtilities = require("@threeceelabs/mongoose-utilities");
+import MongooseUtilities from "@threeceelabs/mongoose-utilities";
 const mgUtils = new MongooseUtilities(mguAppName);
 
 mgUtils.on("ready", async () => {

@@ -358,18 +358,18 @@ const App = () => {
       newLocation = "/categorize/hashtag/" + currentNode.nodeId.toLowerCase();
     }
 
-    if (progress === "history" && newLocation !== location.pathname) {
-      history.replace(newLocation);
-      console.log(
-        `history size: ${history.length} | new location: ${newLocation}`
-      );
-      setProgress("idle");
-    }
+    // if (progress === "history" && newLocation !== location.pathname) {
+    //   history.replace(newLocation);
+    //   console.log(
+    //     `history size: ${history.length} | location.pathname: ${location.pathname} | replace location: ${newLocation}`
+    //   );
+    //   setProgress("idle");
+    // }
 
     if (progress !== "history" && newLocation !== location.pathname) {
       history.push(newLocation);
       console.log(
-        `history size: ${history.length} | new location: ${newLocation}`
+        `history size: ${history.length} | location.pathname: ${location.pathname} | push location: ${newLocation}`
       );
       setProgress("idle");
     }
@@ -760,14 +760,14 @@ const App = () => {
     });
 
     socket.on("TWITTER_USERS", (response) => {
-      console.debug("RX TWITTER_USERS");
+      console.log("RX TWITTER_USERS");
 
       let tempUsers = [];
       let minFollowers = filterLowFollowersCountRef.current ? 5000 : 0;
       let currentUserSetFlag = false;
 
       if (response.nodes && response.nodes.length > 0) {
-        console.debug("RX USERS: " + response.nodes.length);
+        console.log("RX USERS: " + response.nodes.length);
 
         tempUsers = [...currentUsersRef.current];
 
@@ -806,7 +806,7 @@ const App = () => {
             }
           }
         }
-        console.debug("TOTAL USERS: " + tempUsers.length);
+        console.log("TOTAL USERS: " + tempUsers.length);
         setUsers((users) => [...tempUsers]);
       }
 
@@ -822,19 +822,19 @@ const App = () => {
     });
 
     socket.on("SET_TWITTER_USER", (response) => {
-      console.debug("RX SET_TWITTER_USER");
+      console.log("RX SET_TWITTER_USER");
 
       if (response.nodes) {
         setUsers((users) => [...users, ...response.nodes]);
-        console.debug("RX nodes: " + response.nodes.length);
+        console.log("RX nodes: " + response.nodes.length);
       }
 
       if (
-        nodeValid(response.node) &&
-        currentUser.nodeId === response.node.nodeId
+        nodeValid(response.node)
+        // && currentUser.nodeId === response.node.nodeId
       ) {
         setCurrentUser((currentUser) => response.node);
-        console.debug("new twitter user: @" + response.node.screenName);
+        console.log("new twitter user: @" + response.node.screenName);
         // if (currentTabRef.current === "user"){
         //   history.push("/categorize/user/" + response.node.screenName.toLowerCase())
         // }
@@ -844,16 +844,31 @@ const App = () => {
       setStatus((status) => response.stats);
     });
 
+    socket.on("UPDATE_TWITTER_USER", (response) => {
+      console.log("RX UPDATE_TWITTER_USER");
+
+      if (
+        nodeValid(response.node) &&
+        currentUser.nodeId === response.node.nodeId
+      ) {
+        setCurrentUser((currentUser) => response.node);
+        console.log("new twitter user: @" + response.node.screenName);
+      }
+
+      setProgress((progress) => "idle");
+      setStatus((status) => response.stats);
+    });
+
     socket.on("TWITTER_SEARCH_NODE_UNKNOWN_MODE", (response) => {
-      console.debug("RX TWITTER_SEARCH_NODE_UNKNOWN_MODE");
-      console.debug({ response });
+      console.log("RX TWITTER_SEARCH_NODE_UNKNOWN_MODE");
+      console.log({ response });
       setProgress((progress) => "idle");
       setStatus((status) => response.stats);
     });
 
     socket.on("TWITTER_HASHTAG_NOT_FOUND", (response) => {
-      console.debug("RX TWITTER_HASHTAG_NOT_FOUND");
-      console.debug({ response });
+      console.log("RX TWITTER_HASHTAG_NOT_FOUND");
+      console.log({ response });
       setStatusHashtag((statusHashtag) => "notFound");
       setCurrentHashtag((currentHashtag) => {
         return { nodeId: response.searchNode.slice(1) };
@@ -864,14 +879,14 @@ const App = () => {
     });
 
     socket.on("SET_TWITTER_HASHTAG", (response) => {
-      console.debug("RX SET_TWITTER_HASHTAG");
+      console.log("RX SET_TWITTER_HASHTAG");
 
       if (nodeValid(response.node)) {
         setStatusHashtag((statusHashtag) => "found");
         setCurrentHashtag((currentHashtag) => response.node);
-        console.debug("new: #" + response.node.nodeId);
+        console.log("new: #" + response.node.nodeId);
         if (response.tweets) {
-          console.debug(
+          console.log(
             "RX SET_TWITTER_HASHTAG | SET TWEETS: " +
               response.tweets.statuses.length
           );
@@ -879,8 +894,8 @@ const App = () => {
         }
       } else {
         setStatusHashtag((statusHashtag) => "invalid");
-        console.debug("INVALID HT NODE | RESULTS");
-        console.debug({ response });
+        console.log("INVALID HT NODE | RESULTS");
+        console.log({ response });
       }
 
       setProgress((progress) => "idle");
@@ -913,7 +928,7 @@ const App = () => {
 
     socket.on("authenticated", function () {
       setProgress((progress) => "idle");
-      console.debug("AUTHENTICATED | " + socket.id);
+      console.log("AUTHENTICATED | " + socket.id);
       socket.emit("TWITTER_SEARCH_NODE", { searchNode: "@?all" });
       socket.emit("TWITTER_SEARCH_NODE", { searchNode: "@threecee" });
       socket.emit("TWITTER_SEARCH_NODE", { searchNode: "#blacklivesmatter" });
@@ -929,8 +944,8 @@ const App = () => {
     });
 
     socket.on("TWITTER_USER_NOT_FOUND", (response) => {
-      console.debug("RX TWITTER_USER_NOT_FOUND");
-      console.debug(response);
+      console.log("RX TWITTER_USER_NOT_FOUND");
+      console.log(response);
 
       setStatus((status) => response.stats);
 
@@ -939,7 +954,7 @@ const App = () => {
         response.results &&
         !response.results.endCursor
       ) {
-        console.debug("RETRY NEXT UNCAT: " + response.searchNode);
+        console.log("RETRY NEXT UNCAT: " + response.searchNode);
         socket.emit("TWITTER_SEARCH_NODE", { searchNode: response.searchNode });
       } else {
         setProgress((progress) => "idle");

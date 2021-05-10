@@ -21,7 +21,7 @@ import HashtagView from "./HashtagView.js";
 import AuthUserView from "./AuthUserView.js";
 
 const MIN_USERS_AVAILABLE = 10;
-const MIN_FOLLOWERS_COUNT = 5000;
+const MIN_FOLLOWERS_COUNT = 4000;
 
 const ENDPOINT = "https://word.threeceelabs.com/view";
 const DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
@@ -763,7 +763,9 @@ const App = () => {
       console.log("RX TWITTER_USERS");
 
       let tempUsers = [];
-      let minFollowers = filterLowFollowersCountRef.current ? 5000 : 0;
+      let minFollowers = filterLowFollowersCountRef.current
+        ? MIN_FOLLOWERS_COUNT
+        : 0;
       let currentUserSetFlag = false;
 
       if (response.nodes && response.nodes.length > 0) {

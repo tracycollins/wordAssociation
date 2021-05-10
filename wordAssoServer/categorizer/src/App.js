@@ -780,17 +780,17 @@ const App = () => {
               user.followersCount < MIN_FOLLOWERS_COUNT
             ) {
               console.log(
-                "LESS THAN MIN FOLLOWERS ... SKIPPING | @" +
-                  user.screenName +
-                  " | FOLLOWERS: " +
-                  user.followersCount
+                `LESS THAN MIN FOLLOWERS ... SKIPPING` +
+                  ` | ${user.nodeId}` +
+                  ` | @${user.screenName}` +
+                  ` | ${user.followersCount} FLWRs`
               );
             } else {
               console.log(
-                "+++ USER | @" +
-                  user.screenName +
-                  " | FOLLOWERS: " +
-                  user.followersCount
+                `+++ USER` +
+                  ` | ${user.nodeId}` +
+                  ` | @${user.screenName}` +
+                  ` | ${user.followersCount} FLWRs`
               );
               if (!currentUserSetFlag && waitForCurrentUserRef.current) {
                 console.log(

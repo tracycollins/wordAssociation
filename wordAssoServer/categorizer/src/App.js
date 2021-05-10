@@ -21,7 +21,7 @@ import HashtagView from "./HashtagView.js";
 import AuthUserView from "./AuthUserView.js";
 
 const MIN_USERS_AVAILABLE = 10;
-const MIN_FOLLOWERS_COUNT = 4000;
+const MIN_FOLLOWERS_COUNT = 2500;
 
 const ENDPOINT = "https://word.threeceelabs.com/view";
 const DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";

@@ -211,7 +211,7 @@ function ViewForceLinks(inputConfig) {
   const DEFAULT_MIN_RATE = 0.1;
   const minRate = config.settings.minRate || DEFAULT_MIN_RATE;
 
-  const DEFAULT_MIN_FOLLOWERS = 5000;
+  const DEFAULT_MIN_FOLLOWERS = 2500;
   const minFollowers = config.settings.minFollowers || DEFAULT_MIN_FOLLOWERS;
 
   const DEFAULT_MIN_MENTIONS = 1000;

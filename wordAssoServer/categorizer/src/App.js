@@ -781,16 +781,16 @@ const App = () => {
             ) {
               console.log(
                 `LESS THAN MIN FOLLOWERS ... SKIPPING` +
+                  ` | ${user.followersCount} FLWRs` +
                   ` | ${user.nodeId}` +
-                  ` | @${user.screenName}` +
-                  ` | ${user.followersCount} FLWRs`
+                  ` | @${user.screenName}`
               );
             } else {
               console.log(
                 `+++ USER` +
+                  ` | ${user.followersCount} FLWRs` +
                   ` | ${user.nodeId}` +
-                  ` | @${user.screenName}` +
-                  ` | ${user.followersCount} FLWRs`
+                  ` | @${user.screenName}`
               );
               if (!currentUserSetFlag && waitForCurrentUserRef.current) {
                 console.log(

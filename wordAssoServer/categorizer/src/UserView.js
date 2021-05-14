@@ -38,6 +38,12 @@ const StyledTableRow = withStyles((theme) => ({
   },
 }))(TableRow);
 
+const StyledTableRowTotal = withStyles((theme) => ({
+  root: {
+    backgroundColor: green,
+  },
+}))(TableRow);
+
 const useStyles = makeStyles((theme) => ({
   root: {
     border: 0,
@@ -529,6 +535,15 @@ const User = (props) => {
                       {props.stats.user.categoryAuto.none}
                     </StyledTableCell>
                   </StyledTableRow>
+                  <StyledTableRowTotal>
+                    <StyledTableCell>TOTAL</StyledTableCell>
+                    <StyledTableCell align="right">
+                      {props.stats.user.categorizedManual}
+                    </StyledTableCell>
+                    <StyledTableCell align="right">
+                      {props.stats.user.categorizedAuto}
+                    </StyledTableCell>
+                  </StyledTableRowTotal>
                 </TableBody>
               </Table>
             </TableContainer>

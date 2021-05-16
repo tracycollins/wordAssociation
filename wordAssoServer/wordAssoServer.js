@@ -3498,7 +3498,12 @@ function getChildProcesses({ pids }) {
 
           kill(childPid, function (err) {
             if (err) {
-              console.log(chalkError(PF + " | *** KILL ZOMBIE ERROR: ", err));
+              console.log(
+                chalkError(
+                  `${PF} | *** KILL ZOMBIE ERROR | ${childPid} | ERR: `,
+                  err
+                )
+              );
               return cb(err);
             }
 

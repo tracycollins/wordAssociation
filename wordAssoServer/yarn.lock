@@ -31,11 +31,11 @@
     regenerator-runtime "^0.13.4"
 
 "@google-cloud/language@^4.2.2":
-  version "4.2.2"
-  resolved "https://registry.npmjs.org/@google-cloud/language/-/language-4.2.2.tgz#832a9c2cbd689c1536e3aca6e92c9c476de25989"
-  integrity sha512-gAKt/KY8bKCZ0krlc03Y9H4OWmtnuV3xGFeKpFtfMcmc8k/0dKbYz/SVNTidxsOr/mxFxxvRDG6DEXG0KTLezA==
+  version "4.2.3"
+  resolved "https://registry.npmjs.org/@google-cloud/language/-/language-4.2.3.tgz#7f725e45a94e1214f47bf73736d51f64483ce664"
+  integrity sha512-OGtJYsj6bw/YdyNV2dT0+0o6dZA1OHTCt0GXmFT4O6587Z9bT3lN7cg+HLH5TToHlakCn8C+jPV1bHOzaFUh+A==
   dependencies:
-    google-gax "^2.9.2"
+    google-gax "^2.12.0"
 
 "@google-cloud/paginator@^3.0.0":
   version "3.0.5"
@@ -61,9 +61,9 @@
   integrity sha512-d4VSA86eL/AFTe5xtyZX+ePUjE8dIFu2T8zmdeNBSa5/kNgXPCx/o/wbFNHAGLJdGnk1vddRuMESD9HbOC8irw==
 
 "@google-cloud/pubsub@^2.11.0":
-  version "2.11.0"
-  resolved "https://registry.npmjs.org/@google-cloud/pubsub/-/pubsub-2.11.0.tgz#f613983c6944a2afc7d82434232b25d128655ff7"
-  integrity sha512-j9sIjVLFqSEVrAZdrGbmu4GVVuCW70Sg6/EBKSMjNKhN/ctQsgcP6kUVLVnnrrTWVF0+FfdlfuCHtdYxGy7mfw==
+  version "2.12.0"
+  resolved "https://registry.npmjs.org/@google-cloud/pubsub/-/pubsub-2.12.0.tgz#3375a504ff7612b06301c0fcc35d4d62c533f51f"
+  integrity sha512-SF+y7sKX9Jo2ZoVqzwEuSReUyb6O4mwxzxP1B+dP3j0ArUk0XXSC/tFLQhYM7lC2ViLxGWoIbEZbRIw8SrIQnw==
   dependencies:
     "@google-cloud/paginator" "^3.0.0"
     "@google-cloud/precise-date" "^2.0.0"
@@ -76,25 +76,25 @@
     arrify "^2.0.0"
     extend "^3.0.2"
     google-auth-library "^7.0.0"
-    google-gax "^2.9.2"
+    google-gax "^2.12.0"
     is-stream-ended "^0.1.4"
     lodash.snakecase "^4.1.1"
     p-defer "^3.0.0"
 
 "@google-cloud/secret-manager@^3.6.0":
-  version "3.6.0"
-  resolved "https://registry.npmjs.org/@google-cloud/secret-manager/-/secret-manager-3.6.0.tgz#408510554d2dd72b30449a85d6030069c85d2c04"
-  integrity sha512-1lSYKYJ57PekYvUV2FLt7wtI4toDhMKrbHxMH5kA5X9XLfECasgm/PZo+EbmJ/uIxtz5i2qzQID/NczLrZNG+w==
+  version "3.6.1"
+  resolved "https://registry.npmjs.org/@google-cloud/secret-manager/-/secret-manager-3.6.1.tgz#5ba863aeabe52407b25754fb2e1a8ed006bebbcf"
+  integrity sha512-GxUS7NKzZKer5mBoFohJatCSg20gVhtaLk2sHtdQ3MEm2AZ4OIds2RWnLYBhl8HGHGfINZtejafsjWxHcTFT2w==
   dependencies:
-    google-gax "^2.9.2"
+    google-gax "^2.12.0"
 
 "@google-cloud/vision@^2.3.1":
-  version "2.3.1"
-  resolved "https://registry.npmjs.org/@google-cloud/vision/-/vision-2.3.1.tgz#4cb6f5a8ecd3568e6fce0d72fd8220969c67590d"
-  integrity sha512-P9NXe7pExyZz2YDupUkaoaHwo+jhG0mzuuueoW1MOYQBIqxGqSdw4W+0sGz1EI2+SPCdf6pYA039ELS9RndqVA==
+  version "2.3.2"
+  resolved "https://registry.npmjs.org/@google-cloud/vision/-/vision-2.3.2.tgz#f65f5c2d13aac4fba04c9f7011ebd0c288c838ff"
+  integrity sha512-vQnbz2wDihZ8bhzccshyt38y22+1Rq87NhmEbav170M7SGX8GLcUOYI6H8ZfpdEbNF94PYP4/eco6XCnuhQySQ==
   dependencies:
     "@google-cloud/promisify" "^2.0.0"
-    google-gax "^2.9.2"
+    google-gax "^2.12.0"
     is "^3.3.0"
 
 "@googlemaps/google-maps-services-js@^3.1.16":
@@ -108,16 +108,16 @@
     retry-axios "^2.2.1"
 
 "@grpc/grpc-js@~1.3.0":
-  version "1.3.0"
-  resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-1.3.0.tgz#c6febaaf00ce7f53b5ec52c7cf3e2a4725b82bcb"
-  integrity sha512-fiL7ZaGg2HBiFtmv6m34d5jEgEtNXfctjzB3f7b3iuT7olBX4mHLMOqOBmGTTSOTfNRQJH5+vsyk6mEz3I0Q7Q==
+  version "1.3.2"
+  resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-1.3.2.tgz#eae97e6daf5abd49a7818aadeca0744dfb1ebca1"
+  integrity sha512-UXepkOKCATJrhHGsxt+CGfpZy9zUn1q9mop5kfcXq1fBkTePxVNPOdnISlCbJFlCtld+pSLGyZCzr9/zVprFKA==
   dependencies:
     "@types/node" ">=12.12.47"
 
 "@grpc/proto-loader@^0.6.1":
-  version "0.6.1"
-  resolved "https://registry.npmjs.org/@grpc/proto-loader/-/proto-loader-0.6.1.tgz#ad63e8c7d2a23b0175c78eebc26dedf6b0af0b0b"
-  integrity sha512-4DIvEOZhw5nGj3RQngIoiMXRsre3InEH136krZTcirs/G2em3WMXdtx4Lqlnb4E2ertbWGs5gPeVDKU5BHffXw==
+  version "0.6.2"
+  resolved "https://registry.npmjs.org/@grpc/proto-loader/-/proto-loader-0.6.2.tgz#412575f3ff5ef0a9b79d4ea12c08cba5601041cb"
+  integrity sha512-q2Qle60Ht2OQBCp9S5hv1JbI4uBBq6/mqSevFNK3ZEgRDBCAkWqZPUhD/K9gXOHrHKluliHiVq2L9sw1mVyAIg==
   dependencies:
     "@types/long" "^4.0.1"
     lodash.camelcase "^4.3.0"
@@ -126,9 +126,9 @@
     yargs "^16.1.1"
 
 "@mapbox/node-pre-gyp@^1.0.4":
-  version "1.0.4"
-  resolved "https://registry.npmjs.org/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.4.tgz#6c76e7a40138eac39e1a4dc869a083e43e236c00"
-  integrity sha512-M669Qo4nRT7iDmQEjQYC7RU8Z6dpz9UmSbkJ1OFEja3uevCdLKh7IZZki7L1TZj02kRyl82snXFY8QqkyfowrQ==
+  version "1.0.5"
+  resolved "https://registry.npmjs.org/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.5.tgz#2a0b32fcb416fb3f2250fd24cb2a81421a4f5950"
+  integrity sha512-4srsKPXWlIxp5Vbqz5uLfBN+du2fJChBoYn/f2h991WLdk7jUvcSk/McVLSv/X+xQIPI8eGD5GjrnygdyHnhPA==
   dependencies:
     detect-libc "^1.0.3"
     https-proxy-agent "^5.0.0"
@@ -162,9 +162,9 @@
     fastq "^1.6.0"
 
 "@npmcli/git@^2.0.1":
-  version "2.0.8"
-  resolved "https://registry.npmjs.org/@npmcli/git/-/git-2.0.8.tgz#c38b54cdeec556ab641cf6161cc7825711a88d65"
-  integrity sha512-LPnzyBZ+1p7+JzHVwwKycMF8M3lr1ze3wxGRnxn/QxJtk++Y3prSJQrdBDGCxJyRpFsup6J3lrRBVYBhJVrM8Q==
+  version "2.0.9"
+  resolved "https://registry.npmjs.org/@npmcli/git/-/git-2.0.9.tgz#915bbfe66300e67b4da5ef765a4475ffb2ca5b6b"
+  integrity sha512-hTMbMryvOqGLwnmMBKs5usbPsJtyEsMsgXwJbmNrsEuQQh1LAIMDU77IoOrwkCg+NgQWl+ySlarJASwM3SutCA==
   dependencies:
     "@npmcli/promise-spawn" "^1.3.2"
     lru-cache "^6.0.0"
@@ -282,30 +282,31 @@
   resolved "https://registry.npmjs.org/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@slack/logger@>=1.0.0 <3.0.0":
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/@slack/logger/-/logger-2.0.0.tgz#6a4e1c755849bc0f66dac08a8be54ce790ec0e6b"
-  integrity sha512-OkIJpiU2fz6HOJujhlhfIGrc8hB4ibqtf7nnbJQDerG0BqwZCfmgtK5sWzZ0TkXVRBKD5MpLrTmCYyMxoMCgPw==
+"@slack/logger@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.npmjs.org/@slack/logger/-/logger-3.0.0.tgz#b736d4e1c112c22a10ffab0c2d364620aedcb714"
+  integrity sha512-DTuBFbqu4gGfajREEMrkq5jBhcnskinhr4+AnfJEk48zhVeEv3XnUKGIX98B74kxhYsIMfApGGySTn7V3b5yBA==
   dependencies:
-    "@types/node" ">=8.9.0"
+    "@types/node" ">=12.0.0"
 
-"@slack/types@^1.7.0":
-  version "1.10.0"
-  resolved "https://registry.npmjs.org/@slack/types/-/types-1.10.0.tgz#cbf7d83e1027f4cbfd13d6b429f120c7fb09127a"
-  integrity sha512-tA7GG7Tj479vojfV3AoxbckalA48aK6giGjNtgH6ihpLwTyHE3fIgRrvt8TWfLwW8X8dyu7vgmAsGLRG7hWWOg==
+"@slack/types@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.npmjs.org/@slack/types/-/types-2.0.0.tgz#7b938ab576cd1d6c9ff9ad67a96f8058d101af10"
+  integrity sha512-Nu4jWC39mDY5egAX4oElwOypdu8Cx9tmR7bo3ghaHYaC7mkKM1+b+soanW5s2ssu4yOLxMdFExMh6wlR34B6CA==
 
 "@slack/web-api@^6.1.0":
-  version "6.1.0"
-  resolved "https://registry.npmjs.org/@slack/web-api/-/web-api-6.1.0.tgz#27a17f61eb72100d6722ff17f581349c41d19b5f"
-  integrity sha512-9MVHw+rDBaFvkvzm8lDNH/nlkvJCDKRIjFGMdpbyZlVLsm4rcht4qyiL71bqdyLATHXJnWknb/sl0FQGLLobIA==
+  version "6.2.3"
+  resolved "https://registry.npmjs.org/@slack/web-api/-/web-api-6.2.3.tgz#063ca32987587d1879520badab485796be621e77"
+  integrity sha512-Qt0JUSuT1RKFYRpMfbP0xKkqWoXGzmEa4N+7H5oB9eH228ABn1sM3LDNW7ZQiLs5jpDuzHAp7dSxAZpb+ZfO/w==
   dependencies:
-    "@slack/logger" ">=1.0.0 <3.0.0"
-    "@slack/types" "^1.7.0"
+    "@slack/logger" "^3.0.0"
+    "@slack/types" "^2.0.0"
     "@types/is-stream" "^1.1.0"
     "@types/node" ">=12.0.0"
     axios "^0.21.1"
     eventemitter3 "^3.1.0"
     form-data "^2.5.0"
+    is-electron "^2.2.0"
     is-stream "^1.1.0"
     p-queue "^6.6.1"
     p-retry "^4.0.0"
@@ -420,9 +421,9 @@
     uuid "^8.3.2"
 
 "@threeceelabs/twitter-image-parser@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/@threeceelabs/twitter-image-parser/-/twitter-image-parser-2.0.0.tgz#411d5e11cfcfe1cfa8a8c88f52a74551664703aa"
-  integrity sha512-rfe52sapyCSSJX75SECUDxN4KXR/IvB0by3zfSq0hQpiV9i2QPZUxAsSVIBNTw3hN1rCxG8fh/jOwUkqDfB6jQ==
+  version "2.0.1"
+  resolved "https://registry.npmjs.org/@threeceelabs/twitter-image-parser/-/twitter-image-parser-2.0.1.tgz#401cd9de1fe5d44779b0d81abac5309a1a3afecb"
+  integrity sha512-n9zJsdW8BjNsVYaufdWBF2nMpxEQFTqXzMaRhw4QyqXtvhIpQNpxw4Yqf5gUYGuvcappGf2VCDJsJFm+W1GhRA==
   dependencies:
     "@google-cloud/vision" "^2.3.1"
     "@threeceelabs/mergehistograms" "^1.1.3"
@@ -528,10 +529,10 @@
     "@types/bson" "*"
     "@types/node" "*"
 
-"@types/node@*", "@types/node@>=10.0.0", "@types/node@>=12.0.0", "@types/node@>=12.12.47", "@types/node@>=13.7.0", "@types/node@>=8.9.0":
-  version "15.0.1"
-  resolved "https://registry.npmjs.org/@types/node/-/node-15.0.1.tgz#ef34dea0881028d11398be5bf4e856743e3dc35a"
-  integrity sha512-TMkXt0Ck1y0KKsGr9gJtWGjttxlZnnvDtphxUOSd0bfaR6Q1jle+sPvrzNR1urqYTWMinoKvjKfXUGsumaO1PA==
+"@types/node@*", "@types/node@>=10.0.0", "@types/node@>=12.0.0", "@types/node@>=12.12.47", "@types/node@>=13.7.0":
+  version "15.3.0"
+  resolved "https://registry.npmjs.org/@types/node/-/node-15.3.0.tgz#d6fed7d6bc6854306da3dea1af9f874b00783e26"
+  integrity sha512-8/bnjSZD86ZfpBsDlCIkNXIvm+h6wi9g7IqL+kmFkQ+Wvu3JrasgLElfiPgoo8V8vVfnEi0QVS12gbl94h9YsQ==
 
 "@types/retry@^0.12.0":
   version "0.12.0"
@@ -1486,9 +1487,9 @@ dot-prop@^5.2.0:
     is-obj "^2.0.0"
 
 dotenv@^8.2.0:
-  version "8.2.0"
-  resolved "https://registry.npmjs.org/dotenv/-/dotenv-8.2.0.tgz#97e619259ada750eea3e4ea3e26bceea5424b16a"
-  integrity sha512-8sJ78ElpbDJBHNeBzUbUVLsqKdccaa/BXF1uPTw3GrvQTBgrQrtObr2mUrE38vzYd8cEv+m/JBfDLioYcfXoaw==
+  version "8.6.0"
+  resolved "https://registry.npmjs.org/dotenv/-/dotenv-8.6.0.tgz#061af664d19f7f4d8fc6e4ff9b584ce237adcb8b"
+  integrity sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==
 
 duplexer3@^0.1.4:
   version "0.1.4"
@@ -1578,10 +1579,10 @@ engine.io-parser@~4.0.0:
   dependencies:
     base64-arraybuffer "0.1.4"
 
-engine.io@~5.0.0:
-  version "5.0.0"
-  resolved "https://registry.npmjs.org/engine.io/-/engine.io-5.0.0.tgz#470dc94a8a4907fa4d2cd1fa6611426afcee61bf"
-  integrity sha512-BATIdDV3H1SrE9/u2BAotvsmjJg0t1P4+vGedImSs1lkFAtQdvk4Ev1y4LDiPF7BPWgXWEG+NDY+nLvW3UrMWw==
+engine.io@~5.1.0:
+  version "5.1.0"
+  resolved "https://registry.npmjs.org/engine.io/-/engine.io-5.1.0.tgz#d1d1520d6e99fe61618a4e65a97f57b1d232d711"
+  integrity sha512-A2i4kVvOA3qezQLlMz+FayGFdqOo0LP3fYrb0VqXMDXKoXcbgM0KxcEYnsdVzOMJQErIAb1GIStRj7UWFoiqlQ==
   dependencies:
     accepts "~1.3.4"
     base64id "2.0.0"
@@ -1825,9 +1826,9 @@ find-up@^4.1.0:
     path-exists "^4.0.0"
 
 follow-redirects@^1.10.0:
-  version "1.14.0"
-  resolved "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.14.0.tgz#f5d260f95c5f8c105894491feee5dc8993b402fe"
-  integrity sha512-0vRwd7RKQBTt+mgu87mtYeofLFZpTas2S9zY+jIeuLJMNvudIgF52nr19q40HOwH5RrhWIPuj9puybzSJiRrVg==
+  version "1.14.1"
+  resolved "https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.14.1.tgz#d9114ded0a1cfdd334e164e6662ad02bfd91ff43"
+  integrity sha512-HWqDgT7ZEkqRzBvc2s64vSZ/hfOceEol3ac/7tKwzuvEyWx3/4UegXh5oBOIotkGsObyk3xznnSRVADBgWSQVg==
 
 for-in@^1.0.1:
   version "1.0.2"
@@ -1983,9 +1984,9 @@ glob-parent@^5.1.0:
     is-glob "^4.0.1"
 
 glob@^7.0.0, glob@^7.0.5, glob@^7.1.3, glob@^7.1.4, glob@^7.1.6:
-  version "7.1.6"
-  resolved "https://registry.npmjs.org/glob/-/glob-7.1.6.tgz#141f33b81a7c2492e125594307480c46679278a6"
-  integrity sha512-LwaxwyZ72Lk7vZINtNNrywX0ZuLyStrdDtabefZKAY5ZGJhVtgdznluResxNmPitE0SAO+O26sWTHeKSI2wMBA==
+  version "7.1.7"
+  resolved "https://registry.npmjs.org/glob/-/glob-7.1.7.tgz#3b193e9233f01d42d0b3f78294bbeeb418f94a90"
+  integrity sha512-OvD9ENzPLbegENnYP5UUfJIirTg4+XwMWGaQfQTY0JenxNvvIKP3U3/tAQSPIu/lHxXYSZmpXlUHeqAIdKzBLQ==
   dependencies:
     fs.realpath "^1.0.0"
     inflight "^1.0.4"
@@ -2036,10 +2037,10 @@ google-auth-library@^7.0.0, google-auth-library@^7.0.2:
     jws "^4.0.0"
     lru-cache "^6.0.0"
 
-google-gax@^2.9.2:
-  version "2.12.0"
-  resolved "https://registry.npmjs.org/google-gax/-/google-gax-2.12.0.tgz#caf04b72d81ca8a3c34c72d7f4e9866ad38dd775"
-  integrity sha512-UDx4ZZx85vXBe6GZ0sdRSzuegLrRQdRjCxlauX+U7i5YwOoSgcSaIM71BhcdHwGPhEkvO/SSHrEfc1wpL/J6JA==
+google-gax@^2.12.0:
+  version "2.13.0"
+  resolved "https://registry.npmjs.org/google-gax/-/google-gax-2.13.0.tgz#404bb9df62c3a0a414e2f5339eda4d751f540304"
+  integrity sha512-aKNJy2+Vv2I7flyNYbwpq0aYBHp6Qv32HZn+wr6ZhZ8xlSCLS9K9k7izfh2nd1rCJQcsqB6KMxHV0Vwny6Rc1g==
   dependencies:
     "@grpc/grpc-js" "~1.3.0"
     "@grpc/proto-loader" "^0.6.1"
@@ -2084,9 +2085,9 @@ graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.2.0,
   integrity sha512-nTnJ528pbqxYanhpDYsi4Rd8MAeaBA67+RZ10CM1m3bTAVFEDcd5AuA4a6W5YkGZ1iNXHzZz8T6TBKLeBuNriQ==
 
 grpc@^1.24.7:
-  version "1.24.8"
-  resolved "https://registry.npmjs.org/grpc/-/grpc-1.24.8.tgz#8e17ceb83a480aaac77436ff684f0b073a0e195e"
-  integrity sha512-+3NcScdwgyL8cI1e1hDIcx8D+FFXe1ejo74uxDqqQhEUYg1qSLmC/PVoJmZ3KJVYoH7zXwCEf0vuDAVpLYt4wg==
+  version "1.24.9"
+  resolved "https://registry.npmjs.org/grpc/-/grpc-1.24.9.tgz#69519d9a62877bb661e2e1f526ced05882922dc9"
+  integrity sha512-BOq1AJocZJcG/6qyX3LX2KvKy91RIix10GFLhqWg+1L6b73uWIN2w0cq+lSi0q9mXfkjeFaBz83+oau7oJqG3Q==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.4"
     "@types/bytebuffer" "^5.0.40"
@@ -2140,7 +2141,7 @@ has-symbol-support-x@^2.1.2:
     attempt-x "^2.1.2"
     is-symbol "^1.0.2"
 
-has-symbols@^1.0.1:
+has-symbols@^1.0.2:
   version "1.0.2"
   resolved "https://registry.npmjs.org/has-symbols/-/has-symbols-1.0.2.tgz#165d3070c00309752a1236a479331e3ac56f1423"
   integrity sha512-chXa79rL/UC2KlX17jo3vRGz0azaWEx5tGqZg5pO3NUyEJVB17dMruQlzCCOfUvElghKcm5194+BCRvi2Rv/Gw==
@@ -2287,9 +2288,9 @@ ieee754@^1.1.13:
   integrity sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==
 
 ignore-walk@^3.0.3:
-  version "3.0.3"
-  resolved "https://registry.npmjs.org/ignore-walk/-/ignore-walk-3.0.3.tgz#017e2447184bfeade7c238e4aefdd1e8f95b1e37"
-  integrity sha512-m7o6xuOaT1aqheYHKf8W6J5pYH85ZI9w077erOzLje3JsB1gkafkAhHHY19dqjulgIZHFm32Cp5uNZgcQqdJKw==
+  version "3.0.4"
+  resolved "https://registry.npmjs.org/ignore-walk/-/ignore-walk-3.0.4.tgz#c9a09f69b7c7b479a5d74ac1a3c0d4236d2a6335"
+  integrity sha512-PY6Ii8o1jMRA1z4F2hRkH/xN59ox43DavKvD3oDpfurRlOJyAHpifIwpbdv1n4jt4ov0jSpw3kQ4GhJnpBL6WQ==
   dependencies:
     minimatch "^3.0.4"
 
@@ -2405,11 +2406,16 @@ is-ci@^2.0.0:
     ci-info "^2.0.0"
 
 is-core-module@^2.2.0:
-  version "2.3.0"
-  resolved "https://registry.npmjs.org/is-core-module/-/is-core-module-2.3.0.tgz#d341652e3408bca69c4671b79a0954a3d349f887"
-  integrity sha512-xSphU2KG9867tsYdLD4RWQ1VqdFl4HTO9Thf3I/3dLEfr0dbPTWKsuCKrgqMljg4nPE+Gq0VCnzT3gr0CyBmsw==
+  version "2.4.0"
+  resolved "https://registry.npmjs.org/is-core-module/-/is-core-module-2.4.0.tgz#8e9fc8e15027b011418026e98f0e6f4d86305cc1"
+  integrity sha512-6A2fkfq1rfeQZjxrZJGerpLCTHRNEBiSgnu0+obeJpEPZRUooHgsizvzv0ZjJwOz3iWIHdJtVWJ/tmPr3D21/A==
   dependencies:
     has "^1.0.3"
+
+is-electron@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.npmjs.org/is-electron/-/is-electron-2.2.0.tgz#8943084f09e8b731b3a7a0298a7b5d56f6b7eef0"
+  integrity sha512-SpMppC2XR3YdxSzczXReBjqs2zGscWQpBIKqwXYBFic0ERaxNVgwLCHwOLZeESfdJQjX0RDvrJ1lBXX2ij+G1Q==
 
 is-empty@^1.2.0:
   version "1.2.0"
@@ -2535,16 +2541,16 @@ is-stream@^2.0.0:
   integrity sha512-XCoy+WlUr7d1+Z8GgSuXmpuUFC9fOhRXglJMx+dwLKTkL44Cjd4W1Z5P+BQZpr+cR93aGP4S/s7Ftw6Nd/kiEw==
 
 is-string@^1.0.4:
-  version "1.0.5"
-  resolved "https://registry.npmjs.org/is-string/-/is-string-1.0.5.tgz#40493ed198ef3ff477b8c7f92f644ec82a5cd3a6"
-  integrity sha512-buY6VNRjhQMiF1qWDouloZlQbRhDPCebwxSjxMjxgemYT46YMd2NR0/H+fBhEfWX4A/w9TBJ+ol+okqJKFE6vQ==
+  version "1.0.6"
+  resolved "https://registry.npmjs.org/is-string/-/is-string-1.0.6.tgz#3fe5d5992fb0d93404f32584d4b0179a71b54a5f"
+  integrity sha512-2gdzbKUuqtQ3lYNrUTQYoClPhm7oQu4UdpSZMp1/DGgkHBT8E2Z1l0yMdb6D4zNAxwDiMv8MdulKROJGNl0Q0w==
 
 is-symbol@^1.0.2:
-  version "1.0.3"
-  resolved "https://registry.npmjs.org/is-symbol/-/is-symbol-1.0.3.tgz#38e1014b9e6329be0de9d24a414fd7441ec61937"
-  integrity sha512-OwijhaRSgqvhm/0ZdAcXNZt9lYdKFpcRDT5ULUuYXPoT794UNOdU+gpT6Rzo7b4V2HUl/op6GqY894AZwv9faQ==
+  version "1.0.4"
+  resolved "https://registry.npmjs.org/is-symbol/-/is-symbol-1.0.4.tgz#a6dac93b635b063ca6872236de88910a57af139c"
+  integrity sha512-C/CPBqKWnvdcxqIARxyOh4v1UUEOCHpgDa0WYgpKDFMszcrPcffg5uhwSgPCLD2WWxmq6isisz87tzT01tuGhg==
   dependencies:
-    has-symbols "^1.0.1"
+    has-symbols "^1.0.2"
 
 is-typedarray@^1.0.0, is-typedarray@~1.0.0:
   version "1.0.0"
@@ -3177,9 +3183,9 @@ mongoose-legacy-pluralize@1.0.2:
   integrity sha512-Yo/7qQU4/EyIS8YDFSeenIvXxZN+ld7YdV9LqFVQJzTLye8unujAWPZ4NWKfFA+RNjh+wvTWKY9Z3E5XM6ZZiQ==
 
 mongoose@^5.11.18, mongoose@^5.12.5, mongoose@^5.12.6, mongoose@^5.12.7:
-  version "5.12.7"
-  resolved "https://registry.npmjs.org/mongoose/-/mongoose-5.12.7.tgz#9cbf42246c53b7ab79342c04ef72938d4047b071"
-  integrity sha512-BniNwACn7uflK2h+M3juvyLH5nn9JDFgnB5KE2EwWFwSrRyhSpPnCtanRKJW3OtMCJyPccMIjtGZxHNW7JfnIw==
+  version "5.12.9"
+  resolved "https://registry.npmjs.org/mongoose/-/mongoose-5.12.9.tgz#71ab1bff7691fb651d5fdd04dfcc9d624695aff4"
+  integrity sha512-ZSDjW15DmUbHQcZ2PqoXsJeYnpYipISi6QJH/XHR9dcSg3IRNCa86apcTptBux03/YBPiSZlKNYUNDx7iuMWoA==
   dependencies:
     "@types/mongodb" "^3.5.27"
     bson "^1.1.4"
@@ -3341,9 +3347,9 @@ npm-bundled@^1.1.1:
     npm-normalize-package-bin "^1.0.1"
 
 npm-check-updates@^11.5.6:
-  version "11.5.10"
-  resolved "https://registry.npmjs.org/npm-check-updates/-/npm-check-updates-11.5.10.tgz#73c5037757c227b3133b46f0fea3828b713f3137"
-  integrity sha512-+nKrlBaDglNQWEV5+bx6ZMJAc6VA/aKbqtKs+fr6ewcedF2hfMxHMZe5b8mW9SUu+bjtt/SrPHxkoAiepZIFpA==
+  version "11.5.13"
+  resolved "https://registry.npmjs.org/npm-check-updates/-/npm-check-updates-11.5.13.tgz#fa9395635320bc56501797423a4ddbe8b0f99a6c"
+  integrity sha512-4R9MOr101RdTWYKZSbIbCFIXYegxt0Z7CYMNSYUzkLuusMcueMoH3E/dgfL3h4S9W/z4XboDNbP6jV9FJP/73A==
   dependencies:
     chalk "^4.1.1"
     cint "^8.2.1"
@@ -3395,9 +3401,9 @@ npm-package-arg@^8.0.0, npm-package-arg@^8.0.1, npm-package-arg@^8.1.2:
     validate-npm-package-name "^3.0.0"
 
 npm-packlist@^2.1.4:
-  version "2.1.5"
-  resolved "https://registry.npmjs.org/npm-packlist/-/npm-packlist-2.1.5.tgz#43ef5bbb9f59b7c0ef91e0905f1dd707b4cfb33c"
-  integrity sha512-KCfK3Vi2F+PH1klYauoQzg81GQ8/GGjQRKYY6tRnpQUPKTs/1gBZSRWtTEd7jGdSn1LZL7gpAmJT+BcS55k2XQ==
+  version "2.2.2"
+  resolved "https://registry.npmjs.org/npm-packlist/-/npm-packlist-2.2.2.tgz#076b97293fa620f632833186a7a8f65aaa6148c8"
+  integrity sha512-Jt01acDvJRhJGthnUJVF/w6gumWOZxO7IkpY/lsX9//zqQgnF7OJaxgQXcerd4uQOLu7W5bkb4mChL9mdfm+Zg==
   dependencies:
     glob "^7.1.6"
     ignore-walk "^3.0.3"
@@ -4419,10 +4425,10 @@ snake-case@^2.1.0:
   dependencies:
     no-case "^2.2.0"
 
-socket.io-adapter@~2.2.0:
-  version "2.2.0"
-  resolved "https://registry.npmjs.org/socket.io-adapter/-/socket.io-adapter-2.2.0.tgz#43af9157c4609e74b8addc6867873ac7eb48fda2"
-  integrity sha512-rG49L+FwaVEwuAdeBRq49M97YI3ElVabJPzvHT9S6a2CWhDKnjSFasvwAwSYPRhQzfn4NtDIbCaGYgOCOU/rlg==
+socket.io-adapter@~2.3.0:
+  version "2.3.0"
+  resolved "https://registry.npmjs.org/socket.io-adapter/-/socket.io-adapter-2.3.0.tgz#63090df6dd6d289b0806acff4a0b2f1952ffe37e"
+  integrity sha512-jdIbSFRWOkaZpo5mXy8T7rXEN6qo3bOFuq4nVeX1ZS7AtFlkbk39y153xTXEIW7W94vZfhVOux1wTU88YxcM1w==
 
 socket.io-parser@~4.0.3:
   version "4.0.4"
@@ -4434,9 +4440,9 @@ socket.io-parser@~4.0.3:
     debug "~4.3.1"
 
 socket.io@^4.0.1:
-  version "4.0.1"
-  resolved "https://registry.npmjs.org/socket.io/-/socket.io-4.0.1.tgz#d2e01cf3780d810b66182b3fbef08a04a4ccf924"
-  integrity sha512-g8eZB9lV0f4X4gndG0k7YZAywOg1VxYgCUspS4V+sDqsgI/duqd0AW84pKkbGj/wQwxrqrEq+VZrspRfTbHTAQ==
+  version "4.1.1"
+  resolved "https://registry.npmjs.org/socket.io/-/socket.io-4.1.1.tgz#aa3e4d93142fec6ba2053091601b55c835864b54"
+  integrity sha512-YKPdhaYRGEXjP+VqoKlfOEPgDjm0aMq1YWonjHg4rBU1xJCmgceNh2XL1vO4czWupH+WX1+d9Wqb768h7BC5kw==
   dependencies:
     "@types/cookie" "^0.4.0"
     "@types/cors" "^2.8.8"
@@ -4444,8 +4450,8 @@ socket.io@^4.0.1:
     accepts "~1.3.4"
     base64id "~2.0.0"
     debug "~4.3.1"
-    engine.io "~5.0.0"
-    socket.io-adapter "~2.2.0"
+    engine.io "~5.1.0"
+    socket.io-adapter "~2.3.0"
     socket.io-parser "~4.0.3"
 
 socks-proxy-agent@^5.0.0:

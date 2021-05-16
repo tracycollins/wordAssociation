@@ -411,7 +411,8 @@ configuration.enableTwitterFollow = DEFAULT_ENABLE_TWITTER_FOLLOW;
 configuration.autoFollow = DEFAULT_AUTO_FOLLOW;
 
 configuration.categorizeCacheTtl = DEFAULT_CATEGORIZE_CACHE_DEFAULT_TTL;
-configuration.categorizeCacheCheckPeriod = DEFAULT_CATEGORIZE_CACHE_CHECK_PERIOD;
+configuration.categorizeCacheCheckPeriod =
+  DEFAULT_CATEGORIZE_CACHE_CHECK_PERIOD;
 
 configuration.enableLanguageAnalysis = DEFAULT_ENABLE_LANG_ANALYSIS;
 configuration.forceLanguageAnalysis = DEFAULT_FORCE_LANG_ANALYSIS;
@@ -425,9 +426,11 @@ configuration.forceGeoCode = DEFAULT_FORCE_GEOCODE;
 configuration.threeceeUser = DEFAULT_TWITTER_THREECEE_USER;
 configuration.threeceeInfoUsersArray = DEFAULT_THREECEE_INFO_USERS;
 
-configuration.nodeCacheDeleteQueueInterval = DEFAULT_NODE_CACHE_DELETE_QUEUE_INTERVAL;
+configuration.nodeCacheDeleteQueueInterval =
+  DEFAULT_NODE_CACHE_DELETE_QUEUE_INTERVAL;
 configuration.tssInterval = DEFAULT_TSS_TWITTER_QUEUE_INTERVAL;
-configuration.tweetParserMessageRxQueueInterval = DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL;
+configuration.tweetParserMessageRxQueueInterval =
+  DEFAULT_TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL;
 configuration.tweetVersion2 = DEFAULT_TWEET_VERSION_2;
 configuration.tweetParserInterval = DEFAULT_TWEET_PARSER_INTERVAL;
 configuration.sorterMessageRxQueueInterval = DEFAULT_SORTER_INTERVAL;
@@ -441,7 +444,8 @@ configuration.updateUserSetsInterval = DEFAULT_UPDATE_USER_SETS_INTERVAL;
 configuration.updateHashtagSetsInterval = DEFAULT_UPDATE_HASHTAG_SETS_INTERVAL;
 
 configuration.twitterRxQueueInterval = DEFAULT_TWITTER_RX_QUEUE_INTERVAL;
-configuration.categoryHashmapsUpdateInterval = DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL;
+configuration.categoryHashmapsUpdateInterval =
+  DEFAULT_CATEGORY_HASHMAPS_UPDATE_INTERVAL;
 configuration.testInternetConnectionUrl = DEFAULT_TEST_INTERNET_CONNECTION_URL;
 configuration.offlineMode = DEFAULT_OFFLINE_MODE;
 configuration.autoOfflineMode = DEFAULT_AUTO_OFFLINE_MODE;
@@ -462,7 +466,8 @@ configuration.quitOnError = DEFAULT_QUIT_ON_ERROR;
 configuration.maxTopTerms = DEFAULT_MAX_TOP_TERMS;
 configuration.metrics = {};
 configuration.metrics.nodeMeterEnabled = DEFAULT_METRICS_NODE_METER_ENABLED;
-configuration.minFollowersAutoCategorize = DEFAULT_MIN_FOLLOWERS_AUTO_CATEGORIZE;
+configuration.minFollowersAutoCategorize =
+  DEFAULT_MIN_FOLLOWERS_AUTO_CATEGORIZE;
 configuration.minFollowersAutoFollow = DEFAULT_MIN_FOLLOWERS_AUTO_FOLLOW;
 
 const userCategoryHashmapPickArray = [
@@ -2838,7 +2843,8 @@ console.log(
 let authInProgressTwitterUserCacheCheckPeriod =
   process.env.AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;
 if (empty(authInProgressTwitterUserCacheCheckPeriod)) {
-  authInProgressTwitterUserCacheCheckPeriod = AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;
+  authInProgressTwitterUserCacheCheckPeriod =
+    AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;
 }
 console.log(
   PF +
@@ -3477,11 +3483,10 @@ function getChildProcesses() {
 
           console.log(
             chalkAlert(
-              PF +
-                " | *** CHILD ZOMBIE" +
-                " | STATUS: " +
-                childrenHashMap[childId].status +
-                " | TERMINATING ..."
+              `${PF} | *** CHILD ZOMBIE` +
+                ` | PID: ${childPid}` +
+                ` | STATUS: ${childrenHashMap[childId].staus}` +
+                ` | TERMINATING ...`
             )
           );
 
@@ -8027,7 +8032,8 @@ function initNodeSetPropsQueueInterval(interval) {
 }
 
 async function uncatDbCheck(params) {
-  statsObj.user.dbUncat = await global.wordAssoDb.Uncat.estimatedDocumentCount();
+  statsObj.user.dbUncat =
+    await global.wordAssoDb.Uncat.estimatedDocumentCount();
 
   let dbUncat = await global.wordAssoDb.Uncat.findOne({
     nodeId: params.node.nodeId,
@@ -10555,9 +10561,8 @@ function initRateQinterval(interval) {
         cacheObjKeys.forEach(function statsCachesUpdate(cacheName) {
           if (cacheName == "nodesPerMinuteTopTermNodeTypeCache") {
             DEFAULT_NODE_TYPES.forEach(function (nodeType) {
-              statsObj.caches[cacheName][nodeType].stats.keys = cacheObj[
-                cacheName
-              ][nodeType].getStats().keys;
+              statsObj.caches[cacheName][nodeType].stats.keys =
+                cacheObj[cacheName][nodeType].getStats().keys;
 
               if (
                 statsObj.caches[cacheName][nodeType].stats.keys >
@@ -10565,9 +10570,8 @@ function initRateQinterval(interval) {
               ) {
                 statsObj.caches[cacheName][nodeType].stats.keysMax =
                   statsObj.caches[cacheName][nodeType].stats.keys;
-                statsObj.caches[cacheName][
-                  nodeType
-                ].stats.keysMaxTime = moment().valueOf();
+                statsObj.caches[cacheName][nodeType].stats.keysMaxTime =
+                  moment().valueOf();
                 console.log(
                   chalkInfo(
                     `${PF} | MAX CACHE | ${cacheName} - ${nodeType} | Ks + ${statsObj.caches[cacheName][nodeType].stats.keys}`
@@ -10576,9 +10580,8 @@ function initRateQinterval(interval) {
               }
             });
           } else {
-            statsObj.caches[cacheName].stats.keys = cacheObj[
-              cacheName
-            ].getStats().keys;
+            statsObj.caches[cacheName].stats.keys =
+              cacheObj[cacheName].getStats().keys;
 
             if (
               statsObj.caches[cacheName].stats.keys >

@@ -76,6 +76,7 @@ import NodeCache from "node-cache";
 import commandLineArgs from "command-line-args";
 const metricsRate = "5MinuteRate";
 import shell from "shelljs";
+import psList from "ps-list";
 import methodOverride from "method-override";
 import deepcopy from "deep-copy";
 import { PubSub } from "@google-cloud/pubsub";
@@ -3532,6 +3533,9 @@ function getChildProcesses() {
 async function killAll() {
   try {
     const childPidArray = await getChildProcesses({ searchTerm: "ALL" });
+    const processList = await psList();
+    const pidList = processList.map((processItem) => processItem.pid);
+    // console.log({ pidList });
 
     console.log(
       chalk.green(
@@ -3542,16 +3546,24 @@ async function killAll() {
     if (childPidArray && childPidArray.length > 0) {
       childPidArray.forEach(async function (childObj) {
         try {
-          await killChild({ pid: childObj.pid });
-          console.log(
-            chalkAlert(
-              PF +
-                " | XXX KILL ALL | KILLED | PID: " +
-                childObj.pid +
-                " | CH ID: " +
-                childObj.childId
-            )
-          );
+          if (pidList.inclues(childObj.pid)) {
+            await killChild({ pid: childObj.pid });
+            console.log(
+              chalkAlert(
+                PF +
+                  " | XXX KILL ALL | KILLED | PID: " +
+                  childObj.pid +
+                  " | CH ID: " +
+                  childObj.childId
+              )
+            );
+          } else {
+            console.log(
+              chalkAlert(
+                `${PF} | !!! KILL CHILD PROCESS NOT FOUND | PID: ${childObj.pid}`
+              )
+            );
+          }
         } catch (err) {
           console.log(
             chalkError(

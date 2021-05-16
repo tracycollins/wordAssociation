@@ -3422,10 +3422,13 @@ function getChildProcesses({ pids }) {
 
         const childId = childPidStringArray[0];
         const childPid = parseInt(childPidStringArray[1]);
+
         if (!pids.includes(childPid)) {
           console.log(
             `${PF} | CHILD PROCESS NOT FOUND ... SKIPPING KILL | ${childPid}`
           );
+          delete childrenHashMap[childId];
+          shell.rm(childPidFileName);
           return cb();
         }
 

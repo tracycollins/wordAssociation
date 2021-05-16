@@ -3422,7 +3422,7 @@ function getChildProcesses({ pids }) {
 
         const childId = childPidStringArray[0];
         const childPid = parseInt(childPidStringArray[1]);
-        if (pids.includes(childPid)) {
+        if (!pids.includes(childPid)) {
           console.log(
             `${PF} | CHILD PROCESS NOT FOUND ... SKIPPING KILL | ${childPid}`
           );
@@ -3556,7 +3556,7 @@ async function killAll() {
     if (childPidArray && childPidArray.length > 0) {
       childPidArray.forEach(async function (childObj) {
         try {
-          if (pids.includes(childObj.pid)) {
+          if (!pids.includes(childObj.pid)) {
             await killChild({ pid: childObj.pid });
             console.log(
               chalkAlert(

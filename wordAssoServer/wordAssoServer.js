@@ -3398,7 +3398,7 @@ function killChild(params) {
   });
 }
 
-function getChildProcesses() {
+function getChildProcesses({ pids }) {
   return new Promise(function (resolve, reject) {
     const childPidArray = [];
 
@@ -3412,10 +3412,6 @@ function getChildProcesses() {
     if (!childPidFileNameArray || childPidFileNameArray.length == 0) {
       return resolve(childPidArray);
     }
-
-    const processList = await psList();
-    const pidList = processList.map((processItem) => processItem.pid);
-
     async.eachSeries(
       childPidFileNameArray,
       function (childPidFileName, cb) {
@@ -3426,7 +3422,7 @@ function getChildProcesses() {
 
         const childId = childPidStringArray[0];
         const childPid = parseInt(childPidStringArray[1]);
-        if (pidList.inclues(childPid)) {
+        if (pids.includes(childPid)) {
           console.log(
             `${PF} | CHILD PROCESS NOT FOUND ... SKIPPING KILL | ${childPid}`
           );
@@ -3541,10 +3537,10 @@ function getChildProcesses() {
 
 async function killAll() {
   try {
-    const childPidArray = await getChildProcesses({ searchTerm: "ALL" });
     const processList = await psList();
-    const pidList = processList.map((processItem) => processItem.pid);
-    // console.log({ pidList });
+    const pids = processList.map((processItem) => processItem.pid);
+
+    const childPidArray = await getChildProcesses({ searchTerm: "ALL", pids });
 
     console.log(
       chalk.green(
@@ -3555,7 +3551,7 @@ async function killAll() {
     if (childPidArray && childPidArray.length > 0) {
       childPidArray.forEach(async function (childObj) {
         try {
-          if (pidList.inclues(childObj.pid)) {
+          if (pids.includes(childObj.pid)) {
             await killChild({ pid: childObj.pid });
             console.log(
               chalkAlert(
@@ -11682,7 +11678,9 @@ function initStatsUpdate() {
 
       statsInterval = setInterval(async function updateStats() {
         try {
-          childArray = await getChildProcesses({ searchTerm: "ALL" });
+          const processList = await psList();
+          const pids = processList.map((processItem) => processItem.pid);
+          childArray = await getChildProcesses({ searchTerm: "ALL", pids });
 
           if (configuration.verbose) {
             console.log(

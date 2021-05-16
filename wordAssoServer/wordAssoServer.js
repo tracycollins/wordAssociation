@@ -3413,6 +3413,9 @@ function getChildProcesses() {
       return resolve(childPidArray);
     }
 
+    const processList = await psList();
+    const pidList = processList.map((processItem) => processItem.pid);
+
     async.eachSeries(
       childPidFileNameArray,
       function (childPidFileName, cb) {
@@ -3423,6 +3426,12 @@ function getChildProcesses() {
 
         const childId = childPidStringArray[0];
         const childPid = parseInt(childPidStringArray[1]);
+        if (pidList.inclues(childPid)) {
+          console.log(
+            `${PF} | CHILD PROCESS NOT FOUND ... SKIPPING KILL | ${childPid}`
+          );
+          return cb();
+        }
 
         debug("SHELL: CHILD ID: " + childId + " | PID: " + childPid);
 

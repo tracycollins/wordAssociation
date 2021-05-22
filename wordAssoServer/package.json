@@ -31,6 +31,7 @@
     "limiter": "^2.0.1",
     "lodash": "^4.17.21",
     "measured-core": "^2.0.0",
+    "merge": "^2.1.1",
     "method-override": "^3.0.0",
     "node-cache": "^5.1.2",
     "object.defaults": "^1.1.0",
@@ -42,7 +43,9 @@
     "socket.io": "^4.0.1",
     "touch": "^3.1.0",
     "tree-kill": "^1.2.2",
+    "underscore": "^1.13.1",
     "watch": "^1.0.2",
-    "whois-json": "^2.0.4"
+    "whois-json": "^2.0.4",
+    "xmldom": "^0.6.0"
   }
 }

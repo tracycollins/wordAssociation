@@ -358,10 +358,10 @@
     eventemitter3 "^4.0.7"
     treeify "^1.1.0"
 
-"@threeceelabs/threeceeutilities@^5.1.1", "@threeceelabs/threeceeutilities@^5.1.3":
-  version "5.1.3"
-  resolved "https://registry.npmjs.org/@threeceelabs/threeceeutilities/-/threeceeutilities-5.1.3.tgz#0242d0e01f97cb6debc93d2d94f80fe268dd2699"
-  integrity sha512-9tywKsRi5jP04OvZ1W7K/rrPEdRkvg/3bShxTxeISqOjWslbCGjq+GoTCqGjcpRxCPcas2YPzeWCyheJWYm+TQ==
+"@threeceelabs/threeceeutilities@^5.1.1", "@threeceelabs/threeceeutilities@^5.1.4":
+  version "5.1.5"
+  resolved "https://registry.npmjs.org/@threeceelabs/threeceeutilities/-/threeceeutilities-5.1.5.tgz#bec0c8eb08a976db1b394c53b609b8ffbf6fa3fb"
+  integrity sha512-ihkUI7xxMNneZe5bNLUs44QRMvfbnUB03YMO1NTqF82OfN0JXvwYU4QlYyAf8cdY2odeDyW6VQebc/vyY99jFQ==
   dependencies:
     "@google-cloud/language" "^4.2.2"
     "@googlemaps/google-maps-services-js" "^3.1.16"
@@ -381,7 +381,7 @@
     ioredis "^4.27.1"
     is-empty "^1.2.0"
     isurl "^4.0.2"
-    limiter "^2.0.1"
+    limiter "2.0.1"
     lodash "^4.17.21"
     object-path "^0.11.5"
     object-sizeof "^1.6.1"
@@ -2720,6 +2720,11 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.10.0"
 
+just-performance@4.2.0:
+  version "4.2.0"
+  resolved "https://registry.npmjs.org/just-performance/-/just-performance-4.2.0.tgz#5509e348febde87072665d8325781573e2129f85"
+  integrity sha512-4TikKSf+Gb+Et5SnA4ppyrxLSf9qWFq+SqfdDdrgHE1KLwSch/Zi1AQB0TrE4ppYjZdUrHnwdx+6dyx0cx/HyA==
+
 just-performance@4.3.0:
   version "4.3.0"
   resolved "https://registry.npmjs.org/just-performance/-/just-performance-4.3.0.tgz#cc2bc8c9227f09e97b6b1df4cd0de2df7ae16db1"
@@ -2811,7 +2816,14 @@ libnpmconfig@^1.2.1:
     find-up "^3.0.0"
     ini "^1.3.5"
 
-limiter@^2.0.1:
+limiter@2.0.1:
+  version "2.0.1"
+  resolved "https://registry.npmjs.org/limiter/-/limiter-2.0.1.tgz#030464e800c031b7f706e27e18f77d2b04e8a4e4"
+  integrity sha512-OhORJ29edCj2WVLYEou3AVRYZmobyTOy2A9yvDuwL68teu+vWLLlnJxEBMH4gDXIKlkyCTBL9JDEygSPOiwfMg==
+  dependencies:
+    just-performance "4.2.0"
+
+limiter@^2.1.0:
   version "2.1.0"
   resolved "https://registry.npmjs.org/limiter/-/limiter-2.1.0.tgz#d38d7c5b63729bb84fb0c4d8594b7e955a5182a2"
   integrity sha512-361TYz6iay6n+9KvUUImqdLuFigK+K79qrUtBsXhJTLdH4rIt/r1y8r1iozwh8KbZNpujbFTSh74mJ7bwbAMOw==

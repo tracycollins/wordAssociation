@@ -1,7 +1,7 @@
 {
   "name": "word-server",
   "type": "module",
-  "version": "5.5.4",
+  "version": "5.6.0",
   "main": "wordAssoServer.js",
   "repository": "https://github.com/tracycollins/wordAssociation.git",
   "author": "Tracy Collins",

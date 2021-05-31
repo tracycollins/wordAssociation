@@ -1,6 +1,6 @@
 process.title = "wa_node_child_dbu";
 
-const MODULE_ID_PREFIX = "DBU";
+const PF = "DBU";
 
 const inputTypes = [
   "emoji",
@@ -36,18 +36,18 @@ import _ from "lodash";
 import merge from "deepmerge";
 
 import { ThreeceeUtilities } from "@threeceelabs/threeceeutilities";
-const tcUtils = new ThreeceeUtilities(MODULE_ID_PREFIX + "_TCU");
+const tcUtils = new ThreeceeUtilities(PF + "_TCU");
 
 const formatCategory = tcUtils.formatCategory;
 const getTimeStamp = tcUtils.getTimeStamp;
 const msToTime = tcUtils.msToTime;
 
 tcUtils.on("error", function (err) {
-  console.log(chalkError(MODULE_ID_PREFIX + " | *** TCU ERROR | " + err));
+  console.log(chalkError(PF + " | *** TCU ERROR | " + err));
 });
 
 tcUtils.on("ready", function (appname) {
-  console.log(chalk.green(MODULE_ID_PREFIX + " | TCU READY | " + appname));
+  console.log(chalk.green(PF + " | TCU READY | " + appname));
 });
 
 import chalk from "chalk";
@@ -113,12 +113,12 @@ process.on("disconnect", function () {
 import mgt from "@threeceelabs/mongoose-twitter";
 global.wordAssoDb = mgt;
 
-const mguAppName = MODULE_ID_PREFIX + "_MGU";
-import MongooseUtilities from "@threeceelabs/mongoose-utilities";
+const mguAppName = PF + "_MGU";
+import { MongooseUtilities } from "@threeceelabs/mongoose-utilities";
 const mgUtils = new MongooseUtilities(mguAppName);
 
 mgUtils.on("ready", async () => {
-  console.log(`${MODULE_ID_PREFIX} | +++ MONGOOSE UTILS READY: ${mguAppName}`);
+  console.log(`${PF} | +++ MONGOOSE UTILS READY: ${mguAppName}`);
 });
 
 const configuration = {}; // merge of defaultConfiguration & hostConfiguration

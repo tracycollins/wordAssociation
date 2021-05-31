@@ -127,13 +127,12 @@ tcUtils.on("ready", async function () {
   }
 });
 
-const mguAppName = MODULE_ID_PREFIX + "_MGU";
-import MongooseUtilities from "@threeceelabs/mongoose-utilities";
+const mguAppName = PF + "_MGU";
+import { MongooseUtilities } from "@threeceelabs/mongoose-utilities";
 const mgUtils = new MongooseUtilities(mguAppName);
 
 mgUtils.on("ready", async () => {
-  console.log(`${MODULE_ID_PREFIX} | +++ MONGOOSE UTILS READY: ${mguAppName}`);
-  statsObj.dbConnectionReady = true;
+  console.log(`${PF} | +++ MONGOOSE UTILS READY: ${mguAppName}`);
 });
 
 const uscAppName = MODULE_ID_PREFIX + "_USC";

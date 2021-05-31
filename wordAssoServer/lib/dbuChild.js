@@ -106,12 +106,14 @@ process.on("disconnect", function () {
 global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 const mguAppName = MODULE_ID_PREFIX + "_MGU";
 
-const MongooseUtilities = require("@threeceelabs/mongoose-utilities");
-
+const mguAppName = PF + "_MGU";
+import { MongooseUtilities } from "@threeceelabs/mongoose-utilities";
 const mgUtils = new MongooseUtilities(mguAppName);
+
 mgUtils.on("ready", async () => {
-  console.log(`${MODULE_ID_PREFIX} | +++ MONGOOSE UTILS READY: ${mguAppName}`);
+  console.log(`${PF} | +++ MONGOOSE UTILS READY: ${mguAppName}`);
 });
+
 const configuration = {}; // merge of defaultConfiguration & hostConfiguration
 
 configuration.processName =

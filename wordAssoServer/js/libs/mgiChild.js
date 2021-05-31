@@ -113,7 +113,7 @@ import mgt from "@threeceelabs/mongoose-twitter";
 global.wordAssoDb = mgt;
 
 const mguAppName = MODULE_ID_PREFIX + "_MGU";
-import MongooseUtilities from "@threeceelabs/mongoose-utilities";
+import { MongooseUtilities } from "@threeceelabs/mongoose-utilities";
 const mgUtils = new MongooseUtilities(mguAppName);
 
 mgUtils.on("ready", async () => {

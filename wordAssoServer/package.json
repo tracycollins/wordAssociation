@@ -9,7 +9,7 @@
   "private": false,
   "dependencies": {
     "@google-cloud/pubsub": "^2.12.0",
-    "@slack/web-api": "^6.2.3",
+    "@slack/web-api": "^6.2.4",
     "@threeceelabs/mongoose-twitter": "^2.0.1",
     "@threeceelabs/mongoose-utilities": "^3.0.0",
     "@threeceelabs/threeceeutilities": "^5.1.5",
